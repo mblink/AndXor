@@ -2,7 +2,7 @@
 
 @(tpes: List[String])
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid, \/}
+import scalaz.{Apply, Monoid, \/, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -33,6 +33,15 @@ trait LDRK@{tpes.length}[F[_], @{tpes.prod}] extends LDR {
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
 
+  def transformP[G[_]](nt: (F ~> G)):
+  LDRK@{tpes.length}[F, @{tpes.prod}]#Prod => LDRK@{tpes.length}[G, @{tpes.prod}]#Prod =
+    (p: LDRK@{tpes.length}[F, @{tpes.prod}]#Prod) =>
+      (@{tpes.zipWithIndex.map(x => s"nt(p._${x._2 + 1})").mkString(", ")})
+
+  def transformC[G[_]](nt: (F ~> G)):
+  LDRK@{tpes.length}[F, @{tpes.prod}]#Cop => LDRK@{tpes.length}[G, @{tpes.prod}]#Cop =
+    (p: LDRK@{tpes.length}[F, @{tpes.prod}]#Cop) => p@{
+      tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail}
 }
 
 object LDRK@{tpes.length} {

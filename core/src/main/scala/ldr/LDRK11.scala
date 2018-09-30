@@ -1,6 +1,6 @@
 package ldr
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid, \/}
+import scalaz.{Apply, Monoid, \/, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -128,6 +128,12 @@ trait LDRK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends LDR {
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
 
+  def transformP[G[_]](nt: (F ~> G)): LDRK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod => LDRK11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod =
+    (p: LDRK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod) => (nt(p._1), nt(p._2), nt(p._3), nt(p._4), nt(p._5), nt(p._6), nt(p._7), nt(p._8), nt(p._9), nt(p._10), nt(p._11))
+
+  def transformC[G[_]](nt: (F ~> G)): LDRK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop => LDRK11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop =
+    (p: LDRK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop) =>
+      p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_)))))))))))
 }
 
 object LDRK11 {

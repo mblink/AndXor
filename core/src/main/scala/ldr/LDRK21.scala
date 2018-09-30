@@ -1,6 +1,6 @@
 package ldr
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid, \/}
+import scalaz.{Apply, Monoid, \/, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -497,6 +497,111 @@ trait LDRK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, 
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
 
+  def transformP[G[_]](nt: (F ~> G)): LDRK21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]#Prod => LDRK21[
+    G,
+    A1,
+    A2,
+    A3,
+    A4,
+    A5,
+    A6,
+    A7,
+    A8,
+    A9,
+    A10,
+    A11,
+    A12,
+    A13,
+    A14,
+    A15,
+    A16,
+    A17,
+    A18,
+    A19,
+    A20,
+    A21
+  ]#Prod =
+    (p: LDRK21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]#Prod) =>
+      (
+        nt(p._1),
+        nt(p._2),
+        nt(p._3),
+        nt(p._4),
+        nt(p._5),
+        nt(p._6),
+        nt(p._7),
+        nt(p._8),
+        nt(p._9),
+        nt(p._10),
+        nt(p._11),
+        nt(p._12),
+        nt(p._13),
+        nt(p._14),
+        nt(p._15),
+        nt(p._16),
+        nt(p._17),
+        nt(p._18),
+        nt(p._19),
+        nt(p._20),
+        nt(p._21)
+      )
+
+  def transformC[G[_]](nt: (F ~> G)): LDRK21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]#Cop => LDRK21[
+    G,
+    A1,
+    A2,
+    A3,
+    A4,
+    A5,
+    A6,
+    A7,
+    A8,
+    A9,
+    A10,
+    A11,
+    A12,
+    A13,
+    A14,
+    A15,
+    A16,
+    A17,
+    A18,
+    A19,
+    A20,
+    A21
+  ]#Cop =
+    (p: LDRK21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]#Cop) =>
+      p.bimap(
+        nt(_),
+        _.bimap(
+          nt(_),
+          _.bimap(
+            nt(_),
+            _.bimap(
+              nt(_),
+              _.bimap(
+                nt(_),
+                _.bimap(
+                  nt(_),
+                  _.bimap(
+                    nt(_),
+                    _.bimap(
+                      nt(_),
+                      _.bimap(
+                        nt(_),
+                        _.bimap(
+                          nt(_),
+                          _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_)))))))))))
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
 }
 
 object LDRK21 {

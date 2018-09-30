@@ -21,7 +21,7 @@ import scalaz.std.string._
 import scalaz.std.tuple._
 import scalaz.syntax.monoid._
 import scalaz.syntax.either._
-import scalaz.{Show, \/}
+import scalaz.{Show, \/, ~>}
 val SIS = LDR3[String, Int, List[String]]
 import SIS.instances._ // for inject instances
 implicit val ds: Decidable[Show] = new Decidable[Show] { def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] = Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_))) }
@@ -33,8 +33,15 @@ SIS.combine[Show].choose.show(SIS.inj(List("bar", "baz")))
 val SISF = LDRF3[String, Int, List[String]]
 val SISL = SISF[List]
 import SISL.instances._ // for inject instances
-SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List(List("bar")))
+val ls = SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List(List("bar")))
 val SISO = SISF[Option]
 import SISO.instances._ // for inject instances
-SISO.lift(Option(4)) |+| SISO.lift(Option("foo")) |+| SISO.lift(Option(List("bar")))
+val os = SISO.lift(Option(4)) |+| SISO.lift(Option("foo")) |+| SISO.lift(Option(List("bar")))
+
+// convert between F[_]s using a ~>
+val l2o = new (List ~> Option) { def apply[A](l: List[A]): Option[A] = l.headOption }
+SISL.transformP(l2o)(ls)
+val o2l = new (Option ~> List) { def apply[A](o: Option[A]): List[A] = o.toList }
+SISO.transformP(o2l)(os)
+
 ```

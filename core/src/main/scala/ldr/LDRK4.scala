@@ -1,6 +1,6 @@
 package ldr
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid, \/}
+import scalaz.{Apply, Monoid, \/, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -64,6 +64,11 @@ trait LDRK4[F[_], A1, A2, A3, A4] extends LDR {
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
 
+  def transformP[G[_]](nt: (F ~> G)): LDRK4[F, A1, A2, A3, A4]#Prod => LDRK4[G, A1, A2, A3, A4]#Prod =
+    (p: LDRK4[F, A1, A2, A3, A4]#Prod) => (nt(p._1), nt(p._2), nt(p._3), nt(p._4))
+
+  def transformC[G[_]](nt: (F ~> G)): LDRK4[F, A1, A2, A3, A4]#Cop => LDRK4[G, A1, A2, A3, A4]#Cop =
+    (p: LDRK4[F, A1, A2, A3, A4]#Cop) => p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))
 }
 
 object LDRK4 {
