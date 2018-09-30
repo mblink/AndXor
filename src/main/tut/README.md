@@ -44,4 +44,8 @@ SISL.transformP(l2o)(ls)
 val o2l = new (Option ~> List) { def apply[A](o: Option[A]): List[A] = o.toList }
 SISO.transformP(o2l)(os)
 
+// map given index of Cop or Prod
+import ldr.MapN.syntax._
+SISO.inj(Option(2)).map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
+SISO.lift(Option("foo")).map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
 ```

@@ -31,4 +31,8 @@ object syntax {
       Zipper.zipper(Stream.empty[String], tpes.head, tpes.tail.toStream)
         .cobind(fn).toStream.toList
   }
+
+  implicit class ZipperOps[A](z: Zipper[A]) {
+    def toList: List[A] = z.toStream.toList
+  }
 }

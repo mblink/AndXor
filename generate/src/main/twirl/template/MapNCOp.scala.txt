@@ -1,0 +1,9 @@
+@import ldr.syntax._
+@import scalaz.Zipper
+
+@(z: Zipper[String])
+
+  def map@{z.index + 1}[B](f: @{z.focus} => B): (@{z.modify(_ => "B").toList.dj}) =
+    mapN.map@{z.index + 1}(c)(f)
+
+
