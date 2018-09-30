@@ -1,0 +1,7 @@
+target/*
+project/target/*
+project/project/target/*
+core/target/*
+core/project/target/*
+generate/target/*
+generate/project/target/*

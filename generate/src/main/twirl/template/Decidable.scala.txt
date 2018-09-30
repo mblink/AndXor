@@ -1,0 +1,11 @@
+@import ldr.syntax._
+
+@(tpes: List[String])
+  def choose@{tpes.length}[F[_], Z, @tpes.prod](@{tpes.paramSig("=>F", "a")})(
+    f: Z => @{tpes.dj}
+  )(implicit D: Decidable[F]): F[Z] = {
+    val tail: F[@{tpes.tail.dj}] = @{
+      Some(tpes.length).filter(_ > 3).fold("D.")(_ => "")}choose@{tpes.length - 1}(@{
+      tpes.tail.params("a", 1)})(identity)
+    D.choose2(a0, tail)(f)
+  }

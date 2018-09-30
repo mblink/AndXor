@@ -1,0 +1,10 @@
+@import ldr.syntax._
+
+@(tpes: List[String])
+  def apply@{tpes.length}[F[_], @{tpes.prod}, R](@{tpes.paramSig("=>F", "a")})(
+      f: (@{tpes.prod}) => R)(
+      implicit A: Apply[F]): F[R] = {
+    import A._
+    @{tpes.paramList("a").tail.foldLeft("map(a0)(f.curried)")((a, e) =>
+      s"ap(${e})(${a})")}
+  }
