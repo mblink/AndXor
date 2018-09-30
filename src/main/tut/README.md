@@ -12,10 +12,11 @@ With an instance of Decidable, Alt, Divide, or Apply for a given typeclass,
 provides an instance for the corresponding Coproduct, or Product respectively.
 
 ```tut
-import ldr.{LDRK3, LDR3}
+import ldr.{LDRF3, LDR3}
 import ldr.Decidable
-import scalaz.std.list._
 import scalaz.std.anyVal._
+import scalaz.std.list._
+import scalaz.std.option._
 import scalaz.std.string._
 import scalaz.std.tuple._
 import scalaz.syntax.monoid._
@@ -29,7 +30,11 @@ SIS.combine[Show].choose.show(SIS.inj(2))
 SIS.combine[Show].choose.show(SIS.inj(List("bar", "baz")))
 
 // lift into monoidal product
-val SISL = LDRK3[List, String, Int, List[String]]
+val SISF = LDRF3[String, Int, List[String]]
+val SISL = SISF[List]
 import SISL.instances._ // for inject instances
 SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List(List("bar")))
+val SISO = SISF[Option]
+import SISO.instances._ // for inject instances
+SISO.lift(Option(4)) |+| SISO.lift(Option("foo")) |+| SISO.lift(Option(List("bar")))
 ```
