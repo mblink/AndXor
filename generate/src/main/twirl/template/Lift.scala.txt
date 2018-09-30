@@ -1,8 +1,10 @@
 @import ldr.syntax._
 @import scalaz.Zipper
 
-@(f: Zipper[String])
-  implicit def lifta@{f.index}(implicit M: Monoid[Prod]): Inj[Prod, F[@{f.focus}]] = {
+@(f: Zipper[String], tpes: List[String])
+  implicit def lifta@{f.index}[F[_], @{tpes.prod}](
+      implicit M: Monoid[LDRK@{tpes.length}[F, @{tpes.prod}]#Prod]):
+   Inj[LDRK@{tpes.length}[F, @{tpes.prod}]#Prod, F[@{f.focus}]] = {
     val (@{
   ((f.lefts.toList.paramList("a") :+ "_") ++
     f.rights.toList.paramList("a", f.lefts.length)).mkString(", ")}) =

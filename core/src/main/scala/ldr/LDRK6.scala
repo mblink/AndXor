@@ -19,65 +19,7 @@ trait LDRK6[F[_], A1, A2, A3, A4, A5, A6] extends LDR {
         Combine.apply6(a0, a1, a2, a3, a4, a5)((i0, i1, i2, i3, i4, i5) => f((i0, i1, i2, i3, i4, i5)))
     }
 
-  object instances {
-
-    implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(_.left[(F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6]))))])
-
-    implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(_.left[(F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6])))].right[F[A1]])
-
-    implicit val inja2: Inj[Cop, F[A3]] =
-      Inj.instance(_.left[(F[A4] \/ (F[A5] \/ F[A6]))].right[F[A2]].right[F[A1]])
-
-    implicit val inja3: Inj[Cop, F[A4]] =
-      Inj.instance(_.left[(F[A5] \/ F[A6])].right[F[A3]].right[F[A2]].right[F[A1]])
-
-    implicit val inja4: Inj[Cop, F[A5]] =
-      Inj.instance(_.left[F[A6]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
-
-    implicit val inja5: Inj[Cop, F[A6]] =
-      Inj.instance(_.right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
-
-    implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
-      val (_, a0, a1, a2, a3, a4) =
-        M.zero
-      Inj.instance((_, a0, a1, a2, a3, a4))
-    }
-
-    implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
-      val (a0, _, a1, a2, a3, a4) =
-        M.zero
-      Inj.instance((a0, _, a1, a2, a3, a4))
-    }
-
-    implicit def lifta2(implicit M: Monoid[Prod]): Inj[Prod, F[A3]] = {
-      val (a0, a1, _, a2, a3, a4) =
-        M.zero
-      Inj.instance((a0, a1, _, a2, a3, a4))
-    }
-
-    implicit def lifta3(implicit M: Monoid[Prod]): Inj[Prod, F[A4]] = {
-      val (a0, a1, a2, _, a3, a4) =
-        M.zero
-      Inj.instance((a0, a1, a2, _, a3, a4))
-    }
-
-    implicit def lifta4(implicit M: Monoid[Prod]): Inj[Prod, F[A5]] = {
-      val (a0, a1, a2, a3, _, a4) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, _, a4))
-    }
-
-    implicit def lifta5(implicit M: Monoid[Prod]): Inj[Prod, F[A6]] = {
-      val (a0, a1, a2, a3, a4, _) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, _))
-    }
-
-  }
-
-  import instances._
+  import LDRK6._
 
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
@@ -93,6 +35,61 @@ object LDRK6 {
 
   def apply[F[_], A1, A2, A3, A4, A5, A6]: LDRK6[F, A1, A2, A3, A4, A5, A6] =
     new LDRK6[F, A1, A2, A3, A4, A5, A6] {}
+
+  implicit def inja0[F[_], A1, A2, A3, A4, A5, A6]: Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Cop, F[A1]] =
+    Inj.instance(_.left[(F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6]))))])
+
+  implicit def inja1[F[_], A1, A2, A3, A4, A5, A6]: Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Cop, F[A2]] =
+    Inj.instance(_.left[(F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6])))].right[F[A1]])
+
+  implicit def inja2[F[_], A1, A2, A3, A4, A5, A6]: Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Cop, F[A3]] =
+    Inj.instance(_.left[(F[A4] \/ (F[A5] \/ F[A6]))].right[F[A2]].right[F[A1]])
+
+  implicit def inja3[F[_], A1, A2, A3, A4, A5, A6]: Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Cop, F[A4]] =
+    Inj.instance(_.left[(F[A5] \/ F[A6])].right[F[A3]].right[F[A2]].right[F[A1]])
+
+  implicit def inja4[F[_], A1, A2, A3, A4, A5, A6]: Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Cop, F[A5]] =
+    Inj.instance(_.left[F[A6]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+
+  implicit def inja5[F[_], A1, A2, A3, A4, A5, A6]: Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Cop, F[A6]] =
+    Inj.instance(_.right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+
+  implicit def lifta0[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod]): Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod, F[A1]] = {
+    val (_, a0, a1, a2, a3, a4) =
+      M.zero
+    Inj.instance((_, a0, a1, a2, a3, a4))
+  }
+
+  implicit def lifta1[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod]): Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod, F[A2]] = {
+    val (a0, _, a1, a2, a3, a4) =
+      M.zero
+    Inj.instance((a0, _, a1, a2, a3, a4))
+  }
+
+  implicit def lifta2[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod]): Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod, F[A3]] = {
+    val (a0, a1, _, a2, a3, a4) =
+      M.zero
+    Inj.instance((a0, a1, _, a2, a3, a4))
+  }
+
+  implicit def lifta3[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod]): Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod, F[A4]] = {
+    val (a0, a1, a2, _, a3, a4) =
+      M.zero
+    Inj.instance((a0, a1, a2, _, a3, a4))
+  }
+
+  implicit def lifta4[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod]): Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod, F[A5]] = {
+    val (a0, a1, a2, a3, _, a4) =
+      M.zero
+    Inj.instance((a0, a1, a2, a3, _, a4))
+  }
+
+  implicit def lifta5[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod]): Inj[LDRK6[F, A1, A2, A3, A4, A5, A6]#Prod, F[A6]] = {
+    val (a0, a1, a2, a3, a4, _) =
+      M.zero
+    Inj.instance((a0, a1, a2, a3, a4, _))
+  }
+
 }
 
 trait LDRF6[A1, A2, A3, A4, A5, A6] {

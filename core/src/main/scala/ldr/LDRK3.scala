@@ -19,38 +19,7 @@ trait LDRK3[F[_], A1, A2, A3] extends LDR {
         Combine.apply3(a0, a1, a2)((i0, i1, i2) => f((i0, i1, i2)))
     }
 
-  object instances {
-
-    implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(_.left[(F[A2] \/ F[A3])])
-
-    implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(_.left[F[A3]].right[F[A1]])
-
-    implicit val inja2: Inj[Cop, F[A3]] =
-      Inj.instance(_.right[F[A2]].right[F[A1]])
-
-    implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
-      val (_, a0, a1) =
-        M.zero
-      Inj.instance((_, a0, a1))
-    }
-
-    implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
-      val (a0, _, a1) =
-        M.zero
-      Inj.instance((a0, _, a1))
-    }
-
-    implicit def lifta2(implicit M: Monoid[Prod]): Inj[Prod, F[A3]] = {
-      val (a0, a1, _) =
-        M.zero
-      Inj.instance((a0, a1, _))
-    }
-
-  }
-
-  import instances._
+  import LDRK3._
 
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
@@ -66,6 +35,34 @@ object LDRK3 {
 
   def apply[F[_], A1, A2, A3]: LDRK3[F, A1, A2, A3] =
     new LDRK3[F, A1, A2, A3] {}
+
+  implicit def inja0[F[_], A1, A2, A3]: Inj[LDRK3[F, A1, A2, A3]#Cop, F[A1]] =
+    Inj.instance(_.left[(F[A2] \/ F[A3])])
+
+  implicit def inja1[F[_], A1, A2, A3]: Inj[LDRK3[F, A1, A2, A3]#Cop, F[A2]] =
+    Inj.instance(_.left[F[A3]].right[F[A1]])
+
+  implicit def inja2[F[_], A1, A2, A3]: Inj[LDRK3[F, A1, A2, A3]#Cop, F[A3]] =
+    Inj.instance(_.right[F[A2]].right[F[A1]])
+
+  implicit def lifta0[F[_], A1, A2, A3](implicit M: Monoid[LDRK3[F, A1, A2, A3]#Prod]): Inj[LDRK3[F, A1, A2, A3]#Prod, F[A1]] = {
+    val (_, a0, a1) =
+      M.zero
+    Inj.instance((_, a0, a1))
+  }
+
+  implicit def lifta1[F[_], A1, A2, A3](implicit M: Monoid[LDRK3[F, A1, A2, A3]#Prod]): Inj[LDRK3[F, A1, A2, A3]#Prod, F[A2]] = {
+    val (a0, _, a1) =
+      M.zero
+    Inj.instance((a0, _, a1))
+  }
+
+  implicit def lifta2[F[_], A1, A2, A3](implicit M: Monoid[LDRK3[F, A1, A2, A3]#Prod]): Inj[LDRK3[F, A1, A2, A3]#Prod, F[A3]] = {
+    val (a0, a1, _) =
+      M.zero
+    Inj.instance((a0, a1, _))
+  }
+
 }
 
 trait LDRF3[A1, A2, A3] {

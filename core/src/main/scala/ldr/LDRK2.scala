@@ -19,29 +19,7 @@ trait LDRK2[F[_], A1, A2] extends LDR {
         Combine.apply2(a0, a1)((i0, i1) => f((i0, i1)))
     }
 
-  object instances {
-
-    implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(_.left[F[A2]])
-
-    implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(_.right[F[A1]])
-
-    implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
-      val (_, a0) =
-        M.zero
-      Inj.instance((_, a0))
-    }
-
-    implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
-      val (a0, _) =
-        M.zero
-      Inj.instance((a0, _))
-    }
-
-  }
-
-  import instances._
+  import LDRK2._
 
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
@@ -57,6 +35,25 @@ object LDRK2 {
 
   def apply[F[_], A1, A2]: LDRK2[F, A1, A2] =
     new LDRK2[F, A1, A2] {}
+
+  implicit def inja0[F[_], A1, A2]: Inj[LDRK2[F, A1, A2]#Cop, F[A1]] =
+    Inj.instance(_.left[F[A2]])
+
+  implicit def inja1[F[_], A1, A2]: Inj[LDRK2[F, A1, A2]#Cop, F[A2]] =
+    Inj.instance(_.right[F[A1]])
+
+  implicit def lifta0[F[_], A1, A2](implicit M: Monoid[LDRK2[F, A1, A2]#Prod]): Inj[LDRK2[F, A1, A2]#Prod, F[A1]] = {
+    val (_, a0) =
+      M.zero
+    Inj.instance((_, a0))
+  }
+
+  implicit def lifta1[F[_], A1, A2](implicit M: Monoid[LDRK2[F, A1, A2]#Prod]): Inj[LDRK2[F, A1, A2]#Prod, F[A2]] = {
+    val (a0, _) =
+      M.zero
+    Inj.instance((a0, _))
+  }
+
 }
 
 trait LDRF2[A1, A2] {

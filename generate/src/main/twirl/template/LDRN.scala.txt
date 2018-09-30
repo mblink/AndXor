@@ -23,12 +23,7 @@ trait LDRK@{tpes.length}[F[_], @{tpes.prod}] extends LDR {
             f((@{tpes.params("i")})))
     }
 
-  object instances {
-    @{tpes.zipper(template.txt.Inj(_)).mkString("\n")}
-    @{tpes.zipper(template.txt.Lift(_)).mkString("\n")}
-  }
-
-  import instances._
+  import LDRK@{tpes.length}._
 
   val injEv = combine[Inj.Aux[Cop]#Out].choose
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
@@ -48,6 +43,9 @@ object LDRK@{tpes.length} {
 
   def apply[F[_], @{tpes.prod}]: LDRK@{tpes.length}[F, @{tpes.prod}] =
     new LDRK@{tpes.length}[F, @{tpes.prod}] {}
+
+  @{tpes.zipper(template.txt.Inj(_, tpes)).mkString("\n")}
+  @{tpes.zipper(template.txt.Lift(_, tpes)).mkString("\n")}
 }
 
 trait LDRF@{tpes.length}[@{tpes.prod}] {

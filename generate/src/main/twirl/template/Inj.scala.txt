@@ -1,9 +1,10 @@
 @import ldr.syntax._
 @import scalaz.Zipper
 
-@(z: Zipper[String])
+@(z: Zipper[String], tpes: List[String])
 
-  implicit val inja@{z.index}: Inj[Cop, F[@{z.focus}]] =
+  implicit def inja@{z.index}[F[_], @{tpes.prod}]:
+  Inj[LDRK@{tpes.length}[F, @{tpes.prod}]#Cop, F[@{z.focus}]] =
     Inj.instance(_@{
       Some(z.rights.toList).filter(_.nonEmpty)
         .map(rt => s""".left[${rt.djK("F")}]""").getOrElse("")}@{
