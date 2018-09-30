@@ -56,6 +56,7 @@ lazy val core = (project in file("./core")).
       "-Ycache-plugin-class-loader:last-modified",
       //"-Xlog-implicits",
       "-Ycache-macro-class-loader:last-modified"),
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8"),
     name := "ldr-core"
   )
 

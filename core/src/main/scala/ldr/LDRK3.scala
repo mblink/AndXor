@@ -66,6 +66,15 @@ object LDRK3 {
 
   def apply[F[_], A1, A2, A3]: LDRK3[F, A1, A2, A3] =
     new LDRK3[F, A1, A2, A3] {}
+
+
+  implicit def transform[A1, A2, A3] = new Transform[LDRK3[?[_], A1, A2, A3]] {
+    type H[F[_]] = LDRK3[F, A1, A2, A3]
+    def transformP[F[_], G[_]](nt: (F ~> G)): H[F]#Prod => H[G]#Prod =
+      (p: LDRK3[F, A1, A2, A3]#Prod) => (nt(p._1), nt(p._2), nt(p._3))
+    def transformC[F[_], G[_]](nt: (F ~> G)): H[F]#Cop => H[G]#Cop =
+      (p: LDRK3[F, A1, A2, A3]#Cop) => p.bimap(nt(_), _.bimap(nt(_), nt(_)))
+  }
 }
 
 trait LDRF3[A1, A2, A3] {

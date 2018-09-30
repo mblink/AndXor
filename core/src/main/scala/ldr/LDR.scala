@@ -1,7 +1,7 @@
 package ldr
 
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid}
+import scalaz.{Apply, Monoid, ~>}
 
 abstract class ComposeLDR[F[_], Cop, Prod] {
   def mkChoose[B](f: B => Cop)(implicit d: Decidable[F]): F[B]
@@ -25,4 +25,9 @@ trait LDR {
   def inj[A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
   def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod]
   def lift[A](a: A)(implicit inj: Inj[Prod, A]): Prod = inj(a)
+}
+
+trait Transform[H[_[_]] <: LDR] {
+  def transformP[F[_], G[_]](nt: (F ~> G)): H[F]#Prod => H[G]#Prod
+  def transformC[F[_], G[_]](nt: (F ~> G)): H[F]#Cop => H[G]#Cop
 }
