@@ -7,7 +7,12 @@ import org.scalafmt.Scalafmt
 object Generate extends App {
 
   val conf = Scalafmt.parseHoconConfig(
-    "binPack.literalArgumentLists=true\nmaxColumn=200\nnewlines.penalizeSingleSelectMultiArgList=false\nverticalMultiline.atDefnSite=false\nverticalMultiline.newlineAfterOpenParen=false").get
+    """align.openParenCallSite=false
+       binPack.literalArgumentLists=true
+       maxColumn=200
+       newlines.penalizeSingleSelectMultiArgList=false
+       verticalMultiline.atDefnSite=false
+       verticalMultiline.newlineAfterOpenParen=false""").get
   val tpeLists = (2 to 22).toList.map(n => (1 to n).toList.map(x => s"A${x}"))
   val mn = cwd/"core"/"src"/"main"/"scala"/"andxor"/"MapN.scala"
   println("Writing MapN")

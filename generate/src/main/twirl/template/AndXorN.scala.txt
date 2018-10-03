@@ -2,7 +2,7 @@
 
 @(tpes: List[String])
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid, \/, ~>}
+import scalaz.{Apply, Functor, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -42,6 +42,15 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
   AndXorK@{tpes.length}[F, @{tpes.prod}]#Cop => AndXorK@{tpes.length}[G, @{tpes.prod}]#Cop =
     (p: AndXorK@{tpes.length}[F, @{tpes.prod}]#Cop) => p@{
       tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail}
+
+  // format: off
+  def sequenceP(prod: Prod)(A: Apply[F]): F[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Prod] = {
+    val (@{tpes.params("a")}) = prod@{
+    tpes.paramList("a").tail.foldLeft(
+      s"""\n     A.map(a0)(((${tpes.paramSig("i")}) =>\n    (${tpes.params("i")})).curried)""")(
+        (a, e) => s"\n    A.ap(${e})(${a})")}
+  }
+  // format: on
 }
 
 object AndXorK@{tpes.length} {

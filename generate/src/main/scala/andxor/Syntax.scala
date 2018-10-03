@@ -22,6 +22,9 @@ object syntax {
     def paramSig(F: String, a: String): String =
       tpes.zipWithIndex.map(s => s"${a}${s._2}: ${F}[${s._1}]")
         .mkString(", ")
+    def paramSig(a: String): String =
+      tpes.zipWithIndex.map(s => s"${a}${s._2}: ${s._1}")
+        .mkString(", ")
     def paramList(a: String, sIx: Int = 0): List[String] =
       tpes.zipWithIndex.map(s => s"${a}${s._2 + sIx}")
     def params(a: String, sIx: Int = 0): String =

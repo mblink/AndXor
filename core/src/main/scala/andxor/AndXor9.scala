@@ -1,6 +1,6 @@
 package andxor
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid, \/, ~>}
+import scalaz.{Apply, Functor, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -114,6 +114,22 @@ trait AndXorK9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9] extends AndXor {
 
   def transformC[G[_]](nt: (F ~> G)): AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Cop => AndXorK9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Cop =
     (p: AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Cop) => p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_)))))))))
+
+  // format: off
+  def sequenceP(prod: Prod)(A: Apply[F]): F[AndXorK9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Prod] = {
+    val (a0, a1, a2, a3, a4, a5, a6, a7, a8) = prod
+    A.ap(a8)(
+    A.ap(a7)(
+    A.ap(a6)(
+    A.ap(a5)(
+    A.ap(a4)(
+    A.ap(a3)(
+    A.ap(a2)(
+    A.ap(a1)(
+     A.map(a0)(((i0: A1, i1: A2, i2: A3, i3: A4, i4: A5, i5: A6, i6: A7, i7: A8, i8: A9) =>
+    (i0, i1, i2, i3, i4, i5, i6, i7, i8)).curried)))))))))
+  }
+  // format: on
 }
 
 object AndXorK9 {

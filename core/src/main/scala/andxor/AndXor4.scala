@@ -1,6 +1,6 @@
 package andxor
 import scala.language.higherKinds
-import scalaz.{Apply, Monoid, \/, ~>}
+import scalaz.{Apply, Functor, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -69,6 +69,17 @@ trait AndXorK4[F[_], A1, A2, A3, A4] extends AndXor {
 
   def transformC[G[_]](nt: (F ~> G)): AndXorK4[F, A1, A2, A3, A4]#Cop => AndXorK4[G, A1, A2, A3, A4]#Cop =
     (p: AndXorK4[F, A1, A2, A3, A4]#Cop) => p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))
+
+  // format: off
+  def sequenceP(prod: Prod)(A: Apply[F]): F[AndXorK4[Id, A1, A2, A3, A4]#Prod] = {
+    val (a0, a1, a2, a3) = prod
+    A.ap(a3)(
+    A.ap(a2)(
+    A.ap(a1)(
+     A.map(a0)(((i0: A1, i1: A2, i2: A3, i3: A4) =>
+    (i0, i1, i2, i3)).curried))))
+  }
+  // format: on
 }
 
 object AndXorK4 {
