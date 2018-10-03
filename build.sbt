@@ -1,6 +1,6 @@
 lazy val generate = (project in file("./generate")).
   settings(
-    organization := "ldr",
+    organization := "andxor",
     scalaVersion := "2.12.5",
     libraryDependencies ++= Seq(
       "org.scalaz" %% "scalaz-core" % "7.2.17",
@@ -26,13 +26,13 @@ lazy val generate = (project in file("./generate")).
       "-Ycache-plugin-class-loader:last-modified",
       //"-Xlog-implicits",
       "-Ycache-macro-class-loader:last-modified"),
-    name := "ldr-generate",
+    name := "andxor-generate",
     TwirlKeys.templateImports := Seq()
   ).enablePlugins(SbtTwirl)
 
 lazy val core = (project in file("./core")).
   settings(
-    organization := "ldr",
+    organization := "andxor",
     scalaVersion := "2.12.5",
     libraryDependencies ++= Seq(
       "org.scalaz" %% "scalaz-core" % "7.2.17"),
@@ -56,7 +56,7 @@ lazy val core = (project in file("./core")).
       "-Ycache-plugin-class-loader:last-modified",
       //"-Xlog-implicits",
       "-Ycache-macro-class-loader:last-modified"),
-    name := "ldr-core"
+    name := "andxor-core"
   )
 
 lazy val root = (project in file("."))

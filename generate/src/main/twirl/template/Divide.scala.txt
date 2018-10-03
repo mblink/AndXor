@@ -1,4 +1,4 @@
-@import ldr.syntax._
+@import andxor.syntax._
 
 @(tpes: List[String])
   def divide@{tpes.length}[F[_], @{tpes.prod}, Z](@{tpes.paramSig("=>F", "a")})(
