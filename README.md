@@ -12,11 +12,11 @@ With an instance of Decidable, Alt, Divide, or Apply for a given typeclass,
 provides an instance for the corresponding Coproduct, or Product respectively.
 
 ```scala
-scala> import ldr.{LDRF3, LDR3}
-import ldr.{LDRF3, LDR3}
+scala> import andxor.{AndXorF3, AndXor3}
+import andxor.{AndXorF3, AndXor3}
 
-scala> import ldr.Decidable
-import ldr.Decidable
+scala> import andxor.Decidable
+import andxor.Decidable
 
 scala> import scalaz.std.anyVal._
 import scalaz.std.anyVal._
@@ -42,14 +42,14 @@ import scalaz.syntax.either._
 scala> import scalaz.{Show, \/, ~>}
 import scalaz.{Show, $bslash$div, $tilde$greater}
 
-scala> val SIS = LDR3[String, Int, List[String]]
-SIS: ldr.LDR3[String,Int,List[String]] = ldr.LDR3$$anon$1@408e3270
+scala> val SIS = AndXor3[String, Int, List[String]]
+SIS: andxor.AndXor3[String,Int,List[String]] = andxor.AndXor3$$anon$1@21ff0327
 
 scala> import SIS.instances._ // for inject instances
 import SIS.instances._
 
 scala> implicit val ds: Decidable[Show] = new Decidable[Show] { def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] = Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_))) }
-ds: ldr.Decidable[scalaz.Show] = $anon$1@54a7a903
+ds: andxor.Decidable[scalaz.Show] = $anon$1@5df10354
 
 scala> SIS.combine[Show].choose.show(SIS.inj("foo"))
 res0: scalaz.Cord = "foo"
@@ -61,11 +61,11 @@ scala> SIS.combine[Show].choose.show(SIS.inj(List("bar", "baz")))
 res2: scalaz.Cord = ["bar","baz"]
 
 scala> // lift into monoidal product
-     | val SISF = LDRF3[String, Int, List[String]]
-SISF: ldr.LDRF3[String,Int,List[String]] = ldr.LDRF3$$anon$5@46634173
+     | val SISF = AndXorF3[String, Int, List[String]]
+SISF: andxor.AndXorF3[String,Int,List[String]] = andxor.AndXorF3$$anon$5@5aee0a43
 
 scala> val SISL = SISF[List]
-SISL: SISF.Repr[List] = ldr.LDRF3$$anon$3@576420a2
+SISL: SISF.Repr[List] = andxor.AndXorF3$$anon$3@606075e2
 
 scala> import SISL.instances._ // for inject instances
 import SISL.instances._
@@ -74,7 +74,7 @@ scala> val ls = SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List
 ls: SISL.Prod = (List(foo),List(4),List(List(bar)))
 
 scala> val SISO = SISF[Option]
-SISO: SISF.Repr[Option] = ldr.LDRF3$$anon$3@540f7812
+SISO: SISF.Repr[Option] = andxor.AndXorF3$$anon$3@67dabee9
 
 scala> import SISO.instances._ // for inject instances
 import SISO.instances._
@@ -84,20 +84,20 @@ os: SISO.Prod = (Some(foo),Some(4),Some(List(bar)))
 
 scala> // convert between F[_]s using a ~>
      | val l2o = new (List ~> Option) { def apply[A](l: List[A]): Option[A] = l.headOption }
-l2o: List ~> Option = $anon$1@42c31c52
+l2o: List ~> Option = $anon$1@6afb6d6b
 
 scala> SISL.transformP(l2o)(ls)
 res5: (Option[String], Option[Int], Option[List[String]]) = (Some(foo),Some(4),Some(List(bar)))
 
 scala> val o2l = new (Option ~> List) { def apply[A](o: Option[A]): List[A] = o.toList }
-o2l: Option ~> List = $anon$1@67f0eda1
+o2l: Option ~> List = $anon$1@730be7b8
 
 scala> SISO.transformP(o2l)(os)
 res6: (List[String], List[Int], List[List[String]]) = (List(foo),List(4),List(List(bar)))
 
 scala> // map given index of Cop or Prod
-     | import ldr.MapN.syntax._
-import ldr.MapN.syntax._
+     | import andxor.MapN.syntax._
+import andxor.MapN.syntax._
 
 scala> SISO.inj(Option(2)).map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
 res8: Option[Int] \/ (Option[String] \/ Option[List[String]]) = \/-(-\/(Some(2!)))
