@@ -9,6 +9,7 @@ import scalaz.syntax.either._
 trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
   type Prod = @{tpes.prodK("F")}
   type Cop = @{tpes.djK("F")}
+  val AndXorF = AndXorF@{tpes.length}[@{tpes.prod}]
   def combine[G[_]](implicit @{tpes.paramSig(List("G", "F"), "a")}): ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
@@ -51,6 +52,14 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
         (a, e) => s"\n    A.ap(${e})(${a})")}
   }
   // format: on
+  @* Seriously, fuck you scala. This is too much?? What do you even want.
+  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop] = {
+    val t = AndXorF[Id]
+    import t.instances._
+    cop match {
+      @{tpes.zipper(SequenceC(_)).mkString("")}
+    }
+  } *@
 }
 
 object AndXorK@{tpes.length} {
@@ -76,4 +85,41 @@ AndXorK@{tpes.length}[Id, @{tpes.prod}]
 object AndXor@{tpes.length} {
   def apply[@{tpes.prod}]: AndXor@{tpes.length}[@{tpes.prod}] =
     new AndXor@{tpes.length}[@{tpes.prod}] {}
+
+    def foldMap[@{tpes.prod}, C](p: AndXorK@{tpes.length}[List, @{tpes.prod}]#Prod)(
+      map: AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop => C)(
+      implicit O: Ordering[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop], M: Monoid[C]): C = {
+      val T = new AndXorF@{tpes.length}[@{tpes.prod}] {}
+      val TL = T[List]
+      val TI = T[Id]
+      import scala.collection.mutable.{PriorityQueue => PQ}
+      import TI.instances._
+      def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
+       (List(@{tpes.zipWithIndex
+          .map(t => s"p._${t._2+1}.headOption.map(TI.inj(_: ${t._1}))").mkString(", ")})
+          .flatten,
+        (@{tpes.zipWithIndex.map(t =>
+          s"p._${t._2+1}.headOption.map(_ => p._${t._2+1}.tail).getOrElse(p._${t._2+1})")
+          .mkString(", ")}))
+      @@scala.annotation.tailrec
+      def go(prod: TL.Prod, q: PQ[TI.Cop], out: C): C =
+       @{s"""prod match {
+         case (${tpes.map(_ => "Nil").mkString(", ")}) =>
+           q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+         case (${tpes.params("as")}) => q.isEmpty match {
+           case true => {
+             val (hs, ts) = uncons(prod)
+             q ++ hs
+             go(ts, q, out)
+           }
+           case false => q.dequeue match {
+             ${tpes.zipper(FoldMap(_)).mkString("")}
+           }
+         }
+       }"""}
+      val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
+      val (hs, ts) = uncons(p)
+      Q ++ hs
+      go(ts, Q, M.zero)
+  }
 }

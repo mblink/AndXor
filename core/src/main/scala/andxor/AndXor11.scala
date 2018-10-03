@@ -7,6 +7,7 @@ import scalaz.syntax.either._
 trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])
   type Cop = (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11]))))))))))
+  val AndXorF = AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]], a2: G[F[A3]], a3: G[F[A4]], a4: G[F[A5]], a5: G[F[A6]], a6: G[F[A7]], a7: G[F[A8]], a8: G[F[A9]], a9: G[F[A10]], a10: G[F[A11]])
     : ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
@@ -152,6 +153,7 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
     (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10)).curried)))))))))))
   }
   // format: on
+
 }
 
 object AndXorK11 {
@@ -176,4 +178,87 @@ trait AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndXorK11[I
 object AndXor11 {
   def apply[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
     new AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+
+  def foldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, C](
+      p: AndXorK11[List, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod
+  )(map: AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop => C)(implicit O: Ordering[AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop], M: Monoid[C]): C = {
+    val T = new AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+    val TL = T[List]
+    val TI = T[Id]
+    import scala.collection.mutable.{PriorityQueue => PQ}
+    import TI.instances._
+    def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
+      (
+        List(
+          p._1.headOption.map(TI.inj(_: A1)),
+          p._2.headOption.map(TI.inj(_: A2)),
+          p._3.headOption.map(TI.inj(_: A3)),
+          p._4.headOption.map(TI.inj(_: A4)),
+          p._5.headOption.map(TI.inj(_: A5)),
+          p._6.headOption.map(TI.inj(_: A6)),
+          p._7.headOption.map(TI.inj(_: A7)),
+          p._8.headOption.map(TI.inj(_: A8)),
+          p._9.headOption.map(TI.inj(_: A9)),
+          p._10.headOption.map(TI.inj(_: A10)),
+          p._11.headOption.map(TI.inj(_: A11))
+        ).flatten,
+        (
+          p._1.headOption.map(_ => p._1.tail).getOrElse(p._1),
+          p._2.headOption.map(_ => p._2.tail).getOrElse(p._2),
+          p._3.headOption.map(_ => p._3.tail).getOrElse(p._3),
+          p._4.headOption.map(_ => p._4.tail).getOrElse(p._4),
+          p._5.headOption.map(_ => p._5.tail).getOrElse(p._5),
+          p._6.headOption.map(_ => p._6.tail).getOrElse(p._6),
+          p._7.headOption.map(_ => p._7.tail).getOrElse(p._7),
+          p._8.headOption.map(_ => p._8.tail).getOrElse(p._8),
+          p._9.headOption.map(_ => p._9.tail).getOrElse(p._9),
+          p._10.headOption.map(_ => p._10.tail).getOrElse(p._10),
+          p._11.headOption.map(_ => p._11.tail).getOrElse(p._11)
+        )
+      )
+    @scala.annotation.tailrec
+    def go(prod: TL.Prod, q: PQ[TI.Cop], out: C): C =
+      prod match {
+        case (Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil) =>
+          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+        case (as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10) =>
+          q.isEmpty match {
+            case true => {
+              val (hs, ts) = uncons(prod)
+              q ++ hs
+              go(ts, q, out)
+            }
+            case false =>
+              q.dequeue match {
+                case -\/(x) =>
+                  go((as0.tail, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(-\/(x)) =>
+                  go((as0, as1.tail, as2, as3, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(-\/(x))) =>
+                  go((as0, as1, as2.tail, as3, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(-\/(x)))) =>
+                  go((as0, as1, as2, as3.tail, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(\/-(-\/(x))))) =>
+                  go((as0, as1, as2, as3, as4.tail, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) =>
+                  go((as0, as1, as2, as3, as4, as5.tail, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) =>
+                  go((as0, as1, as2, as3, as4, as5, as6.tail, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) =>
+                  go((as0, as1, as2, as3, as4, as5, as6, as7.tail, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) =>
+                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8.tail, as9, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) =>
+                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9.tail, as10), q, M.append(out, map(TI.inj(x))))
+                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))) =>
+                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10.tail), q, M.append(out, map(TI.inj(x))))
+
+              }
+          }
+      }
+    val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
+    val (hs, ts) = uncons(p)
+    Q ++ hs
+    go(ts, Q, M.zero)
+  }
 }
