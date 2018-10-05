@@ -8,6 +8,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   type Prod = (F[A1], F[A2])
   type Cop = (F[A1] \/ F[A2])
   val AndXorF = AndXorF2[A1, A2]
+  type AndXor[G[_]] = AndXorF2[A1, A2]#Repr[G]
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]]): ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
@@ -62,6 +63,40 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   }
   // format: on
 
+  def foldMap[C](p: AndXor[List]#Prod)(map: AndXor[Id]#Cop => C)(implicit O: Ordering[AndXorK2[Id, A1, A2]#Cop], M: Monoid[C]): C = {
+    val TL = AndXorF[List]
+    val TI = AndXorF[Id]
+    import scala.collection.mutable.{PriorityQueue => PQ}
+    import TI.instances._
+    def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
+      (List(p._1.headOption.map(TI.inj(_: A1)), p._2.headOption.map(TI.inj(_: A2))).flatten, (p._1.headOption.map(_ => p._1.tail).getOrElse(p._1), p._2.headOption.map(_ => p._2.tail).getOrElse(p._2)))
+    @scala.annotation.tailrec
+    def go(prod: TL.Prod, q: PQ[TI.Cop], out: C): C =
+      prod match {
+        case (Nil, Nil) =>
+          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+        case (as0, as1) =>
+          q.isEmpty match {
+            case true => {
+              val (hs, ts) = uncons(prod)
+              q ++= hs
+              go(ts, q, out)
+            }
+            case false =>
+              q.dequeue match {
+                case -\/(x) =>
+                  go((as0.tail, as1), q ++= as0.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+                case \/-(x) =>
+                  go((as0, as1.tail), q ++= as1.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+
+              }
+          }
+      }
+    val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
+    val (hs, ts) = uncons(p)
+    Q ++= hs
+    go(ts, Q, M.zero)
+  }
 }
 
 object AndXorK2 {
@@ -87,39 +122,4 @@ object AndXor2 {
   def apply[A1, A2]: AndXor2[A1, A2] =
     new AndXor2[A1, A2] {}
 
-  def foldMap[A1, A2, C](p: AndXorK2[List, A1, A2]#Prod)(map: AndXorK2[Id, A1, A2]#Cop => C)(implicit O: Ordering[AndXorK2[Id, A1, A2]#Cop], M: Monoid[C]): C = {
-    val T = new AndXorF2[A1, A2] {}
-    val TL = T[List]
-    val TI = T[Id]
-    import scala.collection.mutable.{PriorityQueue => PQ}
-    import TI.instances._
-    def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
-      (List(p._1.headOption.map(TI.inj(_: A1)), p._2.headOption.map(TI.inj(_: A2))).flatten, (p._1.headOption.map(_ => p._1.tail).getOrElse(p._1), p._2.headOption.map(_ => p._2.tail).getOrElse(p._2)))
-    @scala.annotation.tailrec
-    def go(prod: TL.Prod, q: PQ[TI.Cop], out: C): C =
-      prod match {
-        case (Nil, Nil) =>
-          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
-        case (as0, as1) =>
-          q.isEmpty match {
-            case true => {
-              val (hs, ts) = uncons(prod)
-              q ++ hs
-              go(ts, q, out)
-            }
-            case false =>
-              q.dequeue match {
-                case -\/(x) =>
-                  go((as0.tail, as1), q, M.append(out, map(TI.inj(x))))
-                case \/-(x) =>
-                  go((as0, as1.tail), q, M.append(out, map(TI.inj(x))))
-
-              }
-          }
-      }
-    val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
-    val (hs, ts) = uncons(p)
-    Q ++ hs
-    go(ts, Q, M.zero)
-  }
 }

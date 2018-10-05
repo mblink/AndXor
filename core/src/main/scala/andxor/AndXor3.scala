@@ -8,6 +8,7 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3])
   type Cop = (F[A1] \/ (F[A2] \/ F[A3]))
   val AndXorF = AndXorF3[A1, A2, A3]
+  type AndXor[G[_]] = AndXorF3[A1, A2, A3]#Repr[G]
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]], a2: G[F[A3]]): ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
@@ -72,6 +73,45 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
   }
   // format: on
 
+  def foldMap[C](p: AndXor[List]#Prod)(map: AndXor[Id]#Cop => C)(implicit O: Ordering[AndXorK3[Id, A1, A2, A3]#Cop], M: Monoid[C]): C = {
+    val TL = AndXorF[List]
+    val TI = AndXorF[Id]
+    import scala.collection.mutable.{PriorityQueue => PQ}
+    import TI.instances._
+    def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
+      (
+        List(p._1.headOption.map(TI.inj(_: A1)), p._2.headOption.map(TI.inj(_: A2)), p._3.headOption.map(TI.inj(_: A3))).flatten,
+        (p._1.headOption.map(_ => p._1.tail).getOrElse(p._1), p._2.headOption.map(_ => p._2.tail).getOrElse(p._2), p._3.headOption.map(_ => p._3.tail).getOrElse(p._3))
+      )
+    @scala.annotation.tailrec
+    def go(prod: TL.Prod, q: PQ[TI.Cop], out: C): C =
+      prod match {
+        case (Nil, Nil, Nil) =>
+          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+        case (as0, as1, as2) =>
+          q.isEmpty match {
+            case true => {
+              val (hs, ts) = uncons(prod)
+              q ++= hs
+              go(ts, q, out)
+            }
+            case false =>
+              q.dequeue match {
+                case -\/(x) =>
+                  go((as0.tail, as1, as2), q ++= as0.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+                case \/-(-\/(x)) =>
+                  go((as0, as1.tail, as2), q ++= as1.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+                case \/-(\/-(x)) =>
+                  go((as0, as1, as2.tail), q ++= as2.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+
+              }
+          }
+      }
+    val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
+    val (hs, ts) = uncons(p)
+    Q ++= hs
+    go(ts, Q, M.zero)
+  }
 }
 
 object AndXorK3 {
@@ -97,44 +137,4 @@ object AndXor3 {
   def apply[A1, A2, A3]: AndXor3[A1, A2, A3] =
     new AndXor3[A1, A2, A3] {}
 
-  def foldMap[A1, A2, A3, C](p: AndXorK3[List, A1, A2, A3]#Prod)(map: AndXorK3[Id, A1, A2, A3]#Cop => C)(implicit O: Ordering[AndXorK3[Id, A1, A2, A3]#Cop], M: Monoid[C]): C = {
-    val T = new AndXorF3[A1, A2, A3] {}
-    val TL = T[List]
-    val TI = T[Id]
-    import scala.collection.mutable.{PriorityQueue => PQ}
-    import TI.instances._
-    def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
-      (
-        List(p._1.headOption.map(TI.inj(_: A1)), p._2.headOption.map(TI.inj(_: A2)), p._3.headOption.map(TI.inj(_: A3))).flatten,
-        (p._1.headOption.map(_ => p._1.tail).getOrElse(p._1), p._2.headOption.map(_ => p._2.tail).getOrElse(p._2), p._3.headOption.map(_ => p._3.tail).getOrElse(p._3))
-      )
-    @scala.annotation.tailrec
-    def go(prod: TL.Prod, q: PQ[TI.Cop], out: C): C =
-      prod match {
-        case (Nil, Nil, Nil) =>
-          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
-        case (as0, as1, as2) =>
-          q.isEmpty match {
-            case true => {
-              val (hs, ts) = uncons(prod)
-              q ++ hs
-              go(ts, q, out)
-            }
-            case false =>
-              q.dequeue match {
-                case -\/(x) =>
-                  go((as0.tail, as1, as2), q, M.append(out, map(TI.inj(x))))
-                case \/-(-\/(x)) =>
-                  go((as0, as1.tail, as2), q, M.append(out, map(TI.inj(x))))
-                case \/-(\/-(x)) =>
-                  go((as0, as1, as2.tail), q, M.append(out, map(TI.inj(x))))
-
-              }
-          }
-      }
-    val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
-    val (hs, ts) = uncons(p)
-    Q ++ hs
-    go(ts, Q, M.zero)
-  }
 }

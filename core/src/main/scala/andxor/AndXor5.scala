@@ -8,6 +8,7 @@ trait AndXorK5[F[_], A1, A2, A3, A4, A5] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3], F[A4], F[A5])
   type Cop = (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5]))))
   val AndXorF = AndXorF5[A1, A2, A3, A4, A5]
+  type AndXor[G[_]] = AndXorF5[A1, A2, A3, A4, A5]#Repr[G]
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]], a2: G[F[A3]], a3: G[F[A4]], a4: G[F[A5]]): ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
@@ -92,37 +93,9 @@ trait AndXorK5[F[_], A1, A2, A3, A4, A5] extends AndXor {
   }
   // format: on
 
-}
-
-object AndXorK5 {
-
-  def apply[F[_], A1, A2, A3, A4, A5]: AndXorK5[F, A1, A2, A3, A4, A5] =
-    new AndXorK5[F, A1, A2, A3, A4, A5] {}
-}
-
-trait AndXorF5[A1, A2, A3, A4, A5] {
-  type Repr[F[_]] = AndXorK5[F, A1, A2, A3, A4, A5]
-  def apply[F[_]]: Repr[F] =
-    new AndXorK5[F, A1, A2, A3, A4, A5] {}
-}
-
-object AndXorF5 {
-  def apply[A1, A2, A3, A4, A5]: AndXorF5[A1, A2, A3, A4, A5] =
-    new AndXorF5[A1, A2, A3, A4, A5] {}
-}
-
-trait AndXor5[A1, A2, A3, A4, A5] extends AndXorK5[Id, A1, A2, A3, A4, A5]
-
-object AndXor5 {
-  def apply[A1, A2, A3, A4, A5]: AndXor5[A1, A2, A3, A4, A5] =
-    new AndXor5[A1, A2, A3, A4, A5] {}
-
-  def foldMap[A1, A2, A3, A4, A5, C](
-      p: AndXorK5[List, A1, A2, A3, A4, A5]#Prod
-  )(map: AndXorK5[Id, A1, A2, A3, A4, A5]#Cop => C)(implicit O: Ordering[AndXorK5[Id, A1, A2, A3, A4, A5]#Cop], M: Monoid[C]): C = {
-    val T = new AndXorF5[A1, A2, A3, A4, A5] {}
-    val TL = T[List]
-    val TI = T[Id]
+  def foldMap[C](p: AndXor[List]#Prod)(map: AndXor[Id]#Cop => C)(implicit O: Ordering[AndXorK5[Id, A1, A2, A3, A4, A5]#Cop], M: Monoid[C]): C = {
+    val TL = AndXorF[List]
+    val TI = AndXorF[Id]
     import scala.collection.mutable.{PriorityQueue => PQ}
     import TI.instances._
     def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
@@ -151,28 +124,53 @@ object AndXor5 {
           q.isEmpty match {
             case true => {
               val (hs, ts) = uncons(prod)
-              q ++ hs
+              q ++= hs
               go(ts, q, out)
             }
             case false =>
               q.dequeue match {
                 case -\/(x) =>
-                  go((as0.tail, as1, as2, as3, as4), q, M.append(out, map(TI.inj(x))))
+                  go((as0.tail, as1, as2, as3, as4), q ++= as0.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(-\/(x)) =>
-                  go((as0, as1.tail, as2, as3, as4), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1.tail, as2, as3, as4), q ++= as1.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(-\/(x))) =>
-                  go((as0, as1, as2.tail, as3, as4), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2.tail, as3, as4), q ++= as2.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(-\/(x)))) =>
-                  go((as0, as1, as2, as3.tail, as4), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3.tail, as4), q ++= as3.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(x)))) =>
-                  go((as0, as1, as2, as3, as4.tail), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4.tail), q ++= as4.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
 
               }
           }
       }
     val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
     val (hs, ts) = uncons(p)
-    Q ++ hs
+    Q ++= hs
     go(ts, Q, M.zero)
   }
+}
+
+object AndXorK5 {
+
+  def apply[F[_], A1, A2, A3, A4, A5]: AndXorK5[F, A1, A2, A3, A4, A5] =
+    new AndXorK5[F, A1, A2, A3, A4, A5] {}
+}
+
+trait AndXorF5[A1, A2, A3, A4, A5] {
+  type Repr[F[_]] = AndXorK5[F, A1, A2, A3, A4, A5]
+  def apply[F[_]]: Repr[F] =
+    new AndXorK5[F, A1, A2, A3, A4, A5] {}
+}
+
+object AndXorF5 {
+  def apply[A1, A2, A3, A4, A5]: AndXorF5[A1, A2, A3, A4, A5] =
+    new AndXorF5[A1, A2, A3, A4, A5] {}
+}
+
+trait AndXor5[A1, A2, A3, A4, A5] extends AndXorK5[Id, A1, A2, A3, A4, A5]
+
+object AndXor5 {
+  def apply[A1, A2, A3, A4, A5]: AndXor5[A1, A2, A3, A4, A5] =
+    new AndXor5[A1, A2, A3, A4, A5] {}
+
 }

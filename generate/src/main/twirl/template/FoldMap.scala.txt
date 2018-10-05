@@ -5,4 +5,5 @@
   case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
       """x""")(_ => """-\/(x)"""))((_, a) => s"""\\/-(${a})""")} =>
     go((@{z.toList.paramList("as").updated(z.index,
-          s"${z.toList.paramList("as")(z.index)}.tail").mkString(", ")}), q, M.append(out, map(TI.inj(x))))
+          s"${z.toList.paramList("as")(z.index)}.tail").mkString(", ")}),
+              q ++= as@{z.index}.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))

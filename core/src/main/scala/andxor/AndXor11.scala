@@ -8,6 +8,7 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
   type Prod = (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])
   type Cop = (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11]))))))))))
   val AndXorF = AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+  type AndXor[G[_]] = AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Repr[G]
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]], a2: G[F[A3]], a3: G[F[A4]], a4: G[F[A5]], a5: G[F[A6]], a6: G[F[A7]], a7: G[F[A8]], a8: G[F[A9]], a9: G[F[A10]], a10: G[F[A11]])
     : ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
@@ -154,37 +155,9 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
   }
   // format: on
 
-}
-
-object AndXorK11 {
-
-  def apply[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
-    new AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
-}
-
-trait AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
-  type Repr[F[_]] = AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
-  def apply[F[_]]: Repr[F] =
-    new AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
-}
-
-object AndXorF11 {
-  def apply[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
-    new AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
-}
-
-trait AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
-
-object AndXor11 {
-  def apply[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
-    new AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
-
-  def foldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, C](
-      p: AndXorK11[List, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod
-  )(map: AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop => C)(implicit O: Ordering[AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop], M: Monoid[C]): C = {
-    val T = new AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
-    val TL = T[List]
-    val TI = T[Id]
+  def foldMap[C](p: AndXor[List]#Prod)(map: AndXor[Id]#Cop => C)(implicit O: Ordering[AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop], M: Monoid[C]): C = {
+    val TL = AndXorF[List]
+    val TI = AndXorF[Id]
     import scala.collection.mutable.{PriorityQueue => PQ}
     import TI.instances._
     def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
@@ -225,40 +198,65 @@ object AndXor11 {
           q.isEmpty match {
             case true => {
               val (hs, ts) = uncons(prod)
-              q ++ hs
+              q ++= hs
               go(ts, q, out)
             }
             case false =>
               q.dequeue match {
                 case -\/(x) =>
-                  go((as0.tail, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0.tail, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10), q ++= as0.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(-\/(x)) =>
-                  go((as0, as1.tail, as2, as3, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1.tail, as2, as3, as4, as5, as6, as7, as8, as9, as10), q ++= as1.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(-\/(x))) =>
-                  go((as0, as1, as2.tail, as3, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2.tail, as3, as4, as5, as6, as7, as8, as9, as10), q ++= as2.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(-\/(x)))) =>
-                  go((as0, as1, as2, as3.tail, as4, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3.tail, as4, as5, as6, as7, as8, as9, as10), q ++= as3.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(-\/(x))))) =>
-                  go((as0, as1, as2, as3, as4.tail, as5, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4.tail, as5, as6, as7, as8, as9, as10), q ++= as4.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) =>
-                  go((as0, as1, as2, as3, as4, as5.tail, as6, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4, as5.tail, as6, as7, as8, as9, as10), q ++= as5.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6.tail, as7, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4, as5, as6.tail, as7, as8, as9, as10), q ++= as6.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7.tail, as8, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4, as5, as6, as7.tail, as8, as9, as10), q ++= as7.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8.tail, as9, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8.tail, as9, as10), q ++= as8.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9.tail, as10), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9.tail, as10), q ++= as9.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
                 case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10.tail), q, M.append(out, map(TI.inj(x))))
+                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10.tail), q ++= as10.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
 
               }
           }
       }
     val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
     val (hs, ts) = uncons(p)
-    Q ++ hs
+    Q ++= hs
     go(ts, Q, M.zero)
   }
+}
+
+object AndXorK11 {
+
+  def apply[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+    new AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+}
+
+trait AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
+  type Repr[F[_]] = AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+  def apply[F[_]]: Repr[F] =
+    new AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+}
+
+object AndXorF11 {
+  def apply[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+    new AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+}
+
+trait AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+
+object AndXor11 {
+  def apply[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+    new AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+
 }
