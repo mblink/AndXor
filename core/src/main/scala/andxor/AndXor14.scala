@@ -1,6 +1,6 @@
 package andxor
 import scala.language.higherKinds
-import scalaz.{Apply, Functor, Monoid, \/, -\/, \/-, ~>}
+import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.syntax.either._
 
@@ -209,99 +209,113 @@ trait AndXorK14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
      A.map(a0)(((i0: A1, i1: A2, i2: A3, i3: A4, i4: A5, i5: A6, i6: A7, i7: A8, i8: A9, i9: A10, i10: A11, i11: A12, i12: A13, i13: A14) =>
     (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13)).curried))))))))))))))
   }
-  // format: on
+  
 
-  def foldMap[C](p: AndXor[List]#Prod)(map: AndXor[Id]#Cop => C)(implicit O: Ordering[AndXorK14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]#Cop], M: Monoid[C]): C = {
-    val TL = AndXorF[List]
+  def foldMap[G[_], C](p: AndXor[G]#Prod)(
+    map: AndXor[Id]#Cop => C)(
+    implicit O: Ordering[AndXorK14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]#Cop], M: Monoid[C],
+    PE: PlusEmpty[G], U: Uncons[G]): C = {
+    val TG = AndXorF[G]
     val TI = AndXorF[Id]
     import scala.collection.mutable.{PriorityQueue => PQ}
     import TI.instances._
-    def uncons(p: TL.Prod): (List[TI.Cop], TL.Prod) =
-      (
-        List(
-          p._1.headOption.map(TI.inj(_: A1)),
-          p._2.headOption.map(TI.inj(_: A2)),
-          p._3.headOption.map(TI.inj(_: A3)),
-          p._4.headOption.map(TI.inj(_: A4)),
-          p._5.headOption.map(TI.inj(_: A5)),
-          p._6.headOption.map(TI.inj(_: A6)),
-          p._7.headOption.map(TI.inj(_: A7)),
-          p._8.headOption.map(TI.inj(_: A8)),
-          p._9.headOption.map(TI.inj(_: A9)),
-          p._10.headOption.map(TI.inj(_: A10)),
-          p._11.headOption.map(TI.inj(_: A11)),
-          p._12.headOption.map(TI.inj(_: A12)),
-          p._13.headOption.map(TI.inj(_: A13)),
-          p._14.headOption.map(TI.inj(_: A14))
-        ).flatten,
-        (
-          p._1.headOption.map(_ => p._1.tail).getOrElse(p._1),
-          p._2.headOption.map(_ => p._2.tail).getOrElse(p._2),
-          p._3.headOption.map(_ => p._3.tail).getOrElse(p._3),
-          p._4.headOption.map(_ => p._4.tail).getOrElse(p._4),
-          p._5.headOption.map(_ => p._5.tail).getOrElse(p._5),
-          p._6.headOption.map(_ => p._6.tail).getOrElse(p._6),
-          p._7.headOption.map(_ => p._7.tail).getOrElse(p._7),
-          p._8.headOption.map(_ => p._8.tail).getOrElse(p._8),
-          p._9.headOption.map(_ => p._9.tail).getOrElse(p._9),
-          p._10.headOption.map(_ => p._10.tail).getOrElse(p._10),
-          p._11.headOption.map(_ => p._11.tail).getOrElse(p._11),
-          p._12.headOption.map(_ => p._12.tail).getOrElse(p._12),
-          p._13.headOption.map(_ => p._13.tail).getOrElse(p._13),
-          p._14.headOption.map(_ => p._14.tail).getOrElse(p._14)
-        )
-      )
+    def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
+     val hts = (U(p._1), U(p._2), U(p._3), U(p._4), U(p._5), U(p._6), U(p._7), U(p._8), U(p._9), U(p._10), U(p._11), U(p._12), U(p._13), U(p._14))
+     (List(hts._1._1.map(TI.inj(_: A1)), hts._2._1.map(TI.inj(_: A2)), hts._3._1.map(TI.inj(_: A3)), hts._4._1.map(TI.inj(_: A4)), hts._5._1.map(TI.inj(_: A5)), hts._6._1.map(TI.inj(_: A6)), hts._7._1.map(TI.inj(_: A7)), hts._8._1.map(TI.inj(_: A8)), hts._9._1.map(TI.inj(_: A9)), hts._10._1.map(TI.inj(_: A10)), hts._11._1.map(TI.inj(_: A11)), hts._12._1.map(TI.inj(_: A12)), hts._13._1.map(TI.inj(_: A13)), hts._14._1.map(TI.inj(_: A14))).flatten,
+      (hts._1._2, hts._2._2, hts._3._2, hts._4._2, hts._5._2, hts._6._2, hts._7._2, hts._8._2, hts._9._2, hts._10._2, hts._11._2, hts._12._2, hts._13._2, hts._14._2))
+    }
     @scala.annotation.tailrec
-    def go(prod: TL.Prod, q: PQ[TI.Cop], out: C): C =
-      prod match {
-        case (Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil, Nil) =>
-          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
-        case (as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10, as11, as12, as13) =>
-          q.isEmpty match {
-            case true => {
-              val (hs, ts) = uncons(prod)
-              q ++= hs
-              go(ts, q, out)
-            }
-            case false =>
-              q.dequeue match {
-                case -\/(x) =>
-                  go((as0.tail, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10, as11, as12, as13), q ++= as0.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(-\/(x)) =>
-                  go((as0, as1.tail, as2, as3, as4, as5, as6, as7, as8, as9, as10, as11, as12, as13), q ++= as1.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(-\/(x))) =>
-                  go((as0, as1, as2.tail, as3, as4, as5, as6, as7, as8, as9, as10, as11, as12, as13), q ++= as2.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(-\/(x)))) =>
-                  go((as0, as1, as2, as3.tail, as4, as5, as6, as7, as8, as9, as10, as11, as12, as13), q ++= as3.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(-\/(x))))) =>
-                  go((as0, as1, as2, as3, as4.tail, as5, as6, as7, as8, as9, as10, as11, as12, as13), q ++= as4.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) =>
-                  go((as0, as1, as2, as3, as4, as5.tail, as6, as7, as8, as9, as10, as11, as12, as13), q ++= as5.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6.tail, as7, as8, as9, as10, as11, as12, as13), q ++= as6.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7.tail, as8, as9, as10, as11, as12, as13), q ++= as7.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8.tail, as9, as10, as11, as12, as13), q ++= as8.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9.tail, as10, as11, as12, as13), q ++= as9.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10.tail, as11, as12, as13), q ++= as10.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10, as11.tail, as12, as13), q ++= as11.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10, as11, as12.tail, as13), q ++= as12.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-                case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))) =>
-                  go((as0, as1, as2, as3, as4, as5, as6, as7, as8, as9, as10, as11, as12, as13.tail), q ++= as13.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+    def go(prod: TG.Prod, q: PQ[TI.Cop], out: C): C =
+     (prod.==((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14]))) match {
+       case true =>
+         q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+       case false => q.isEmpty match {
+         case true => {
+           val (hs, ts) = uncons(prod)
+           q ++= hs
+           go(ts, q, out)
+         }
+         case false => q.dequeue match {
+                        case -\/(x) => {
+               val (h, t) = U(prod._1)
+               go((t, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(-\/(x)) => {
+               val (h, t) = U(prod._2)
+               go((prod._1, t, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(-\/(x))) => {
+               val (h, t) = U(prod._3)
+               go((prod._1, prod._2, t, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(-\/(x)))) => {
+               val (h, t) = U(prod._4)
+               go((prod._1, prod._2, prod._3, t, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(-\/(x))))) => {
+               val (h, t) = U(prod._5)
+               go((prod._1, prod._2, prod._3, prod._4, t, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => {
+               val (h, t) = U(prod._6)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, t, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => {
+               val (h, t) = U(prod._7)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, t, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => {
+               val (h, t) = U(prod._8)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, t, prod._9, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => {
+               val (h, t) = U(prod._9)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, t, prod._10, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => {
+               val (h, t) = U(prod._10)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, t, prod._11, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => {
+               val (h, t) = U(prod._11)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, t, prod._12, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => {
+               val (h, t) = U(prod._12)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, t, prod._13, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => {
+               val (h, t) = U(prod._13)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, t, prod._14),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
+             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))) => {
+               val (h, t) = U(prod._14)
+               go((prod._1, prod._2, prod._3, prod._4, prod._5, prod._6, prod._7, prod._8, prod._9, prod._10, prod._11, prod._12, prod._13, t),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }
 
-              }
-          }
-      }
+         }
+       }
+     }
     val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
     val (hs, ts) = uncons(p)
     Q ++= hs
     go(ts, Q, M.zero)
   }
+  // format: on
 }
 
 object AndXorK14 {

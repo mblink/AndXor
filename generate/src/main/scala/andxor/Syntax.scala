@@ -6,6 +6,10 @@ import scalaz.Zipper
 object syntax {
 
   implicit class TpesOps(tpes: List[String]) {
+    def breakEvery(n: Int, tabs: Int): String =
+      tpes.grouped(n).toList
+        .map(_.mkString(", "))
+        .mkString(s",\n${(1 to tabs).map(_ => "  ").mkString}")
     def dj: String =
       tpes.init.foldRight(tpes.last)((e, a) =>
         s"(${e} \\/ ${a})")

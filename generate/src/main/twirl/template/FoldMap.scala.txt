@@ -2,8 +2,9 @@
 @import scalaz.Zipper
 
 @(z: Zipper[String])
-  case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
-      """x""")(_ => """-\/(x)"""))((_, a) => s"""\\/-(${a})""")} =>
-    go((@{z.toList.paramList("as").updated(z.index,
-          s"${z.toList.paramList("as")(z.index)}.tail").mkString(", ")}),
-              q ++= as@{z.index}.headOption.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
+                 """x""")(_ => """-\/(x)"""))((_, a) => s"""\\/-(${a})""")} => @{s"""{
+               val (h, t) = U(prod._${z.index+1})
+               go((${(1 to z.length).toList.map(i => s"prod._${i}").updated(z.index, "t").mkString(", ")}),
+                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
+             }"""}
