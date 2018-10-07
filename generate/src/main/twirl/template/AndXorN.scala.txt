@@ -1,0 +1,126 @@
+@import andxor.syntax._
+
+@(tpes: List[String])
+import scala.language.higherKinds
+import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
+import scalaz.Id.Id
+import scalaz.syntax.either._
+
+trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
+  type Prod = @{tpes.prodK("F")}
+  type Cop = @{tpes.djK("F")}
+  val AndXorF = AndXorF@{tpes.length}[@{tpes.prod}]
+  type AndXor[G[_]] = AndXorF@{tpes.length}[@{tpes.prod}]#Repr[G]
+  def combine[G[_]](implicit @{tpes.paramSig(List("G", "F"), "a")}): ComposeAndXor[G, Cop, Prod] =
+    new ComposeAndXor[G, Cop, Prod] {
+      def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
+        Combine.choose@{tpes.length}(@{tpes.params("a")})(f)
+      def mkAlt[B](f: Cop => B)(implicit a: Alt[G]): G[B] =
+        Combine.altly@{tpes.length}(@{tpes.params("a")})(f)
+      def mkDivide[B](f: B => Prod)(implicit d: Divide[G]): G[B] =
+        Combine.divide@{tpes.length}(@{tpes.params("a")})(f)
+      def mkApply[B](f: Prod => B)(implicit a: Apply[G]): G[B] =
+        Combine.apply@{tpes.length}(@{tpes.params("a")})(
+          (@{tpes.params("i")}) =>
+            f((@{tpes.params("i")})))
+    }
+
+  object instances {
+    @{tpes.zipper(template.txt.Inj(_)).mkString("\n")}
+    @{tpes.zipper(template.txt.Lift(_)).mkString("\n")}
+  }
+
+  import instances._
+
+  val injEv = combine[Inj.Aux[Cop]#Out].choose
+  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
+
+  def transformP[G[_]](nt: (F ~> G)):
+  AndXorK@{tpes.length}[F, @{tpes.prod}]#Prod => AndXorK@{tpes.length}[G, @{tpes.prod}]#Prod =
+    (p: AndXorK@{tpes.length}[F, @{tpes.prod}]#Prod) =>
+      (@{tpes.zipWithIndex.map(x => s"nt(p._${x._2 + 1})").mkString(", ")})
+
+  def transformC[G[_]](nt: (F ~> G)):
+  AndXorK@{tpes.length}[F, @{tpes.prod}]#Cop => AndXorK@{tpes.length}[G, @{tpes.prod}]#Cop =
+    (p: AndXorK@{tpes.length}[F, @{tpes.prod}]#Cop) => p@{
+      tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail}
+
+  // format: off
+  def sequenceP(prod: Prod)(A: Apply[F]): F[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Prod] = {
+    val (@{tpes.params("a")}) = prod@{
+    tpes.paramList("a").tail.foldLeft(
+      s"""\n     A.map(a0)(((${tpes.paramSig("i")}) =>\n    (${tpes.params("i")})).curried)""")(
+        (a, e) => s"\n    A.ap(${e})(${a})")}
+  }
+  @* Seriously, fuck you scala. This is too much?? What do you even want.
+  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop] = {
+    val t = AndXorF[Id]
+    import t.instances._
+    cop match {
+      @{tpes.zipper(SequenceC(_)).mkString("")}
+    }
+  } *@
+
+  def foldMap[G[_], C](p: AndXor[G]#Prod)(
+    map: AndXor[Id]#Cop => C)(
+    implicit O: Ordering[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop], M: Monoid[C],
+    PE: PlusEmpty[G], U: Uncons[G]): C = {
+    val TG = AndXorF[G]
+    val TI = AndXorF[Id]
+    import scala.collection.mutable.{PriorityQueue => PQ}
+    import TI.instances._
+    def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
+     val hts = (@{(1 to tpes.size).toList.map(i => s"U(p._${i})").mkString(", ")})
+     (List(@{tpes.zipWithIndex.map(t =>
+        s"hts._${t._2+1}._1.map(TI.inj(_: ${t._1}))").mkString(", ")}).flatten,
+      (@{(1 to tpes.length).toList.map(i => s"hts._${i}._2").mkString(", ")}))
+    }
+    @@scala.annotation.tailrec
+    def go(prod: TG.Prod, q: PQ[TI.Cop], out: C): C =
+     (prod.==((@{tpes.map(t => s"PE.empty[${t}]").mkString(", ")}))) match {
+       case true =>
+         q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+       case false => q.isEmpty match @{s"""{
+         case true => {
+           val (hs, ts) = uncons(prod)
+           q ++= hs
+           go(ts, q, out)
+         }
+         case false => q.dequeue match {
+           ${tpes.zipper(FoldMap(_)).mkString("")}
+         }
+       }"""}
+     }
+    val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
+    val (hs, ts) = uncons(p)
+    Q ++= hs
+    go(ts, Q, M.zero)
+  }
+  // format: on
+}
+
+object AndXorK@{tpes.length} {
+
+  def apply[F[_], @{tpes.prod}]: AndXorK@{tpes.length}[F, @{tpes.prod}] =
+    new AndXorK@{tpes.length}[F, @{tpes.prod}] {}
+}
+
+trait AndXorF@{tpes.length}[@{tpes.prod}] {
+  type Repr[F[_]] = AndXorK@{tpes.length}[F, @{tpes.prod}]
+  def apply[F[_]]: Repr[F] =
+    new AndXorK@{tpes.length}[F, @{tpes.prod}] {}
+}
+
+object AndXorF@{tpes.length} {
+  def apply[@{tpes.prod}]: AndXorF@{tpes.length}[@{tpes.prod}] =
+    new AndXorF@{tpes.length}[@{tpes.prod}] {}
+}
+
+trait AndXor@{tpes.length}[@{tpes.prod}] extends
+AndXorK@{tpes.length}[Id, @{tpes.prod}]
+
+object AndXor@{tpes.length} {
+  def apply[@{tpes.prod}]: AndXor@{tpes.length}[@{tpes.prod}] =
+    new AndXor@{tpes.length}[@{tpes.prod}] {}
+
+}

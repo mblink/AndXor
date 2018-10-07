@@ -1,4 +1,4 @@
-@import ldr.syntax._
+@import andxor.syntax._
 @import scalaz.Zipper
 
 @(f: Zipper[String])
