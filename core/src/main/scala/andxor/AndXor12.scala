@@ -163,7 +163,7 @@ trait AndXorK12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] extends
       )
 
   // format: off
-  def sequenceP(prod: Prod)(A: Apply[F]): F[AndXorK12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]#Prod] = {
+  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]#Prod] = {
     val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) = prod
     A.ap(a11)(
     A.ap(a10)(

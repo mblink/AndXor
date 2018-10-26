@@ -55,7 +55,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
     (p: AndXorK2[F, A1, A2]#Cop) => p.bimap(nt(_), nt(_))
 
   // format: off
-  def sequenceP(prod: Prod)(A: Apply[F]): F[AndXorK2[Id, A1, A2]#Prod] = {
+  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK2[Id, A1, A2]#Prod] = {
     val (a0, a1) = prod
     A.ap(a1)(
      A.map(a0)(((i0: A1, i1: A2) =>

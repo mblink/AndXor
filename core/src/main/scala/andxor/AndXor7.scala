@@ -100,7 +100,7 @@ trait AndXorK7[F[_], A1, A2, A3, A4, A5, A6, A7] extends AndXor {
     (p: AndXorK7[F, A1, A2, A3, A4, A5, A6, A7]#Cop) => p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_)))))))
 
   // format: off
-  def sequenceP(prod: Prod)(A: Apply[F]): F[AndXorK7[Id, A1, A2, A3, A4, A5, A6, A7]#Prod] = {
+  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK7[Id, A1, A2, A3, A4, A5, A6, A7]#Prod] = {
     val (a0, a1, a2, a3, a4, a5, a6) = prod
     A.ap(a6)(
     A.ap(a5)(
