@@ -1,9 +1,9 @@
 lazy val generate = (project in file("./generate")).
   settings(
     organization := "andxor",
-    scalaVersion := "2.12.5",
+    scalaVersion := "2.12.7",
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-core" % "7.2.17",
+      "org.scalaz" %% "scalaz-core" % "7.2.26",
       "com.github.pathikrit" %% "better-files" % "3.5.0",
       "com.geirsson" %% "scalafmt-core" % "1.6.0-RC1"),
     scalacOptions ++= Seq(
@@ -33,9 +33,9 @@ lazy val generate = (project in file("./generate")).
 lazy val core = (project in file("./core")).
   settings(
     organization := "andxor",
-    scalaVersion := "2.12.5",
+    scalaVersion := "2.12.7",
     libraryDependencies ++= Seq(
-      "org.scalaz" %% "scalaz-core" % "7.2.17"),
+      "org.scalaz" %% "scalaz-core" % "7.2.26"),
     scalacOptions ++= Seq(
       "-deprecation",
       "-encoding", "UTF-8", // yes, this is 2 args
