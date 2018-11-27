@@ -54,4 +54,7 @@ SISO.extractC[Option[String]](SISO.inj(Option("foo")))
 SISO.extractC[Option[Int]](SISO.inj(Option("foo")))
 SISO.extractP[Option[String]](SISO.lift(Option("foo")))
 SISO.extractP[Option[Int]](SISO.lift(Option(1)))
+
+// convert a Prod to a List[Cop]
+SISL.toListP((List("foo"), List(1), List(List("bar"))))
 ```
