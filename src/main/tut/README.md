@@ -48,4 +48,10 @@ SISO.transformP(o2l)(os)
 import andxor.MapN.syntax._
 SISO.inj(Option(2)).map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
 SISO.lift(Option("foo")).map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
+
+// extract specific type from Cop or Prod
+SISO.extractC[Option[String]](SISO.inj(Option("foo")))
+SISO.extractC[Option[Int]](SISO.inj(Option("foo")))
+SISO.extractP[Option[String]](SISO.lift(Option("foo")))
+SISO.extractP[Option[Int]](SISO.lift(Option(1)))
 ```
