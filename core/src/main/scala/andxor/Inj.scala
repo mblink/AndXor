@@ -39,5 +39,13 @@ object Inj {
           }
         }
     }
+
+  implicit def injACops[Cop, A](implicit inj: Inj[Cop, A]): Inj[List[Cop], A] = new Inj[List[Cop], A] {
+    def apply(a: A): List[Cop] = List(inj(a))
+  }
+
+  implicit def injListACops[Cop, A](implicit inj: Inj[Cop, A]): Inj[List[Cop], List[A]] = new Inj[List[Cop], List[A]] {
+    def apply(a: List[A]): List[Cop] = a.map(inj(_))
+  }
 }
 

@@ -248,6 +248,8 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
 
   def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
+  def toListP(p: Prod): List[Cop] = combine[Inj.Aux[List[Cop]]#Out].divide.apply(p)
+
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(
     implicit O: Ordering[AndXorK11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Cop], M: Monoid[C],

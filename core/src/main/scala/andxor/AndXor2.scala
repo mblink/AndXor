@@ -84,6 +84,8 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
 
   def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
+  def toListP(p: Prod): List[Cop] = combine[Inj.Aux[List[Cop]]#Out].divide.apply(p)
+
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(
     implicit O: Ordering[AndXorK2[Id, A1, A2]#Cop], M: Monoid[C],

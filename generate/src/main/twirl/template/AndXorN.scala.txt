@@ -66,6 +66,8 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
 
   def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
+  def toListP(p: Prod): List[Cop] = combine[Inj.Aux[List[Cop]]#Out].divide.apply(p)
+
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(
     implicit O: Ordering[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop], M: Monoid[C],
