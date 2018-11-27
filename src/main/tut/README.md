@@ -12,8 +12,7 @@ With an instance of Decidable, Alt, Divide, or Apply for a given typeclass,
 provides an instance for the corresponding Coproduct, or Product respectively.
 
 ```tut
-import andxor.{AndXorF3, AndXor3}
-import andxor.Decidable
+import andxor.{AndXorF3, AndXor3, Decidable, Inj}
 import scalaz.std.anyVal._
 import scalaz.std.list._
 import scalaz.std.option._
@@ -57,4 +56,8 @@ SISO.extractP[Option[Int]](SISO.lift(Option(1)))
 
 // convert a Prod to a List[Cop]
 SISL.toListP((List("foo"), List(1), List(List("bar"))))
+
+// inject into applicative
+Inj.inject[List[SISO.Cop], Option[String]](Some("foo"))
+Inj.inject[Option[SISO.Cop], Option[Int]](Some(1))
 ```

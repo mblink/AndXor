@@ -1,6 +1,7 @@
 package andxor
 
-import scalaz.{Semigroup, \/}
+import scala.language.higherKinds
+import scalaz.{Applicative, Functor, Semigroup, \/}
 
 trait Inj[Cop, A] {
   def apply(a: A): Cop
@@ -15,6 +16,8 @@ object Inj {
   def instance[A, B](ab: A => B): Inj[B, A] = new Inj[B, A] {
     def apply(a: A): B = ab(a)
   }
+
+  def inject[Cop, A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
 
   implicit def decidableInj[Cop]: Decidable[Aux[Cop]#Out] =
     new Decidable[Aux[Cop]#Out] {
@@ -40,12 +43,12 @@ object Inj {
         }
     }
 
-  implicit def injACops[Cop, A](implicit inj: Inj[Cop, A]): Inj[List[Cop], A] = new Inj[List[Cop], A] {
-    def apply(a: A): List[Cop] = List(inj(a))
+  implicit def apInjA[F[_], Cop, A](implicit F: Applicative[F], inj: Inj[Cop, A]): Inj[F[Cop], A] = new Inj[F[Cop], A] {
+    def apply(a: A): F[Cop] = F.point(inj(a))
   }
 
-  implicit def injListACops[Cop, A](implicit inj: Inj[Cop, A]): Inj[List[Cop], List[A]] = new Inj[List[Cop], List[A]] {
-    def apply(a: List[A]): List[Cop] = a.map(inj(_))
+  implicit def fnInjA[F[_], Cop, A](implicit F: Functor[F], inj: Inj[Cop, A]): Inj[F[Cop], F[A]] = new Inj[F[Cop], F[A]] {
+    def apply(a: F[A]): F[Cop] = F.map(a)(inj(_))
   }
 }
 
