@@ -2,6 +2,7 @@ package andxor
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
+import scalaz.std.list._
 import scalaz.syntax.either._
 
 trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] extends AndXor {
@@ -55,6 +56,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
         ])))))))))))))))))]
       )
 
+    implicit val inja0Inverse: Inj[Option[F[A1]], Cop] =
+      Inj.instance(_ match {
+        case -\/(x) => Some(x)
+        case _      => None
+      })
+
     implicit val inja1: Inj[Cop, F[A2]] =
       Inj.instance(
         _.left[(F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[
@@ -62,12 +69,24 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
         ]))))))))))))))))].right[F[A1]]
       )
 
+    implicit val inja1Inverse: Inj[Option[F[A2]], Cop] =
+      Inj.instance(_ match {
+        case \/-(-\/(x)) => Some(x)
+        case _           => None
+      })
+
     implicit val inja2: Inj[Cop, F[A3]] =
       Inj.instance(
         _.left[(F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[A19])))))))))))))))]
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja2Inverse: Inj[Option[F[A3]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(-\/(x))) => Some(x)
+        case _                => None
+      })
 
     implicit val inja3: Inj[Cop, F[A4]] =
       Inj.instance(
@@ -77,6 +96,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja3Inverse: Inj[Option[F[A4]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(-\/(x)))) => Some(x)
+        case _                     => None
+      })
+
     implicit val inja4: Inj[Cop, F[A5]] =
       Inj.instance(
         _.left[(F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[A19])))))))))))))]
@@ -85,6 +110,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja4Inverse: Inj[Option[F[A5]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(-\/(x))))) => Some(x)
+        case _                          => None
+      })
 
     implicit val inja5: Inj[Cop, F[A6]] =
       Inj.instance(
@@ -96,6 +127,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja5Inverse: Inj[Option[F[A6]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(x)
+        case _                               => None
+      })
+
     implicit val inja6: Inj[Cop, F[A7]] =
       Inj.instance(
         _.left[(F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[A19])))))))))))]
@@ -106,6 +143,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja6Inverse: Inj[Option[F[A7]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(x)
+        case _                                    => None
+      })
 
     implicit val inja7: Inj[Cop, F[A8]] =
       Inj.instance(
@@ -119,6 +162,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja7Inverse: Inj[Option[F[A8]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(x)
+        case _                                         => None
+      })
+
     implicit val inja8: Inj[Cop, F[A9]] =
       Inj.instance(
         _.left[(F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[A19])))))))))]
@@ -131,6 +180,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja8Inverse: Inj[Option[F[A9]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(x)
+        case _                                              => None
+      })
 
     implicit val inja9: Inj[Cop, F[A10]] =
       Inj.instance(
@@ -146,6 +201,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja9Inverse: Inj[Option[F[A10]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(x)
+        case _                                                   => None
+      })
+
     implicit val inja10: Inj[Cop, F[A11]] =
       Inj.instance(
         _.left[(F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[A19])))))))]
@@ -160,6 +221,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja10Inverse: Inj[Option[F[A11]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(x)
+        case _                                                        => None
+      })
 
     implicit val inja11: Inj[Cop, F[A12]] =
       Inj.instance(
@@ -177,6 +244,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja11Inverse: Inj[Option[F[A12]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(x)
+        case _                                                             => None
+      })
+
     implicit val inja12: Inj[Cop, F[A13]] =
       Inj.instance(
         _.left[(F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[A19])))))]
@@ -193,6 +266,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja12Inverse: Inj[Option[F[A13]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(x)
+        case _                                                                  => None
+      })
 
     implicit val inja13: Inj[Cop, F[A14]] =
       Inj.instance(
@@ -212,6 +291,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja13Inverse: Inj[Option[F[A14]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(x)
+        case _                                                                       => None
+      })
+
     implicit val inja14: Inj[Cop, F[A15]] =
       Inj.instance(
         _.left[(F[A16] \/ (F[A17] \/ (F[A18] \/ F[A19])))]
@@ -230,6 +315,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja14Inverse: Inj[Option[F[A15]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(x)
+        case _                                                                            => None
+      })
 
     implicit val inja15: Inj[Cop, F[A16]] =
       Inj.instance(
@@ -251,6 +342,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja15Inverse: Inj[Option[F[A16]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Some(x)
+        case _                                                                                 => None
+      })
+
     implicit val inja16: Inj[Cop, F[A17]] =
       Inj.instance(
         _.left[(F[A18] \/ F[A19])]
@@ -271,6 +368,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A2]]
           .right[F[A1]]
       )
+
+    implicit val inja16Inverse: Inj[Option[F[A17]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Some(x)
+        case _                                                                                      => None
+      })
 
     implicit val inja17: Inj[Cop, F[A18]] =
       Inj.instance(
@@ -294,6 +397,12 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja17Inverse: Inj[Option[F[A18]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Some(x)
+        case _                                                                                           => None
+      })
+
     implicit val inja18: Inj[Cop, F[A19]] =
       Inj.instance(
         _.right[F[A18]]
@@ -316,11 +425,19 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
           .right[F[A1]]
       )
 
+    implicit val inja18Inverse: Inj[Option[F[A19]], Cop] =
+      Inj.instance(_ match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))) => Some(x)
+        case _                                                                                           => None
+      })
+
     implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
       val (_, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
         M.zero
       Inj.instance((_, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
+
+    implicit val lifta0Inverse: Inj[F[A1], Prod] = Inj.instance(_._1)
 
     implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
       val (a0, _, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
@@ -328,11 +445,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, _, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
 
+    implicit val lifta1Inverse: Inj[F[A2], Prod] = Inj.instance(_._2)
+
     implicit def lifta2(implicit M: Monoid[Prod]): Inj[Prod, F[A3]] = {
       val (a0, a1, _, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
         M.zero
       Inj.instance((a0, a1, _, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
+
+    implicit val lifta2Inverse: Inj[F[A3], Prod] = Inj.instance(_._3)
 
     implicit def lifta3(implicit M: Monoid[Prod]): Inj[Prod, F[A4]] = {
       val (a0, a1, a2, _, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
@@ -340,11 +461,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, _, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
 
+    implicit val lifta3Inverse: Inj[F[A4], Prod] = Inj.instance(_._4)
+
     implicit def lifta4(implicit M: Monoid[Prod]): Inj[Prod, F[A5]] = {
       val (a0, a1, a2, a3, _, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
         M.zero
       Inj.instance((a0, a1, a2, a3, _, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
+
+    implicit val lifta4Inverse: Inj[F[A5], Prod] = Inj.instance(_._5)
 
     implicit def lifta5(implicit M: Monoid[Prod]): Inj[Prod, F[A6]] = {
       val (a0, a1, a2, a3, a4, _, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
@@ -352,11 +477,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, a3, a4, _, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
 
+    implicit val lifta5Inverse: Inj[F[A6], Prod] = Inj.instance(_._6)
+
     implicit def lifta6(implicit M: Monoid[Prod]): Inj[Prod, F[A7]] = {
       val (a0, a1, a2, a3, a4, a5, _, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, _, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
+
+    implicit val lifta6Inverse: Inj[F[A7], Prod] = Inj.instance(_._7)
 
     implicit def lifta7(implicit M: Monoid[Prod]): Inj[Prod, F[A8]] = {
       val (a0, a1, a2, a3, a4, a5, a6, _, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
@@ -364,11 +493,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, _, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
 
+    implicit val lifta7Inverse: Inj[F[A8], Prod] = Inj.instance(_._8)
+
     implicit def lifta8(implicit M: Monoid[Prod]): Inj[Prod, F[A9]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, _, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, _, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
+
+    implicit val lifta8Inverse: Inj[F[A9], Prod] = Inj.instance(_._9)
 
     implicit def lifta9(implicit M: Monoid[Prod]): Inj[Prod, F[A10]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, _, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
@@ -376,11 +509,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, _, a9, a10, a11, a12, a13, a14, a15, a16, a17))
     }
 
+    implicit val lifta9Inverse: Inj[F[A10], Prod] = Inj.instance(_._10)
+
     implicit def lifta10(implicit M: Monoid[Prod]): Inj[Prod, F[A11]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, _, a10, a11, a12, a13, a14, a15, a16, a17) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, _, a10, a11, a12, a13, a14, a15, a16, a17))
     }
+
+    implicit val lifta10Inverse: Inj[F[A11], Prod] = Inj.instance(_._11)
 
     implicit def lifta11(implicit M: Monoid[Prod]): Inj[Prod, F[A12]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, _, a11, a12, a13, a14, a15, a16, a17) =
@@ -388,11 +525,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, _, a11, a12, a13, a14, a15, a16, a17))
     }
 
+    implicit val lifta11Inverse: Inj[F[A12], Prod] = Inj.instance(_._12)
+
     implicit def lifta12(implicit M: Monoid[Prod]): Inj[Prod, F[A13]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, _, a12, a13, a14, a15, a16, a17) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, _, a12, a13, a14, a15, a16, a17))
     }
+
+    implicit val lifta12Inverse: Inj[F[A13], Prod] = Inj.instance(_._13)
 
     implicit def lifta13(implicit M: Monoid[Prod]): Inj[Prod, F[A14]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, _, a13, a14, a15, a16, a17) =
@@ -400,11 +541,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, _, a13, a14, a15, a16, a17))
     }
 
+    implicit val lifta13Inverse: Inj[F[A14], Prod] = Inj.instance(_._14)
+
     implicit def lifta14(implicit M: Monoid[Prod]): Inj[Prod, F[A15]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, _, a14, a15, a16, a17) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, _, a14, a15, a16, a17))
     }
+
+    implicit val lifta14Inverse: Inj[F[A15], Prod] = Inj.instance(_._15)
 
     implicit def lifta15(implicit M: Monoid[Prod]): Inj[Prod, F[A16]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, _, a15, a16, a17) =
@@ -412,11 +557,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, _, a15, a16, a17))
     }
 
+    implicit val lifta15Inverse: Inj[F[A16], Prod] = Inj.instance(_._16)
+
     implicit def lifta16(implicit M: Monoid[Prod]): Inj[Prod, F[A17]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, _, a16, a17) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, _, a16, a17))
     }
+
+    implicit val lifta16Inverse: Inj[F[A17], Prod] = Inj.instance(_._17)
 
     implicit def lifta17(implicit M: Monoid[Prod]): Inj[Prod, F[A18]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, _, a17) =
@@ -424,11 +573,15 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, _, a17))
     }
 
+    implicit val lifta17Inverse: Inj[F[A18], Prod] = Inj.instance(_._18)
+
     implicit def lifta18(implicit M: Monoid[Prod]): Inj[Prod, F[A19]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, _) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, _))
     }
+
+    implicit val lifta18Inverse: Inj[F[A19], Prod] = Inj.instance(_._19)
 
   }
 
@@ -556,6 +709,10 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
     (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18)).curried)))))))))))))))))))
   }
   
+
+  def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
+
+  def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(

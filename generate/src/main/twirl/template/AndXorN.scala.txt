@@ -4,6 +4,7 @@
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
+import scalaz.std.list._
 import scalaz.syntax.either._
 
 trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
@@ -60,6 +61,10 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
       @{tpes.zipper(SequenceC(_)).mkString("")}
     }
   } *@
+
+  def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
+
+  def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(
