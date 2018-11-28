@@ -3,11 +3,13 @@
 
 @(z: Zipper[String])
 
-  implicit val inja@{z.index}: Inj[Cop, F[@{z.focus}]] =
-    Inj.instance(x => @z.djVal("x"))
-
-  implicit val inja@{z.index}Inverse: Inj[Option[F[@{z.focus}]], Cop] =
-    Inj.instance(_ match {
+  implicit val prisma@{z.index}: Prism[Cop, F[@{z.focus}]] = new Prism[Cop, F[@{z.focus}]] {
+    def getOption(c: Cop): Option[F[@{z.focus}]] = c match {
       case @z.djVal("x") => Some(x)
       case _ => None
-    })
+    }
+    def reverseGet(x: F[@{z.focus}]): Cop = @z.djVal("x")
+  }
+
+  implicit val inja@{z.index}: Inj[Cop, F[@{z.focus}]] = Inj.instance(prisma@{z.index}.reverseGet(_))
+  implicit val inja@{z.index}Inverse: Inj[Option[F[@{z.focus}]], Cop] = Inj.instance(prisma@{z.index}.getOption(_))

@@ -2,11 +2,9 @@
 
 @(tpes: List[String])
 
-import andxor.MapN.syntax._
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
-import scalaz.Isomorphism.{<=>, IsoSet}
 import scalaz.std.list._
 
 trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
@@ -67,8 +65,6 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
   def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
 
   def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
-
-  def toListP(p: Prod): List[Cop] = combine[Inj.Aux[List[Cop]]#Out].divide.apply(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(
