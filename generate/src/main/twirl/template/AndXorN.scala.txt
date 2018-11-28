@@ -1,9 +1,12 @@
 @import andxor.syntax._
 
 @(tpes: List[String])
+
+import andxor.MapN.syntax._
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
+import scalaz.Isomorphism.{<=>, IsoSet}
 import scalaz.std.list._
 import scalaz.syntax.either._
 

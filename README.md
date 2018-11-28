@@ -40,13 +40,13 @@ scala> import scalaz.{Show, \/, ~>}
 import scalaz.{Show, $bslash$div, $tilde$greater}
 
 scala> val SIS = AndXor3[String, Int, List[String]]
-SIS: andxor.AndXor3[String,Int,List[String]] = andxor.AndXor3$$anon$1@2f4dc0f5
+SIS: andxor.AndXor3[String,Int,List[String]] = andxor.AndXor3$$anon$1@544036bd
 
 scala> import SIS.instances._ // for inject instances
 import SIS.instances._
 
 scala> implicit val ds: Decidable[Show] = new Decidable[Show] { def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] = Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_))) }
-ds: andxor.Decidable[scalaz.Show] = $anon$1@68f4c415
+ds: andxor.Decidable[scalaz.Show] = $anon$1@3e799ebf
 
 scala> SIS.combine[Show].choose.show(SIS.inj("foo"))
 res0: scalaz.Cord = "foo"
@@ -59,10 +59,10 @@ res2: scalaz.Cord = ["bar","baz"]
 
 scala> // lift into monoidal product
      | val SISF = AndXorF3[String, Int, List[String]]
-SISF: andxor.AndXorF3[String,Int,List[String]] = andxor.AndXorF3$$anon$5@2e171711
+SISF: andxor.AndXorF3[String,Int,List[String]] = andxor.AndXorF3$$anon$5@1c7a3362
 
 scala> val SISL = SISF[List]
-SISL: SISF.Repr[List] = andxor.AndXorF3$$anon$3@43b364d6
+SISL: SISF.Repr[List] = andxor.AndXorF3$$anon$3@7b0bdb11
 
 scala> import SISL.instances._ // for inject instances
 import SISL.instances._
@@ -71,7 +71,7 @@ scala> val ls = SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List
 ls: SISL.Prod = (List(foo),List(4),List(List(bar)))
 
 scala> val SISO = SISF[Option]
-SISO: SISF.Repr[Option] = andxor.AndXorF3$$anon$3@40c3b391
+SISO: SISF.Repr[Option] = andxor.AndXorF3$$anon$3@7e387b70
 
 scala> import SISO.instances._ // for inject instances
 import SISO.instances._
@@ -81,13 +81,13 @@ os: SISO.Prod = (Some(foo),Some(4),Some(List(bar)))
 
 scala> // convert between F[_]s using a ~>
      | val l2o = new (List ~> Option) { def apply[A](l: List[A]): Option[A] = l.headOption }
-l2o: List ~> Option = $anon$1@2fde1897
+l2o: List ~> Option = $anon$1@4bf71e61
 
 scala> SISL.transformP(l2o)(ls)
 res5: (Option[String], Option[Int], Option[List[String]]) = (Some(foo),Some(4),Some(List(bar)))
 
 scala> val o2l = new (Option ~> List) { def apply[A](o: Option[A]): List[A] = o.toList }
-o2l: Option ~> List = $anon$1@3d2bfb23
+o2l: Option ~> List = $anon$1@6344b561
 
 scala> SISO.transformP(o2l)(os)
 res6: (List[String], List[Int], List[List[String]]) = (List(foo),List(4),List(List(bar)))

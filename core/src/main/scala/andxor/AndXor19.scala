@@ -1,7 +1,9 @@
 package andxor
+import andxor.MapN.syntax._
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
+import scalaz.Isomorphism.{<=>, IsoSet}
 import scalaz.std.list._
 import scalaz.syntax.either._
 
@@ -431,157 +433,62 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
         case _                                                                                           => None
       })
 
-    implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
-      val (_, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((_, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa0(implicit M: Monoid[Prod]): Prod <=> F[A1] =
+      IsoSet(_._1, x => M.zero.map1(_ => x))
 
-    implicit val lifta0Inverse: Inj[F[A1], Prod] = Inj.instance(_._1)
+    implicit def liftisoa1(implicit M: Monoid[Prod]): Prod <=> F[A2] =
+      IsoSet(_._2, x => M.zero.map2(_ => x))
 
-    implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
-      val (a0, _, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, _, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa2(implicit M: Monoid[Prod]): Prod <=> F[A3] =
+      IsoSet(_._3, x => M.zero.map3(_ => x))
 
-    implicit val lifta1Inverse: Inj[F[A2], Prod] = Inj.instance(_._2)
+    implicit def liftisoa3(implicit M: Monoid[Prod]): Prod <=> F[A4] =
+      IsoSet(_._4, x => M.zero.map4(_ => x))
 
-    implicit def lifta2(implicit M: Monoid[Prod]): Inj[Prod, F[A3]] = {
-      val (a0, a1, _, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, _, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa4(implicit M: Monoid[Prod]): Prod <=> F[A5] =
+      IsoSet(_._5, x => M.zero.map5(_ => x))
 
-    implicit val lifta2Inverse: Inj[F[A3], Prod] = Inj.instance(_._3)
+    implicit def liftisoa5(implicit M: Monoid[Prod]): Prod <=> F[A6] =
+      IsoSet(_._6, x => M.zero.map6(_ => x))
 
-    implicit def lifta3(implicit M: Monoid[Prod]): Inj[Prod, F[A4]] = {
-      val (a0, a1, a2, _, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, _, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa6(implicit M: Monoid[Prod]): Prod <=> F[A7] =
+      IsoSet(_._7, x => M.zero.map7(_ => x))
 
-    implicit val lifta3Inverse: Inj[F[A4], Prod] = Inj.instance(_._4)
+    implicit def liftisoa7(implicit M: Monoid[Prod]): Prod <=> F[A8] =
+      IsoSet(_._8, x => M.zero.map8(_ => x))
 
-    implicit def lifta4(implicit M: Monoid[Prod]): Inj[Prod, F[A5]] = {
-      val (a0, a1, a2, a3, _, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, _, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa8(implicit M: Monoid[Prod]): Prod <=> F[A9] =
+      IsoSet(_._9, x => M.zero.map9(_ => x))
 
-    implicit val lifta4Inverse: Inj[F[A5], Prod] = Inj.instance(_._5)
+    implicit def liftisoa9(implicit M: Monoid[Prod]): Prod <=> F[A10] =
+      IsoSet(_._10, x => M.zero.map10(_ => x))
 
-    implicit def lifta5(implicit M: Monoid[Prod]): Inj[Prod, F[A6]] = {
-      val (a0, a1, a2, a3, a4, _, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, _, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa10(implicit M: Monoid[Prod]): Prod <=> F[A11] =
+      IsoSet(_._11, x => M.zero.map11(_ => x))
 
-    implicit val lifta5Inverse: Inj[F[A6], Prod] = Inj.instance(_._6)
+    implicit def liftisoa11(implicit M: Monoid[Prod]): Prod <=> F[A12] =
+      IsoSet(_._12, x => M.zero.map12(_ => x))
 
-    implicit def lifta6(implicit M: Monoid[Prod]): Inj[Prod, F[A7]] = {
-      val (a0, a1, a2, a3, a4, a5, _, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, _, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa12(implicit M: Monoid[Prod]): Prod <=> F[A13] =
+      IsoSet(_._13, x => M.zero.map13(_ => x))
 
-    implicit val lifta6Inverse: Inj[F[A7], Prod] = Inj.instance(_._7)
+    implicit def liftisoa13(implicit M: Monoid[Prod]): Prod <=> F[A14] =
+      IsoSet(_._14, x => M.zero.map14(_ => x))
 
-    implicit def lifta7(implicit M: Monoid[Prod]): Inj[Prod, F[A8]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, _, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, _, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa14(implicit M: Monoid[Prod]): Prod <=> F[A15] =
+      IsoSet(_._15, x => M.zero.map15(_ => x))
 
-    implicit val lifta7Inverse: Inj[F[A8], Prod] = Inj.instance(_._8)
+    implicit def liftisoa15(implicit M: Monoid[Prod]): Prod <=> F[A16] =
+      IsoSet(_._16, x => M.zero.map16(_ => x))
 
-    implicit def lifta8(implicit M: Monoid[Prod]): Inj[Prod, F[A9]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, _, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, _, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
+    implicit def liftisoa16(implicit M: Monoid[Prod]): Prod <=> F[A17] =
+      IsoSet(_._17, x => M.zero.map17(_ => x))
 
-    implicit val lifta8Inverse: Inj[F[A9], Prod] = Inj.instance(_._9)
+    implicit def liftisoa17(implicit M: Monoid[Prod]): Prod <=> F[A18] =
+      IsoSet(_._18, x => M.zero.map18(_ => x))
 
-    implicit def lifta9(implicit M: Monoid[Prod]): Inj[Prod, F[A10]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, _, a9, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, _, a9, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
-
-    implicit val lifta9Inverse: Inj[F[A10], Prod] = Inj.instance(_._10)
-
-    implicit def lifta10(implicit M: Monoid[Prod]): Inj[Prod, F[A11]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, _, a10, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, _, a10, a11, a12, a13, a14, a15, a16, a17))
-    }
-
-    implicit val lifta10Inverse: Inj[F[A11], Prod] = Inj.instance(_._11)
-
-    implicit def lifta11(implicit M: Monoid[Prod]): Inj[Prod, F[A12]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, _, a11, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, _, a11, a12, a13, a14, a15, a16, a17))
-    }
-
-    implicit val lifta11Inverse: Inj[F[A12], Prod] = Inj.instance(_._12)
-
-    implicit def lifta12(implicit M: Monoid[Prod]): Inj[Prod, F[A13]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, _, a12, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, _, a12, a13, a14, a15, a16, a17))
-    }
-
-    implicit val lifta12Inverse: Inj[F[A13], Prod] = Inj.instance(_._13)
-
-    implicit def lifta13(implicit M: Monoid[Prod]): Inj[Prod, F[A14]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, _, a13, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, _, a13, a14, a15, a16, a17))
-    }
-
-    implicit val lifta13Inverse: Inj[F[A14], Prod] = Inj.instance(_._14)
-
-    implicit def lifta14(implicit M: Monoid[Prod]): Inj[Prod, F[A15]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, _, a14, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, _, a14, a15, a16, a17))
-    }
-
-    implicit val lifta14Inverse: Inj[F[A15], Prod] = Inj.instance(_._15)
-
-    implicit def lifta15(implicit M: Monoid[Prod]): Inj[Prod, F[A16]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, _, a15, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, _, a15, a16, a17))
-    }
-
-    implicit val lifta15Inverse: Inj[F[A16], Prod] = Inj.instance(_._16)
-
-    implicit def lifta16(implicit M: Monoid[Prod]): Inj[Prod, F[A17]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, _, a16, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, _, a16, a17))
-    }
-
-    implicit val lifta16Inverse: Inj[F[A17], Prod] = Inj.instance(_._17)
-
-    implicit def lifta17(implicit M: Monoid[Prod]): Inj[Prod, F[A18]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, _, a17) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, _, a17))
-    }
-
-    implicit val lifta17Inverse: Inj[F[A18], Prod] = Inj.instance(_._18)
-
-    implicit def lifta18(implicit M: Monoid[Prod]): Inj[Prod, F[A19]] = {
-      val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, _) =
-        M.zero
-      Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, _))
-    }
-
-    implicit val lifta18Inverse: Inj[F[A19], Prod] = Inj.instance(_._19)
+    implicit def liftisoa18(implicit M: Monoid[Prod]): Prod <=> F[A19] =
+      IsoSet(_._19, x => M.zero.map19(_ => x))
 
   }
 

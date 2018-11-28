@@ -2,6 +2,7 @@ package andxor
 
 import scala.language.higherKinds
 import scalaz.{Applicative, Functor, Semigroup, \/}
+import scalaz.Isomorphism.<=>
 
 trait Inj[Cop, A] {
   def apply(a: A): Cop
@@ -43,12 +44,10 @@ object Inj {
         }
     }
 
-  implicit def apInjA[F[_], Cop, A](implicit F: Applicative[F], inj: Inj[Cop, A]): Inj[F[Cop], A] = new Inj[F[Cop], A] {
-    def apply(a: A): F[Cop] = F.point(inj(a))
-  }
+  implicit def isoInj[A, B](implicit iso: A <=> B): Inj[B, A] = instance(iso.to)
 
-  implicit def fnInjA[F[_], Cop, A](implicit F: Functor[F], inj: Inj[Cop, A]): Inj[F[Cop], F[A]] = new Inj[F[Cop], F[A]] {
-    def apply(a: F[A]): F[Cop] = F.map(a)(inj(_))
-  }
+  implicit def apInjA[F[_], B, A](implicit F: Applicative[F], inj: Inj[B, A]): Inj[F[B], A] = instance(a => F.point(inj(a)))
+
+  implicit def fnInjA[F[_], B, A](implicit F: Functor[F], inj: Inj[B, A]): Inj[F[B], F[A]] = instance(F.map(_)(inj(_)))
 }
 

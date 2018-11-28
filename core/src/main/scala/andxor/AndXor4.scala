@@ -1,7 +1,9 @@
 package andxor
+import andxor.MapN.syntax._
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
+import scalaz.Isomorphism.{<=>, IsoSet}
 import scalaz.std.list._
 import scalaz.syntax.either._
 
@@ -60,37 +62,17 @@ trait AndXorK4[F[_], A1, A2, A3, A4] extends AndXor {
         case _                => None
       })
 
-    implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
-      val (_, a0, a1, a2) =
-        M.zero
-      Inj.instance((_, a0, a1, a2))
-    }
+    implicit def liftisoa0(implicit M: Monoid[Prod]): Prod <=> F[A1] =
+      IsoSet(_._1, x => M.zero.map1(_ => x))
 
-    implicit val lifta0Inverse: Inj[F[A1], Prod] = Inj.instance(_._1)
+    implicit def liftisoa1(implicit M: Monoid[Prod]): Prod <=> F[A2] =
+      IsoSet(_._2, x => M.zero.map2(_ => x))
 
-    implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
-      val (a0, _, a1, a2) =
-        M.zero
-      Inj.instance((a0, _, a1, a2))
-    }
+    implicit def liftisoa2(implicit M: Monoid[Prod]): Prod <=> F[A3] =
+      IsoSet(_._3, x => M.zero.map3(_ => x))
 
-    implicit val lifta1Inverse: Inj[F[A2], Prod] = Inj.instance(_._2)
-
-    implicit def lifta2(implicit M: Monoid[Prod]): Inj[Prod, F[A3]] = {
-      val (a0, a1, _, a2) =
-        M.zero
-      Inj.instance((a0, a1, _, a2))
-    }
-
-    implicit val lifta2Inverse: Inj[F[A3], Prod] = Inj.instance(_._3)
-
-    implicit def lifta3(implicit M: Monoid[Prod]): Inj[Prod, F[A4]] = {
-      val (a0, a1, a2, _) =
-        M.zero
-      Inj.instance((a0, a1, a2, _))
-    }
-
-    implicit val lifta3Inverse: Inj[F[A4], Prod] = Inj.instance(_._4)
+    implicit def liftisoa3(implicit M: Monoid[Prod]): Prod <=> F[A4] =
+      IsoSet(_._4, x => M.zero.map4(_ => x))
 
   }
 

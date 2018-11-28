@@ -2,14 +2,5 @@
 @import scalaz.Zipper
 
 @(f: Zipper[String])
-  implicit def lifta@{f.index}(implicit M: Monoid[Prod]): Inj[Prod, F[@{f.focus}]] = {
-    val (@{
-  ((f.lefts.toList.paramList("a") :+ "_") ++
-    f.rights.toList.paramList("a", f.lefts.length)).mkString(", ")}) =
-        M.zero
-    Inj.instance((@{
-      ((f.lefts.toList.paramList("a") :+ "_") ++
-        f.rights.toList.paramList("a", f.lefts.length)).mkString(", ")}))
-  }
-
-  implicit val lifta@{f.index}Inverse: Inj[F[@{f.focus}], Prod] = Inj.instance(_._@{f.index + 1})
+  implicit def liftisoa@{f.index}(implicit M: Monoid[Prod]): Prod <=> F[@{f.focus}] =
+    IsoSet(_._@{f.index + 1}, x => M.zero.map@{f.index + 1}(_ => x))
