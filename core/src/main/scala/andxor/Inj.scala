@@ -18,7 +18,7 @@ object Inj {
     def apply(a: A): B = ab(a)
   }
 
-  def inject[Cop, A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
+  def inject[B, A](a: A)(implicit inj: Inj[B, A]): B = inj(a)
 
   implicit def decidableInj[Cop]: Decidable[Aux[Cop]#Out] =
     new Decidable[Aux[Cop]#Out] {

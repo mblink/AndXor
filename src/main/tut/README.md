@@ -60,4 +60,8 @@ SISL.toListP((List("foo"), List(1), List(List("bar"))))
 // inject into applicative
 Inj.inject[List[SISO.Cop], Option[String]](Some("foo"))
 Inj.inject[Option[SISO.Cop], Option[Int]](Some(1))
+
+// inject F[A] into F[B] given a Functor[F]
+Inj.inject[List[SISO.Cop], List[Option[String]]](List(Some("foo")))
+Inj.inject[Option[SISO.Cop], Option[Option[Int]]](None)
 ```
