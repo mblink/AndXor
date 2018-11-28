@@ -5,7 +5,6 @@ import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.Isomorphism.{<=>, IsoSet}
 import scalaz.std.list._
-import scalaz.syntax.either._
 
 trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])
@@ -27,7 +26,7 @@ trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
   object instances {
 
     implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(_.left[(F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6]))))])
+      Inj.instance(x => -\/(x))
 
     implicit val inja0Inverse: Inj[Option[F[A1]], Cop] =
       Inj.instance(_ match {
@@ -36,7 +35,7 @@ trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
       })
 
     implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(_.left[(F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6])))].right[F[A1]])
+      Inj.instance(x => \/-(-\/(x)))
 
     implicit val inja1Inverse: Inj[Option[F[A2]], Cop] =
       Inj.instance(_ match {
@@ -45,7 +44,7 @@ trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
       })
 
     implicit val inja2: Inj[Cop, F[A3]] =
-      Inj.instance(_.left[(F[A4] \/ (F[A5] \/ F[A6]))].right[F[A2]].right[F[A1]])
+      Inj.instance(x => \/-(\/-(-\/(x))))
 
     implicit val inja2Inverse: Inj[Option[F[A3]], Cop] =
       Inj.instance(_ match {
@@ -54,7 +53,7 @@ trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
       })
 
     implicit val inja3: Inj[Cop, F[A4]] =
-      Inj.instance(_.left[(F[A5] \/ F[A6])].right[F[A3]].right[F[A2]].right[F[A1]])
+      Inj.instance(x => \/-(\/-(\/-(-\/(x)))))
 
     implicit val inja3Inverse: Inj[Option[F[A4]], Cop] =
       Inj.instance(_ match {
@@ -63,7 +62,7 @@ trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
       })
 
     implicit val inja4: Inj[Cop, F[A5]] =
-      Inj.instance(_.left[F[A6]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+      Inj.instance(x => \/-(\/-(\/-(\/-(-\/(x))))))
 
     implicit val inja4Inverse: Inj[Option[F[A5]], Cop] =
       Inj.instance(_ match {
@@ -72,7 +71,7 @@ trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
       })
 
     implicit val inja5: Inj[Cop, F[A6]] =
-      Inj.instance(_.right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(x))))))
 
     implicit val inja5Inverse: Inj[Option[F[A6]], Cop] =
       Inj.instance(_ match {

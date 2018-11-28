@@ -5,7 +5,6 @@ import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.Isomorphism.{<=>, IsoSet}
 import scalaz.std.list._
-import scalaz.syntax.either._
 
 trait AndXorK2[F[_], A1, A2] extends AndXor {
   type Prod = (F[A1], F[A2])
@@ -27,7 +26,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   object instances {
 
     implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(_.left[F[A2]])
+      Inj.instance(x => -\/(x))
 
     implicit val inja0Inverse: Inj[Option[F[A1]], Cop] =
       Inj.instance(_ match {
@@ -36,7 +35,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
       })
 
     implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(_.right[F[A1]])
+      Inj.instance(x => \/-(x))
 
     implicit val inja1Inverse: Inj[Option[F[A2]], Cop] =
       Inj.instance(_ match {

@@ -4,14 +4,10 @@
 @(z: Zipper[String])
 
   implicit val inja@{z.index}: Inj[Cop, F[@{z.focus}]] =
-    Inj.instance(_@{
-      Some(z.rights.toList).filter(_.nonEmpty)
-        .map(rt => s""".left[${rt.djK("F")}]""").getOrElse("")}@{
-     z.lefts.toList.map(rt => s""".right[F[${rt}]]""")
-      .mkString("")})
+    Inj.instance(x => @z.djVal("x"))
 
   implicit val inja@{z.index}Inverse: Inj[Option[F[@{z.focus}]], Cop] =
     Inj.instance(_ match {
-      case @{z.lefts.foldLeft(Some(z.rights).filter(_.nonEmpty).map(_ => "-\\/(x)").getOrElse("x"))((acc, _) => s"\\/-($acc)")} => Some(x)
+      case @z.djVal("x") => Some(x)
       case _ => None
     })

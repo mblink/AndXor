@@ -41,5 +41,8 @@ object syntax {
 
   implicit class ZipperOps[A](z: Zipper[A]) {
     def toList: List[A] = z.toStream.toList
+
+    def djVal(v: String): String =
+      z.lefts.foldLeft(Some(z.rights).filter(_.nonEmpty).map(_ => s"-\\/($v)").getOrElse(v))((a, _) => s"\\/-($a)")
   }
 }

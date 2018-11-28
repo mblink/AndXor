@@ -5,7 +5,6 @@ import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.Isomorphism.{<=>, IsoSet}
 import scalaz.std.list._
-import scalaz.syntax.either._
 
 trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21])
@@ -54,11 +53,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
   object instances {
 
     implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(
-        _.left[(F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[
-          A19
-        ] \/ (F[A20] \/ F[A21])))))))))))))))))))]
-      )
+      Inj.instance(x => -\/(x))
 
     implicit val inja0Inverse: Inj[Option[F[A1]], Cop] =
       Inj.instance(_ match {
@@ -67,11 +62,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(
-        _.left[(F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[
-          A20
-        ] \/ F[A21]))))))))))))))))))].right[F[A1]]
-      )
+      Inj.instance(x => \/-(-\/(x)))
 
     implicit val inja1Inverse: Inj[Option[F[A2]], Cop] =
       Inj.instance(_ match {
@@ -80,11 +71,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja2: Inj[Cop, F[A3]] =
-      Inj.instance(
-        _.left[(F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[
-          A21
-        ])))))))))))))))))].right[F[A2]].right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(-\/(x))))
 
     implicit val inja2Inverse: Inj[Option[F[A3]], Cop] =
       Inj.instance(_ match {
@@ -93,11 +80,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja3: Inj[Cop, F[A4]] =
-      Inj.instance(
-        _.left[(F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[
-          A21
-        ]))))))))))))))))].right[F[A3]].right[F[A2]].right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(-\/(x)))))
 
     implicit val inja3Inverse: Inj[Option[F[A4]], Cop] =
       Inj.instance(_ match {
@@ -106,13 +89,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja4: Inj[Cop, F[A5]] =
-      Inj.instance(
-        _.left[(F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21])))))))))))))))]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(-\/(x))))))
 
     implicit val inja4Inverse: Inj[Option[F[A5]], Cop] =
       Inj.instance(_ match {
@@ -121,14 +98,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja5: Inj[Cop, F[A6]] =
-      Inj.instance(
-        _.left[(F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21]))))))))))))))]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(-\/(x)))))))
 
     implicit val inja5Inverse: Inj[Option[F[A6]], Cop] =
       Inj.instance(_ match {
@@ -137,15 +107,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja6: Inj[Cop, F[A7]] =
-      Inj.instance(
-        _.left[(F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21])))))))))))))]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))
 
     implicit val inja6Inverse: Inj[Option[F[A7]], Cop] =
       Inj.instance(_ match {
@@ -154,16 +116,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja7: Inj[Cop, F[A8]] =
-      Inj.instance(
-        _.left[(F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21]))))))))))))]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))
 
     implicit val inja7Inverse: Inj[Option[F[A8]], Cop] =
       Inj.instance(_ match {
@@ -172,17 +125,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja8: Inj[Cop, F[A9]] =
-      Inj.instance(
-        _.left[(F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21])))))))))))]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))
 
     implicit val inja8Inverse: Inj[Option[F[A9]], Cop] =
       Inj.instance(_ match {
@@ -191,18 +134,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja9: Inj[Cop, F[A10]] =
-      Inj.instance(
-        _.left[(F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21]))))))))))]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))
 
     implicit val inja9Inverse: Inj[Option[F[A10]], Cop] =
       Inj.instance(_ match {
@@ -211,19 +143,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja10: Inj[Cop, F[A11]] =
-      Inj.instance(
-        _.left[(F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21])))))))))]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))
 
     implicit val inja10Inverse: Inj[Option[F[A11]], Cop] =
       Inj.instance(_ match {
@@ -232,20 +152,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja11: Inj[Cop, F[A12]] =
-      Inj.instance(
-        _.left[(F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21]))))))))]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))
 
     implicit val inja11Inverse: Inj[Option[F[A12]], Cop] =
       Inj.instance(_ match {
@@ -254,21 +161,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja12: Inj[Cop, F[A13]] =
-      Inj.instance(
-        _.left[(F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21])))))))]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))
 
     implicit val inja12Inverse: Inj[Option[F[A13]], Cop] =
       Inj.instance(_ match {
@@ -277,22 +170,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja13: Inj[Cop, F[A14]] =
-      Inj.instance(
-        _.left[(F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21]))))))]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))
 
     implicit val inja13Inverse: Inj[Option[F[A14]], Cop] =
       Inj.instance(_ match {
@@ -301,23 +179,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja14: Inj[Cop, F[A15]] =
-      Inj.instance(
-        _.left[(F[A16] \/ (F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21])))))]
-          .right[F[A14]]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))
 
     implicit val inja14Inverse: Inj[Option[F[A15]], Cop] =
       Inj.instance(_ match {
@@ -326,24 +188,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja15: Inj[Cop, F[A16]] =
-      Inj.instance(
-        _.left[(F[A17] \/ (F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21]))))]
-          .right[F[A15]]
-          .right[F[A14]]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))
 
     implicit val inja15Inverse: Inj[Option[F[A16]], Cop] =
       Inj.instance(_ match {
@@ -352,25 +197,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja16: Inj[Cop, F[A17]] =
-      Inj.instance(
-        _.left[(F[A18] \/ (F[A19] \/ (F[A20] \/ F[A21])))]
-          .right[F[A16]]
-          .right[F[A15]]
-          .right[F[A14]]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))
 
     implicit val inja16Inverse: Inj[Option[F[A17]], Cop] =
       Inj.instance(_ match {
@@ -379,26 +206,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja17: Inj[Cop, F[A18]] =
-      Inj.instance(
-        _.left[(F[A19] \/ (F[A20] \/ F[A21]))]
-          .right[F[A17]]
-          .right[F[A16]]
-          .right[F[A15]]
-          .right[F[A14]]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))
 
     implicit val inja17Inverse: Inj[Option[F[A18]], Cop] =
       Inj.instance(_ match {
@@ -407,27 +215,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja18: Inj[Cop, F[A19]] =
-      Inj.instance(
-        _.left[(F[A20] \/ F[A21])]
-          .right[F[A18]]
-          .right[F[A17]]
-          .right[F[A16]]
-          .right[F[A15]]
-          .right[F[A14]]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))))
 
     implicit val inja18Inverse: Inj[Option[F[A19]], Cop] =
       Inj.instance(_ match {
@@ -436,28 +224,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja19: Inj[Cop, F[A20]] =
-      Inj.instance(
-        _.left[F[A21]]
-          .right[F[A19]]
-          .right[F[A18]]
-          .right[F[A17]]
-          .right[F[A16]]
-          .right[F[A15]]
-          .right[F[A14]]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))))
 
     implicit val inja19Inverse: Inj[Option[F[A20]], Cop] =
       Inj.instance(_ match {
@@ -466,28 +233,7 @@ trait AndXorK21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
       })
 
     implicit val inja20: Inj[Cop, F[A21]] =
-      Inj.instance(
-        _.right[F[A20]]
-          .right[F[A19]]
-          .right[F[A18]]
-          .right[F[A17]]
-          .right[F[A16]]
-          .right[F[A15]]
-          .right[F[A14]]
-          .right[F[A13]]
-          .right[F[A12]]
-          .right[F[A11]]
-          .right[F[A10]]
-          .right[F[A9]]
-          .right[F[A8]]
-          .right[F[A7]]
-          .right[F[A6]]
-          .right[F[A5]]
-          .right[F[A4]]
-          .right[F[A3]]
-          .right[F[A2]]
-          .right[F[A1]]
-      )
+      Inj.instance(x => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))))))
 
     implicit val inja20Inverse: Inj[Option[F[A21]], Cop] =
       Inj.instance(_ match {
