@@ -1,4 +1,3 @@
-@import andxor.syntax._
 @import scalaz.Zipper
 
 @(z: Zipper[String])

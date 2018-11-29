@@ -3,9 +3,8 @@
 @(tpes: List[String])
 
 import scala.language.higherKinds
-import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
+import scalaz.{Apply, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
-import scalaz.std.list._
 
 trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
   type Prod = @{tpes.prodK("F")}
