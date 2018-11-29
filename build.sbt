@@ -1,6 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.7",
+  version := "0.1.0",
   libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.2.26"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -47,7 +48,16 @@ lazy val commonSettings = Seq(
     "-Ycache-plugin-class-loader:last-modified",
     "-Ycache-macro-class-loader:last-modified"
   ),
-  scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings")
+  scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
+  skip in publish := true
+)
+
+lazy val publishSettings = Seq(
+  skip in publish := false,
+  bintrayOrganization := Some("bondlink"),
+  bintrayRepository := "andxor",
+  bintrayReleaseOnPublish in ThisBuild := false,
+  licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 )
 
 lazy val generate = project.in(file("generate"))
@@ -61,9 +71,10 @@ lazy val generate = project.in(file("generate"))
   )).enablePlugins(SbtTwirl)
 
 lazy val core = project.in(file("core"))
-  .settings(commonSettings ++ Seq(name := "andxor-core"))
+  .settings(commonSettings ++ publishSettings ++ Seq(name := "andxor-core"))
 
 lazy val root = project.in(file("."))
+  .settings(commonSettings)
   .dependsOn(core)
   .aggregate(generate, core)
   .enablePlugins(TutPlugin)
