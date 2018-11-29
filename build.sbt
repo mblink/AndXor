@@ -74,7 +74,10 @@ lazy val core = project.in(file("core"))
   .settings(commonSettings ++ publishSettings ++ Seq(name := "andxor-core"))
 
 lazy val root = project.in(file("."))
-  .settings(commonSettings)
+  .settings(commonSettings ++ Seq(
+    tutTargetDirectory := file("."),
+    scalacOptions in Tut := (scalacOptions in (Compile, console)).value
+  ))
   .dependsOn(core)
   .aggregate(generate, core)
   .enablePlugins(TutPlugin)
