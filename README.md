@@ -12,11 +12,8 @@ With an instance of Decidable, Alt, Divide, or Apply for a given typeclass,
 provides an instance for the corresponding Coproduct, or Product respectively.
 
 ```scala
-scala> import andxor.{AndXorF3, AndXor3}
-import andxor.{AndXorF3, AndXor3}
-
-scala> import andxor.Decidable
-import andxor.Decidable
+scala> import andxor.{AndXorF3, AndXor3, Decidable}
+import andxor.{AndXorF3, AndXor3, Decidable}
 
 scala> import scalaz.std.anyVal._
 import scalaz.std.anyVal._
@@ -43,13 +40,13 @@ scala> import scalaz.{Show, \/, ~>}
 import scalaz.{Show, $bslash$div, $tilde$greater}
 
 scala> val SIS = AndXor3[String, Int, List[String]]
-SIS: andxor.AndXor3[String,Int,List[String]] = andxor.AndXor3$$anon$1@21ff0327
+SIS: andxor.AndXor3[String,Int,List[String]] = andxor.AndXor3$$anon$1@788fcc75
 
 scala> import SIS.instances._ // for inject instances
 import SIS.instances._
 
 scala> implicit val ds: Decidable[Show] = new Decidable[Show] { def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] = Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_))) }
-ds: andxor.Decidable[scalaz.Show] = $anon$1@5df10354
+ds: andxor.Decidable[scalaz.Show] = $anon$1@2a5de5bd
 
 scala> SIS.combine[Show].choose.show(SIS.inj("foo"))
 res0: scalaz.Cord = "foo"
@@ -62,10 +59,10 @@ res2: scalaz.Cord = ["bar","baz"]
 
 scala> // lift into monoidal product
      | val SISF = AndXorF3[String, Int, List[String]]
-SISF: andxor.AndXorF3[String,Int,List[String]] = andxor.AndXorF3$$anon$5@5aee0a43
+SISF: andxor.AndXorF3[String,Int,List[String]] = andxor.AndXorF3$$anon$8@6f7a8ba3
 
 scala> val SISL = SISF[List]
-SISL: SISF.Repr[List] = andxor.AndXorF3$$anon$3@606075e2
+SISL: SISF.Repr[List] = andxor.AndXorF3$$anon$3@1ff73fad
 
 scala> import SISL.instances._ // for inject instances
 import SISL.instances._
@@ -74,7 +71,7 @@ scala> val ls = SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List
 ls: SISL.Prod = (List(foo),List(4),List(List(bar)))
 
 scala> val SISO = SISF[Option]
-SISO: SISF.Repr[Option] = andxor.AndXorF3$$anon$3@67dabee9
+SISO: SISF.Repr[Option] = andxor.AndXorF3$$anon$3@1d62c2b
 
 scala> import SISO.instances._ // for inject instances
 import SISO.instances._
@@ -84,13 +81,13 @@ os: SISO.Prod = (Some(foo),Some(4),Some(List(bar)))
 
 scala> // convert between F[_]s using a ~>
      | val l2o = new (List ~> Option) { def apply[A](l: List[A]): Option[A] = l.headOption }
-l2o: List ~> Option = $anon$1@6afb6d6b
+l2o: List ~> Option = $anon$1@308479c5
 
 scala> SISL.transformP(l2o)(ls)
 res5: (Option[String], Option[Int], Option[List[String]]) = (Some(foo),Some(4),Some(List(bar)))
 
 scala> val o2l = new (Option ~> List) { def apply[A](o: Option[A]): List[A] = o.toList }
-o2l: Option ~> List = $anon$1@730be7b8
+o2l: Option ~> List = $anon$1@2b4dabd9
 
 scala> SISO.transformP(o2l)(os)
 res6: (List[String], List[Int], List[List[String]]) = (List(foo),List(4),List(List(bar)))
@@ -104,4 +101,17 @@ res8: Option[Int] \/ (Option[String] \/ Option[List[String]]) = \/-(-\/(Some(2!)
 
 scala> SISO.lift(Option("foo")).map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
 res9: (Option[Int], Option[String], Option[List[String]]) = (Some(3),None,None)
+
+scala> // extract specific type from Cop or Prod
+     | SISO.extractC[Option[String]](SISO.inj(Option("foo")))
+res11: Option[Option[String]] = Some(Some(foo))
+
+scala> SISO.extractC[Option[Int]](SISO.inj(Option("foo")))
+res12: Option[Option[Int]] = None
+
+scala> SISO.extractP[Option[String]](SISO.lift(Option("foo")))
+res13: Option[String] = Some(foo)
+
+scala> SISO.extractP[Option[Int]](SISO.lift(Option(1)))
+res14: Option[Int] = Some(1)
 ```

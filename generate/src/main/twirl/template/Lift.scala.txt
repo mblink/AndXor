@@ -11,3 +11,5 @@
       ((f.lefts.toList.paramList("a") :+ "_") ++
         f.rights.toList.paramList("a", f.lefts.length)).mkString(", ")}))
   }
+
+  implicit val lifta@{f.index}Inverse: Inj[F[@{f.focus}], Prod] = Inj.instance(_._@{f.index + 1})

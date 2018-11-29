@@ -2,7 +2,7 @@ package andxor
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
-import scalaz.syntax.either._
+import scalaz.std.list._
 
 trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])
@@ -24,38 +24,126 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
 
   object instances {
 
-    implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(_.left[(F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11])))))))))])
+    implicit val prisma0: Prism[Cop, F[A1]] = new Prism[Cop, F[A1]] {
+      def getOption(c: Cop): Option[F[A1]] = c match {
+        case -\/(x) => Some(x)
+        case _      => None
+      }
+      def reverseGet(x: F[A1]): Cop = -\/(x)
+    }
 
-    implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(_.left[(F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11]))))))))].right[F[A1]])
+    implicit val inja0: Inj[Cop, F[A1]] = Inj.instance(prisma0.reverseGet(_))
+    implicit val inja0Inverse: Inj[Option[F[A1]], Cop] = Inj.instance(prisma0.getOption(_))
 
-    implicit val inja2: Inj[Cop, F[A3]] =
-      Inj.instance(_.left[(F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11])))))))].right[F[A2]].right[F[A1]])
+    implicit val prisma1: Prism[Cop, F[A2]] = new Prism[Cop, F[A2]] {
+      def getOption(c: Cop): Option[F[A2]] = c match {
+        case \/-(-\/(x)) => Some(x)
+        case _           => None
+      }
+      def reverseGet(x: F[A2]): Cop = \/-(-\/(x))
+    }
 
-    implicit val inja3: Inj[Cop, F[A4]] =
-      Inj.instance(_.left[(F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11]))))))].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val inja1: Inj[Cop, F[A2]] = Inj.instance(prisma1.reverseGet(_))
+    implicit val inja1Inverse: Inj[Option[F[A2]], Cop] = Inj.instance(prisma1.getOption(_))
 
-    implicit val inja4: Inj[Cop, F[A5]] =
-      Inj.instance(_.left[(F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11])))))].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val prisma2: Prism[Cop, F[A3]] = new Prism[Cop, F[A3]] {
+      def getOption(c: Cop): Option[F[A3]] = c match {
+        case \/-(\/-(-\/(x))) => Some(x)
+        case _                => None
+      }
+      def reverseGet(x: F[A3]): Cop = \/-(\/-(-\/(x)))
+    }
 
-    implicit val inja5: Inj[Cop, F[A6]] =
-      Inj.instance(_.left[(F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11]))))].right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val inja2: Inj[Cop, F[A3]] = Inj.instance(prisma2.reverseGet(_))
+    implicit val inja2Inverse: Inj[Option[F[A3]], Cop] = Inj.instance(prisma2.getOption(_))
 
-    implicit val inja6: Inj[Cop, F[A7]] =
-      Inj.instance(_.left[(F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11])))].right[F[A6]].right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val prisma3: Prism[Cop, F[A4]] = new Prism[Cop, F[A4]] {
+      def getOption(c: Cop): Option[F[A4]] = c match {
+        case \/-(\/-(\/-(-\/(x)))) => Some(x)
+        case _                     => None
+      }
+      def reverseGet(x: F[A4]): Cop = \/-(\/-(\/-(-\/(x))))
+    }
 
-    implicit val inja7: Inj[Cop, F[A8]] =
-      Inj.instance(_.left[(F[A9] \/ (F[A10] \/ F[A11]))].right[F[A7]].right[F[A6]].right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val inja3: Inj[Cop, F[A4]] = Inj.instance(prisma3.reverseGet(_))
+    implicit val inja3Inverse: Inj[Option[F[A4]], Cop] = Inj.instance(prisma3.getOption(_))
 
-    implicit val inja8: Inj[Cop, F[A9]] =
-      Inj.instance(_.left[(F[A10] \/ F[A11])].right[F[A8]].right[F[A7]].right[F[A6]].right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val prisma4: Prism[Cop, F[A5]] = new Prism[Cop, F[A5]] {
+      def getOption(c: Cop): Option[F[A5]] = c match {
+        case \/-(\/-(\/-(\/-(-\/(x))))) => Some(x)
+        case _                          => None
+      }
+      def reverseGet(x: F[A5]): Cop = \/-(\/-(\/-(\/-(-\/(x)))))
+    }
 
-    implicit val inja9: Inj[Cop, F[A10]] =
-      Inj.instance(_.left[F[A11]].right[F[A9]].right[F[A8]].right[F[A7]].right[F[A6]].right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val inja4: Inj[Cop, F[A5]] = Inj.instance(prisma4.reverseGet(_))
+    implicit val inja4Inverse: Inj[Option[F[A5]], Cop] = Inj.instance(prisma4.getOption(_))
 
-    implicit val inja10: Inj[Cop, F[A11]] =
-      Inj.instance(_.right[F[A10]].right[F[A9]].right[F[A8]].right[F[A7]].right[F[A6]].right[F[A5]].right[F[A4]].right[F[A3]].right[F[A2]].right[F[A1]])
+    implicit val prisma5: Prism[Cop, F[A6]] = new Prism[Cop, F[A6]] {
+      def getOption(c: Cop): Option[F[A6]] = c match {
+        case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(x)
+        case _                               => None
+      }
+      def reverseGet(x: F[A6]): Cop = \/-(\/-(\/-(\/-(\/-(-\/(x))))))
+    }
+
+    implicit val inja5: Inj[Cop, F[A6]] = Inj.instance(prisma5.reverseGet(_))
+    implicit val inja5Inverse: Inj[Option[F[A6]], Cop] = Inj.instance(prisma5.getOption(_))
+
+    implicit val prisma6: Prism[Cop, F[A7]] = new Prism[Cop, F[A7]] {
+      def getOption(c: Cop): Option[F[A7]] = c match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(x)
+        case _                                    => None
+      }
+      def reverseGet(x: F[A7]): Cop = \/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))
+    }
+
+    implicit val inja6: Inj[Cop, F[A7]] = Inj.instance(prisma6.reverseGet(_))
+    implicit val inja6Inverse: Inj[Option[F[A7]], Cop] = Inj.instance(prisma6.getOption(_))
+
+    implicit val prisma7: Prism[Cop, F[A8]] = new Prism[Cop, F[A8]] {
+      def getOption(c: Cop): Option[F[A8]] = c match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(x)
+        case _                                         => None
+      }
+      def reverseGet(x: F[A8]): Cop = \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))
+    }
+
+    implicit val inja7: Inj[Cop, F[A8]] = Inj.instance(prisma7.reverseGet(_))
+    implicit val inja7Inverse: Inj[Option[F[A8]], Cop] = Inj.instance(prisma7.getOption(_))
+
+    implicit val prisma8: Prism[Cop, F[A9]] = new Prism[Cop, F[A9]] {
+      def getOption(c: Cop): Option[F[A9]] = c match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(x)
+        case _                                              => None
+      }
+      def reverseGet(x: F[A9]): Cop = \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))
+    }
+
+    implicit val inja8: Inj[Cop, F[A9]] = Inj.instance(prisma8.reverseGet(_))
+    implicit val inja8Inverse: Inj[Option[F[A9]], Cop] = Inj.instance(prisma8.getOption(_))
+
+    implicit val prisma9: Prism[Cop, F[A10]] = new Prism[Cop, F[A10]] {
+      def getOption(c: Cop): Option[F[A10]] = c match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(x)
+        case _                                                   => None
+      }
+      def reverseGet(x: F[A10]): Cop = \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))
+    }
+
+    implicit val inja9: Inj[Cop, F[A10]] = Inj.instance(prisma9.reverseGet(_))
+    implicit val inja9Inverse: Inj[Option[F[A10]], Cop] = Inj.instance(prisma9.getOption(_))
+
+    implicit val prisma10: Prism[Cop, F[A11]] = new Prism[Cop, F[A11]] {
+      def getOption(c: Cop): Option[F[A11]] = c match {
+        case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))) => Some(x)
+        case _                                                   => None
+      }
+      def reverseGet(x: F[A11]): Cop = \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))
+    }
+
+    implicit val inja10: Inj[Cop, F[A11]] = Inj.instance(prisma10.reverseGet(_))
+    implicit val inja10Inverse: Inj[Option[F[A11]], Cop] = Inj.instance(prisma10.getOption(_))
 
     implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
       val (_, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9) =
@@ -63,11 +151,15 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
       Inj.instance((_, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9))
     }
 
+    implicit val lifta0Inverse: Inj[F[A1], Prod] = Inj.instance(_._1)
+
     implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
       val (a0, _, a1, a2, a3, a4, a5, a6, a7, a8, a9) =
         M.zero
       Inj.instance((a0, _, a1, a2, a3, a4, a5, a6, a7, a8, a9))
     }
+
+    implicit val lifta1Inverse: Inj[F[A2], Prod] = Inj.instance(_._2)
 
     implicit def lifta2(implicit M: Monoid[Prod]): Inj[Prod, F[A3]] = {
       val (a0, a1, _, a2, a3, a4, a5, a6, a7, a8, a9) =
@@ -75,11 +167,15 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
       Inj.instance((a0, a1, _, a2, a3, a4, a5, a6, a7, a8, a9))
     }
 
+    implicit val lifta2Inverse: Inj[F[A3], Prod] = Inj.instance(_._3)
+
     implicit def lifta3(implicit M: Monoid[Prod]): Inj[Prod, F[A4]] = {
       val (a0, a1, a2, _, a3, a4, a5, a6, a7, a8, a9) =
         M.zero
       Inj.instance((a0, a1, a2, _, a3, a4, a5, a6, a7, a8, a9))
     }
+
+    implicit val lifta3Inverse: Inj[F[A4], Prod] = Inj.instance(_._4)
 
     implicit def lifta4(implicit M: Monoid[Prod]): Inj[Prod, F[A5]] = {
       val (a0, a1, a2, a3, _, a4, a5, a6, a7, a8, a9) =
@@ -87,11 +183,15 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
       Inj.instance((a0, a1, a2, a3, _, a4, a5, a6, a7, a8, a9))
     }
 
+    implicit val lifta4Inverse: Inj[F[A5], Prod] = Inj.instance(_._5)
+
     implicit def lifta5(implicit M: Monoid[Prod]): Inj[Prod, F[A6]] = {
       val (a0, a1, a2, a3, a4, _, a5, a6, a7, a8, a9) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, _, a5, a6, a7, a8, a9))
     }
+
+    implicit val lifta5Inverse: Inj[F[A6], Prod] = Inj.instance(_._6)
 
     implicit def lifta6(implicit M: Monoid[Prod]): Inj[Prod, F[A7]] = {
       val (a0, a1, a2, a3, a4, a5, _, a6, a7, a8, a9) =
@@ -99,11 +199,15 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
       Inj.instance((a0, a1, a2, a3, a4, a5, _, a6, a7, a8, a9))
     }
 
+    implicit val lifta6Inverse: Inj[F[A7], Prod] = Inj.instance(_._7)
+
     implicit def lifta7(implicit M: Monoid[Prod]): Inj[Prod, F[A8]] = {
       val (a0, a1, a2, a3, a4, a5, a6, _, a7, a8, a9) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, _, a7, a8, a9))
     }
+
+    implicit val lifta7Inverse: Inj[F[A8], Prod] = Inj.instance(_._8)
 
     implicit def lifta8(implicit M: Monoid[Prod]): Inj[Prod, F[A9]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, _, a8, a9) =
@@ -111,17 +215,23 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, _, a8, a9))
     }
 
+    implicit val lifta8Inverse: Inj[F[A9], Prod] = Inj.instance(_._9)
+
     implicit def lifta9(implicit M: Monoid[Prod]): Inj[Prod, F[A10]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, _, a9) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, _, a9))
     }
 
+    implicit val lifta9Inverse: Inj[F[A10], Prod] = Inj.instance(_._10)
+
     implicit def lifta10(implicit M: Monoid[Prod]): Inj[Prod, F[A11]] = {
       val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, _) =
         M.zero
       Inj.instance((a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, _))
     }
+
+    implicit val lifta10Inverse: Inj[F[A11], Prod] = Inj.instance(_._11)
 
   }
 
@@ -154,6 +264,10 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
     (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10)).curried)))))))))))
   }
   
+
+  def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
+
+  def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(

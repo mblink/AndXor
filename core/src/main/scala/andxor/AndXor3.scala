@@ -2,7 +2,7 @@ package andxor
 import scala.language.higherKinds
 import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
-import scalaz.syntax.either._
+import scalaz.std.list._
 
 trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3])
@@ -23,14 +23,38 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
 
   object instances {
 
-    implicit val inja0: Inj[Cop, F[A1]] =
-      Inj.instance(_.left[(F[A2] \/ F[A3])])
+    implicit val prisma0: Prism[Cop, F[A1]] = new Prism[Cop, F[A1]] {
+      def getOption(c: Cop): Option[F[A1]] = c match {
+        case -\/(x) => Some(x)
+        case _      => None
+      }
+      def reverseGet(x: F[A1]): Cop = -\/(x)
+    }
 
-    implicit val inja1: Inj[Cop, F[A2]] =
-      Inj.instance(_.left[F[A3]].right[F[A1]])
+    implicit val inja0: Inj[Cop, F[A1]] = Inj.instance(prisma0.reverseGet(_))
+    implicit val inja0Inverse: Inj[Option[F[A1]], Cop] = Inj.instance(prisma0.getOption(_))
 
-    implicit val inja2: Inj[Cop, F[A3]] =
-      Inj.instance(_.right[F[A2]].right[F[A1]])
+    implicit val prisma1: Prism[Cop, F[A2]] = new Prism[Cop, F[A2]] {
+      def getOption(c: Cop): Option[F[A2]] = c match {
+        case \/-(-\/(x)) => Some(x)
+        case _           => None
+      }
+      def reverseGet(x: F[A2]): Cop = \/-(-\/(x))
+    }
+
+    implicit val inja1: Inj[Cop, F[A2]] = Inj.instance(prisma1.reverseGet(_))
+    implicit val inja1Inverse: Inj[Option[F[A2]], Cop] = Inj.instance(prisma1.getOption(_))
+
+    implicit val prisma2: Prism[Cop, F[A3]] = new Prism[Cop, F[A3]] {
+      def getOption(c: Cop): Option[F[A3]] = c match {
+        case \/-(\/-(x)) => Some(x)
+        case _           => None
+      }
+      def reverseGet(x: F[A3]): Cop = \/-(\/-(x))
+    }
+
+    implicit val inja2: Inj[Cop, F[A3]] = Inj.instance(prisma2.reverseGet(_))
+    implicit val inja2Inverse: Inj[Option[F[A3]], Cop] = Inj.instance(prisma2.getOption(_))
 
     implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
       val (_, a0, a1) =
@@ -38,17 +62,23 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
       Inj.instance((_, a0, a1))
     }
 
+    implicit val lifta0Inverse: Inj[F[A1], Prod] = Inj.instance(_._1)
+
     implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
       val (a0, _, a1) =
         M.zero
       Inj.instance((a0, _, a1))
     }
 
+    implicit val lifta1Inverse: Inj[F[A2], Prod] = Inj.instance(_._2)
+
     implicit def lifta2(implicit M: Monoid[Prod]): Inj[Prod, F[A3]] = {
       val (a0, a1, _) =
         M.zero
       Inj.instance((a0, a1, _))
     }
+
+    implicit val lifta2Inverse: Inj[F[A3], Prod] = Inj.instance(_._3)
 
   }
 
@@ -72,6 +102,10 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
     (i0, i1, i2)).curried)))
   }
   
+
+  def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
+
+  def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(
     map: AndXor[Id]#Cop => C)(
