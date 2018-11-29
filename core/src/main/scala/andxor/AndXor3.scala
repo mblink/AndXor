@@ -1,6 +1,6 @@
 package andxor
 import scala.language.higherKinds
-import scalaz.{Apply, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
+import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 
 trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
@@ -100,7 +100,13 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
      A.map(a0)(((i0: A1, i1: A2, i2: A3) =>
     (i0, i1, i2)).curried)))
   }
-  
+
+  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[AndXorK3[Id, A1, A2, A3]#Cop] =
+    cop match {
+      case -\/(x) => FF.map(x)(y => -\/(y))
+      case \/-(-\/(x)) => FF.map(x)(y => \/-(-\/(y)))
+      case \/-(\/-(x)) => FF.map(x)(y => \/-(\/-(y)))
+    }
 
   def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
 
