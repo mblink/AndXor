@@ -1,5 +1,5 @@
+@import andxor.syntax._
 @import scalaz.Zipper
 
 @(z: Zipper[String])
-  case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
-      """x""")(_ => """-\/(x)"""))((_, a) => s"""\\/-(${a})""")} => FF.map(x)(t.inj(_))
+case @z.djVal("x") => FF.map(x)(y => @z.djVal("y"))

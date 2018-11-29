@@ -1,6 +1,6 @@
 package andxor
 import scala.language.higherKinds
-import scalaz.{Apply, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
+import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 
 trait AndXorK12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] extends AndXor {
@@ -298,7 +298,22 @@ trait AndXorK12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] extends
      A.map(a0)(((i0: A1, i1: A2, i2: A3, i3: A4, i4: A5, i5: A6, i6: A7, i7: A8, i8: A9, i9: A10, i10: A11, i11: A12) =>
     (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11)).curried))))))))))))
   }
-  
+
+  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[AndXorK12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]#Cop] =
+    cop match {
+      case -\/(x) => FF.map(x)(y => -\/(y))
+      case \/-(-\/(x)) => FF.map(x)(y => \/-(-\/(y)))
+      case \/-(\/-(-\/(x))) => FF.map(x)(y => \/-(\/-(-\/(y))))
+      case \/-(\/-(\/-(-\/(x)))) => FF.map(x)(y => \/-(\/-(\/-(-\/(y)))))
+      case \/-(\/-(\/-(\/-(-\/(x))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(-\/(y))))))
+      case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(\/-(-\/(y)))))))
+      case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+      case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+      case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+      case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+      case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+      case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))) => FF.map(x)(y => \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))
+    }
 
   def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
 

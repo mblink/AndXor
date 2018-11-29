@@ -3,7 +3,7 @@
 @(tpes: List[String])
 
 import scala.language.higherKinds
-import scalaz.{Apply, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
+import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 
 trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
@@ -52,14 +52,11 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
       s"""\n     A.map(a0)(((${tpes.paramSig("i")}) =>\n    (${tpes.params("i")})).curried)""")(
         (a, e) => s"\n    A.ap(${e})(${a})")}
   }
-  @* Seriously, fuck you scala. This is too much?? What do you even want.
-  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop] = {
-    val t = AndXorF[Id]
-    import t.instances._
+
+  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Cop] =
     cop match {
-      @{tpes.zipper(SequenceC(_)).mkString("")}
+      @{tpes.zipper(SequenceC(_)).mkString("      ").trim}
     }
-  } *@
 
   def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
 
