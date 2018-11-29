@@ -1,8 +1,7 @@
 package andxor
 import scala.language.higherKinds
-import scalaz.{Apply, Foldable, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
+import scalaz.{Apply, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
-import scalaz.std.list._
 
 trait AndXorK10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] extends AndXor {
   type Prod = (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10])

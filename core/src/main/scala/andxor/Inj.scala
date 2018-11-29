@@ -1,7 +1,6 @@
 package andxor
 
-import scala.language.higherKinds
-import scalaz.{Applicative, Functor, Semigroup, \/}
+import scalaz.{Semigroup, \/}
 
 trait Inj[Cop, A] {
   def apply(a: A): Cop

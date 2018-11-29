@@ -1,6 +1,5 @@
 package andxor
 
-import better.files._
 import better.files.Dsl._
 import org.scalafmt.Scalafmt
 
