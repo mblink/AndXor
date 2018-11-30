@@ -65,7 +65,8 @@ lazy val generate = project.in(file("generate"))
     name := "andxor-generate",
     libraryDependencies ++= Seq(
       "com.github.pathikrit" %% "better-files" % "3.5.0",
-      "com.geirsson" %% "scalafmt-core" % "1.6.0-RC1"
+      "com.geirsson" %% "scalafmt-core" % "1.6.0-RC4",
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value
     ),
     TwirlKeys.templateImports := Seq()
   )).enablePlugins(SbtTwirl)
