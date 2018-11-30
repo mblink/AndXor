@@ -1,4 +1,5 @@
 package andxor
+
 import scalaz.\/
 
 trait Map2P[A1, A2] {

@@ -1,4 +1,5 @@
 package andxor
+
 import scala.language.higherKinds
 import scalaz.{Apply, \/}
 

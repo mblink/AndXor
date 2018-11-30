@@ -12,7 +12,7 @@ With an instance of Decidable, Alt, Divide, or Apply for a given typeclass,
 provides an instance for the corresponding Coproduct, or Product respectively.
 
 ```tut
-import andxor.{AndXorF3, AndXor3, Decidable}
+import andxor.{AndXor, Decidable}
 import scalaz.std.anyVal._
 import scalaz.std.list._
 import scalaz.std.option._
@@ -21,7 +21,7 @@ import scalaz.std.tuple._
 import scalaz.syntax.monoid._
 import scalaz.syntax.either._
 import scalaz.{Show, \/, ~>}
-val SIS = AndXor3[String, Int, List[String]]
+val SIS = AndXor.build[String, Int, List[String]]
 import SIS.instances._ // for inject instances
 implicit val ds: Decidable[Show] = new Decidable[Show] { def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] = Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_))) }
 SIS.combine[Show].choose.show(SIS.inj("foo"))
@@ -29,7 +29,7 @@ SIS.combine[Show].choose.show(SIS.inj(2))
 SIS.combine[Show].choose.show(SIS.inj(List("bar", "baz")))
 
 // lift into monoidal product
-val SISF = AndXorF3[String, Int, List[String]]
+val SISF = AndXor.buildF[String, Int, List[String]]
 val SISL = SISF[List]
 import SISL.instances._ // for inject instances
 val ls = SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List(List("bar")))
