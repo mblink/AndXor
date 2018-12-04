@@ -112,6 +112,14 @@ trait AndXorK4[F[_], A1, A2, A3, A4] extends AndXor {
   def transformC[G[_]](nt: (F ~> G)): AndXorK4[F, A1, A2, A3, A4]#Cop => AndXorK4[G, A1, A2, A3, A4]#Cop =
     (p: AndXorK4[F, A1, A2, A3, A4]#Cop) => p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))
 
+  def subst1[G[_]]: AndXor4[G[A1], F[A2], F[A3], F[A4]] = AndXor4[G[A1], F[A2], F[A3], F[A4]]
+
+  def subst2[G[_]]: AndXor4[F[A1], G[A2], F[A3], F[A4]] = AndXor4[F[A1], G[A2], F[A3], F[A4]]
+
+  def subst3[G[_]]: AndXor4[F[A1], F[A2], G[A3], F[A4]] = AndXor4[F[A1], F[A2], G[A3], F[A4]]
+
+  def subst4[G[_]]: AndXor4[F[A1], F[A2], F[A3], G[A4]] = AndXor4[F[A1], F[A2], F[A3], G[A4]]
+
   // format: off
   def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK4[Id, A1, A2, A3, A4]#Prod] = {
     val (a0, a1, a2, a3) = prod

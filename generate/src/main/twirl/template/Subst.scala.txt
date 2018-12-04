@@ -1,0 +1,7 @@
+@import play.twirl.api.TwirlFeatureImports.defining
+@import scalaz.Zipper
+
+@(z: Zipper[String])
+@defining((z.lefts.reverse.map(t => s"F[$t]") ++ List(s"G[${z.focus}]") ++ z.rights.map(t => s"F[$t]")).mkString(", ")) { newTpes =>
+  def subst@{z.index + 1}[G[_]]: AndXor@{z.length}[@{newTpes}] = AndXor@{z.length}[@{newTpes}]
+}

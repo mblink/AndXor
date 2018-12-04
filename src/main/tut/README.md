@@ -57,4 +57,7 @@ SISO.extractC[Option[String]](SISO.inj(Option("foo")))
 SISO.extractC[Option[Int]](SISO.inj(Option("foo")))
 SISO.extractP[Option[String]](SISO.lift(Option("foo")))
 SISO.extractP[Option[Int]](SISO.lift(Option(1)))
+
+// substitute F[_] for G[_] at a specific index
+SIS.subst2[Option]
 ```

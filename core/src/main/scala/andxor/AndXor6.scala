@@ -150,6 +150,18 @@ trait AndXorK6[F[_], A1, A2, A3, A4, A5, A6] extends AndXor {
   def transformC[G[_]](nt: (F ~> G)): AndXorK6[F, A1, A2, A3, A4, A5, A6]#Cop => AndXorK6[G, A1, A2, A3, A4, A5, A6]#Cop =
     (p: AndXorK6[F, A1, A2, A3, A4, A5, A6]#Cop) => p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))))
 
+  def subst1[G[_]]: AndXor6[G[A1], F[A2], F[A3], F[A4], F[A5], F[A6]] = AndXor6[G[A1], F[A2], F[A3], F[A4], F[A5], F[A6]]
+
+  def subst2[G[_]]: AndXor6[F[A1], G[A2], F[A3], F[A4], F[A5], F[A6]] = AndXor6[F[A1], G[A2], F[A3], F[A4], F[A5], F[A6]]
+
+  def subst3[G[_]]: AndXor6[F[A1], F[A2], G[A3], F[A4], F[A5], F[A6]] = AndXor6[F[A1], F[A2], G[A3], F[A4], F[A5], F[A6]]
+
+  def subst4[G[_]]: AndXor6[F[A1], F[A2], F[A3], G[A4], F[A5], F[A6]] = AndXor6[F[A1], F[A2], F[A3], G[A4], F[A5], F[A6]]
+
+  def subst5[G[_]]: AndXor6[F[A1], F[A2], F[A3], F[A4], G[A5], F[A6]] = AndXor6[F[A1], F[A2], F[A3], F[A4], G[A5], F[A6]]
+
+  def subst6[G[_]]: AndXor6[F[A1], F[A2], F[A3], F[A4], F[A5], G[A6]] = AndXor6[F[A1], F[A2], F[A3], F[A4], F[A5], G[A6]]
+
   // format: off
   def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK6[Id, A1, A2, A3, A4, A5, A6]#Prod] = {
     val (a0, a1, a2, a3, a4, a5) = prod

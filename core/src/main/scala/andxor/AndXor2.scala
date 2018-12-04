@@ -74,6 +74,10 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   def transformC[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Cop => AndXorK2[G, A1, A2]#Cop =
     (p: AndXorK2[F, A1, A2]#Cop) => p.bimap(nt(_), nt(_))
 
+  def subst1[G[_]]: AndXor2[G[A1], F[A2]] = AndXor2[G[A1], F[A2]]
+
+  def subst2[G[_]]: AndXor2[F[A1], G[A2]] = AndXor2[F[A1], G[A2]]
+
   // format: off
   def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK2[Id, A1, A2]#Prod] = {
     val (a0, a1) = prod

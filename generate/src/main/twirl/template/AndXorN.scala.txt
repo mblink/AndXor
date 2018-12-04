@@ -45,6 +45,8 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.prod}] extends AndXor {
     (p: AndXorK@{tpes.length}[F, @{tpes.prod}]#Cop) => p@{
       tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail}
 
+  @{tpes.zipper(template.txt.Subst(_)).mkString("\n")}
+
   // format: off
   def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK@{tpes.length}[Id, @{tpes.prod}]#Prod] = {
     val (@{tpes.params("a")}) = prod@{

@@ -93,6 +93,12 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
   def transformC[G[_]](nt: (F ~> G)): AndXorK3[F, A1, A2, A3]#Cop => AndXorK3[G, A1, A2, A3]#Cop =
     (p: AndXorK3[F, A1, A2, A3]#Cop) => p.bimap(nt(_), _.bimap(nt(_), nt(_)))
 
+  def subst1[G[_]]: AndXor3[G[A1], F[A2], F[A3]] = AndXor3[G[A1], F[A2], F[A3]]
+
+  def subst2[G[_]]: AndXor3[F[A1], G[A2], F[A3]] = AndXor3[F[A1], G[A2], F[A3]]
+
+  def subst3[G[_]]: AndXor3[F[A1], F[A2], G[A3]] = AndXor3[F[A1], F[A2], G[A3]]
+
   // format: off
   def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK3[Id, A1, A2, A3]#Prod] = {
     val (a0, a1, a2) = prod

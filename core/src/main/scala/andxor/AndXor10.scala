@@ -227,6 +227,26 @@ trait AndXorK10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] extends AndXor {
     (p: AndXorK10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]#Cop) =>
       p.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))))))))
 
+  def subst1[G[_]]: AndXor10[G[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]] = AndXor10[G[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]]
+
+  def subst2[G[_]]: AndXor10[F[A1], G[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]] = AndXor10[F[A1], G[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]]
+
+  def subst3[G[_]]: AndXor10[F[A1], F[A2], G[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]] = AndXor10[F[A1], F[A2], G[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]]
+
+  def subst4[G[_]]: AndXor10[F[A1], F[A2], F[A3], G[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]] = AndXor10[F[A1], F[A2], F[A3], G[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]]
+
+  def subst5[G[_]]: AndXor10[F[A1], F[A2], F[A3], F[A4], G[A5], F[A6], F[A7], F[A8], F[A9], F[A10]] = AndXor10[F[A1], F[A2], F[A3], F[A4], G[A5], F[A6], F[A7], F[A8], F[A9], F[A10]]
+
+  def subst6[G[_]]: AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], G[A6], F[A7], F[A8], F[A9], F[A10]] = AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], G[A6], F[A7], F[A8], F[A9], F[A10]]
+
+  def subst7[G[_]]: AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], G[A7], F[A8], F[A9], F[A10]] = AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], G[A7], F[A8], F[A9], F[A10]]
+
+  def subst8[G[_]]: AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], G[A8], F[A9], F[A10]] = AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], G[A8], F[A9], F[A10]]
+
+  def subst9[G[_]]: AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], G[A9], F[A10]] = AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], G[A9], F[A10]]
+
+  def subst10[G[_]]: AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], G[A10]] = AndXor10[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], G[A10]]
+
   // format: off
   def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]#Prod] = {
     val (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9) = prod
