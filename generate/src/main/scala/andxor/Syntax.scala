@@ -40,6 +40,10 @@ object syntax {
         .cobind(fn).toStream.toList
   }
 
+  implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {
+    def prod: String = tpes.map(_._1).prod
+  }
+
   implicit class ZipperOps[A](z: Zipper[A]) {
     def toList: List[A] = z.toStream.toList
 

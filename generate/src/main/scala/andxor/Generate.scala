@@ -14,7 +14,10 @@ object Generate extends App {
        verticalMultiline.atDefnSite=false
        verticalMultiline.newlineAfterOpenParen=false""").get
 
-  val tpeLists = 2.to(22).toList.map(1.to(_).toList.map(x => s"A${x}"))
+  def mkTpeList(start: Int, end: Int): List[List[String]] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
+
+  val tpeLists = mkTpeList(2, 22)
+  val tupleTpes = mkTpeList(9, 22)
 
   def noWs(s: String): String = s.filterNot(_.isWhitespace)
 
@@ -33,4 +36,5 @@ object Generate extends App {
   tpeLists.foreach(tpes => maybeWrite(cwd/"core"/"src"/"main"/"scala"/"andxor"/s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))
   maybeWrite(cwd/"core"/"src"/"main"/"scala"/"andxor"/"Combine.scala", template.txt.Combine(tpeLists.drop(1)))
   maybeWrite(cwd/"core"/"src"/"main"/"scala"/"andxor"/"MapN.scala", template.txt.MapN(tpeLists.last))
+  maybeWrite(cwd/"core"/"src"/"main"/"scala"/"andxor"/"Tuple.scala", template.txt.Tuple(tupleTpes))
 }
