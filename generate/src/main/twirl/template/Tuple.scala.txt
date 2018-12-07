@@ -1,25 +1,16 @@
 @import andxor.syntax._
-@import play.twirl.api.TwirlFeatureImports.defining
 
 @(tpesList: List[List[String]])
 
 import scalaz.Monoid
 
 package object tuple {
-  @tpesList.map { tpes => @defining((tpes.zipWithIndex.take(7), tpes.zipWithIndex.drop(7))) { case (lTpes, rTpes) =>
-    implicit def tuple@{tpes.length}Monoid[@{tpes.prod}](
-        implicit ml: Monoid[(@{lTpes.prod})],
-        mr: Monoid[(@{rTpes.prod})]): Monoid[(@{tpes.prod})] = new Monoid[(@{tpes.prod})] {
-      type L = (@{lTpes.prod})
-      type R = (@{rTpes.prod})
-      type T = (@{tpes.prod})
-      def left(t: T): L = (@lTpes.map { case (_, i) => t._@{i + 1} }.mkString(", "))
-      def right(t: T): R = (@rTpes.map { case (_, i) => t._@{i + 1} }.mkString(", "))
-      def flatten(l: L, r: R): T =
-        (@lTpes.zipWithIndex.map { case (_, i) => l._@{i + 1} }.mkString(", "),
-         @rTpes.zipWithIndex.map { case (_, i) => r._@{i + 1} }.mkString(", "))
-      def zero: T = flatten(ml.zero, mr.zero)
-      def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
-    }
-  }}
+  @tpesList.map { tpes =>
+    implicit def tuple@{tpes.length}Monoid[@{tpes.prod}](implicit @{tpes.paramSig("Monoid", "m")}): Monoid[(@{tpes.prod})] =
+      new Monoid[(@{tpes.prod})] {
+        type T = (@{tpes.prod})
+        def zero: T = (@{tpes.paramList("m").map(m => s"$m.zero").mkString(", ")})
+        def append(t1: T, t2: => T): T = (@{tpes.paramList("m").zipWithIndex.map(t => s"${t._1}.append(t1._${t._2 + 1}, t2._${t._2 + 1})").mkString(", ")})
+      }
+  }
 }
