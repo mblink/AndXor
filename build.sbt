@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.7",
-  version := "0.1.5",
+  version := "0.1.7",
   libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.2.26"),
   scalacOptions ++= Seq(
     "-deprecation",
