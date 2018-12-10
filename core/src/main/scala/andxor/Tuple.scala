@@ -4,626 +4,214 @@ import scalaz.Monoid
 
 package object tuple {
 
-  implicit def tuple9Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] =
+  implicit def tuple9Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)], mr: Monoid[(A8, A9)]): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] =
     new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] {
+      type L = (A1, A2, A3, A4, A5, A6, A7)
+      type R = (A8, A9)
       type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9)
-        )
+      def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+      def right(t: T): R = (t._8, t._9)
+      def flatten(l: L, r: R): T =
+        (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2)
+      def zero: T = flatten(ml.zero, mr.zero)
+      def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
     }
 
-  implicit def tuple10Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] =
+  implicit def tuple10Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)], mr: Monoid[(A8, A9, A10)]): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] =
     new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] {
+      type L = (A1, A2, A3, A4, A5, A6, A7)
+      type R = (A8, A9, A10)
       type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10)
-        )
+      def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+      def right(t: T): R = (t._8, t._9, t._10)
+      def flatten(l: L, r: R): T =
+        (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3)
+      def zero: T = flatten(ml.zero, mr.zero)
+      def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
     }
 
   implicit def tuple11Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple12Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11, A12)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11, t._12)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple13Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11, A12, A13)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple14Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero, m13.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11, A12, A13, A14)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple15Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero, m13.zero, m14.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11, A12, A13, A14, A15)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple16Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15],
-      m15: Monoid[A16]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero, m13.zero, m14.zero, m15.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15),
-          m15.append(t1._16, t2._16)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15, A16)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11, A12, A13, A14, A15, A16)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, r._9)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple17Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15],
-      m15: Monoid[A16],
-      m16: Monoid[A17]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero, m13.zero, m14.zero, m15.zero, m16.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15),
-          m15.append(t1._16, t2._16),
-          m16.append(t1._17, t2._17)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, r._9, r._10)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple18Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15],
-      m15: Monoid[A16],
-      m16: Monoid[A17],
-      m17: Monoid[A18]
-  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] =
-    new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] {
-      type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero, m13.zero, m14.zero, m15.zero, m16.zero, m17.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15),
-          m15.append(t1._16, t2._16),
-          m16.append(t1._17, t2._17),
-          m17.append(t1._18, t2._18)
-        )
-    }
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)]
+  ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] = new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] {
+    type L = (A1, A2, A3, A4, A5, A6, A7)
+    type R = (A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
+    type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
+    def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+    def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+    def flatten(l: L, r: R): T =
+      (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, r._9, r._10, r._11)
+    def zero: T = flatten(ml.zero, mr.zero)
+    def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
+  }
 
   implicit def tuple19Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15],
-      m15: Monoid[A16],
-      m16: Monoid[A17],
-      m17: Monoid[A18],
-      m18: Monoid[A19]
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)]
   ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)] =
     new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)] {
+      type L = (A1, A2, A3, A4, A5, A6, A7)
+      type R = (A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
       type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
-      def zero: T = (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero, m13.zero, m14.zero, m15.zero, m16.zero, m17.zero, m18.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15),
-          m15.append(t1._16, t2._16),
-          m16.append(t1._17, t2._17),
-          m17.append(t1._18, t2._18),
-          m18.append(t1._19, t2._19)
-        )
+      def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+      def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+      def flatten(l: L, r: R): T =
+        (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, r._9, r._10, r._11, r._12)
+      def zero: T = flatten(ml.zero, mr.zero)
+      def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
     }
 
   implicit def tuple20Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15],
-      m15: Monoid[A16],
-      m16: Monoid[A17],
-      m17: Monoid[A18],
-      m18: Monoid[A19],
-      m19: Monoid[A20]
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)]
   ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)] =
     new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)] {
+      type L = (A1, A2, A3, A4, A5, A6, A7)
+      type R = (A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
       type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
-      def zero: T =
-        (m0.zero, m1.zero, m2.zero, m3.zero, m4.zero, m5.zero, m6.zero, m7.zero, m8.zero, m9.zero, m10.zero, m11.zero, m12.zero, m13.zero, m14.zero, m15.zero, m16.zero, m17.zero, m18.zero, m19.zero)
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15),
-          m15.append(t1._16, t2._16),
-          m16.append(t1._17, t2._17),
-          m17.append(t1._18, t2._18),
-          m18.append(t1._19, t2._19),
-          m19.append(t1._20, t2._20)
-        )
+      def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+      def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+      def flatten(l: L, r: R): T =
+        (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, r._9, r._10, r._11, r._12, r._13)
+      def zero: T = flatten(ml.zero, mr.zero)
+      def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
     }
 
   implicit def tuple21Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15],
-      m15: Monoid[A16],
-      m16: Monoid[A17],
-      m17: Monoid[A18],
-      m18: Monoid[A19],
-      m19: Monoid[A20],
-      m20: Monoid[A21]
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)]
   ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)] =
     new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)] {
+      type L = (A1, A2, A3, A4, A5, A6, A7)
+      type R = (A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
       type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
-      def zero: T =
-        (
-          m0.zero,
-          m1.zero,
-          m2.zero,
-          m3.zero,
-          m4.zero,
-          m5.zero,
-          m6.zero,
-          m7.zero,
-          m8.zero,
-          m9.zero,
-          m10.zero,
-          m11.zero,
-          m12.zero,
-          m13.zero,
-          m14.zero,
-          m15.zero,
-          m16.zero,
-          m17.zero,
-          m18.zero,
-          m19.zero,
-          m20.zero
-        )
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15),
-          m15.append(t1._16, t2._16),
-          m16.append(t1._17, t2._17),
-          m17.append(t1._18, t2._18),
-          m18.append(t1._19, t2._19),
-          m19.append(t1._20, t2._20),
-          m20.append(t1._21, t2._21)
-        )
+      def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+      def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+      def flatten(l: L, r: R): T =
+        (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, r._9, r._10, r._11, r._12, r._13, r._14)
+      def zero: T = flatten(ml.zero, mr.zero)
+      def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
     }
 
   implicit def tuple22Monoid[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-      implicit m0: Monoid[A1],
-      m1: Monoid[A2],
-      m2: Monoid[A3],
-      m3: Monoid[A4],
-      m4: Monoid[A5],
-      m5: Monoid[A6],
-      m6: Monoid[A7],
-      m7: Monoid[A8],
-      m8: Monoid[A9],
-      m9: Monoid[A10],
-      m10: Monoid[A11],
-      m11: Monoid[A12],
-      m12: Monoid[A13],
-      m13: Monoid[A14],
-      m14: Monoid[A15],
-      m15: Monoid[A16],
-      m16: Monoid[A17],
-      m17: Monoid[A18],
-      m18: Monoid[A19],
-      m19: Monoid[A20],
-      m20: Monoid[A21],
-      m21: Monoid[A22]
+      implicit ml: Monoid[(A1, A2, A3, A4, A5, A6, A7)],
+      mr: Monoid[(A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)]
   ): Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)] =
     new Monoid[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)] {
+      type L = (A1, A2, A3, A4, A5, A6, A7)
+      type R = (A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
       type T = (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
-      def zero: T =
-        (
-          m0.zero,
-          m1.zero,
-          m2.zero,
-          m3.zero,
-          m4.zero,
-          m5.zero,
-          m6.zero,
-          m7.zero,
-          m8.zero,
-          m9.zero,
-          m10.zero,
-          m11.zero,
-          m12.zero,
-          m13.zero,
-          m14.zero,
-          m15.zero,
-          m16.zero,
-          m17.zero,
-          m18.zero,
-          m19.zero,
-          m20.zero,
-          m21.zero
-        )
-      def append(t1: T, t2: => T): T =
-        (
-          m0.append(t1._1, t2._1),
-          m1.append(t1._2, t2._2),
-          m2.append(t1._3, t2._3),
-          m3.append(t1._4, t2._4),
-          m4.append(t1._5, t2._5),
-          m5.append(t1._6, t2._6),
-          m6.append(t1._7, t2._7),
-          m7.append(t1._8, t2._8),
-          m8.append(t1._9, t2._9),
-          m9.append(t1._10, t2._10),
-          m10.append(t1._11, t2._11),
-          m11.append(t1._12, t2._12),
-          m12.append(t1._13, t2._13),
-          m13.append(t1._14, t2._14),
-          m14.append(t1._15, t2._15),
-          m15.append(t1._16, t2._16),
-          m16.append(t1._17, t2._17),
-          m17.append(t1._18, t2._18),
-          m18.append(t1._19, t2._19),
-          m19.append(t1._20, t2._20),
-          m20.append(t1._21, t2._21),
-          m21.append(t1._22, t2._22)
-        )
+      def left(t: T): L = (t._1, t._2, t._3, t._4, t._5, t._6, t._7)
+      def right(t: T): R = (t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+      def flatten(l: L, r: R): T =
+        (l._1, l._2, l._3, l._4, l._5, l._6, l._7, r._1, r._2, r._3, r._4, r._5, r._6, r._7, r._8, r._9, r._10, r._11, r._12, r._13, r._14, r._15)
+      def zero: T = flatten(ml.zero, mr.zero)
+      def append(t1: T, t2: => T): T = flatten(ml.append(left(t1), left(t2)), mr.append(right(t1), right(t2)))
     }
 
 }
