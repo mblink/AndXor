@@ -1,0 +1,7 @@
+@import andxor.syntax._
+
+@(tpes: List[String])
+
+  implicit class Tuple@{tpes.length}Ops[@{tpes.tpeParams}](t: @{tpes.mkTuple}) {
+    @{tpes.zip(Stream.from(1)).map(t => s"def t${t._2}: ${t._1} = t.${tpes.tupleAccessNoSyntax(t._2)}").mkString("\n    ")}
+  }

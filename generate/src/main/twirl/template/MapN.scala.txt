@@ -1,13 +1,15 @@
 @import andxor.syntax._
 
 @(tpes: List[String])
+
+import andxor.tuple._
 import scalaz.\/
 
 @{(2 to tpes.length).map { n =>
-  s"""trait Map${n}P[${tpes.take(n).prod}] {
+  s"""trait Map${n}P[${tpes.take(n).tpeParams}] {
     ${tpes.take(n).zipper(template.txt.MapNP(_)).mkString("\n")}
   }\n\n
-  trait Map${n}C[${tpes.take(n).prod}] {
+  trait Map${n}C[${tpes.take(n).tpeParams}] {
     ${tpes.take(n).zipper(template.txt.MapNC(_)).mkString("\n")}
   }\n\n"""
 } }
@@ -16,12 +18,12 @@ object MapN {
 
   object syntax {
     @{(2 to tpes.length).map { n =>
-      s"""implicit class Map${n}POps[${tpes.take(n).prod}](p: (${tpes.take(n).prod})) {
-        val mapN: Map${n}P[${tpes.take(n).prod}] = new Map${n}P[${tpes.take(n).prod}] {}
+      s"""implicit class Map${n}POps[${tpes.take(n).tpeParams}](p: ${tpes.take(n).prod}) {
+        val mapN: Map${n}P[${tpes.take(n).tpeParams}] = new Map${n}P[${tpes.take(n).tpeParams}] {}
         ${tpes.take(n).zipper(template.txt.MapNPOp(_)).mkString("\n")}
       }\n\n
-      implicit class Map${n}COps[${tpes.take(n).prod}](c: ${tpes.take(n).dj}) {
-        val mapN: Map${n}C[${tpes.take(n).prod}] = new Map${n}C[${tpes.take(n).prod}] {}
+      implicit class Map${n}COps[${tpes.take(n).tpeParams}](c: ${tpes.take(n).dj}) {
+        val mapN: Map${n}C[${tpes.take(n).tpeParams}] = new Map${n}C[${tpes.take(n).tpeParams}] {}
         ${tpes.take(n).zipper(template.txt.MapNCOp(_)).mkString("\n")}
       }\n\n"""
     } }

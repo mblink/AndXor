@@ -3,25 +3,26 @@
 import scala.language.higherKinds
 import scalaz.{Apply, Monoid}
 
-abstract class ComposeAndXor[F[_], Cop, Prod] {
-  def mkChoose[B](f: B => Cop)(implicit d: Decidable[F]): F[B]
-  def mkAlt[B](f: Cop => B)(implicit a: Alt[F]): F[B]
-  def mkDivide[B](f: B => Prod)(implicit a: Divide[F]): F[B]
-  def mkApply[B](f: Prod => B)(implicit a: Apply[F]): F[B]
+abstract class ComposeAndXor[F[_], TC[_], Cop[_[_]], Prod[_[_]]] {
+  def mkChoose[B](f: B => Cop[F])(implicit d: Decidable[TC]): TC[B]
+  def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[TC]): TC[B]
+  def mkDivide[B](f: B => Prod[F])(implicit a: Divide[TC]): TC[B]
+  def mkApply[B](f: Prod[F] => B)(implicit a: Apply[TC]): TC[B]
 
-  def choose(implicit d: Decidable[F]): F[Cop] = mkChoose(identity _)
-  def alt(implicit a: Alt[F]): F[Cop] = mkAlt(identity _)
-  def divide(implicit d: Divide[F]): F[Prod] = mkDivide(identity _)
-  def apply(implicit a: Apply[F]): F[Prod] = mkApply(identity _)
+  def choose(implicit d: Decidable[TC]): TC[Cop[F]] = mkChoose(identity _)
+  def alt(implicit a: Alt[TC]): TC[Cop[F]] = mkAlt(identity _)
+  def divide(implicit d: Divide[TC]): TC[Prod[F]] = mkDivide(identity _)
+  def apply(implicit a: Apply[TC]): TC[Prod[F]] = mkApply(identity _)
 }
 
 trait AndXor {
-  type Cop
-  type Prod
-  val injEv: Inj[Cop, Cop]
-  def inj[A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
-  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod]
-  def lift[A](a: A)(implicit inj: Inj[Prod, A]): Prod = inj(a)
+  type Cop[F[_]]
+  type Prod[F[_]]
+  def injEv[F[_]]: Inj[Cop[F], Cop[F]]
+  def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
+  def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]]
+  def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
+  def foldMap[F[_], C](p: Prod[F])(map: Cop[F] => C)(implicit M: Monoid[C]): C
 }
 
 object AndXor {

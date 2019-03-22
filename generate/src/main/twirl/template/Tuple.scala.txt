@@ -1,18 +1,20 @@
 @import andxor.syntax._
 
-@(tpesList: List[List[String]])
+@(allTpes: List[List[String]], monoidTpes: List[List[String]])
 
 import scalaz.{Monoid, Need}
 
 package object tuple {
-  @tpesList.map { tpes =>
-    implicit def tuple@{tpes.length}Monoid[@{tpes.prod}](implicit @{tpes.paramSig("Monoid", "m")}): Monoid[(@{tpes.prod})] =
-      new Monoid[(@{tpes.prod})] {
-        type T = (@{tpes.prod})
-        def zero: T = (@{tpes.paramList("m").map(m => s"$m.zero").mkString(", ")})
+  @allTpes.map(template.txt.TupleAccess(_))
+
+  @monoidTpes.map { tpes =>
+    implicit def tuple@{tpes.length}Monoid[@{tpes.tpeParams}](implicit @{tpes.paramSig("Monoid", "m")}): Monoid[@{tpes.prod}] =
+      new Monoid[@{tpes.prod}] {
+        type T = @{tpes.prod}
+        def zero: T = @{tpes.paramList("m").map(m => s"$m.zero").mkTuple}
         def append(t1: T, _t2: => T): T = {
           val t2 = Need(_t2)
-          (@{tpes.paramList("m").zipWithIndex.map(t => s"${t._1}.append(t1._${t._2 + 1}, t2.value._${t._2 + 1})").mkString(", ")})
+          @{tpes.paramList("m").zipWithIndex.map(t => s"${t._1}.append(t1.${tpes.tupleAccess(t._2 + 1)}, t2.value.${tpes.tupleAccess(t._2 + 1)})").mkTuple}
         }
       }
   }

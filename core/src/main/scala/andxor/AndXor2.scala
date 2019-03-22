@@ -1,141 +1,154 @@
 package andxor
 
+import andxor.tuple._
 import scala.language.higherKinds
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 
-trait AndXorK2[F[_], A1, A2] extends AndXor {
-  type Prod = (F[A1], F[A2])
-  type Cop = (F[A1] \/ F[A2])
-  val AndXorF = AndXorF2[A1, A2]
-  type AndXor[G[_]] = AndXorF2[A1, A2]#Repr[G]
-  def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]]): ComposeAndXor[G, Cop, Prod] =
-    new ComposeAndXor[G, Cop, Prod] {
-      def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
-        Combine.choose2(a0, a1)(f)
-      def mkAlt[B](f: Cop => B)(implicit a: Alt[G]): G[B] =
-        Combine.altly2(a0, a1)(f)
-      def mkDivide[B](f: B => Prod)(implicit d: Divide[G]): G[B] =
-        Combine.divide2(a0, a1)(f)
-      def mkApply[B](f: Prod => B)(implicit a: Apply[G]): G[B] =
-        Combine.apply2(a0, a1)((i0, i1) => f((i0, i1)))
+trait AndXor2[A1, A2] extends AndXor {
+  case class ProdT[F[_]](run: (F[A1], F[A2]))
+  object ProdT {
+
+    implicit def lifta0[F[_]](implicit M: Monoid[ProdT[F]]): Inj[ProdT[F], F[A1]] = {
+      val t = M.zero.run
+      Inj.instance(x => ProdT((x, t.t2)))
     }
 
-  object instances {
+    implicit def lifta0Inverse[F[_]]: Inj[F[A1], ProdT[F]] = Inj.instance(_.run.t1)
 
-    implicit val prisma0: Prism[Cop, F[A1]] = new Prism[Cop, F[A1]] {
-      def getOption(c: Cop): Option[F[A1]] = c match {
+    implicit def lifta1[F[_]](implicit M: Monoid[ProdT[F]]): Inj[ProdT[F], F[A2]] = {
+      val t = M.zero.run
+      Inj.instance(x => ProdT((t.t1, x)))
+    }
+
+    implicit def lifta1Inverse[F[_]]: Inj[F[A2], ProdT[F]] = Inj.instance(_.run.t2)
+
+  }
+
+  type Prod[F[_]] = ProdT[F]
+
+  case class CopT[F[_]](run: (F[A1] \/ F[A2]))
+  object CopT {
+
+    implicit def prisma0[F[_]]: Prism[CopT[F], F[A1]] = new Prism[CopT[F], F[A1]] {
+      def getOption(c: CopT[F]): Option[F[A1]] = c.run match {
         case -\/(x) => Some(x)
         case _      => None
       }
-      def reverseGet(x: F[A1]): Cop = -\/(x)
+      def reverseGet(x: F[A1]): CopT[F] = CopT(-\/(x))
     }
 
-    implicit val inja0: Inj[Cop, F[A1]] = Inj.instance(prisma0.reverseGet(_))
-    implicit val inja0Inverse: Inj[Option[F[A1]], Cop] = Inj.instance(prisma0.getOption(_))
+    implicit def inja0[F[_]]: Inj[CopT[F], F[A1]] = Inj.instance(prisma0.reverseGet(_))
+    implicit def inja0Inverse[F[_]]: Inj[Option[F[A1]], CopT[F]] = Inj.instance(prisma0.getOption(_))
 
-    implicit val prisma1: Prism[Cop, F[A2]] = new Prism[Cop, F[A2]] {
-      def getOption(c: Cop): Option[F[A2]] = c match {
+    implicit def prisma1[F[_]]: Prism[CopT[F], F[A2]] = new Prism[CopT[F], F[A2]] {
+      def getOption(c: CopT[F]): Option[F[A2]] = c.run match {
         case \/-(x) => Some(x)
         case _      => None
       }
-      def reverseGet(x: F[A2]): Cop = \/-(x)
+      def reverseGet(x: F[A2]): CopT[F] = CopT(\/-(x))
     }
 
-    implicit val inja1: Inj[Cop, F[A2]] = Inj.instance(prisma1.reverseGet(_))
-    implicit val inja1Inverse: Inj[Option[F[A2]], Cop] = Inj.instance(prisma1.getOption(_))
-
-    implicit def lifta0(implicit M: Monoid[Prod]): Inj[Prod, F[A1]] = {
-      val (_, a0) =
-        M.zero
-      Inj.instance((_, a0))
-    }
-
-    implicit val lifta0Inverse: Inj[F[A1], Prod] = Inj.instance(_._1)
-
-    implicit def lifta1(implicit M: Monoid[Prod]): Inj[Prod, F[A2]] = {
-      val (a0, _) =
-        M.zero
-      Inj.instance((a0, _))
-    }
-
-    implicit val lifta1Inverse: Inj[F[A2], Prod] = Inj.instance(_._2)
+    implicit def inja1[F[_]]: Inj[CopT[F], F[A2]] = Inj.instance(prisma1.reverseGet(_))
+    implicit def inja1Inverse[F[_]]: Inj[Option[F[A2]], CopT[F]] = Inj.instance(prisma1.getOption(_))
 
   }
 
-  import instances._
+  type Cop[F[_]] = CopT[F]
 
-  val injEv = combine[Inj.Aux[Cop]#Out].choose
-  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
+  def combine[F[_], G[_]](implicit a0: G[F[A1]], a1: G[F[A2]]): ComposeAndXor[F, G, Cop, Prod] =
+    new ComposeAndXor[F, G, Cop, Prod] {
+      def mkChoose[B](f: B => Cop[F])(implicit d: Decidable[G]): G[B] =
+        Combine.choose2(a0, a1)(f(_).run)
 
-  def transformP[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Prod => AndXorK2[G, A1, A2]#Prod =
-    (p: AndXorK2[F, A1, A2]#Prod) => (nt(p._1), nt(p._2))
+      def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[G]): G[B] =
+        Combine.altly2(a0, a1)(x => f(CopT(x)))
 
-  def transformC[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Cop => AndXorK2[G, A1, A2]#Cop =
-    (p: AndXorK2[F, A1, A2]#Cop) => p.bimap(nt(_), nt(_))
+      def mkDivide[B](f: B => Prod[F])(implicit d: Divide[G]): G[B] =
+        Combine.divide2(a0, a1)(f(_).run)
 
-  def subst1[G[_]]: AndXor2[G[A1], F[A2]] = AndXor2[G[A1], F[A2]]
+      def mkApply[B](f: Prod[F] => B)(implicit a: Apply[G]): G[B] =
+        Combine.apply2(a0, a1) {
+          case (i0, i1) =>
+            f(ProdT((i0, i1)))
+        }
+    }
 
-  def subst2[G[_]]: AndXor2[F[A1], G[A2]] = AndXor2[F[A1], G[A2]]
+  def injEv[F[_]] = combine[F, Inj.Aux[Cop[F]]#Out].choose
+  def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = combine[F, Inj.Aux[Prod[F]]#Out].divide
+
+  def transformP[F[_], G[_]](nt: (F ~> G)): AndXor2[A1, A2]#Prod[F] => AndXor2[A1, A2]#Prod[G] =
+    (p: AndXor2[A1, A2]#Prod[F]) => {
+      val pr = p.run
+      ProdT[G]((nt(pr.t1), nt(pr.t2)))
+    }
+
+  def transformC[F[_], G[_]](nt: (F ~> G)): AndXor2[A1, A2]#Cop[F] => AndXor2[A1, A2]#Cop[G] =
+    (p: AndXor2[A1, A2]#Cop[F]) => CopT[G](p.run.bimap(nt(_), nt(_)))
 
   // format: off
-  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[AndXorK2[Id, A1, A2]#Prod] = {
-    val (a0, a1) = prod
-    A.ap(a1)(
-     A.map(a0)(((i0: A1, i1: A2) =>
-    (i0, i1)).curried))
+  def sequenceP[F[_]](prod: Prod[F])(implicit A: Apply[F]): F[Prod[Id]] = {
+    val p = prod.run
+    A.map(
+    A.ap(p.t2)(
+    A.map(p.t1)((i0: A1) => (i1: A2) =>
+      (i0, i1))))(ProdT[Id](_))
   }
 
-  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[AndXorK2[Id, A1, A2]#Cop] =
-    cop match {
-      case -\/(x) => FF.map(x)(y => -\/(y))
-      case \/-(x) => FF.map(x)(y => \/-(y))
+  def sequenceC[F[_]](cop: Cop[F])(implicit FF: Functor[F]): F[Cop[Id]] =
+    cop.run match {
+      case -\/(x) => FF.map(FF.map(x)(y => -\/(y)))(CopT[Id](_))
+      case \/-(x) => FF.map(FF.map(x)(y => \/-(y)))(CopT[Id](_))
     }
 
-  def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
+  def extractC[F[_], B](c: Cop[F])(implicit inj: Inj[Option[B], Cop[F]]): Option[B] = inj(c)
 
-  def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
+  def extractP[F[_], B](p: Prod[F])(implicit inj: Inj[B, Prod[F]]): B = inj(p)
 
-  def foldMap[G[_], C](p: AndXor[G]#Prod)(
-    map: AndXor[Id]#Cop => C)(
-    implicit O: Ordering[AndXorK2[Id, A1, A2]#Cop], M: Monoid[C],
-    PE: PlusEmpty[G], U: Uncons[G]): C = {
-    val TG = AndXorF[G]
-    val TI = AndXorF[Id]
+  def foldMap[F[_], C](p: Prod[F])(map: Cop[F] => C)(implicit M: Monoid[C]): C = {
+    val pr = p.run
+    M.append(map(CopT.inja0(pr.t1)), map(CopT.inja1(pr.t2)))
+  }
+
+  def foldMapId[F[_], C](p: Prod[F])(map: Cop[Id] => C)(
+      implicit O: Ordering[Cop[Id]], M: Monoid[C], PE: PlusEmpty[F], U: Uncons[F]): C = {
     import scala.collection.mutable.{PriorityQueue => PQ}
-    import TI.instances._
-    def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
-     val hts = (U(p._1), U(p._2))
-     (List(hts._1._1.map(TI.inj(_: A1)), hts._2._1.map(TI.inj(_: A2))).flatten,
-      (hts._1._2, hts._2._2))
+    def uncons(p: Prod[F]): (List[Cop[Id]], Prod[F]) = {
+      val pr = p.run
+      val ht1 = U(pr.t1)
+      val ht2 = U(pr.t2)
+      (List(ht1._1.map(inj(_: Id[A1])), ht2._1.map(inj(_: Id[A2]))).flatten,
+        ProdT[F]((ht1._2, ht2._2)))
     }
     @scala.annotation.tailrec
-    def go(prod: TG.Prod, q: PQ[TI.Cop], out: C): C =
-     (prod.==((PE.empty[A1], PE.empty[A2]))) match {
-       case true =>
-         q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
-       case false => q.isEmpty match {
-         case true => {
-           val (hs, ts) = uncons(prod)
-           q ++= hs
-           go(ts, q, out)
-         }
-         case false => q.dequeue match {
-                        case -\/(x) => {
-               val (h, t) = U(prod._1)
-               go((t, prod._2),
-                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-             }
-             case \/-(x) => {
-               val (h, t) = U(prod._2)
-               go((prod._1, t),
-                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-             }
+    def go(prod: Prod[F], q: PQ[Cop[Id]], out: C): C =
+      (prod.run.==((PE.empty[A1], PE.empty[A2]))) match {
+        case true =>
+          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+        case false => q.isEmpty match {
+          case true => {
+            val (hs, ts) = uncons(prod)
+            q ++= hs
+            go(ts, q, out)
+          }
+          case false => q.dequeue.run match {
+            case -\/(x) => {
+              val pr = prod.run
+              val (h, t) = U(pr.t1)
+              go(ProdT[F]((t, pr.t2)),
+                q ++= h.map(inj(_: Id[A1])), M.append(out, map(inj(x))))
+          }
+          case \/-(x) => {
+              val pr = prod.run
+              val (h, t) = U(pr.t2)
+              go(ProdT[F]((pr.t1, t)),
+                q ++= h.map(inj(_: Id[A2])), M.append(out, map(inj(x))))
+          }
 
-         }
-       }
-     }
-    val Q = new scala.collection.mutable.PriorityQueue[TI.Cop]()
+          }
+        }
+      }
+    val Q = new PQ[Cop[Id]]()(O)
     val (hs, ts) = uncons(p)
     Q ++= hs
     go(ts, Q, M.zero)
@@ -143,27 +156,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   // format: on
 }
 
-object AndXorK2 {
-
-  def apply[F[_], A1, A2]: AndXorK2[F, A1, A2] =
-    new AndXorK2[F, A1, A2] {}
-}
-
-trait AndXorF2[A1, A2] {
-  type Repr[F[_]] = AndXorK2[F, A1, A2]
-  def apply[F[_]]: Repr[F] =
-    new AndXorK2[F, A1, A2] {}
-}
-
-object AndXorF2 {
-  def apply[A1, A2]: AndXorF2[A1, A2] =
-    new AndXorF2[A1, A2] {}
-}
-
-trait AndXor2[A1, A2] extends AndXorK2[Id, A1, A2]
-
 object AndXor2 {
   def apply[A1, A2]: AndXor2[A1, A2] =
     new AndXor2[A1, A2] {}
-
 }
