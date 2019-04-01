@@ -1,6 +1,5 @@
 package andxor
 
-import scala.language.higherKinds
 import scalaz.{Apply, Monoid}
 
 abstract class ComposeAndXor[F[_], TC[_], Cop[_[_]], Prod[_[_]]] {

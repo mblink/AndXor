@@ -1,13 +1,15 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.7",
-  version := "0.1.8-LOCAL3",
+  version := "0.1.8-LOCAL8",
   libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.2.26"),
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
     "-explaintypes",
     "-feature",
+    "-language:higherKinds",
+    "-language:implicitConversions",
     "-unchecked",
     "-Xcheckinit",
     "-Xfatal-warnings",

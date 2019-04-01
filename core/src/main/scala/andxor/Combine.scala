@@ -1,7 +1,6 @@
 package andxor
 
 import andxor.tuple._
-import scala.language.higherKinds
 import scalaz.{Apply, \/}
 
 object Combine {

@@ -4,24 +4,16 @@
 @(tpes: List[String])
 
 import andxor.tuple._
-import scala.language.higherKinds
+import andxor.types._
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 
 trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
-  case class ProdT[F[_]](run: @{tpes.prodK("F")})
-  object ProdT {
-    @{tpes.zipper(template.txt.Lift(_)).mkString("\n")}
-  }
+  type Prod[F[_]] = @{tpes.prodName}[F, @{tpes.tpeParams}]
+  object Prod { def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] = @{tpes.prodName}(p) }
 
-  type Prod[F[_]] = ProdT[F]
-
-  case class CopT[F[_]](run: @{tpes.djK("F")})
-  object CopT {
-    @{tpes.zipper(template.txt.Inj(_)).mkString("\n")}
-  }
-
-  type Cop[F[_]] = CopT[F]
+  type Cop[F[_]] = @{tpes.copName}[F, @{tpes.tpeParams}]
+  object Cop { def apply[F[_]](c: @{tpes.djK("F")}): Cop[F] = @{tpes.copName}(c) }
 
   def combine[F[_], G[_]](implicit @{tpes.paramSig(List("G", "F"), "a")}): ComposeAndXor[F, G, Cop, Prod] =
     new ComposeAndXor[F, G, Cop, Prod] {
@@ -29,7 +21,7 @@ trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
         Combine.choose@{tpes.length}(@{tpes.params("a")})(f(_).run)
 
       def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[G]): G[B] =
-        Combine.altly@{tpes.length}(@{tpes.params("a")})(x => f(CopT(x)))
+        Combine.altly@{tpes.length}(@{tpes.params("a")})(x => f(Cop(x)))
 
       def mkDivide[B](f: B => Prod[F])(implicit d: Divide[G]): G[B] =
         Combine.divide@{tpes.length}(@{tpes.params("a")})(f(_).run)
@@ -37,7 +29,7 @@ trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
       def mkApply[B](f: Prod[F] => B)(implicit a: Apply[G]): G[B] =
         Combine.apply@{tpes.length}(@{tpes.params("a")}) {
           case @{tpes.paramList("i").mkTuple} =>
-            f(ProdT(@{tpes.paramList("i").mkTuple}))
+            f(Prod(@{tpes.paramList("i").mkTuple}))
         }
     }
 
@@ -48,22 +40,22 @@ trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
   AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[F] => AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[G] =
     (p: AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[F]) => {
       val pr = p.run
-      ProdT[G](@{tpes.zipWithIndex.map(x => s"nt(pr.${tpes.tupleAccess(x._2 + 1)})").mkTuple})
+      Prod[G](@{tpes.zipWithIndex.map(x => s"nt(pr.${tpes.tupleAccess(x._2 + 1)})").mkTuple})
     }
 
   def transformC[F[_], G[_]](nt: (F ~> G)):
   AndXor@{tpes.length}[@{tpes.tpeParams}]#Cop[F] => AndXor@{tpes.length}[@{tpes.tpeParams}]#Cop[G] =
     (p: AndXor@{tpes.length}[@{tpes.tpeParams}]#Cop[F]) =>
-      CopT[G](p.run@{tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail})
+      Cop[G](p.run@{tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail})
 
-  @*@{tpes.zipper(template.txt.Subst(_)).mkString("\n")}*@
+  @{tpes.zipper(template.txt.Subst(_)).mkString("\n")}
 
   // format: off
   def sequenceP[F[_]](prod: Prod[F])(implicit A: Apply[F]): F[Prod[Id]] = {
     val p = prod.run
     A.map(@{tpes.paramList("p.t", 1).tail.foldLeft(
       s"""\n    A.map(p.t1)(${tpes.paramList("i").zip(tpes).map(t => s"(${t._1}: ${t._2})").mkString(" => ")} =>\n      ${tpes.paramList("i").mkTuple})""")(
-        (a, e) => s"\n    A.ap($e)($a)")})(ProdT[Id](_))
+        (a, e) => s"\n    A.ap($e)($a)")})(Prod[Id](_))
   }
 
   def sequenceC[F[_]](cop: Cop[F])(implicit FF: Functor[F]): F[Cop[Id]] =
@@ -77,7 +69,7 @@ trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
 
   def foldMap[F[_], C](p: Prod[F])(map: Cop[F] => C)(implicit M: Monoid[C]): C = {
     val pr = p.run
-    @{tpes.zipWithIndex.map(t => s"map(CopT.inja${t._2}(pr.${tpes.tupleAccess(t._2 + 1)}))") |>
+    @{tpes.zipWithIndex.map(t => s"map(inj(pr.${tpes.tupleAccess(t._2 + 1)}))") |>
       (ps => ps.init.foldRight(ps.last)((p, acc) => s"M.append($p, $acc)"))}
   }
 
@@ -88,7 +80,7 @@ trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
       val pr = p.run
       @{1.to(tpes.length).toList.map(i => s"val ht$i = U(pr.${tpes.tupleAccess(i)})").mkString("\n      ")}
       (List(@{tpes.zip(Stream.from(1)).map(t => s"ht${t._2}._1.map(inj(_: Id[${t._1}]))").mkString(", ")}).flatten,
-        ProdT[F](@{1.to(tpes.length).toList.map(i => s"ht$i._2").mkTuple}))
+        Prod[F](@{1.to(tpes.length).toList.map(i => s"ht$i._2").mkTuple}))
     }
     @@scala.annotation.tailrec
     def go(prod: Prod[F], q: PQ[Cop[Id]], out: C): C =

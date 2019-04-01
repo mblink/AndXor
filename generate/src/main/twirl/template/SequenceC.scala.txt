@@ -2,4 +2,4 @@
 @import scalaz.Zipper
 
 @(z: Zipper[String])
-case @z.djVal("x") => FF.map(FF.map(x)(y => @z.djVal("y")))(CopT[Id](_))
+case @z.djVal("x") => FF.map(FF.map(x)(y => @z.djVal("y")))(Cop[Id](_))

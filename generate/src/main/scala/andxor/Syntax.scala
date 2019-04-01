@@ -11,6 +11,14 @@ object syntax {
   def parens(s: String): String = s"($s)"
 
   implicit class TpesOps(tpes: List[String]) {
+    def copName = s"Cop${tpes.length}"
+    def copTpeDef = s"$copName[F[_], $tpeParams]"
+    def copTpe = s"$copName[F, $tpeParams]"
+
+    def prodName = s"Prod${tpes.length}"
+    def prodTpeDef = s"$prodName[F[_], $tpeParams]"
+    def prodTpe = s"$prodName[F, $tpeParams]"
+
     def djBase(wrapTpe: String => String): String =
       tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
 

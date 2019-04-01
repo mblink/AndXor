@@ -1,14 +1,17 @@
 @import andxor.syntax._
+@import play.twirl.api.TwirlFeatureImports.defining
 @import scalaz.Zipper
 
 @(f: Zipper[String])
 
 @tupleAccesses(l: List[String], i: Int) = @{ l.zip(Stream.from(i)).map(t => s"t.${f.toList.tupleAccess(t._2 + 1)}") }
 
-  implicit def lifta@{f.index}[F[_]](implicit M: Monoid[ProdT[F]]): Inj[ProdT[F], F[@{f.focus}]] = {
-    val t = M.zero.run
-    Inj.instance(x => ProdT(@{((tupleAccesses(f.lefts.toList, 0) :+ "x") ++
-      tupleAccesses(f.rights.toList, f.lefts.toList.length + 1)).mkTuple}))
-  }
+@defining(f.toList) { tpes =>
+    implicit def lifta@{f.index}[F[_], @{tpes.tpeParams}](implicit M: Monoid[@tpes.prodTpe]): Inj[@tpes.prodTpe, F[@{f.focus}]] = {
+      val t = M.zero.run
+      Inj.instance(x => @{tpes.prodTpe}(@{((tupleAccesses(f.lefts.toList, 0) :+ "x") ++
+        tupleAccesses(f.rights.toList, f.lefts.toList.length + 1)).mkTuple}))
+    }
 
-  implicit def lifta@{f.index}Inverse[F[_]]: Inj[F[@{f.focus}], ProdT[F]] = Inj.instance(_.run.@{f.toList.tupleAccess(f.index + 1)})
+    implicit def lifta@{f.index}Inverse[F[_], @{tpes.tpeParams}]: Inj[F[@{f.focus}], @tpes.prodTpe] = Inj.instance(_.run.@{f.toList.tupleAccess(f.index + 1)})
+}
