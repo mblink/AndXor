@@ -4,40 +4,39 @@ import argonaut.{DecodeJson, EncodeJson, Json}
 import argonaut.Argonaut._
 import scalaz.Apply
 import scalaz.Id.Id
-import shapeless.{Witness => W}
 
 trait Labelled[A] {
-  type L <: W.Lt[_ <: Symbol]
+  type L <: Singleton with String
   val label: L
   val value: A
 }
 
 object Labelled {
-  type Aux[L0 <: Symbol, A] = Labelled[A] { type L = W.Aux[L0] }
+  type Aux[L0 <: Singleton with String, A] = Labelled[A] { type L = L0 }
 
-  def apply[A](label0: W.Lt[_ <: Symbol], value0: A): Labelled.Aux[label0.T, A] = new Labelled[A] {
-    type L = W.Aux[label0.T]
+  def apply[L0 <: Singleton with String, A](label0: L0, value0: A): Labelled.Aux[L0, A] = new Labelled[A] {
+    type L = L0
     val label = label0
     val value: A = value0
   }
 
-  implicit def encodeJsonLabelled[L <: Symbol, A: EncodeJson]: EncodeJson[Labelled.Aux[L, A]] =
-    EncodeJson(l => Json(l.label.value.name := l.value))
+  implicit def encodeJsonLabelled[L <: Singleton with String, A: EncodeJson]: EncodeJson[Labelled.Aux[L, A]] =
+    EncodeJson(l => Json(l.label := l.value))
 
-  implicit def decodeJsonLabelled[L <: Symbol, A: DecodeJson](implicit w: W.Aux[L]): DecodeJson[Labelled.Aux[L, A]] =
-    DecodeJson(_.get[A](w.value.name).map(Labelled(w, _)))
+  implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit v: ValueOf[L]): DecodeJson[Labelled.Aux[L, A]] =
+    DecodeJson(_.get[A](v.value).map(Labelled(v.value, _)))
 }
 
 object test {
   object Test extends AndXorF3[
-    Labelled.Aux[W.`'str`.T, String],
-    Labelled.Aux[W.`'int`.T, Int],
-    Labelled.Aux[W.`'bool`.T, Boolean]
+    Labelled.Aux["str", String],
+    Labelled.Aux["int", Int],
+    Labelled.Aux["bool", Boolean]
   ] {
     def apply(str: String, int: Int, bool: Boolean): Repr[Id]#Prod = (
-      Labelled('str, str),
-      Labelled('int, int),
-      Labelled('bool, bool)
+      Labelled("str", str),
+      Labelled("int", int),
+      Labelled("bool", bool)
     )
   }
   type Test = Test.Repr[Id]#Prod
