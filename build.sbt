@@ -2,7 +2,12 @@ lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.7",
   version := "0.1.7",
-  libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.2.26"),
+  libraryDependencies ++= Seq(
+    "org.scalaz" %% "scalaz-core" % "7.2.26",
+    "com.chuusai" %% "shapeless" % "2.3.3",
+    "io.argonaut" %% "argonaut" % "6.2.3",
+    "io.argonaut" %% "argonaut-scalaz" % "6.2.3"
+  ),
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
