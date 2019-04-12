@@ -1,5 +1,6 @@
 package andxor
 
+import andxor.tuple._
 import andxor.types.{Cop2, Prod2}
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
@@ -39,7 +40,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   def transformP[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Prod => AndXorK2[G, A1, A2]#Prod =
     (p: AndXorK2[F, A1, A2]#Prod) => {
       val pr = p.run
-      Prod2[G, A1, A2]((nt(pr._1), nt(pr._2)))
+      Prod2[G, A1, A2]((nt(pr.t1), nt(pr.t2)))
     }
 
   def transformC[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Cop => AndXorK2[G, A1, A2]#Cop =
@@ -56,8 +57,8 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   def sequenceP(prod: Prod)(implicit A: Apply[F]): F[Prod2[Id, A1, A2]] = {
     val p = prod.run
     A.map(
-    A.ap(p._2)(
-    A.map(p._1)((i0: A1) => (i1: A2) =>
+    A.ap(p.t2)(
+    A.map(p.t1)((i0: A1) => (i1: A2) =>
       (i0, i1))))(Prod2[Id, A1, A2](_))
   }
 
@@ -72,7 +73,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(map: AndXor[Id]#Cop => C)(
-      implicit O: Ordering[AndXor[Id]#Cop], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
+      implicit O: Ordering[Cop2[Id, A1, A2]], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
     import scala.collection.mutable.{PriorityQueue => PQ}
 
     val TG = AndXorF[G]
@@ -80,8 +81,8 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
 
     def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
       val pr = p.run
-      val ht1 = U(pr._1)
-      val ht2 = U(pr._2)
+      val ht1 = U(pr.t1)
+      val ht2 = U(pr.t2)
       (List(ht1._1.map(TI.inj(_: Id[A1])), ht2._1.map(TI.inj(_: Id[A2]))).flatten,
         TG.Prod((ht1._2, ht2._2)))
     }
@@ -99,14 +100,14 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
           case false => q.dequeue.run match {
             case -\/(x) => {
               val pr = prod.run
-              val (h, t) = U(pr._1)
-              go(TG.Prod((t, pr._2)),
+              val (h, t) = U(pr.t1)
+              go(TG.Prod((t, pr.t2)),
                 q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.inj(x))))
           }
           case \/-(x) => {
               val pr = prod.run
-              val (h, t) = U(pr._2)
-              go(TG.Prod((pr._1, t)),
+              val (h, t) = U(pr.t2)
+              go(TG.Prod((pr.t1, t)),
                 q ++= h.map(TI.inj(_: Id[A2])), M.append(out, map(TI.inj(x))))
           }
 

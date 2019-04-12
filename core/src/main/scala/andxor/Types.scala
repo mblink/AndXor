@@ -1,8 +1,10 @@
 package andxor
 
+import andxor.tuple._
 import io.estatico.newtype.macros.newtype
-import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
+import scalaz.{\/, -\/, \/-, Apply, /*Contravariant, Functor,*/ InvariantFunctor, Monoid}
 import scalaz.Id.Id
+// import scalaz.Isomorphism.<=>
 
 object types {
   object dummy {
@@ -35,23 +37,50 @@ object types {
 
   private val MF = InvariantFunctor[Monoid]
 
-  @newtype case class Prod1[F[_], A1](run: (F[A1]))
+  @newtype case class Prod1[F[_], A1](run: F[A1]) {
+    def t1: F[A1] = run
+
+  }
 
   trait Prod1LP {
-    implicit def Prod1Monoid[F[_], A1](implicit M: Monoid[(F[A1])]): Monoid[Prod1[F, A1]] =
+    implicit def Prod1Monoid[F[_], A1](implicit M: Monoid[F[A1]]): Monoid[Prod1[F, A1]] =
       MF.xmap(M, Prod1[F, A1](_), (_: Prod1[F, A1]).run)
 
     implicit def lifta0F[F[_], A1]: Inj[Prod1[F, A1], F[A1]] = {
-      Inj.instance(x => Prod1[F, A1]((x)))
+      Inj.instance(x => Prod1[F, A1](x))
     }
 
     implicit def lifta0FInverse[F[_], A1]: Inj[F[A1], Prod1[F, A1]] = Inj.instance(_.run)
+
+    implicit def Prod1TCDivideF[TC[_], F[_], A1](implicit x: Divide[TC], a0: TC[F[A1]]): TC[Prod1[F, A1]] =
+      x.contramap(a0)(_.run)
+
+    implicit def Prod1TCApplyF[TC[_], F[_], A1](implicit x: Apply[TC], a0: TC[F[A1]]): TC[Prod1[F, A1]] =
+      x.map(a0) { case i0 => Prod1[F, A1](i0) }
+
   }
 
   object Prod1 extends Prod1LP {
     implicit def lifta0Id[A1]: Inj[Prod1[Id, A1], A1] = lifta0F[Id, A1]
 
     implicit def lifta0IdInverse[A1]: Inj[A1, Prod1[Id, A1]] = lifta0FInverse[Id, A1]
+
+    implicit def Prod1TCDivideId[TC[_], A1](implicit x: Divide[TC], a0: TC[A1]): TC[Prod1[Id, A1]] =
+      Prod1TCDivideF[TC, Id, A1]
+
+    implicit def Prod1TCApplyId[TC[_], A1](implicit x: Apply[TC], a0: TC[A1]): TC[Prod1[Id, A1]] =
+      Prod1TCApplyF[TC, Id, A1]
+    /*implicit def Prod1IsoTCCovariant[TC[_], F[_], T, A1](
+        implicit iso: T <=> Prod1[F, A1],
+        tc: TC[Prod1[F, A1]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod1[F, A1], T](tc)(iso.from(_))
+
+    implicit def Prod1IsoTCContravariant[TC[_], F[_], T, A1](
+        implicit iso: T <=> Prod1[F, A1],
+        tc: TC[Prod1[F, A1]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod1[F, A1], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop1[F[_], A1](run: F[A1])
@@ -65,6 +94,13 @@ object types {
     implicit def inja0F[F[_], A1]: Inj[Cop1[F, A1], F[A1]] = Inj.instance(prisma0F.reverseGet(_))
 
     implicit def inja0FInverse[F[_], A1]: Inj[Option[F[A1]], Cop1[F, A1]] = Inj.instance(prisma0F.getOption(_))
+
+    implicit def Cop1TCDecidableF[TC[_], F[_], A1](implicit x: Decidable[TC], a0: TC[F[A1]]): TC[Cop1[F, A1]] =
+      x.contramap(a0)(_.run)
+
+    implicit def Cop1TCAltF[TC[_], F[_], A1](implicit x: Alt[TC], a0: TC[F[A1]]): TC[Cop1[F, A1]] =
+      x.map(a0)(Cop1[F, A1](_))
+
   }
 
   object Cop1 extends Cop1LP {
@@ -73,9 +109,19 @@ object types {
     implicit def inja0Id[A1]: Inj[Cop1[Id, A1], A1] = inja0F[Id, A1]
 
     implicit def inja0IdInverse[F[_], A1]: Inj[Option[A1], Cop1[Id, A1]] = inja0FInverse[Id, A1]
+
+    implicit def Cop1TCDecidableId[TC[_], A1](implicit x: Decidable[TC], a0: TC[A1]): TC[Cop1[Id, A1]] =
+      Cop1TCDecidableF[TC, Id, A1]
+
+    implicit def Cop1TCAltId[TC[_], A1](implicit x: Alt[TC], a0: TC[A1]): TC[Cop1[Id, A1]] =
+      Cop1TCAltF[TC, Id, A1]
+
   }
 
   @newtype case class Prod2[F[_], A1, A2](run: (F[A1], F[A2])) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2
+
     private def mapN = new Map2P[F[A1], F[A2]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod2[F, B, A2] =
@@ -98,17 +144,24 @@ object types {
 
     implicit def lifta0F[F[_], A1, A2](implicit M: Monoid[Prod2[F, A1, A2]]): Inj[Prod2[F, A1, A2], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod2[F, A1, A2]((x, t._2)))
+      Inj.instance(x => Prod2[F, A1, A2]((x, t.t2)))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2]: Inj[F[A1], Prod2[F, A1, A2]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2]: Inj[F[A1], Prod2[F, A1, A2]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2](implicit M: Monoid[Prod2[F, A1, A2]]): Inj[Prod2[F, A1, A2], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod2[F, A1, A2]((t._1, x)))
+      Inj.instance(x => Prod2[F, A1, A2]((t.t1, x)))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2]: Inj[F[A2], Prod2[F, A1, A2]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2]: Inj[F[A2], Prod2[F, A1, A2]] = Inj.instance(_.run.t2)
+
+    implicit def Prod2TCDivideF[TC[_], F[_], A1, A2](implicit x: Divide[TC], a0: TC[F[A1]], a1: TC[F[A2]]): TC[Prod2[F, A1, A2]] =
+      Combine.divide2(a0, a1)(_.run)
+
+    implicit def Prod2TCApplyF[TC[_], F[_], A1, A2](implicit x: Apply[TC], a0: TC[F[A1]], a1: TC[F[A2]]): TC[Prod2[F, A1, A2]] =
+      Combine.apply2(a0, a1) { case (i0, i1) => Prod2[F, A1, A2]((i0, i1)) }
+
   }
 
   object Prod2 extends Prod2LP {
@@ -119,6 +172,23 @@ object types {
     implicit def lifta1Id[A1, A2](implicit M: Monoid[Prod2[Id, A1, A2]]): Inj[Prod2[Id, A1, A2], A2] = lifta1F[Id, A1, A2]
 
     implicit def lifta1IdInverse[A1, A2]: Inj[A2, Prod2[Id, A1, A2]] = lifta1FInverse[Id, A1, A2]
+
+    implicit def Prod2TCDivideId[TC[_], A1, A2](implicit x: Divide[TC], a0: TC[A1], a1: TC[A2]): TC[Prod2[Id, A1, A2]] =
+      Prod2TCDivideF[TC, Id, A1, A2]
+
+    implicit def Prod2TCApplyId[TC[_], A1, A2](implicit x: Apply[TC], a0: TC[A1], a1: TC[A2]): TC[Prod2[Id, A1, A2]] =
+      Prod2TCApplyF[TC, Id, A1, A2]
+    /*implicit def Prod2IsoTCCovariant[TC[_], F[_], T, A1, A2](
+        implicit iso: T <=> Prod2[F, A1, A2],
+        tc: TC[Prod2[F, A1, A2]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod2[F, A1, A2], T](tc)(iso.from(_))
+
+    implicit def Prod2IsoTCContravariant[TC[_], F[_], T, A1, A2](
+        implicit iso: T <=> Prod2[F, A1, A2],
+        tc: TC[Prod2[F, A1, A2]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod2[F, A1, A2], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop2[F[_], A1, A2](run: (F[A1] \/ F[A2])) {
@@ -162,6 +232,13 @@ object types {
     implicit def inja1F[F[_], A1, A2]: Inj[Cop2[F, A1, A2], F[A2]] = Inj.instance(prisma1F.reverseGet(_))
 
     implicit def inja1FInverse[F[_], A1, A2]: Inj[Option[F[A2]], Cop2[F, A1, A2]] = Inj.instance(prisma1F.getOption(_))
+
+    implicit def Cop2TCDecidableF[TC[_], F[_], A1, A2](implicit x: Decidable[TC], a0: TC[F[A1]], a1: TC[F[A2]]): TC[Cop2[F, A1, A2]] =
+      Combine.choose2(a0, a1)(_.run)
+
+    implicit def Cop2TCAltF[TC[_], F[_], A1, A2](implicit x: Alt[TC], a0: TC[F[A1]], a1: TC[F[A2]]): TC[Cop2[F, A1, A2]] =
+      Combine.altly2(a0, a1)(Cop2[F, A1, A2](_))
+
   }
 
   object Cop2 extends Cop2LP {
@@ -176,9 +253,20 @@ object types {
     implicit def inja1Id[A1, A2]: Inj[Cop2[Id, A1, A2], A2] = inja1F[Id, A1, A2]
 
     implicit def inja1IdInverse[F[_], A1, A2]: Inj[Option[A2], Cop2[Id, A1, A2]] = inja1FInverse[Id, A1, A2]
+
+    implicit def Cop2TCDecidableId[TC[_], A1, A2](implicit x: Decidable[TC], a0: TC[A1], a1: TC[A2]): TC[Cop2[Id, A1, A2]] =
+      Cop2TCDecidableF[TC, Id, A1, A2]
+
+    implicit def Cop2TCAltId[TC[_], A1, A2](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2]): TC[Cop2[Id, A1, A2]] =
+      Cop2TCAltF[TC, Id, A1, A2]
+
   }
 
-  @newtype case class Prod3[F[_], A1, A2, A3](run: (F[A1], F[A2], F[A3])) {
+  @newtype case class Prod3[F[_], A1, A2, A3](run: (F[A1], (F[A2], F[A3]))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2
+
     private def mapN = new Map3P[F[A1], F[A2], F[A3]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod3[F, B, A2, A3] =
@@ -202,29 +290,36 @@ object types {
   }
 
   trait Prod3LP {
-    implicit def Prod3Monoid[F[_], A1, A2, A3](implicit M: Monoid[(F[A1], F[A2], F[A3])]): Monoid[Prod3[F, A1, A2, A3]] =
+    implicit def Prod3Monoid[F[_], A1, A2, A3](implicit M: Monoid[(F[A1], (F[A2], F[A3]))]): Monoid[Prod3[F, A1, A2, A3]] =
       MF.xmap(M, Prod3[F, A1, A2, A3](_), (_: Prod3[F, A1, A2, A3]).run)
 
     implicit def lifta0F[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod3[F, A1, A2, A3]((x, t._2, t._3)))
+      Inj.instance(x => Prod3[F, A1, A2, A3]((x, (t.t2, t.t3))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3]: Inj[F[A1], Prod3[F, A1, A2, A3]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3]: Inj[F[A1], Prod3[F, A1, A2, A3]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod3[F, A1, A2, A3]((t._1, x, t._3)))
+      Inj.instance(x => Prod3[F, A1, A2, A3]((t.t1, (x, t.t3))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3]: Inj[F[A2], Prod3[F, A1, A2, A3]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3]: Inj[F[A2], Prod3[F, A1, A2, A3]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod3[F, A1, A2, A3]((t._1, t._2, x)))
+      Inj.instance(x => Prod3[F, A1, A2, A3]((t.t1, (t.t2, x))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3]: Inj[F[A3], Prod3[F, A1, A2, A3]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3]: Inj[F[A3], Prod3[F, A1, A2, A3]] = Inj.instance(_.run.t3)
+
+    implicit def Prod3TCDivideF[TC[_], F[_], A1, A2, A3](implicit x: Divide[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]]): TC[Prod3[F, A1, A2, A3]] =
+      Combine.divide3(a0, a1, a2)(_.run)
+
+    implicit def Prod3TCApplyF[TC[_], F[_], A1, A2, A3](implicit x: Apply[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]]): TC[Prod3[F, A1, A2, A3]] =
+      Combine.apply3(a0, a1, a2) { case (i0, (i1, i2)) => Prod3[F, A1, A2, A3]((i0, (i1, i2))) }
+
   }
 
   object Prod3 extends Prod3LP {
@@ -239,6 +334,23 @@ object types {
     implicit def lifta2Id[A1, A2, A3](implicit M: Monoid[Prod3[Id, A1, A2, A3]]): Inj[Prod3[Id, A1, A2, A3], A3] = lifta2F[Id, A1, A2, A3]
 
     implicit def lifta2IdInverse[A1, A2, A3]: Inj[A3, Prod3[Id, A1, A2, A3]] = lifta2FInverse[Id, A1, A2, A3]
+
+    implicit def Prod3TCDivideId[TC[_], A1, A2, A3](implicit x: Divide[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3]): TC[Prod3[Id, A1, A2, A3]] =
+      Prod3TCDivideF[TC, Id, A1, A2, A3]
+
+    implicit def Prod3TCApplyId[TC[_], A1, A2, A3](implicit x: Apply[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3]): TC[Prod3[Id, A1, A2, A3]] =
+      Prod3TCApplyF[TC, Id, A1, A2, A3]
+    /*implicit def Prod3IsoTCCovariant[TC[_], F[_], T, A1, A2, A3](
+        implicit iso: T <=> Prod3[F, A1, A2, A3],
+        tc: TC[Prod3[F, A1, A2, A3]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod3[F, A1, A2, A3], T](tc)(iso.from(_))
+
+    implicit def Prod3IsoTCContravariant[TC[_], F[_], T, A1, A2, A3](
+        implicit iso: T <=> Prod3[F, A1, A2, A3],
+        tc: TC[Prod3[F, A1, A2, A3]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod3[F, A1, A2, A3], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop3[F[_], A1, A2, A3](run: (F[A1] \/ (F[A2] \/ F[A3]))) {
@@ -300,6 +412,13 @@ object types {
     implicit def inja2F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A3]] = Inj.instance(prisma2F.reverseGet(_))
 
     implicit def inja2FInverse[F[_], A1, A2, A3]: Inj[Option[F[A3]], Cop3[F, A1, A2, A3]] = Inj.instance(prisma2F.getOption(_))
+
+    implicit def Cop3TCDecidableF[TC[_], F[_], A1, A2, A3](implicit x: Decidable[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]]): TC[Cop3[F, A1, A2, A3]] =
+      Combine.choose3(a0, a1, a2)(_.run)
+
+    implicit def Cop3TCAltF[TC[_], F[_], A1, A2, A3](implicit x: Alt[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]]): TC[Cop3[F, A1, A2, A3]] =
+      Combine.altly3(a0, a1, a2)(Cop3[F, A1, A2, A3](_))
+
   }
 
   object Cop3 extends Cop3LP {
@@ -320,9 +439,21 @@ object types {
     implicit def inja2Id[A1, A2, A3]: Inj[Cop3[Id, A1, A2, A3], A3] = inja2F[Id, A1, A2, A3]
 
     implicit def inja2IdInverse[F[_], A1, A2, A3]: Inj[Option[A3], Cop3[Id, A1, A2, A3]] = inja2FInverse[Id, A1, A2, A3]
+
+    implicit def Cop3TCDecidableId[TC[_], A1, A2, A3](implicit x: Decidable[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3]): TC[Cop3[Id, A1, A2, A3]] =
+      Cop3TCDecidableF[TC, Id, A1, A2, A3]
+
+    implicit def Cop3TCAltId[TC[_], A1, A2, A3](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3]): TC[Cop3[Id, A1, A2, A3]] =
+      Cop3TCAltF[TC, Id, A1, A2, A3]
+
   }
 
-  @newtype case class Prod4[F[_], A1, A2, A3, A4](run: (F[A1], F[A2], F[A3], F[A4])) {
+  @newtype case class Prod4[F[_], A1, A2, A3, A4](run: (F[A1], (F[A2], (F[A3], F[A4])))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2
+
     private def mapN = new Map4P[F[A1], F[A2], F[A3], F[A4]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod4[F, B, A2, A3, A4] =
@@ -352,36 +483,43 @@ object types {
   }
 
   trait Prod4LP {
-    implicit def Prod4Monoid[F[_], A1, A2, A3, A4](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4])]): Monoid[Prod4[F, A1, A2, A3, A4]] =
+    implicit def Prod4Monoid[F[_], A1, A2, A3, A4](implicit M: Monoid[(F[A1], (F[A2], (F[A3], F[A4])))]): Monoid[Prod4[F, A1, A2, A3, A4]] =
       MF.xmap(M, Prod4[F, A1, A2, A3, A4](_), (_: Prod4[F, A1, A2, A3, A4]).run)
 
     implicit def lifta0F[F[_], A1, A2, A3, A4](implicit M: Monoid[Prod4[F, A1, A2, A3, A4]]): Inj[Prod4[F, A1, A2, A3, A4], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((x, t._2, t._3, t._4)))
+      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((x, (t.t2, (t.t3, t.t4)))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4]: Inj[F[A1], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4]: Inj[F[A1], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4](implicit M: Monoid[Prod4[F, A1, A2, A3, A4]]): Inj[Prod4[F, A1, A2, A3, A4], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((t._1, x, t._3, t._4)))
+      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((t.t1, (x, (t.t3, t.t4)))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4]: Inj[F[A2], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4]: Inj[F[A2], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4](implicit M: Monoid[Prod4[F, A1, A2, A3, A4]]): Inj[Prod4[F, A1, A2, A3, A4], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((t._1, t._2, x, t._4)))
+      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((t.t1, (t.t2, (x, t.t4)))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4]: Inj[F[A3], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4]: Inj[F[A3], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4](implicit M: Monoid[Prod4[F, A1, A2, A3, A4]]): Inj[Prod4[F, A1, A2, A3, A4], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((t._1, t._2, t._3, x)))
+      Inj.instance(x => Prod4[F, A1, A2, A3, A4]((t.t1, (t.t2, (t.t3, x)))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4]: Inj[F[A4], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4]: Inj[F[A4], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run.t4)
+
+    implicit def Prod4TCDivideF[TC[_], F[_], A1, A2, A3, A4](implicit x: Divide[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]]): TC[Prod4[F, A1, A2, A3, A4]] =
+      Combine.divide4(a0, a1, a2, a3)(_.run)
+
+    implicit def Prod4TCApplyF[TC[_], F[_], A1, A2, A3, A4](implicit x: Apply[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]]): TC[Prod4[F, A1, A2, A3, A4]] =
+      Combine.apply4(a0, a1, a2, a3) { case (i0, (i1, (i2, i3))) => Prod4[F, A1, A2, A3, A4]((i0, (i1, (i2, i3)))) }
+
   }
 
   object Prod4 extends Prod4LP {
@@ -400,6 +538,23 @@ object types {
     implicit def lifta3Id[A1, A2, A3, A4](implicit M: Monoid[Prod4[Id, A1, A2, A3, A4]]): Inj[Prod4[Id, A1, A2, A3, A4], A4] = lifta3F[Id, A1, A2, A3, A4]
 
     implicit def lifta3IdInverse[A1, A2, A3, A4]: Inj[A4, Prod4[Id, A1, A2, A3, A4]] = lifta3FInverse[Id, A1, A2, A3, A4]
+
+    implicit def Prod4TCDivideId[TC[_], A1, A2, A3, A4](implicit x: Divide[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4]): TC[Prod4[Id, A1, A2, A3, A4]] =
+      Prod4TCDivideF[TC, Id, A1, A2, A3, A4]
+
+    implicit def Prod4TCApplyId[TC[_], A1, A2, A3, A4](implicit x: Apply[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4]): TC[Prod4[Id, A1, A2, A3, A4]] =
+      Prod4TCApplyF[TC, Id, A1, A2, A3, A4]
+    /*implicit def Prod4IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4](
+        implicit iso: T <=> Prod4[F, A1, A2, A3, A4],
+        tc: TC[Prod4[F, A1, A2, A3, A4]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod4[F, A1, A2, A3, A4], T](tc)(iso.from(_))
+
+    implicit def Prod4IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4](
+        implicit iso: T <=> Prod4[F, A1, A2, A3, A4],
+        tc: TC[Prod4[F, A1, A2, A3, A4]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod4[F, A1, A2, A3, A4], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop4[F[_], A1, A2, A3, A4](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ F[A4])))) {
@@ -479,6 +634,13 @@ object types {
     implicit def inja3F[F[_], A1, A2, A3, A4]: Inj[Cop4[F, A1, A2, A3, A4], F[A4]] = Inj.instance(prisma3F.reverseGet(_))
 
     implicit def inja3FInverse[F[_], A1, A2, A3, A4]: Inj[Option[F[A4]], Cop4[F, A1, A2, A3, A4]] = Inj.instance(prisma3F.getOption(_))
+
+    implicit def Cop4TCDecidableF[TC[_], F[_], A1, A2, A3, A4](implicit x: Decidable[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]]): TC[Cop4[F, A1, A2, A3, A4]] =
+      Combine.choose4(a0, a1, a2, a3)(_.run)
+
+    implicit def Cop4TCAltF[TC[_], F[_], A1, A2, A3, A4](implicit x: Alt[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]]): TC[Cop4[F, A1, A2, A3, A4]] =
+      Combine.altly4(a0, a1, a2, a3)(Cop4[F, A1, A2, A3, A4](_))
+
   }
 
   object Cop4 extends Cop4LP {
@@ -505,9 +667,22 @@ object types {
     implicit def inja3Id[A1, A2, A3, A4]: Inj[Cop4[Id, A1, A2, A3, A4], A4] = inja3F[Id, A1, A2, A3, A4]
 
     implicit def inja3IdInverse[F[_], A1, A2, A3, A4]: Inj[Option[A4], Cop4[Id, A1, A2, A3, A4]] = inja3FInverse[Id, A1, A2, A3, A4]
+
+    implicit def Cop4TCDecidableId[TC[_], A1, A2, A3, A4](implicit x: Decidable[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4]): TC[Cop4[Id, A1, A2, A3, A4]] =
+      Cop4TCDecidableF[TC, Id, A1, A2, A3, A4]
+
+    implicit def Cop4TCAltId[TC[_], A1, A2, A3, A4](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4]): TC[Cop4[Id, A1, A2, A3, A4]] =
+      Cop4TCAltF[TC, Id, A1, A2, A3, A4]
+
   }
 
-  @newtype case class Prod5[F[_], A1, A2, A3, A4, A5](run: (F[A1], F[A2], F[A3], F[A4], F[A5])) {
+  @newtype case class Prod5[F[_], A1, A2, A3, A4, A5](run: (F[A1], (F[A2], (F[A3], (F[A4], F[A5]))))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2
+
     private def mapN = new Map5P[F[A1], F[A2], F[A3], F[A4], F[A5]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod5[F, B, A2, A3, A4, A5] =
@@ -543,43 +718,50 @@ object types {
   }
 
   trait Prod5LP {
-    implicit def Prod5Monoid[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5])]): Monoid[Prod5[F, A1, A2, A3, A4, A5]] =
+    implicit def Prod5Monoid[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], F[A5]))))]): Monoid[Prod5[F, A1, A2, A3, A4, A5]] =
       MF.xmap(M, Prod5[F, A1, A2, A3, A4, A5](_), (_: Prod5[F, A1, A2, A3, A4, A5]).run)
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[F, A1, A2, A3, A4, A5]]): Inj[Prod5[F, A1, A2, A3, A4, A5], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((x, t._2, t._3, t._4, t._5)))
+      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((x, (t.t2, (t.t3, (t.t4, t.t5))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A1], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A1], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[F, A1, A2, A3, A4, A5]]): Inj[Prod5[F, A1, A2, A3, A4, A5], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t._1, x, t._3, t._4, t._5)))
+      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t.t1, (x, (t.t3, (t.t4, t.t5))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A2], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A2], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[F, A1, A2, A3, A4, A5]]): Inj[Prod5[F, A1, A2, A3, A4, A5], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t._1, t._2, x, t._4, t._5)))
+      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t.t1, (t.t2, (x, (t.t4, t.t5))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A3], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A3], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[F, A1, A2, A3, A4, A5]]): Inj[Prod5[F, A1, A2, A3, A4, A5], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t._1, t._2, t._3, x, t._5)))
+      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t.t1, (t.t2, (t.t3, (x, t.t5))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A4], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A4], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[F, A1, A2, A3, A4, A5]]): Inj[Prod5[F, A1, A2, A3, A4, A5], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t._1, t._2, t._3, t._4, x)))
+      Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t.t1, (t.t2, (t.t3, (t.t4, x))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A5], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A5], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run.t5)
+
+    implicit def Prod5TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5](implicit x: Divide[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]], a4: TC[F[A5]]): TC[Prod5[F, A1, A2, A3, A4, A5]] =
+      Combine.divide5(a0, a1, a2, a3, a4)(_.run)
+
+    implicit def Prod5TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5](implicit x: Apply[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]], a4: TC[F[A5]]): TC[Prod5[F, A1, A2, A3, A4, A5]] =
+      Combine.apply5(a0, a1, a2, a3, a4) { case (i0, (i1, (i2, (i3, i4)))) => Prod5[F, A1, A2, A3, A4, A5]((i0, (i1, (i2, (i3, i4))))) }
+
   }
 
   object Prod5 extends Prod5LP {
@@ -602,6 +784,23 @@ object types {
     implicit def lifta4Id[A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[Id, A1, A2, A3, A4, A5]]): Inj[Prod5[Id, A1, A2, A3, A4, A5], A5] = lifta4F[Id, A1, A2, A3, A4, A5]
 
     implicit def lifta4IdInverse[A1, A2, A3, A4, A5]: Inj[A5, Prod5[Id, A1, A2, A3, A4, A5]] = lifta4FInverse[Id, A1, A2, A3, A4, A5]
+
+    implicit def Prod5TCDivideId[TC[_], A1, A2, A3, A4, A5](implicit x: Divide[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5]): TC[Prod5[Id, A1, A2, A3, A4, A5]] =
+      Prod5TCDivideF[TC, Id, A1, A2, A3, A4, A5]
+
+    implicit def Prod5TCApplyId[TC[_], A1, A2, A3, A4, A5](implicit x: Apply[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5]): TC[Prod5[Id, A1, A2, A3, A4, A5]] =
+      Prod5TCApplyF[TC, Id, A1, A2, A3, A4, A5]
+    /*implicit def Prod5IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5](
+        implicit iso: T <=> Prod5[F, A1, A2, A3, A4, A5],
+        tc: TC[Prod5[F, A1, A2, A3, A4, A5]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod5[F, A1, A2, A3, A4, A5], T](tc)(iso.from(_))
+
+    implicit def Prod5IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5](
+        implicit iso: T <=> Prod5[F, A1, A2, A3, A4, A5],
+        tc: TC[Prod5[F, A1, A2, A3, A4, A5]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod5[F, A1, A2, A3, A4, A5], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop5[F[_], A1, A2, A3, A4, A5](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5]))))) {
@@ -699,6 +898,20 @@ object types {
     implicit def inja4F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A5]] = Inj.instance(prisma4F.reverseGet(_))
 
     implicit def inja4FInverse[F[_], A1, A2, A3, A4, A5]: Inj[Option[F[A5]], Cop5[F, A1, A2, A3, A4, A5]] = Inj.instance(prisma4F.getOption(_))
+
+    implicit def Cop5TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]]
+    ): TC[Cop5[F, A1, A2, A3, A4, A5]] =
+      Combine.choose5(a0, a1, a2, a3, a4)(_.run)
+
+    implicit def Cop5TCAltF[TC[_], F[_], A1, A2, A3, A4, A5](implicit x: Alt[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]], a4: TC[F[A5]]): TC[Cop5[F, A1, A2, A3, A4, A5]] =
+      Combine.altly5(a0, a1, a2, a3, a4)(Cop5[F, A1, A2, A3, A4, A5](_))
+
   }
 
   object Cop5 extends Cop5LP {
@@ -731,9 +944,23 @@ object types {
     implicit def inja4Id[A1, A2, A3, A4, A5]: Inj[Cop5[Id, A1, A2, A3, A4, A5], A5] = inja4F[Id, A1, A2, A3, A4, A5]
 
     implicit def inja4IdInverse[F[_], A1, A2, A3, A4, A5]: Inj[Option[A5], Cop5[Id, A1, A2, A3, A4, A5]] = inja4FInverse[Id, A1, A2, A3, A4, A5]
+
+    implicit def Cop5TCDecidableId[TC[_], A1, A2, A3, A4, A5](implicit x: Decidable[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5]): TC[Cop5[Id, A1, A2, A3, A4, A5]] =
+      Cop5TCDecidableF[TC, Id, A1, A2, A3, A4, A5]
+
+    implicit def Cop5TCAltId[TC[_], A1, A2, A3, A4, A5](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5]): TC[Cop5[Id, A1, A2, A3, A4, A5]] =
+      Cop5TCAltF[TC, Id, A1, A2, A3, A4, A5]
+
   }
 
-  @newtype case class Prod6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])) {
+  @newtype case class Prod6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], F[A6])))))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2
+
     private def mapN = new Map6P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod6[F, B, A2, A3, A4, A5, A6] =
@@ -775,50 +1002,73 @@ object types {
   }
 
   trait Prod6LP {
-    implicit def Prod6Monoid[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])]): Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]] =
+    implicit def Prod6Monoid[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], F[A6])))))]): Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]] =
       MF.xmap(M, Prod6[F, A1, A2, A3, A4, A5, A6](_), (_: Prod6[F, A1, A2, A3, A4, A5, A6]).run)
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((x, t._2, t._3, t._4, t._5, t._6)))
+      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((x, (t.t2, (t.t3, (t.t4, (t.t5, t.t6)))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A1], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A1], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t._1, x, t._3, t._4, t._5, t._6)))
+      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t.t1, (x, (t.t3, (t.t4, (t.t5, t.t6)))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A2], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A2], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t._1, t._2, x, t._4, t._5, t._6)))
+      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t.t1, (t.t2, (x, (t.t4, (t.t5, t.t6)))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A3], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A3], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t._1, t._2, t._3, x, t._5, t._6)))
+      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t.t1, (t.t2, (t.t3, (x, (t.t5, t.t6)))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A4], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A4], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t._1, t._2, t._3, t._4, x, t._6)))
+      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t.t1, (t.t2, (t.t3, (t.t4, (x, t.t6)))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A5], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A5], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t._1, t._2, t._3, t._4, t._5, x)))
+      Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, x)))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A6], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A6], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run.t6)
+
+    implicit def Prod6TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]]
+    ): TC[Prod6[F, A1, A2, A3, A4, A5, A6]] =
+      Combine.divide6(a0, a1, a2, a3, a4, a5)(_.run)
+
+    implicit def Prod6TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]]
+    ): TC[Prod6[F, A1, A2, A3, A4, A5, A6]] =
+      Combine.apply6(a0, a1, a2, a3, a4, a5) { case (i0, (i1, (i2, (i3, (i4, i5))))) => Prod6[F, A1, A2, A3, A4, A5, A6]((i0, (i1, (i2, (i3, (i4, i5)))))) }
+
   }
 
   object Prod6 extends Prod6LP {
@@ -845,6 +1095,23 @@ object types {
     implicit def lifta5Id[A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[Id, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[Id, A1, A2, A3, A4, A5, A6], A6] = lifta5F[Id, A1, A2, A3, A4, A5, A6]
 
     implicit def lifta5IdInverse[A1, A2, A3, A4, A5, A6]: Inj[A6, Prod6[Id, A1, A2, A3, A4, A5, A6]] = lifta5FInverse[Id, A1, A2, A3, A4, A5, A6]
+
+    implicit def Prod6TCDivideId[TC[_], A1, A2, A3, A4, A5, A6](implicit x: Divide[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6]): TC[Prod6[Id, A1, A2, A3, A4, A5, A6]] =
+      Prod6TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6]
+
+    implicit def Prod6TCApplyId[TC[_], A1, A2, A3, A4, A5, A6](implicit x: Apply[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6]): TC[Prod6[Id, A1, A2, A3, A4, A5, A6]] =
+      Prod6TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6]
+    /*implicit def Prod6IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6](
+        implicit iso: T <=> Prod6[F, A1, A2, A3, A4, A5, A6],
+        tc: TC[Prod6[F, A1, A2, A3, A4, A5, A6]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod6[F, A1, A2, A3, A4, A5, A6], T](tc)(iso.from(_))
+
+    implicit def Prod6IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6](
+        implicit iso: T <=> Prod6[F, A1, A2, A3, A4, A5, A6],
+        tc: TC[Prod6[F, A1, A2, A3, A4, A5, A6]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod6[F, A1, A2, A3, A4, A5, A6], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6])))))) {
@@ -960,6 +1227,29 @@ object types {
     implicit def inja5F[F[_], A1, A2, A3, A4, A5, A6]: Inj[Cop6[F, A1, A2, A3, A4, A5, A6], F[A6]] = Inj.instance(prisma5F.reverseGet(_))
 
     implicit def inja5FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[Option[F[A6]], Cop6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(prisma5F.getOption(_))
+
+    implicit def Cop6TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]]
+    ): TC[Cop6[F, A1, A2, A3, A4, A5, A6]] =
+      Combine.choose6(a0, a1, a2, a3, a4, a5)(_.run)
+
+    implicit def Cop6TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]]
+    ): TC[Cop6[F, A1, A2, A3, A4, A5, A6]] =
+      Combine.altly6(a0, a1, a2, a3, a4, a5)(Cop6[F, A1, A2, A3, A4, A5, A6](_))
+
   }
 
   object Cop6 extends Cop6LP {
@@ -998,9 +1288,32 @@ object types {
     implicit def inja5Id[A1, A2, A3, A4, A5, A6]: Inj[Cop6[Id, A1, A2, A3, A4, A5, A6], A6] = inja5F[Id, A1, A2, A3, A4, A5, A6]
 
     implicit def inja5IdInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[Option[A6], Cop6[Id, A1, A2, A3, A4, A5, A6]] = inja5FInverse[Id, A1, A2, A3, A4, A5, A6]
+
+    implicit def Cop6TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6]
+    ): TC[Cop6[Id, A1, A2, A3, A4, A5, A6]] =
+      Cop6TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6]
+
+    implicit def Cop6TCAltId[TC[_], A1, A2, A3, A4, A5, A6](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6]): TC[Cop6[Id, A1, A2, A3, A4, A5, A6]] =
+      Cop6TCAltF[TC, Id, A1, A2, A3, A4, A5, A6]
+
   }
 
-  @newtype case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])) {
+  @newtype case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], F[A7]))))))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2
+
     private def mapN = new Map7P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod7[F, B, A2, A3, A4, A5, A6, A7] =
@@ -1048,57 +1361,74 @@ object types {
   }
 
   trait Prod7LP {
-    implicit def Prod7Monoid[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])]): Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
+    implicit def Prod7Monoid[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], F[A7]))))))]): Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
       MF.xmap(M, Prod7[F, A1, A2, A3, A4, A5, A6, A7](_), (_: Prod7[F, A1, A2, A3, A4, A5, A6, A7]).run)
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((x, t._2, t._3, t._4, t._5, t._6, t._7)))
+      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, t.t7))))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A1], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A1], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t._1, x, t._3, t._4, t._5, t._6, t._7)))
+      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, t.t7))))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A2], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A2], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t._1, t._2, x, t._4, t._5, t._6, t._7)))
+      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, t.t7))))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A3], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A3], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t._1, t._2, t._3, x, t._5, t._6, t._7)))
+      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, t.t7))))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A4], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A4], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t._1, t._2, t._3, t._4, x, t._6, t._7)))
+      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, t.t7))))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A5], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A5], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t._1, t._2, t._3, t._4, t._5, x, t._7)))
+      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, t.t7))))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A6], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A6], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t._1, t._2, t._3, t._4, t._5, t._6, x)))
+      Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, x))))))))
     }
 
-    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A7], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._7)
+    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A7], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t7)
+
+    implicit def Prod7TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]]
+    ): TC[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
+      Combine.divide7(a0, a1, a2, a3, a4, a5, a6)(_.run)
+
+    implicit def Prod7TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7](implicit x: Apply[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]], a4: TC[F[A5]], a5: TC[F[A6]], a6: TC[F[A7]])
+        : TC[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
+      Combine.apply7(a0, a1, a2, a3, a4, a5, a6) { case (i0, (i1, (i2, (i3, (i4, (i5, i6)))))) => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((i0, (i1, (i2, (i3, (i4, (i5, i6))))))) }
+
   }
 
   object Prod7 extends Prod7LP {
@@ -1136,6 +1466,25 @@ object types {
       lifta6F[Id, A1, A2, A3, A4, A5, A6, A7]
 
     implicit def lifta6IdInverse[A1, A2, A3, A4, A5, A6, A7]: Inj[A7, Prod7[Id, A1, A2, A3, A4, A5, A6, A7]] = lifta6FInverse[Id, A1, A2, A3, A4, A5, A6, A7]
+
+    implicit def Prod7TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7](implicit x: Divide[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7])
+        : TC[Prod7[Id, A1, A2, A3, A4, A5, A6, A7]] =
+      Prod7TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7]
+
+    implicit def Prod7TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7](implicit x: Apply[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7])
+        : TC[Prod7[Id, A1, A2, A3, A4, A5, A6, A7]] =
+      Prod7TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7]
+    /*implicit def Prod7IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7](
+        implicit iso: T <=> Prod7[F, A1, A2, A3, A4, A5, A6, A7],
+        tc: TC[Prod7[F, A1, A2, A3, A4, A5, A6, A7]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod7[F, A1, A2, A3, A4, A5, A6, A7], T](tc)(iso.from(_))
+
+    implicit def Prod7IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7](
+        implicit iso: T <=> Prod7[F, A1, A2, A3, A4, A5, A6, A7],
+        tc: TC[Prod7[F, A1, A2, A3, A4, A5, A6, A7]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod7[F, A1, A2, A3, A4, A5, A6, A7], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ F[A7]))))))) {
@@ -1269,6 +1618,23 @@ object types {
     implicit def inja6F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] = Inj.instance(prisma6F.reverseGet(_))
 
     implicit def inja6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Option[F[A7]], Cop7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(prisma6F.getOption(_))
+
+    implicit def Cop7TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]]
+    ): TC[Cop7[F, A1, A2, A3, A4, A5, A6, A7]] =
+      Combine.choose7(a0, a1, a2, a3, a4, a5, a6)(_.run)
+
+    implicit def Cop7TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7](implicit x: Alt[TC], a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]], a4: TC[F[A5]], a5: TC[F[A6]], a6: TC[F[A7]])
+        : TC[Cop7[F, A1, A2, A3, A4, A5, A6, A7]] =
+      Combine.altly7(a0, a1, a2, a3, a4, a5, a6)(Cop7[F, A1, A2, A3, A4, A5, A6, A7](_))
+
   }
 
   object Cop7 extends Cop7LP {
@@ -1313,9 +1679,27 @@ object types {
     implicit def inja6Id[A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A7] = inja6F[Id, A1, A2, A3, A4, A5, A6, A7]
 
     implicit def inja6IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Option[A7], Cop7[Id, A1, A2, A3, A4, A5, A6, A7]] = inja6FInverse[Id, A1, A2, A3, A4, A5, A6, A7]
+
+    implicit def Cop7TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7](implicit x: Decidable[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7])
+        : TC[Cop7[Id, A1, A2, A3, A4, A5, A6, A7]] =
+      Cop7TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7]
+
+    implicit def Cop7TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7])
+        : TC[Cop7[Id, A1, A2, A3, A4, A5, A6, A7]] =
+      Cop7TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7]
+
   }
 
-  @newtype case class Prod8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])) {
+  @newtype case class Prod8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], F[A8])))))))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2
+
     private def mapN = new Map8P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod8[F, B, A2, A3, A4, A5, A6, A7, A8] =
@@ -1369,64 +1753,93 @@ object types {
   }
 
   trait Prod8LP {
-    implicit def Prod8Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])]): Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+    implicit def Prod8Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8](
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], F[A8])))))))]
+    ): Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
       MF.xmap(M, Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8](_), (_: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]).run)
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, t.t8)))))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A1], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A1], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, t.t8)))))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A2], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A2], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, t.t8)))))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A3], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A3], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, t.t8)))))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A4], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A4], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, t.t8)))))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A5], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A5], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, t.t8)))))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A6], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A6], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, t.t8)))))))))
     }
 
-    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A7], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._7)
+    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A7], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x)))
+      Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, x)))))))))
     }
 
-    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A8], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._8)
+    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A8], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t8)
+
+    implicit def Prod8TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]]
+    ): TC[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Combine.divide8(a0, a1, a2, a3, a4, a5, a6, a7)(_.run)
+
+    implicit def Prod8TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]]
+    ): TC[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Combine.apply8(a0, a1, a2, a3, a4, a5, a6, a7) { case (i0, (i1, (i2, (i3, (i4, (i5, (i6, i7))))))) => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((i0, (i1, (i2, (i3, (i4, (i5, (i6, i7)))))))) }
+
   }
 
   object Prod8 extends Prod8LP {
@@ -1469,6 +1882,25 @@ object types {
       lifta7F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
 
     implicit def lifta7IdInverse[A1, A2, A3, A4, A5, A6, A7, A8]: Inj[A8, Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] = lifta7FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8]
+
+    implicit def Prod8TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit x: Divide[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7], a7: TC[A8])
+        : TC[Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Prod8TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8]
+
+    implicit def Prod8TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit x: Apply[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7], a7: TC[A8])
+        : TC[Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Prod8TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8]
+    /*implicit def Prod8IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8](
+        implicit iso: T <=> Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8],
+        tc: TC[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], T](tc)(iso.from(_))
+
+    implicit def Prod8IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8](
+        implicit iso: T <=> Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8],
+        tc: TC[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ F[A8])))))))) {
@@ -1620,6 +2052,33 @@ object types {
     implicit def inja7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A8]] = Inj.instance(prisma7F.reverseGet(_))
 
     implicit def inja7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Option[F[A8]], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(prisma7F.getOption(_))
+
+    implicit def Cop8TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]]
+    ): TC[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Combine.choose8(a0, a1, a2, a3, a4, a5, a6, a7)(_.run)
+
+    implicit def Cop8TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]]
+    ): TC[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Combine.altly8(a0, a1, a2, a3, a4, a5, a6, a7)(Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](_))
+
   }
 
   object Cop8 extends Cop8LP {
@@ -1670,9 +2129,28 @@ object types {
     implicit def inja7Id[A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A8] = inja7F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
 
     implicit def inja7IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Option[A8], Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] = inja7FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8]
+
+    implicit def Cop8TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit x: Decidable[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7], a7: TC[A8])
+        : TC[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Cop8TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8]
+
+    implicit def Cop8TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7], a7: TC[A8])
+        : TC[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Cop8TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8]
+
   }
 
-  @newtype case class Prod9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9])) {
+  @newtype case class Prod9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], F[A9]))))))))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2
+
     private def mapN = new Map9P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod9[F, B, A2, A3, A4, A5, A6, A7, A8, A9] =
@@ -1733,72 +2211,103 @@ object types {
 
   trait Prod9LP {
     implicit def Prod9Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], F[A9]))))))))]
     ): Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
       MF.xmap(M, Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](_), (_: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]).run)
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, t.t9))))))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A1], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A1], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, t.t9))))))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A2], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A2], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, t.t9))))))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A3], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A3], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, t.t9))))))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A4], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A4], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, t.t9))))))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A5], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A5], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, t.t9))))))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A6], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A6], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, t.t9))))))))))
     }
 
-    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A7], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._7)
+    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A7], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, t.t9))))))))))
     }
 
-    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A8], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._8)
+    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A8], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A9]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x)))
+      Inj.instance(x => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, x))))))))))
     }
 
-    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A9], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._9)
+    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A9], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t9)
+
+    implicit def Prod9TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]]
+    ): TC[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Combine.divide9(a0, a1, a2, a3, a4, a5, a6, a7, a8)(_.run)
+
+    implicit def Prod9TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]]
+    ): TC[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Combine.apply9(a0, a1, a2, a3, a4, a5, a6, a7, a8) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, i8)))))))) => Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, i8)))))))))
+      }
+
   }
 
   object Prod9 extends Prod9LP {
@@ -1846,6 +2355,45 @@ object types {
       lifta8F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
     implicit def lifta8IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[A9, Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = lifta8FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
+
+    implicit def Prod9TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9]
+    ): TC[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Prod9TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
+
+    implicit def Prod9TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9]
+    ): TC[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Prod9TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
+    /*implicit def Prod9IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit iso: T <=> Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9],
+        tc: TC[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], T](tc)(iso.from(_))
+
+    implicit def Prod9IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit iso: T <=> Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9],
+        tc: TC[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ F[A9]))))))))) {
@@ -2015,6 +2563,35 @@ object types {
     implicit def inja8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A9]] = Inj.instance(prisma8F.reverseGet(_))
 
     implicit def inja8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Option[F[A9]], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(prisma8F.getOption(_))
+
+    implicit def Cop9TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]]
+    ): TC[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Combine.choose9(a0, a1, a2, a3, a4, a5, a6, a7, a8)(_.run)
+
+    implicit def Cop9TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]]
+    ): TC[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Combine.altly9(a0, a1, a2, a3, a4, a5, a6, a7, a8)(Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](_))
+
   }
 
   object Cop9 extends Cop9LP {
@@ -2071,9 +2648,39 @@ object types {
     implicit def inja8Id[A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A9] = inja8F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
     implicit def inja8IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Option[A9], Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = inja8FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
+
+    implicit def Cop9TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9]
+    ): TC[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Cop9TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
+
+    implicit def Cop9TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit x: Alt[TC], a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7], a7: TC[A8], a8: TC[A9])
+        : TC[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      Cop9TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
+
   }
 
-  @newtype case class Prod10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10])) {
+  @newtype case class Prod10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], F[A10])))))))))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map10P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod10[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
@@ -2140,7 +2747,7 @@ object types {
 
   trait Prod10LP {
     implicit def Prod10Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], F[A10])))))))))]
     ): Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       MF.xmap(M, Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](_), (_: Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]).run)
 
@@ -2148,91 +2755,124 @@ object types {
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A1], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A1], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A2], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A2], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A3], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A3], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A4], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A4], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A5], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A5], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A6], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A6], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A7], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._7)
+    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A7], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, t.t10)))))))))))
     }
 
-    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A8], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._8)
+    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A8], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A9]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, t.t10)))))))))))
     }
 
-    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A9], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._9)
+    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A9], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
     ): Inj[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A10]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x)))
+      Inj.instance(x => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, x)))))))))))
     }
 
-    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A10], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._10)
+    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A10], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t10)
+
+    implicit def Prod10TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]]
+    ): TC[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Combine.divide10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)(_.run)
+
+    implicit def Prod10TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]]
+    ): TC[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Combine.apply10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, i9))))))))) => Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, i9))))))))))
+      }
+
   }
 
   object Prod10 extends Prod10LP {
@@ -2295,6 +2935,47 @@ object types {
     ): Inj[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10] = lifta9F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
 
     implicit def lifta9IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[A10, Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = lifta9FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+
+    implicit def Prod10TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10]
+    ): TC[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Prod10TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+
+    implicit def Prod10TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10]
+    ): TC[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Prod10TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+    /*implicit def Prod10IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit iso: T <=> Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10],
+        tc: TC[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], T](tc)(iso.from(_))
+
+    implicit def Prod10IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit iso: T <=> Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10],
+        tc: TC[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ F[A10])))))))))) {
@@ -2492,6 +3173,37 @@ object types {
     implicit def inja9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A10]] = Inj.instance(prisma9F.reverseGet(_))
 
     implicit def inja9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Option[F[A10]], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(prisma9F.getOption(_))
+
+    implicit def Cop10TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]]
+    ): TC[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Combine.choose10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)(_.run)
+
+    implicit def Cop10TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]]
+    ): TC[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Combine.altly10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)(Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](_))
+
   }
 
   object Cop10 extends Cop10LP {
@@ -2564,9 +3276,52 @@ object types {
 
     implicit def inja9IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Option[A10], Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       inja9FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+
+    implicit def Cop10TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10]
+    ): TC[Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Cop10TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+
+    implicit def Cop10TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10]
+    ): TC[Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      Cop10TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+
   }
 
-  @newtype case class Prod11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])) {
+  @newtype case class Prod11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], F[A11]))))))))))) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map11P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod11[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
@@ -2639,7 +3394,7 @@ object types {
 
   trait Prod11LP {
     implicit def Prod11Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], F[A11]))))))))))]
     ): Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       MF.xmap(M, Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](_), (_: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]).run)
 
@@ -2647,100 +3402,135 @@ object types {
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A1], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A1], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A2], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A2], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A3], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A3], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A4], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A4], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A5], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A5], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A6], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A6], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A7], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._7)
+    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A7], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A8], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._8)
+    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A8], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A9]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, t.t11))))))))))))
     }
 
-    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A9], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._9)
+    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A9], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A10]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, t.t11))))))))))))
     }
 
-    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A10], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._10)
+    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A10], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
     ): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A11]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x)))
+      Inj.instance(x => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, x))))))))))))
     }
 
-    implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A11], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._11)
+    implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A11], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t11)
+
+    implicit def Prod11TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]]
+    ): TC[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Combine.divide11(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)(_.run)
+
+    implicit def Prod11TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]]
+    ): TC[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Combine.apply11(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, i10)))))))))) => Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, i10)))))))))))
+      }
+
   }
 
   object Prod11 extends Prod11LP {
@@ -2820,6 +3610,49 @@ object types {
 
     implicit def lifta10IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[A11, Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       lifta10FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+
+    implicit def Prod11TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11]
+    ): TC[Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Prod11TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+
+    implicit def Prod11TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11]
+    ): TC[Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Prod11TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+    /*implicit def Prod11IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit iso: T <=> Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11],
+        tc: TC[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], T](tc)(iso.from(_))
+
+    implicit def Prod11IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit iso: T <=> Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11],
+        tc: TC[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
@@ -3038,6 +3871,39 @@ object types {
     implicit def inja10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A11]] = Inj.instance(prisma10F.reverseGet(_))
 
     implicit def inja10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Option[F[A11]], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(prisma10F.getOption(_))
+
+    implicit def Cop11TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]]
+    ): TC[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Combine.choose11(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)(_.run)
+
+    implicit def Cop11TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]]
+    ): TC[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Combine.altly11(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)(Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](_))
+
   }
 
   object Cop11 extends Cop11LP {
@@ -3128,9 +3994,57 @@ object types {
 
     implicit def inja10IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Option[A11], Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       inja10FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+
+    implicit def Cop11TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11]
+    ): TC[Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Cop11TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+
+    implicit def Cop11TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11]
+    ): TC[Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      Cop11TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+
   }
 
-  @newtype case class Prod12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12])) {
+  @newtype case class Prod12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], F[A12])))))))))))
+  ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map12P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod12[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
@@ -3209,7 +4123,7 @@ object types {
 
   trait Prod12LP {
     implicit def Prod12Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], F[A12])))))))))))]
     ): Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       MF.xmap(M, Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](_), (_: Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]).run)
 
@@ -3217,109 +4131,147 @@ object types {
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A1], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A1], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A2], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A2], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A3], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A3], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A4], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A4], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A5], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A5], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A6], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A6], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A7], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._7)
+    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A7], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A8], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._8)
+    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A8], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A9]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A9], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._9)
+    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A9], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A10]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, t.t12)))))))))))))
     }
 
-    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A10], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._10)
+    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A10], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A11]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, t.t12)))))))))))))
     }
 
-    implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A11], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._11)
+    implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A11], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
     ): Inj[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A12]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x)))
+      Inj.instance(x => Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, x)))))))))))))
     }
 
-    implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A12], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._12)
+    implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A12], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t12)
+
+    implicit def Prod12TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]]
+    ): TC[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Combine.divide12(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)(_.run)
+
+    implicit def Prod12TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]]
+    ): TC[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Combine.apply12(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, i11))))))))))) =>
+          Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, i11))))))))))))
+      }
+
   }
 
   object Prod12 extends Prod12LP {
@@ -3406,6 +4358,51 @@ object types {
 
     implicit def lifta11IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[A12, Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       lifta11FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+
+    implicit def Prod12TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12]
+    ): TC[Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Prod12TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+
+    implicit def Prod12TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12]
+    ): TC[Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Prod12TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+    /*implicit def Prod12IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit iso: T <=> Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12],
+        tc: TC[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], T](tc)(iso.from(_))
+
+    implicit def Prod12IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit iso: T <=> Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12],
+        tc: TC[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
@@ -3659,6 +4656,41 @@ object types {
 
     implicit def inja11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[Option[F[A12]], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       Inj.instance(prisma11F.getOption(_))
+
+    implicit def Cop12TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]]
+    ): TC[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Combine.choose12(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)(_.run)
+
+    implicit def Cop12TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]]
+    ): TC[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Combine.altly12(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)(Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](_))
+
   }
 
   object Cop12 extends Cop12LP {
@@ -3769,9 +4801,60 @@ object types {
 
     implicit def inja11IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[Option[A12], Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       inja11FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+
+    implicit def Cop12TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12]
+    ): TC[Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Cop12TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+
+    implicit def Cop12TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12]
+    ): TC[Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      Cop12TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+
   }
 
-  @newtype case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13])) {
+  @newtype case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], F[A13]))))))))))))
+  ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map13P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod13[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
@@ -3856,7 +4939,7 @@ object types {
 
   trait Prod13LP {
     implicit def Prod13Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], F[A13]))))))))))))]
     ): Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       MF.xmap(M, Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](_), (_: Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]).run)
 
@@ -3864,118 +4947,158 @@ object types {
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A1], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._1)
+    implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A1], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A2], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._2)
+    implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A2], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A3], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._3)
+    implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A3], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A4], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._4)
+    implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A4], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A5], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._5)
+    implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A5], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A6], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._6)
+    implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A6], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A7], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._7)
+    implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A7], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A8], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._8)
+    implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A8], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A9]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A9], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._9)
+    implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A9], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A10]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A10], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._10)
+    implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A10], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A11]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, t.t13))))))))))))))
     }
 
-    implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A11], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._11)
+    implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A11], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A12]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, t.t13))))))))))))))
     }
 
-    implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A12], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._12)
+    implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A12], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
     ): Inj[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A13]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x)))
+      Inj.instance(x => Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, x))))))))))))))
     }
 
-    implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A13], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._13)
+    implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A13], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t13)
+
+    implicit def Prod13TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]]
+    ): TC[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Combine.divide13(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)(_.run)
+
+    implicit def Prod13TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]]
+    ): TC[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Combine.apply13(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, i12)))))))))))) =>
+          Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, i12)))))))))))))
+      }
+
   }
 
   object Prod13 extends Prod13LP {
@@ -4069,6 +5192,53 @@ object types {
 
     implicit def lifta12IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[A13, Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       lifta12FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+
+    implicit def Prod13TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13]
+    ): TC[Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Prod13TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+
+    implicit def Prod13TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13]
+    ): TC[Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Prod13TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+    /*implicit def Prod13IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit iso: T <=> Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13],
+        tc: TC[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], T](tc)(iso.from(_))
+
+    implicit def Prod13IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit iso: T <=> Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13],
+        tc: TC[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
@@ -4358,6 +5528,43 @@ object types {
 
     implicit def inja12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[Option[F[A13]], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       Inj.instance(prisma12F.getOption(_))
+
+    implicit def Cop13TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]]
+    ): TC[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Combine.choose13(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)(_.run)
+
+    implicit def Cop13TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]]
+    ): TC[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Combine.altly13(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)(Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](_))
+
   }
 
   object Cop13 extends Cop13LP {
@@ -4477,11 +5684,63 @@ object types {
 
     implicit def inja12IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[Option[A13], Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       inja12FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+
+    implicit def Cop13TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13]
+    ): TC[Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Cop13TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+
+    implicit def Cop13TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13]
+    ): TC[Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      Cop13TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+
   }
 
   @newtype case class Prod14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14])
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], F[A14])))))))))))))
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map14P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod14[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
@@ -4572,7 +5831,7 @@ object types {
 
   trait Prod14LP {
     implicit def Prod14Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], F[A14])))))))))))))]
     ): Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       MF.xmap(M, Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](_), (_: Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]).run)
 
@@ -4580,141 +5839,211 @@ object types {
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A1], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._1)
+      Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A2], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._2)
+      Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A3], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._3)
+      Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A4], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._4)
+      Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A5], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._5)
+      Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A6], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._6)
+      Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A7], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._7)
+      Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A8], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._8)
+      Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A9]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A9], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._9)
+      Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A10]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A10], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._10)
+      Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A11]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A11], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._11)
+      Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A12]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A12], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._12)
+      Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A13]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, t.t14))))))))))))))
+      )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A13], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._13)
+      Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
     ): Inj[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A14]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x)))
+      Inj.instance(
+        x => Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, x))))))))))))))
+      )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A14], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      Inj.instance(_.run._14)
+      Inj.instance(_.run.t14)
+
+    implicit def Prod14TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]]
+    ): TC[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Combine.divide14(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)(_.run)
+
+    implicit def Prod14TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]]
+    ): TC[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Combine.apply14(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, i13))))))))))))) =>
+          Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, i13))))))))))))))
+      }
+
   }
 
   object Prod14 extends Prod14LP {
@@ -4815,6 +6144,55 @@ object types {
 
     implicit def lifta13IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[A14, Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       lifta13FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+
+    implicit def Prod14TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14]
+    ): TC[Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Prod14TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+
+    implicit def Prod14TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14]
+    ): TC[Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Prod14TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+    /*implicit def Prod14IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit iso: T <=> Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14],
+        tc: TC[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], T](tc)(iso.from(_))
+
+    implicit def Prod14IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit iso: T <=> Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14],
+        tc: TC[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
@@ -5128,6 +6506,45 @@ object types {
 
     implicit def inja13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[Option[F[A14]], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       Inj.instance(prisma13F.getOption(_))
+
+    implicit def Cop14TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]]
+    ): TC[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Combine.choose14(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)(_.run)
+
+    implicit def Cop14TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]]
+    ): TC[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Combine.altly14(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)(Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](_))
+
   }
 
   object Cop14 extends Cop14LP {
@@ -5256,11 +6673,66 @@ object types {
 
     implicit def inja13IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[Option[A14], Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       inja13FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+
+    implicit def Cop14TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14]
+    ): TC[Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Cop14TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+
+    implicit def Cop14TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14]
+    ): TC[Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      Cop14TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+
   }
 
   @newtype case class Prod15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15])
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], F[A15]))))))))))))))
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map15P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
@@ -5357,7 +6829,7 @@ object types {
 
   trait Prod15LP {
     implicit def Prod15Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], F[A15]))))))))))))))]
     ): Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       MF.xmap(M, Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](_), (_: Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]).run)
 
@@ -5365,151 +6837,270 @@ object types {
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A1]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A1], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._1)
+      Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A2]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A2], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._2)
+      Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A3]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A3], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._3)
+      Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A4]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A4], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._4)
+      Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A5]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A5], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._5)
+      Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A6]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A6], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._6)
+      Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A7]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A7], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._7)
+      Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A8]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A8], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._8)
+      Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A9]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A9], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._9)
+      Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A10]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A10], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._10)
+      Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A11]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A11], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._11)
+      Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A12]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A12], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._12)
+      Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A13]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A13], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._13)
+      Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A14]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, t.t15))))))))))))))
+          )
+      )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A14], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._14)
+      Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
     ): Inj[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A15]] = {
       val t = M.zero.run
-      Inj.instance(x => Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x)))
+      Inj.instance(
+        x =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, x))))))))))))))
+          )
+      )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A15], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      Inj.instance(_.run._15)
+      Inj.instance(_.run.t15)
+
+    implicit def Prod15TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]]
+    ): TC[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Combine.divide15(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)(_.run)
+
+    implicit def Prod15TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]]
+    ): TC[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Combine.apply15(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, i14)))))))))))))) =>
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, i14)))))))))))))))
+      }
+
   }
 
   object Prod15 extends Prod15LP {
@@ -5617,6 +7208,57 @@ object types {
 
     implicit def lifta14IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[A15, Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       lifta14FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+
+    implicit def Prod15TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15]
+    ): TC[Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Prod15TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+
+    implicit def Prod15TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15]
+    ): TC[Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Prod15TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+    /*implicit def Prod15IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit iso: T <=> Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15],
+        tc: TC[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], T](tc)(iso.from(_))
+
+    implicit def Prod15IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit iso: T <=> Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15],
+        tc: TC[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
@@ -5954,6 +7596,47 @@ object types {
 
     implicit def inja14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
         : Inj[Option[F[A15]], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = Inj.instance(prisma14F.getOption(_))
+
+    implicit def Cop15TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]]
+    ): TC[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Combine.choose15(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)(_.run)
+
+    implicit def Cop15TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]]
+    ): TC[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Combine.altly15(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)(Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](_))
+
   }
 
   object Cop15 extends Cop15LP {
@@ -6091,11 +7774,69 @@ object types {
 
     implicit def inja14IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
         : Inj[Option[A15], Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = inja14FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+
+    implicit def Cop15TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15]
+    ): TC[Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Cop15TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+
+    implicit def Cop15TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15]
+    ): TC[Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      Cop15TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+
   }
 
   @newtype case class Prod16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16])
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], F[A16])))))))))))))))
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t16: F[A16] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map16P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod16[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
@@ -6198,7 +7939,7 @@ object types {
 
   trait Prod16LP {
     implicit def Prod16Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], F[A16])))))))))))))))]
     ): Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       MF.xmap(M, Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](_), (_: Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]).run)
 
@@ -6207,192 +7948,286 @@ object types {
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A1]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A1], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._1)
+        : Inj[F[A1], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A2]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A2], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._2)
+        : Inj[F[A2], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A3]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A3], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._3)
+        : Inj[F[A3], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A4]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A4], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._4)
+        : Inj[F[A4], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A5]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A5], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._5)
+        : Inj[F[A5], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A6]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A6], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._6)
+        : Inj[F[A6], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A7]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A7], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._7)
+        : Inj[F[A7], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A8]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A8], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._8)
+        : Inj[F[A8], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A9]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A9], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._9)
+        : Inj[F[A9], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A10]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A10], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._10)
+        : Inj[F[A10], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A11]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A11], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._11)
+        : Inj[F[A11], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A12]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A12], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._12)
+        : Inj[F[A12], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A13]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A13], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._13)
+        : Inj[F[A13], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A14]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, (t.t15, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A14], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._14)
+        : Inj[F[A14], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A15]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x, t._16))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (x, t.t16)))))))))))))))
+          )
       )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A15], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._15)
+        : Inj[F[A15], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t15)
 
     implicit def lifta15F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
     ): Inj[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A16]] = {
       val t = M.zero.run
       Inj.instance(
-        x => Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, x))
+        x =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, x)))))))))))))))
+          )
       )
     }
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-        : Inj[F[A16], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._16)
+        : Inj[F[A16], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t16)
+
+    implicit def Prod16TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]]
+    ): TC[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Combine.divide16(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)(_.run)
+
+    implicit def Prod16TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]]
+    ): TC[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Combine.apply16(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, i15))))))))))))))) =>
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, i15))))))))))))))))
+      }
+
   }
 
   object Prod16 extends Prod16LP {
@@ -6507,6 +8342,59 @@ object types {
 
     implicit def lifta15IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: Inj[A16, Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       lifta15FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+
+    implicit def Prod16TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16]
+    ): TC[Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Prod16TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+
+    implicit def Prod16TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16]
+    ): TC[Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Prod16TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+    /*implicit def Prod16IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit iso: T <=> Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16],
+        tc: TC[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], T](tc)(iso.from(_))
+
+    implicit def Prod16IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit iso: T <=> Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16],
+        tc: TC[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
@@ -6874,6 +8762,49 @@ object types {
 
     implicit def inja15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[Option[F[A16]], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(prisma15F.getOption(_))
+
+    implicit def Cop16TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]]
+    ): TC[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Combine.choose16(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)(_.run)
+
+    implicit def Cop16TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]]
+    ): TC[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Combine.altly16(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)(Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](_))
+
   }
 
   object Cop16 extends Cop16LP {
@@ -7020,11 +8951,72 @@ object types {
 
     implicit def inja15IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[Option[A16], Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = inja15FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+
+    implicit def Cop16TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16]
+    ): TC[Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Cop16TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+
+    implicit def Cop16TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16]
+    ): TC[Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      Cop16TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+
   }
 
   @newtype case class Prod17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17])
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], F[A17]))))))))))))))))
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t16: F[A16] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t17: F[A17] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map17P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod17[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
@@ -7133,7 +9125,7 @@ object types {
 
   trait Prod17LP {
     implicit def Prod17Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], F[A17]))))))))))))))))]
     ): Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       MF.xmap(
         M,
@@ -7148,13 +9140,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A1], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._1)
+        : Inj[F[A1], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7163,13 +9155,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A2], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._2)
+        : Inj[F[A2], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7178,13 +9170,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A3], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._3)
+        : Inj[F[A3], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7193,13 +9185,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A4], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._4)
+        : Inj[F[A4], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7208,13 +9200,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A5], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._5)
+        : Inj[F[A5], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7223,13 +9215,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A6], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._6)
+        : Inj[F[A6], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7238,13 +9230,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A7], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._7)
+        : Inj[F[A7], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7253,13 +9245,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A8], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._8)
+        : Inj[F[A8], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7268,13 +9260,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A9], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._9)
+        : Inj[F[A9], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7283,13 +9275,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A10], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._10)
+        : Inj[F[A10], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7298,13 +9290,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A11], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._11)
+        : Inj[F[A11], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7313,13 +9305,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A12], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._12)
+        : Inj[F[A12], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7328,13 +9320,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A13], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._13)
+        : Inj[F[A13], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7343,13 +9335,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, (t.t15, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A14], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._14)
+        : Inj[F[A14], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7358,13 +9350,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x, t._16, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (x, (t.t16, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A15], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._15)
+        : Inj[F[A15], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t15)
 
     implicit def lifta15F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7373,13 +9365,13 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, x, t._17)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (x, t.t17))))))))))))))))
           )
       )
     }
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A16], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._16)
+        : Inj[F[A16], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t16)
 
     implicit def lifta16F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -7388,13 +9380,63 @@ object types {
       Inj.instance(
         x =>
           Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, x)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, x))))))))))))))))
           )
       )
     }
 
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-        : Inj[F[A17], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._17)
+        : Inj[F[A17], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t17)
+
+    implicit def Prod17TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]]
+    ): TC[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Combine.divide17(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)(_.run)
+
+    implicit def Prod17TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]]
+    ): TC[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Combine.apply17(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, i16)))))))))))))))) =>
+          Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+            (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, i16))))))))))))))))
+          )
+      }
+
   }
 
   object Prod17 extends Prod17LP {
@@ -7533,6 +9575,61 @@ object types {
     implicit def lifta16IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[A17, Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       lifta16FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+
+    implicit def Prod17TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17]
+    ): TC[Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Prod17TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+
+    implicit def Prod17TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17]
+    ): TC[Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Prod17TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+    /*implicit def Prod17IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit iso: T <=> Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17],
+        tc: TC[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], T](tc)(iso.from(_))
+
+    implicit def Prod17IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit iso: T <=> Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17],
+        tc: TC[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
@@ -7933,6 +10030,51 @@ object types {
 
     implicit def inja16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[Option[F[A17]], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(prisma16F.getOption(_))
+
+    implicit def Cop17TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]]
+    ): TC[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Combine.choose17(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)(_.run)
+
+    implicit def Cop17TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]]
+    ): TC[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Combine.altly17(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)(Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](_))
+
   }
 
   object Cop17 extends Cop17LP {
@@ -8105,11 +10247,75 @@ object types {
     implicit def inja16IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[Option[A17], Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       inja16FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+
+    implicit def Cop17TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17]
+    ): TC[Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Cop17TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+
+    implicit def Cop17TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17]
+    ): TC[Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      Cop17TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+
   }
 
   @newtype case class Prod18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18])
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], F[A18])))))))))))))))))
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t16: F[A16] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t17: F[A17] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t18: F[A18] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map18P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod18[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
@@ -8224,7 +10430,7 @@ object types {
 
   trait Prod18LP {
     implicit def Prod18Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18])]
+        implicit M: Monoid[(F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], F[A18])))))))))))))))))]
     ): Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       MF.xmap(
         M,
@@ -8239,13 +10445,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A1], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._1)
+        : Inj[F[A1], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8254,13 +10460,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A2], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._2)
+        : Inj[F[A2], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8269,13 +10475,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A3], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._3)
+        : Inj[F[A3], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8284,13 +10490,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A4], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._4)
+        : Inj[F[A4], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8299,13 +10505,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A5], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._5)
+        : Inj[F[A5], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8314,13 +10520,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A6], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._6)
+        : Inj[F[A6], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8329,13 +10535,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A7], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._7)
+        : Inj[F[A7], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8344,13 +10550,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A8], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._8)
+        : Inj[F[A8], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8359,13 +10565,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A9], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._9)
+        : Inj[F[A9], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8374,13 +10580,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A10], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._10)
+        : Inj[F[A10], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8389,13 +10595,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A11], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._11)
+        : Inj[F[A11], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8404,13 +10610,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A12], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._12)
+        : Inj[F[A12], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8419,13 +10625,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A13], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._13)
+        : Inj[F[A13], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8434,13 +10640,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, (t.t15, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A14], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._14)
+        : Inj[F[A14], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8449,13 +10655,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x, t._16, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (x, (t.t16, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A15], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._15)
+        : Inj[F[A15], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t15)
 
     implicit def lifta15F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8464,13 +10670,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, x, t._17, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (x, (t.t17, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A16], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._16)
+        : Inj[F[A16], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t16)
 
     implicit def lifta16F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8479,13 +10685,13 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, x, t._18)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (x, t.t18)))))))))))))))))
           )
       )
     }
 
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A17], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._17)
+        : Inj[F[A17], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t17)
 
     implicit def lifta17F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -8494,13 +10700,65 @@ object types {
       Inj.instance(
         x =>
           Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, x)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, x)))))))))))))))))
           )
       )
     }
 
     implicit def lifta17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-        : Inj[F[A18], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._18)
+        : Inj[F[A18], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t18)
+
+    implicit def Prod18TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]]
+    ): TC[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Combine.divide18(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)(_.run)
+
+    implicit def Prod18TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]]
+    ): TC[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Combine.apply18(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, i17))))))))))))))))) =>
+          Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+            (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, i17)))))))))))))))))
+          )
+      }
+
   }
 
   object Prod18 extends Prod18LP {
@@ -8665,6 +10923,63 @@ object types {
     implicit def lifta17IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[A18, Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       lifta17FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+
+    implicit def Prod18TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18]
+    ): TC[Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Prod18TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+
+    implicit def Prod18TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18]
+    ): TC[Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Prod18TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+    /*implicit def Prod18IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit iso: T <=> Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18],
+        tc: TC[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], T](tc)(iso.from(_))
+
+    implicit def Prod18IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit iso: T <=> Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18],
+        tc: TC[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
@@ -9090,6 +11405,53 @@ object types {
 
     implicit def inja17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[Option[F[A18]], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(prisma17F.getOption(_))
+
+    implicit def Cop18TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]]
+    ): TC[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Combine.choose18(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)(_.run)
+
+    implicit def Cop18TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]]
+    ): TC[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Combine.altly18(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)(Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](_))
+
   }
 
   object Cop18 extends Cop18LP {
@@ -9308,11 +11670,78 @@ object types {
     implicit def inja17IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[Option[A18], Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       inja17FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+
+    implicit def Cop18TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18]
+    ): TC[Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Cop18TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+
+    implicit def Cop18TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18]
+    ): TC[Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      Cop18TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+
   }
 
   @newtype case class Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19])
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], F[A19]))))))))))))))))))
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t16: F[A16] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t17: F[A17] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t18: F[A18] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t19: F[A19] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map19P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod19[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
@@ -9433,7 +11862,9 @@ object types {
 
   trait Prod19LP {
     implicit def Prod19Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19])]
+        implicit M: Monoid[
+          (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], F[A19]))))))))))))))))))
+        ]
     ): Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       MF.xmap(
         M,
@@ -9448,13 +11879,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A1], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._1)
+        : Inj[F[A1], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9463,13 +11894,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A2], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._2)
+        : Inj[F[A2], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9478,13 +11909,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A3], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._3)
+        : Inj[F[A3], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9493,13 +11924,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A4], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._4)
+        : Inj[F[A4], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9508,13 +11939,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A5], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._5)
+        : Inj[F[A5], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9523,13 +11954,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A6], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._6)
+        : Inj[F[A6], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9538,13 +11969,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A7], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._7)
+        : Inj[F[A7], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9553,13 +11984,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A8], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._8)
+        : Inj[F[A8], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9568,13 +11999,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A9], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._9)
+        : Inj[F[A9], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9583,13 +12014,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A10], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._10)
+        : Inj[F[A10], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9598,13 +12029,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A11], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._11)
+        : Inj[F[A11], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9613,13 +12044,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A12], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._12)
+        : Inj[F[A12], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9628,13 +12059,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A13], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._13)
+        : Inj[F[A13], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9643,13 +12074,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, (t.t15, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A14], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._14)
+        : Inj[F[A14], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9658,13 +12089,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x, t._16, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (x, (t.t16, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A15], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._15)
+        : Inj[F[A15], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t15)
 
     implicit def lifta15F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9673,13 +12104,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, x, t._17, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (x, (t.t17, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A16], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._16)
+        : Inj[F[A16], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t16)
 
     implicit def lifta16F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9688,13 +12119,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, x, t._18, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (x, (t.t18, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A17], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._17)
+        : Inj[F[A17], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t17)
 
     implicit def lifta17F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9703,13 +12134,13 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, x, t._19)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (x, t.t19))))))))))))))))))
           )
       )
     }
 
     implicit def lifta17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A18], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._18)
+        : Inj[F[A18], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t18)
 
     implicit def lifta18F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -9718,13 +12149,67 @@ object types {
       Inj.instance(
         x =>
           Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, x)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, x))))))))))))))))))
           )
       )
     }
 
     implicit def lifta18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-        : Inj[F[A19], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._19)
+        : Inj[F[A19], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t19)
+
+    implicit def Prod19TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]]
+    ): TC[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Combine.divide19(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)(_.run)
+
+    implicit def Prod19TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]]
+    ): TC[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Combine.apply19(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, i18)))))))))))))))))) =>
+          Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+            (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, i18))))))))))))))))))
+          )
+      }
+
   }
 
   object Prod19 extends Prod19LP {
@@ -9898,6 +12383,65 @@ object types {
     implicit def lifta18IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[A19, Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       lifta18FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+
+    implicit def Prod19TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19]
+    ): TC[Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Prod19TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+
+    implicit def Prod19TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19]
+    ): TC[Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Prod19TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+    /*implicit def Prod19IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit iso: T <=> Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19],
+        tc: TC[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], T](tc)(iso.from(_))
+
+    implicit def Prod19IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit iso: T <=> Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19],
+        tc: TC[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
@@ -10346,6 +12890,57 @@ object types {
 
     implicit def inja18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[Option[F[A19]], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(prisma18F.getOption(_))
+
+    implicit def Cop19TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]]
+    ): TC[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Combine.choose19(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)(_.run)
+
+    implicit def Cop19TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]]
+    ): TC[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Combine.altly19(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)(
+        Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](_)
+      )
+
   }
 
   object Cop19 extends Cop19LP {
@@ -10576,11 +13171,81 @@ object types {
     implicit def inja18IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[Option[A19], Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       inja18FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+
+    implicit def Cop19TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19]
+    ): TC[Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Cop19TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+
+    implicit def Cop19TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19]
+    ): TC[Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      Cop19TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+
   }
 
   @newtype case class Prod20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20])
+      run: (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], (F[A19], F[A20])))))))))))))))))))
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t16: F[A16] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t17: F[A17] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t18: F[A18] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t19: F[A19] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t20: F[A20] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map20P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod20[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
@@ -10707,7 +13372,9 @@ object types {
 
   trait Prod20LP {
     implicit def Prod20Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20])]
+        implicit M: Monoid[
+          (F[A1], (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], (F[A19], F[A20])))))))))))))))))))
+        ]
     ): Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       MF.xmap(
         M,
@@ -10722,13 +13389,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A1], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._1)
+        : Inj[F[A1], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10737,13 +13404,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A2], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._2)
+        : Inj[F[A2], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10752,13 +13419,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A3], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._3)
+        : Inj[F[A3], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10767,13 +13434,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A4], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._4)
+        : Inj[F[A4], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10782,13 +13449,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A5], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._5)
+        : Inj[F[A5], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10797,13 +13464,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A6], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._6)
+        : Inj[F[A6], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10812,13 +13479,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A7], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._7)
+        : Inj[F[A7], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10827,13 +13494,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A8], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._8)
+        : Inj[F[A8], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10842,13 +13509,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A9], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._9)
+        : Inj[F[A9], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10857,13 +13524,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A10], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._10)
+        : Inj[F[A10], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10872,13 +13539,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A11], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._11)
+        : Inj[F[A11], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10887,13 +13554,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A12], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._12)
+        : Inj[F[A12], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10902,13 +13569,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A13], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._13)
+        : Inj[F[A13], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10917,13 +13584,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A14], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._14)
+        : Inj[F[A14], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10932,13 +13599,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x, t._16, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (x, (t.t16, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A15], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._15)
+        : Inj[F[A15], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t15)
 
     implicit def lifta15F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10947,13 +13614,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, x, t._17, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (x, (t.t17, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A16], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._16)
+        : Inj[F[A16], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t16)
 
     implicit def lifta16F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10962,13 +13629,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, x, t._18, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (x, (t.t18, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A17], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._17)
+        : Inj[F[A17], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t17)
 
     implicit def lifta17F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10977,13 +13644,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, x, t._19, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (x, (t.t19, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A18], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._18)
+        : Inj[F[A18], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t18)
 
     implicit def lifta18F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -10992,13 +13659,13 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, x, t._20)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (x, t.t20)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A19], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._19)
+        : Inj[F[A19], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t19)
 
     implicit def lifta19F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -11007,13 +13674,69 @@ object types {
       Inj.instance(
         x =>
           Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, x)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, x)))))))))))))))))))
           )
       )
     }
 
     implicit def lifta19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-        : Inj[F[A20], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._20)
+        : Inj[F[A20], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t20)
+
+    implicit def Prod20TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]]
+    ): TC[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Combine.divide20(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)(_.run)
+
+    implicit def Prod20TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]]
+    ): TC[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Combine.apply20(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, (i18, i19))))))))))))))))))) =>
+          Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+            (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, (i18, i19)))))))))))))))))))
+          )
+      }
+
   }
 
   object Prod20 extends Prod20LP {
@@ -11196,6 +13919,67 @@ object types {
     implicit def lifta19IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[A20, Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       lifta19FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+
+    implicit def Prod20TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20]
+    ): TC[Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Prod20TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+
+    implicit def Prod20TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20]
+    ): TC[Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Prod20TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+    /*implicit def Prod20IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit iso: T <=> Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20],
+        tc: TC[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], T](tc)(iso.from(_))
+
+    implicit def Prod20IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit iso: T <=> Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20],
+        tc: TC[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
@@ -11673,6 +14457,59 @@ object types {
 
     implicit def inja19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[Option[F[A20]], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(prisma19F.getOption(_))
+
+    implicit def Cop20TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]]
+    ): TC[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Combine.choose20(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)(_.run)
+
+    implicit def Cop20TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]]
+    ): TC[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Combine.altly20(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)(
+        Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](_)
+      )
+
   }
 
   object Cop20 extends Cop20LP {
@@ -11915,11 +14752,87 @@ object types {
     implicit def inja19IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[Option[A20], Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       inja19FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+
+    implicit def Cop20TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20]
+    ): TC[Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Cop20TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+
+    implicit def Cop20TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20]
+    ): TC[Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      Cop20TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+
   }
 
   @newtype case class Prod21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21])
+      run: (
+          F[A1],
+          (F[A2], (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], (F[A19], (F[A20], F[A21])))))))))))))))))))
+      )
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t16: F[A16] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t17: F[A17] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t18: F[A18] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t19: F[A19] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t20: F[A20] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t21: F[A21] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN = new Map21P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21]] {}
 
     def map1[B](f: F[A1] => F[B]): Prod21[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
@@ -12052,7 +14965,15 @@ object types {
 
   trait Prod21LP {
     implicit def Prod21Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21])]
+        implicit M: Monoid[
+          (
+              F[A1],
+              (
+                  F[A2],
+                  (F[A3], (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], (F[A19], (F[A20], F[A21]))))))))))))))))))
+              )
+          )
+        ]
     ): Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       MF.xmap(
         M,
@@ -12067,13 +14988,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A1], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._1)
+        : Inj[F[A1], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12082,13 +15003,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A2], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._2)
+        : Inj[F[A2], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12097,13 +15018,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A3], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._3)
+        : Inj[F[A3], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12112,13 +15033,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A4], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._4)
+        : Inj[F[A4], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12127,13 +15048,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A5], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._5)
+        : Inj[F[A5], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12142,13 +15063,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A6], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._6)
+        : Inj[F[A6], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12157,13 +15078,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A7], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._7)
+        : Inj[F[A7], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12172,13 +15093,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A8], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._8)
+        : Inj[F[A8], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12187,13 +15108,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A9], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._9)
+        : Inj[F[A9], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12202,13 +15123,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A10], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._10)
+        : Inj[F[A10], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12217,13 +15138,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A11], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._11)
+        : Inj[F[A11], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12232,13 +15153,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A12], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._12)
+        : Inj[F[A12], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12247,13 +15168,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A13], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._13)
+        : Inj[F[A13], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12262,13 +15183,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A14], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._14)
+        : Inj[F[A14], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12277,13 +15198,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x, t._16, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (x, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A15], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._15)
+        : Inj[F[A15], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t15)
 
     implicit def lifta15F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12292,13 +15213,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, x, t._17, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (x, (t.t17, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A16], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._16)
+        : Inj[F[A16], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t16)
 
     implicit def lifta16F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12307,13 +15228,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, x, t._18, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (x, (t.t18, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A17], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._17)
+        : Inj[F[A17], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t17)
 
     implicit def lifta17F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12322,13 +15243,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, x, t._19, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (x, (t.t19, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A18], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._18)
+        : Inj[F[A18], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t18)
 
     implicit def lifta18F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12337,13 +15258,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, x, t._20, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (x, (t.t20, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A19], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._19)
+        : Inj[F[A19], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t19)
 
     implicit def lifta19F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12352,13 +15273,13 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, x, t._21)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (x, t.t21))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A20], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._20)
+        : Inj[F[A20], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t20)
 
     implicit def lifta20F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -12367,13 +15288,71 @@ object types {
       Inj.instance(
         x =>
           Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, x)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, x))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta20FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-        : Inj[F[A21], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._21)
+        : Inj[F[A21], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t21)
+
+    implicit def Prod21TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]]
+    ): TC[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Combine.divide21(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)(_.run)
+
+    implicit def Prod21TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]]
+    ): TC[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Combine.apply21(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, (i18, (i19, i20)))))))))))))))))))) =>
+          Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+            (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, (i18, (i19, i20))))))))))))))))))))
+          )
+      }
+
   }
 
   object Prod21 extends Prod21LP {
@@ -12565,6 +15544,69 @@ object types {
     implicit def lifta20IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[A21, Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       lifta20FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+
+    implicit def Prod21TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21]
+    ): TC[Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Prod21TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+
+    implicit def Prod21TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21]
+    ): TC[Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Prod21TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+    /*implicit def Prod21IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit iso: T <=> Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21],
+        tc: TC[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], T](tc)(iso.from(_))
+
+    implicit def Prod21IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit iso: T <=> Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21],
+        tc: TC[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
@@ -13069,6 +16111,61 @@ object types {
 
     implicit def inja20FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[Option[F[A21]], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(prisma20F.getOption(_))
+
+    implicit def Cop21TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]]
+    ): TC[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Combine.choose21(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)(_.run)
+
+    implicit def Cop21TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]]
+    ): TC[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Combine.altly21(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)(
+        Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](_)
+      )
+
   }
 
   object Cop21 extends Cop21LP {
@@ -13323,11 +16420,96 @@ object types {
     implicit def inja20IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[Option[A21], Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       inja20FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+
+    implicit def Cop21TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21]
+    ): TC[Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Cop21TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+
+    implicit def Cop21TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21]
+    ): TC[Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      Cop21TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+
   }
 
   @newtype case class Prod22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21], F[A22])
+      run: (
+          F[A1],
+          (
+              F[A2],
+              (
+                  F[A3],
+                  (F[A4], (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], (F[A19], (F[A20], (F[A21], F[A22]))))))))))))))))))
+              )
+          )
+      )
   ) {
+    def t1: F[A1] = run._1
+    def t2: F[A2] = run._2._1
+    def t3: F[A3] = run._2._2._1
+    def t4: F[A4] = run._2._2._2._1
+    def t5: F[A5] = run._2._2._2._2._1
+    def t6: F[A6] = run._2._2._2._2._2._1
+    def t7: F[A7] = run._2._2._2._2._2._2._1
+    def t8: F[A8] = run._2._2._2._2._2._2._2._1
+    def t9: F[A9] = run._2._2._2._2._2._2._2._2._1
+    def t10: F[A10] = run._2._2._2._2._2._2._2._2._2._1
+    def t11: F[A11] = run._2._2._2._2._2._2._2._2._2._2._1
+    def t12: F[A12] = run._2._2._2._2._2._2._2._2._2._2._2._1
+    def t13: F[A13] = run._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t14: F[A14] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t15: F[A15] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t16: F[A16] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t17: F[A17] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t18: F[A18] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t19: F[A19] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t20: F[A20] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t21: F[A21] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._1
+    def t22: F[A22] = run._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2._2
+
     private def mapN =
       new Map22P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21], F[A22]] {}
 
@@ -13467,7 +16649,21 @@ object types {
 
   trait Prod22LP {
     implicit def Prod22Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-        implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21], F[A22])]
+        implicit M: Monoid[
+          (
+              F[A1],
+              (
+                  F[A2],
+                  (
+                      F[A3],
+                      (
+                          F[A4],
+                          (F[A5], (F[A6], (F[A7], (F[A8], (F[A9], (F[A10], (F[A11], (F[A12], (F[A13], (F[A14], (F[A15], (F[A16], (F[A17], (F[A18], (F[A19], (F[A20], (F[A21], F[A22])))))))))))))))))
+                      )
+                  )
+              )
+          )
+        ]
     ): Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       MF.xmap(
         M,
@@ -13482,13 +16678,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (x, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (x, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta0FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A1], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._1)
+        : Inj[F[A1], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t1)
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13497,13 +16693,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, x, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (x, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta1FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A2], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._2)
+        : Inj[F[A2], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t2)
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13512,13 +16708,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, x, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (x, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A3], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._3)
+        : Inj[F[A3], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t3)
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13527,13 +16723,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, x, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (x, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A4], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._4)
+        : Inj[F[A4], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t4)
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13542,13 +16738,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, x, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (x, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A5], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._5)
+        : Inj[F[A5], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t5)
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13557,13 +16753,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, x, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (x, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A6], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._6)
+        : Inj[F[A6], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t6)
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13572,13 +16768,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, x, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (x, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A7], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._7)
+        : Inj[F[A7], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t7)
 
     implicit def lifta7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13587,13 +16783,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, x, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (x, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A8], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._8)
+        : Inj[F[A8], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t8)
 
     implicit def lifta8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13602,13 +16798,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, x, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (x, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A9], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._9)
+        : Inj[F[A9], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t9)
 
     implicit def lifta9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13617,13 +16813,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, x, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (x, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A10], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._10)
+        : Inj[F[A10], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t10)
 
     implicit def lifta10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13632,13 +16828,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, x, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (x, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A11], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._11)
+        : Inj[F[A11], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t11)
 
     implicit def lifta11F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13647,13 +16843,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, x, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (x, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A12], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._12)
+        : Inj[F[A12], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t12)
 
     implicit def lifta12F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13662,13 +16858,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, x, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (x, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A13], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._13)
+        : Inj[F[A13], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t13)
 
     implicit def lifta13F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13677,13 +16873,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, x, t._15, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (x, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A14], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._14)
+        : Inj[F[A14], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t14)
 
     implicit def lifta14F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13692,13 +16888,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, x, t._16, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (x, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A15], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._15)
+        : Inj[F[A15], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t15)
 
     implicit def lifta15F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13707,13 +16903,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, x, t._17, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (x, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A16], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._16)
+        : Inj[F[A16], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t16)
 
     implicit def lifta16F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13722,13 +16918,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, x, t._18, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (x, (t.t18, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A17], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._17)
+        : Inj[F[A17], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t17)
 
     implicit def lifta17F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13737,13 +16933,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, x, t._19, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (x, (t.t19, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A18], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._18)
+        : Inj[F[A18], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t18)
 
     implicit def lifta18F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13752,13 +16948,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, x, t._20, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (x, (t.t20, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A19], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._19)
+        : Inj[F[A19], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t19)
 
     implicit def lifta19F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13767,13 +16963,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, x, t._21, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (x, (t.t21, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A20], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._20)
+        : Inj[F[A20], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t20)
 
     implicit def lifta20F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13782,13 +16978,13 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, x, t._22)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (x, t.t22)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta20FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A21], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._21)
+        : Inj[F[A21], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t21)
 
     implicit def lifta21F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -13797,13 +16993,73 @@ object types {
       Inj.instance(
         x =>
           Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
-            (t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15, t._16, t._17, t._18, t._19, t._20, t._21, x)
+            (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, (t.t11, (t.t12, (t.t13, (t.t14, (t.t15, (t.t16, (t.t17, (t.t18, (t.t19, (t.t20, (t.t21, x)))))))))))))))))))))
           )
       )
     }
 
     implicit def lifta21FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-        : Inj[F[A22], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._22)
+        : Inj[F[A22], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t22)
+
+    implicit def Prod22TCDivideF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Divide[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]],
+        a21: TC[F[A22]]
+    ): TC[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Combine.divide22(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)(_.run)
+
+    implicit def Prod22TCApplyF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Apply[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]],
+        a21: TC[F[A22]]
+    ): TC[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Combine.apply22(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) {
+        case (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, (i18, (i19, (i20, i21))))))))))))))))))))) =>
+          Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+            (i0, (i1, (i2, (i3, (i4, (i5, (i6, (i7, (i8, (i9, (i10, (i11, (i12, (i13, (i14, (i15, (i16, (i17, (i18, (i19, (i20, i21)))))))))))))))))))))
+          )
+      }
+
   }
 
   object Prod22 extends Prod22LP {
@@ -14004,6 +17260,71 @@ object types {
     implicit def lifta21IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[A22, Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       lifta21FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+
+    implicit def Prod22TCDivideId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Divide[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21],
+        a21: TC[A22]
+    ): TC[Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Prod22TCDivideF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+
+    implicit def Prod22TCApplyId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Apply[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21],
+        a21: TC[A22]
+    ): TC[Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Prod22TCApplyF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+    /*implicit def Prod22IsoTCCovariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit iso: T <=> Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22],
+        tc: TC[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]],
+        F: Functor[TC]): TC[T] =
+      F.map[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], T](tc)(iso.from(_))
+
+    implicit def Prod22IsoTCContravariant[TC[_], F[_], T, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit iso: T <=> Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22],
+        tc: TC[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]],
+        F: Contravariant[TC]): TC[T] =
+      F.contramap[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], T](tc)(iso.to(_))*/
   }
 
   @newtype case class Cop22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
@@ -14536,6 +17857,63 @@ object types {
 
     implicit def inja21FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[Option[F[A22]], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(prisma21F.getOption(_))
+
+    implicit def Cop22TCDecidableF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Decidable[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]],
+        a21: TC[F[A22]]
+    ): TC[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Combine.choose22(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)(_.run)
+
+    implicit def Cop22TCAltF[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Alt[TC],
+        a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]],
+        a21: TC[F[A22]]
+    ): TC[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Combine.altly22(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)(
+        Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](_)
+      )
+
   }
 
   object Cop22 extends Cop22LP {
@@ -14802,6 +18180,61 @@ object types {
     implicit def inja21IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[Option[A22], Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       inja21FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+
+    implicit def Cop22TCDecidableId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Decidable[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21],
+        a21: TC[A22]
+    ): TC[Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Cop22TCDecidableF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+
+    implicit def Cop22TCAltId[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit x: Alt[TC],
+        a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21],
+        a21: TC[A22]
+    ): TC[Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      Cop22TCAltF[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+
   }
 
 }

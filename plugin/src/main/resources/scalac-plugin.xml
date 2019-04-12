@@ -1,0 +1,4 @@
+<plugin>
+  <name>andxor</name>
+  <classname>andxor.AndXorPlugin</classname>
+</plugin>

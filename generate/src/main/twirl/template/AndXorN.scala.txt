@@ -2,6 +2,7 @@
 
 @(tpes: List[String])
 
+@if(tpes.length > 1){import andxor.tuple._}
 import andxor.types.{@{tpes.copName}, @{tpes.prodName}}
 import scalaz.{Apply, Functor, PlusEmpty, Monoid@{tpes.foldLen01("")(", \\/, -\\/, \\/-")}, ~>}
 import scalaz.Id.Id
@@ -50,7 +51,7 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
   AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Cop => AndXorK@{tpes.length}[G, @{tpes.tpeParams}]#Cop =
     (p: AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Cop) =>
       @{tpes.copTpeF("G")}(@tpes.foldLen01[Any]("nt(p.run)") {
-        p.run@{tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail}
+        p.run@{tpes.drop(1).foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), ${a})").tail}
       })
 
   @{tpes.zipper(template.txt.Subst(_)).mkString("\n")}
@@ -73,7 +74,7 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
   def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(map: AndXor[Id]#Cop => C)(
-      implicit O: Ordering[AndXor[Id]#Cop], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
+      implicit O: Ordering[@{tpes.copTpeF("Id")}], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
     import scala.collection.mutable.{PriorityQueue => PQ}
 
     val TG = AndXorF[G]
