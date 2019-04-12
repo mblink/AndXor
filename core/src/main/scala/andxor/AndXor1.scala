@@ -8,7 +8,7 @@ import scalaz.std.vector._
 
 trait AndXorK1[F[_], A1] extends AndXor {
   type Prod = Prod1[F, A1]
-  object Prod { def apply(p: (F[A1])): Prod = Prod1[F, A1](p) }
+  object Prod { def apply(p: F[A1]): Prod = Prod1[F, A1](p) }
 
   type Cop = Cop1[F, A1]
   object Cop { def apply(c: F[A1]): Cop = Cop1[F, A1](c) }
@@ -41,7 +41,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
   def transformP[G[_]](nt: (F ~> G)): AndXorK1[F, A1]#Prod => AndXorK1[G, A1]#Prod =
     (p: AndXorK1[F, A1]#Prod) => {
       val pr = p.run
-      Prod1[G, A1]((nt(pr)))
+      Prod1[G, A1](nt(pr))
     }
 
   def transformC[G[_]](nt: (F ~> G)): AndXorK1[F, A1]#Cop => AndXorK1[G, A1]#Cop =
@@ -54,7 +54,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
     val p = prod.run
     A.map(
     A.map(p)((i0: A1) =>
-      (i0)))(Prod1[Id, A1](_))
+      i0))(Prod1[Id, A1](_))
   }
 
   def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[Cop1[Id, A1]] =
@@ -67,7 +67,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
   def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
 
   def foldMap[G[_], C](p: AndXor[G]#Prod)(map: AndXor[Id]#Cop => C)(
-      implicit O: Ordering[AndXor[Id]#Cop], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
+      implicit O: Ordering[Cop1[Id, A1]], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
     import scala.collection.mutable.{PriorityQueue => PQ}
 
     val TG = AndXorF[G]
@@ -77,7 +77,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
       val pr = p.run
       val ht1 = U(pr)
       (List(ht1._1.map(TI.inj(_: Id[A1]))).flatten,
-        TG.Prod((ht1._2)))
+        TG.Prod(ht1._2))
     }
 
     @tailrec
@@ -91,7 +91,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
 
     @tailrec
     def go(prod: TG.Prod, q: PQ[TI.Cop], out: C): C =
-      (prod.run.==((PE.empty[A1]))) match {
+      (prod.run.==(PE.empty[A1])) match {
         case true => appendAll(out, q)
         case false => q.isEmpty match {
           case true => {
@@ -103,7 +103,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
             case dj @ _ =>
               val pr = prod.run
               val (h, t) = U(pr)
-              go(TG.Prod((t)),
+              go(TG.Prod(t),
                 q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.Cop(dj))))
 
           }

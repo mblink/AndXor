@@ -1,18 +1,55 @@
 package andxor
 
-import scalaz.{\/, Zipper}
+import scalaz.Zipper
 import scalaz.syntax.comonad._
 import scalaz.syntax.id._
 import scalaz.syntax.std.boolean._
 
 object syntax {
-  val tupleLen = 22
+  val tupleLen = 4
 
   def range(start: Int, end: Int): List[Int] = start.to(end).toList
 
   def parens(s: String): String = s"($s)"
 
   type LS = List[String]
+
+  sealed trait ScalazTC {
+    val tpes: List[String]
+    val tpeName: String
+    val name: String
+    val combineF: String
+    val identityF: String
+    val secondParams: String
+  }
+  case class ApplyTC(tpes: List[String]) extends ScalazTC {
+    val tpeName = tpes.prodName
+    val name = "Apply"
+    val combineF = "apply"
+    val identityF = "map"
+    val secondParams = s" { case ${tpes.paramList("i").mkTuple} => ${tpes.prodTpe}(${tpes.paramList("i").mkTuple}) }"
+  }
+  case class AltTC(tpes: List[String]) extends ScalazTC {
+    val tpeName = tpes.copName
+    val name = "Alt"
+    val combineF = "altly"
+    val identityF = "map"
+    val secondParams = s"(${tpes.copTpe}(_))"
+  }
+  case class DecidableTC(tpes: List[String]) extends ScalazTC {
+    val tpeName = tpes.copName
+    val name = "Decidable"
+    val combineF = "choose"
+    val identityF = "contramap"
+    val secondParams = "(_.run)"
+  }
+  case class DivideTC(tpes: List[String]) extends ScalazTC {
+    val tpeName = tpes.prodName
+    val name = "Divide"
+    val combineF = "divide"
+    val identityF = "contramap"
+    val secondParams = "(_.run)"
+  }
 
   implicit class TpesOps(tpes: LS) {
     def copName = s"Cop${tpes.length}"
@@ -31,12 +68,7 @@ object syntax {
     def dj: String = djBase(identity _)
     def djK(F: String): String = djBase(t => s"$F[$t]")
 
-    def tupleGroups: List[String] \/ (List[List[String]], List[String]) =
-      (tpes.length <= tupleLen).fold(
-        \/.left(tpes),
-        tpes.grouped(tupleLen).toList.init |> (groups => \/.right((groups, tpes.drop(tupleLen * groups.length)))))
-
-    def mkTuple: String = parens(tpes.mkString(", "))
+    def mkTuple: String = tpes.reduceRight((tpe, acc) => parens(tpe ++ ", " ++ acc))
 
     def tupleVals(a: String, v: String, spaces: String, sIx: Int = 0): String =
       paramList(a, sIx).zipWithIndex.map(t => s"val ${t._1} = ${v}${tupleAccess(t._2 + 1)}").mkString(s"\n$spaces")
@@ -74,11 +106,28 @@ object syntax {
     def zipper[A](fn: Zipper[String] => A): List[A] =
       toZipper.cobind(fn).toStream.toList
 
-    def tupleAccess(idx: Int): String = foldLen01("")(s"._$idx")
+    def tupleAccess(idx: Int): String = foldLen01("")(s".t$idx")
+
+    def tupleAccessNoSyntax(idx: Int): String =
+      toZipper.move(idx - 1).get |> (z => z.lefts.foldLeft(Some(z.rights)
+        .filter(_.nonEmpty).map(_ => "._1").getOrElse(""))((a, _) => s"._2$a"))
 
     def foldLen0[A](eq0: => A)(gt0: => A): A = (tpes.length == 0).fold(eq0, gt0)
     def foldLen01[A](lteq1: => A)(gt1: => A): A = (tpes.length <= 1).fold(lteq1, gt1)
     def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)((tpes.length == 1).fold(eq1, gt1))
+
+    def tcDef(leadingWs: String, tc: ScalazTC, isId: Boolean): String = {
+      val F = isId.fold("Id", "F")
+      val tp = isId.fold("", s"F[_], ")
+      val fNameBase = s"${tc.tpeName}TC${tc.name}"
+
+      s"""
+${leadingWs}implicit def ${fNameBase}${F}[TC[_], ${tp}${tpeParams}](implicit x: ${tc.name}[TC], ${paramSig(List("TC") ++ isId.fold(List(), List("F")), "a")}): TC[${tc.tpeName}[$F, ${tpeParams}]] =
+${leadingWs}  ${isId.fold(s"${fNameBase}F[TC, Id, ${tpeParams}]", (tpes.length <= 1).fold(
+                  s"x.${tc.identityF}(${params("a")})${tc.secondParams}",
+                  s"Combine.${tc.combineF}${tpes.length}(${params("a")})${tc.secondParams}"))}
+"""
+    }
   }
 
   implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {
