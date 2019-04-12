@@ -1,6 +1,6 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
-  scalaVersion := "2.12.7",
+  scalaVersion := "2.12.8",
   version := "0.1.7",
   libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.2.26"),
   scalacOptions ++= Seq(
@@ -8,6 +8,8 @@ lazy val commonSettings = Seq(
     "-encoding", "UTF-8",
     "-explaintypes",
     "-feature",
+    "-language:higherKinds",
+    "-language:implicitConversions",
     "-unchecked",
     "-Xcheckinit",
     "-Xfatal-warnings",
@@ -72,7 +74,11 @@ lazy val generate = project.in(file("generate"))
   )).enablePlugins(SbtTwirl)
 
 lazy val core = project.in(file("core"))
-  .settings(commonSettings ++ publishSettings ++ Seq(name := "andxor-core"))
+  .settings(commonSettings ++ publishSettings ++ Seq(
+    name := "andxor-core",
+    libraryDependencies += "io.estatico" %% "newtype" % "0.4.2",
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+  ))
 
 lazy val root = project.in(file("."))
   .settings(commonSettings ++ Seq(

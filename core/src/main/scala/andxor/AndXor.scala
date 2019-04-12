@@ -1,6 +1,5 @@
 package andxor
 
-import scala.language.higherKinds
 import scalaz.{Apply, Monoid}
 
 abstract class ComposeAndXor[F[_], Cop, Prod] {
@@ -25,6 +24,10 @@ trait AndXor {
 }
 
 object AndXor {
+  def build[A1]: AndXor1[A1] = AndXor1[A1]
+  def buildF[A1]: AndXorF1[A1] = AndXorF1[A1]
+  def buildK[F[_], A1]: AndXorK1[F, A1] = AndXorK1[F, A1]
+
   def build[A1, A2]: AndXor2[A1, A2] = AndXor2[A1, A2]
   def buildF[A1, A2]: AndXorF2[A1, A2] = AndXorF2[A1, A2]
   def buildK[F[_], A1, A2]: AndXorK2[F, A1, A2] = AndXorK2[F, A1, A2]

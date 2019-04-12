@@ -3,10 +3,9 @@
 
 @(z: Zipper[String])
 
-  def map@{z.index + 1}[B](p: (@{z.toList.prod}))(f: @{z.focus} => B):
-  (@{z.modify(_ => "B").toList.prod}) = {
-    val (@{z.toList.params("a")}) = p
-    (@{z.toList.paramList("a")
+  def map@{z.index + 1}[B](p: @{z.toList.prod})(f: @{z.focus} => B): @{z.modify(_ => "B").toList.prod} = {
+    @{z.toList.tupleVals("a", "p", "    ")}
+    @{z.toList.paramList("a")
       .updated(z.index, s"f(${z.toList.paramList("a")(z.index)})")
-      .mkString(", ")})
+      .mkTuple}
   }

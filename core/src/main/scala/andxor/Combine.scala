@@ -1,6 +1,5 @@
 package andxor
 
-import scala.language.higherKinds
 import scalaz.{Apply, \/}
 
 object Combine {
@@ -1239,332 +1238,774 @@ object Combine {
 
   def apply2[F[_], A1, A2, R](a1: => F[A1], a2: => F[A2])(f: (A1, A2) => R)(implicit A: Apply[F]): F[R] = A.apply2(a1, a2)(f)
 
-  def apply3[F[_], A1, A2, A3, R](a0: => F[A1], a1: => F[A2], a2: => F[A3])(f: (A1, A2, A3) => R)(implicit A: Apply[F]): F[R] = {
+  def apply3[F[_], A1, A2, A3, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3])(f: (A1, A2, A3) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a2)(ap(a1)(map(a0)(f.curried)))
+    ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => f(a0, a1, a2))))
   }
 
-  def apply4[F[_], A1, A2, A3, A4, R](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4])(f: (A1, A2, A3, A4) => R)(implicit A: Apply[F]): F[R] = {
+  def apply4[F[_], A1, A2, A3, A4, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4])(f: (A1, A2, A3, A4) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))
+    ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => f(a0, a1, a2, a3)))))
   }
 
-  def apply5[F[_], A1, A2, A3, A4, A5, R](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5])(f: (A1, A2, A3, A4, A5) => R)(implicit A: Apply[F]): F[R] = {
+  def apply5[F[_], A1, A2, A3, A4, A5, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5])(f: (A1, A2, A3, A4, A5) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))
+    ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => f(a0, a1, a2, a3, a4))))))
   }
 
-  def apply6[F[_], A1, A2, A3, A4, A5, A6, R](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6])(f: (A1, A2, A3, A4, A5, A6) => R)(implicit A: Apply[F]): F[R] = {
+  def apply6[F[_], A1, A2, A3, A4, A5, A6, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6])(
+      f: (A1, A2, A3, A4, A5, A6) => R
+  )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))
+    ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => f(a0, a1, a2, a3, a4, a5)))))))
   }
 
-  def apply7[F[_], A1, A2, A3, A4, A5, A6, A7, R](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6], a6: => F[A7])(
+  def apply7[F[_], A1, A2, A3, A4, A5, A6, A7, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6], fa6: => F[A7])(
       f: (A1, A2, A3, A4, A5, A6, A7) => R
   )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))
+    ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => f(a0, a1, a2, a3, a4, a5, a6))))))))
   }
 
-  def apply8[F[_], A1, A2, A3, A4, A5, A6, A7, A8, R](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6], a6: => F[A7], a7: => F[A8])(
+  def apply8[F[_], A1, A2, A3, A4, A5, A6, A7, A8, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6], fa6: => F[A7], fa7: => F[A8])(
       f: (A1, A2, A3, A4, A5, A6, A7, A8) => R
   )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))))
+    ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => f(a0, a1, a2, a3, a4, a5, a6, a7)))))))))
   }
 
-  def apply9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, R](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6], a6: => F[A7], a7: => F[A8], a8: => F[A9])(
+  def apply9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6], fa6: => F[A7], fa7: => F[A8], fa8: => F[A9])(
       f: (A1, A2, A3, A4, A5, A6, A7, A8, A9) => R
   )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))
+    ap(fa8)(ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8))))))))))
   }
 
   def apply10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))))))
+    ap(fa9)(ap(fa8)(ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)))))))))))
   }
 
   def apply11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))))
+    ap(fa10)(
+      ap(fa9)(
+        ap(fa8)(
+          ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)))))))))
+        )
+      )
+    )
   }
 
   def apply12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))))))))
+    ap(fa11)(
+      ap(fa10)(
+        ap(fa9)(
+          ap(fa8)(
+            ap(fa7)(
+              ap(fa6)(
+                ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)))))))
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))))))
+    ap(fa12)(
+      ap(fa11)(
+        ap(fa10)(
+          ap(fa9)(
+            ap(fa8)(
+              ap(fa7)(
+                ap(fa6)(
+                  ap(fa5)(
+                    ap(fa4)(
+                      ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)))))
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))))))))))
+    ap(fa13)(
+      ap(fa12)(
+        ap(fa11)(
+          ap(fa10)(
+            ap(fa9)(
+              ap(fa8)(
+                ap(fa7)(
+                  ap(fa6)(
+                    ap(fa5)(
+                      ap(fa4)(
+                        ap(fa3)(
+                          ap(fa2)(
+                            ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)))
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))))))))
+    ap(fa14)(
+      ap(fa13)(
+        ap(fa12)(
+          ap(fa11)(
+            ap(fa10)(
+              ap(fa9)(
+                ap(fa8)(
+                  ap(fa7)(
+                    ap(fa6)(
+                      ap(fa5)(
+                        ap(fa4)(
+                          ap(fa3)(
+                            ap(fa2)(
+                              ap(fa1)(
+                                map(fa0)(
+                                  a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => a14 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15],
-      a15: => F[A16]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15],
+      fa15: => F[A16]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a15)(ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))))))))))))
+    ap(fa15)(
+      ap(fa14)(
+        ap(fa13)(
+          ap(fa12)(
+            ap(fa11)(
+              ap(fa10)(
+                ap(fa9)(
+                  ap(fa8)(
+                    ap(fa7)(
+                      ap(fa6)(
+                        ap(fa5)(
+                          ap(fa4)(
+                            ap(fa3)(
+                              ap(fa2)(
+                                ap(fa1)(
+                                  map(fa0)(
+                                    a0 =>
+                                      a1 =>
+                                        a2 =>
+                                          a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => a14 => a15 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15],
-      a15: => F[A16],
-      a16: => F[A17]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15],
+      fa15: => F[A16],
+      fa16: => F[A17]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a16)(ap(a15)(ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))))))))))
+    ap(fa16)(
+      ap(fa15)(
+        ap(fa14)(
+          ap(fa13)(
+            ap(fa12)(
+              ap(fa11)(
+                ap(fa10)(
+                  ap(fa9)(
+                    ap(fa8)(
+                      ap(fa7)(
+                        ap(fa6)(
+                          ap(fa5)(
+                            ap(fa4)(
+                              ap(fa3)(
+                                ap(fa2)(
+                                  ap(fa1)(
+                                    map(fa0)(
+                                      a0 =>
+                                        a1 =>
+                                          a2 =>
+                                            a3 =>
+                                              a4 =>
+                                                a5 =>
+                                                  a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => a14 => a15 => a16 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15],
-      a15: => F[A16],
-      a16: => F[A17],
-      a17: => F[A18]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15],
+      fa15: => F[A16],
+      fa16: => F[A17],
+      fa17: => F[A18]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a17)(ap(a16)(ap(a15)(ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))))))))))))))
+    ap(fa17)(
+      ap(fa16)(
+        ap(fa15)(
+          ap(fa14)(
+            ap(fa13)(
+              ap(fa12)(
+                ap(fa11)(
+                  ap(fa10)(
+                    ap(fa9)(
+                      ap(fa8)(
+                        ap(fa7)(
+                          ap(fa6)(
+                            ap(fa5)(
+                              ap(fa4)(
+                                ap(fa3)(
+                                  ap(fa2)(
+                                    ap(fa1)(
+                                      map(fa0)(
+                                        a0 =>
+                                          a1 =>
+                                            a2 =>
+                                              a3 =>
+                                                a4 =>
+                                                  a5 =>
+                                                    a6 =>
+                                                      a7 =>
+                                                        a8 =>
+                                                          a9 =>
+                                                            a10 => a11 => a12 => a13 => a14 => a15 => a16 => a17 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15],
-      a15: => F[A16],
-      a16: => F[A17],
-      a17: => F[A18],
-      a18: => F[A19]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15],
+      fa15: => F[A16],
+      fa16: => F[A17],
+      fa17: => F[A18],
+      fa18: => F[A19]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a18)(ap(a17)(ap(a16)(ap(a15)(ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))))))))))))
+    ap(fa18)(
+      ap(fa17)(
+        ap(fa16)(
+          ap(fa15)(
+            ap(fa14)(
+              ap(fa13)(
+                ap(fa12)(
+                  ap(fa11)(
+                    ap(fa10)(
+                      ap(fa9)(
+                        ap(fa8)(
+                          ap(fa7)(
+                            ap(fa6)(
+                              ap(fa5)(
+                                ap(fa4)(
+                                  ap(fa3)(
+                                    ap(fa2)(
+                                      ap(fa1)(
+                                        map(fa0)(
+                                          a0 =>
+                                            a1 =>
+                                              a2 =>
+                                                a3 =>
+                                                  a4 =>
+                                                    a5 =>
+                                                      a6 =>
+                                                        a7 =>
+                                                          a8 =>
+                                                            a9 =>
+                                                              a10 =>
+                                                                a11 =>
+                                                                  a12 =>
+                                                                    a13 => a14 => a15 => a16 => a17 => a18 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15],
-      a15: => F[A16],
-      a16: => F[A17],
-      a17: => F[A18],
-      a18: => F[A19],
-      a19: => F[A20]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15],
+      fa15: => F[A16],
+      fa16: => F[A17],
+      fa17: => F[A18],
+      fa18: => F[A19],
+      fa19: => F[A20]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a19)(ap(a18)(ap(a17)(ap(a16)(ap(a15)(ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried))))))))))))))))))))
+    ap(fa19)(
+      ap(fa18)(
+        ap(fa17)(
+          ap(fa16)(
+            ap(fa15)(
+              ap(fa14)(
+                ap(fa13)(
+                  ap(fa12)(
+                    ap(fa11)(
+                      ap(fa10)(
+                        ap(fa9)(
+                          ap(fa8)(
+                            ap(fa7)(
+                              ap(fa6)(
+                                ap(fa5)(
+                                  ap(fa4)(
+                                    ap(fa3)(
+                                      ap(fa2)(
+                                        ap(fa1)(
+                                          map(fa0)(
+                                            a0 =>
+                                              a1 =>
+                                                a2 =>
+                                                  a3 =>
+                                                    a4 =>
+                                                      a5 =>
+                                                        a6 =>
+                                                          a7 =>
+                                                            a8 =>
+                                                              a9 =>
+                                                                a10 =>
+                                                                  a11 =>
+                                                                    a12 =>
+                                                                      a13 =>
+                                                                        a14 =>
+                                                                          a15 => a16 => a17 => a18 => a19 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15],
-      a15: => F[A16],
-      a16: => F[A17],
-      a17: => F[A18],
-      a18: => F[A19],
-      a19: => F[A20],
-      a20: => F[A21]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15],
+      fa15: => F[A16],
+      fa16: => F[A17],
+      fa17: => F[A18],
+      fa18: => F[A19],
+      fa19: => F[A20],
+      fa20: => F[A21]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a20)(ap(a19)(ap(a18)(ap(a17)(ap(a16)(ap(a15)(ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))))))))))))))
+    ap(fa20)(
+      ap(fa19)(
+        ap(fa18)(
+          ap(fa17)(
+            ap(fa16)(
+              ap(fa15)(
+                ap(fa14)(
+                  ap(fa13)(
+                    ap(fa12)(
+                      ap(fa11)(
+                        ap(fa10)(
+                          ap(fa9)(
+                            ap(fa8)(
+                              ap(fa7)(
+                                ap(fa6)(
+                                  ap(fa5)(
+                                    ap(fa4)(
+                                      ap(fa3)(
+                                        ap(fa2)(
+                                          ap(fa1)(
+                                            map(fa0)(
+                                              a0 =>
+                                                a1 =>
+                                                  a2 =>
+                                                    a3 =>
+                                                      a4 =>
+                                                        a5 =>
+                                                          a6 =>
+                                                            a7 =>
+                                                              a8 =>
+                                                                a9 =>
+                                                                  a10 =>
+                                                                    a11 =>
+                                                                      a12 =>
+                                                                        a13 =>
+                                                                          a14 =>
+                                                                            a15 =>
+                                                                              a16 =>
+                                                                                a17 =>
+                                                                                  a18 => a19 => a20 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
   }
 
   def apply22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, R](
-      a0: => F[A1],
-      a1: => F[A2],
-      a2: => F[A3],
-      a3: => F[A4],
-      a4: => F[A5],
-      a5: => F[A6],
-      a6: => F[A7],
-      a7: => F[A8],
-      a8: => F[A9],
-      a9: => F[A10],
-      a10: => F[A11],
-      a11: => F[A12],
-      a12: => F[A13],
-      a13: => F[A14],
-      a14: => F[A15],
-      a15: => F[A16],
-      a16: => F[A17],
-      a17: => F[A18],
-      a18: => F[A19],
-      a19: => F[A20],
-      a20: => F[A21],
-      a21: => F[A22]
+      fa0: => F[A1],
+      fa1: => F[A2],
+      fa2: => F[A3],
+      fa3: => F[A4],
+      fa4: => F[A5],
+      fa5: => F[A6],
+      fa6: => F[A7],
+      fa7: => F[A8],
+      fa8: => F[A9],
+      fa9: => F[A10],
+      fa10: => F[A11],
+      fa11: => F[A12],
+      fa12: => F[A13],
+      fa13: => F[A14],
+      fa14: => F[A15],
+      fa15: => F[A16],
+      fa16: => F[A17],
+      fa17: => F[A18],
+      fa18: => F[A19],
+      fa19: => F[A20],
+      fa20: => F[A21],
+      fa21: => F[A22]
   )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(a21)(
-      ap(a20)(ap(a19)(ap(a18)(ap(a17)(ap(a16)(ap(a15)(ap(a14)(ap(a13)(ap(a12)(ap(a11)(ap(a10)(ap(a9)(ap(a8)(ap(a7)(ap(a6)(ap(a5)(ap(a4)(ap(a3)(ap(a2)(ap(a1)(map(a0)(f.curried)))))))))))))))))))))
+    ap(fa21)(
+      ap(fa20)(
+        ap(fa19)(
+          ap(fa18)(
+            ap(fa17)(
+              ap(fa16)(
+                ap(fa15)(
+                  ap(fa14)(
+                    ap(fa13)(
+                      ap(fa12)(
+                        ap(fa11)(
+                          ap(fa10)(
+                            ap(fa9)(
+                              ap(fa8)(
+                                ap(fa7)(
+                                  ap(fa6)(
+                                    ap(fa5)(
+                                      ap(fa4)(
+                                        ap(fa3)(
+                                          ap(fa2)(
+                                            ap(fa1)(
+                                              map(fa0)(
+                                                a0 =>
+                                                  a1 =>
+                                                    a2 =>
+                                                      a3 =>
+                                                        a4 =>
+                                                          a5 =>
+                                                            a6 =>
+                                                              a7 =>
+                                                                a8 =>
+                                                                  a9 =>
+                                                                    a10 =>
+                                                                      a11 =>
+                                                                        a12 =>
+                                                                          a13 =>
+                                                                            a14 =>
+                                                                              a15 =>
+                                                                                a16 =>
+                                                                                  a17 =>
+                                                                                    a18 =>
+                                                                                      a19 =>
+                                                                                        a20 =>
+                                                                                          a21 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
+                                              )
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
     )
   }
 

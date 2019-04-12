@@ -3,6 +3,6 @@
 
 @(z: Zipper[String])
 
-  def map@{z.index + 1}[B](f: @{z.focus} => B): (@{z.modify(_ => "B").toList.prod}) =
+  def map@{z.index + 1}[B](f: @{z.focus} => B): @{z.modify(_ => "B").toList.prod} =
     mapN.map@{z.index + 1}(p)(f)
 

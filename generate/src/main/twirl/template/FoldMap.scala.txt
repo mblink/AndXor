@@ -1,9 +1,11 @@
+@import andxor.syntax._
 @import scalaz.Zipper
 
 @(z: Zipper[String])
-             case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
-                 """x""")(_ => """-\/(x)"""))((_, a) => s"""\\/-(${a})""")} => @{s"""{
-               val (h, t) = U(prod._${z.index+1})
-               go((${(1 to z.length).toList.map(i => s"prod._${i}").updated(z.index, "t").mkString(", ")}),
-                 q ++= h.map(TI.inj(_)), M.append(out, map(TI.inj(x))))
-             }"""}
+          case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
+                  """x""")(_ => """-\/(x)"""))((_, a) => s"""\\/-(${a})""")} => @{s"""{
+              val pr = prod.run
+              val (h, t) = U(pr${z.toList.tupleAccess(z.index + 1)})
+              go(TG.Prod(${(1 to z.length).toList.map(i => s"pr${z.toList.tupleAccess(i)}").updated(z.index, "t").mkTuple}),
+                q ++= h.map(TI.inj(_: Id[A${z.index + 1}])), M.append(out, map(TI.inj(x))))
+          }"""}

@@ -1,5 +1,5 @@
 @(tpes: List[List[String]])
-import scala.language.higherKinds
+
 import scalaz.{Apply, \/}
 
 object Combine {

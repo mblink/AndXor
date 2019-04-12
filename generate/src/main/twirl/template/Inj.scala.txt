@@ -1,15 +1,18 @@
 @import andxor.syntax._
+@import play.twirl.api.TwirlFeatureImports.defining
 @import scalaz.Zipper
 
 @(z: Zipper[String])
 
-  implicit val prisma@{z.index}: Prism[Cop, F[@{z.focus}]] = new Prism[Cop, F[@{z.focus}]] {
-    def getOption(c: Cop): Option[F[@{z.focus}]] = c match {
-      case @z.djVal("x") => Some(x)
-      case _ => None
+@defining(z.toList) { tpes =>
+    implicit def prisma@{z.index}[F[_], @{tpes.tpeParams}]: Prism[@{tpes.copTpe}, F[@{z.focus}]] = new Prism[@{tpes.copTpe}, F[@{z.focus}]] {
+      def getOption(c: @{tpes.copTpe}): Option[F[@{z.focus}]] = @{tpes.foldLen01("Some(c.run)")(s"""c.run match {
+        case ${z.djVal("x")} => Some(x)
+        case _ => None
+      }""")}
+      def reverseGet(x: F[@{z.focus}]): @{tpes.copTpe} = @{tpes.copTpe}(@z.djVal("x"))
     }
-    def reverseGet(x: F[@{z.focus}]): Cop = @z.djVal("x")
-  }
 
-  implicit val inja@{z.index}: Inj[Cop, F[@{z.focus}]] = Inj.instance(prisma@{z.index}.reverseGet(_))
-  implicit val inja@{z.index}Inverse: Inj[Option[F[@{z.focus}]], Cop] = Inj.instance(prisma@{z.index}.getOption(_))
+    implicit def inja@{z.index}[F[_], @{tpes.tpeParams}]: Inj[@{tpes.copTpe}, F[@{z.focus}]] = Inj.instance(prisma@{z.index}.reverseGet(_))
+    implicit def inja@{z.index}Inverse[F[_], @{tpes.tpeParams}]: Inj[Option[F[@{z.focus}]], @{tpes.copTpe}] = Inj.instance(prisma@{z.index}.getOption(_))
+}

@@ -23,6 +23,8 @@ object Inj {
         new Inj[Cop, Z] {
           def apply(z: Z): Cop = f(z).fold(a1.apply(_), a2.apply(_))
         }
+
+      def contramap[A, B](fa: I[A])(f: B => A): I[B] = instance(b => fa(f(b)))
     }
 
   implicit def divideInj[Prod](implicit S: Semigroup[Prod]): Divide[Aux[Prod]#Out] =
