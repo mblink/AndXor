@@ -1,17 +1,19 @@
 @import andxor.syntax._
-@import play.twirl.api.TwirlFeatureImports.defining
 @import scalaz.Zipper
+@import scalaz.syntax.std.boolean._
 
-@(f: Zipper[String])
+@(z: Zipper[String], isId: Boolean)
 
-@tupleAccesses(l: List[String], i: Int) = @{ l.zip(Stream.from(i)).map(t => s"t${f.toList.tupleAccess(t._2 + 1)}") }
+@tupleAccesses(l: List[String], i: Int) = @{ l.zip(Stream.from(i)).map(t => s"t${z.toList.tupleAccess(t._2 + 1)}") }
+@tpes = @{ z.toList }
+@F = @{ isId.fold("Id", "F") }
+@tp = @{ isId.fold("", s"F[_], ") }
+@wrapTpe(s: String) = @{ isId.fold(s, s"F[$s]") }
 
-@defining(f.toList) { tpes =>
-    implicit def lifta@{f.index}[F[_], @{tpes.tpeParams}]@{tpes.foldLen01("")(s"(implicit M: Monoid[${tpes.prodTpe}])")}: Inj[@tpes.prodTpe, F[@{f.focus}]] = {
-      @tpes.foldLen01("")("val t = M.zero.run")
-      Inj.instance(x => @{tpes.prodTpe}(@{((tupleAccesses(f.lefts.toList, 0) :+ "x") ++
-        tupleAccesses(f.rights.toList, f.lefts.toList.length + 1)).mkTuple}))
+    implicit def lifta@{z.index}@{F}[@{tp}@{tpes.tpeParams}]@{tpes.foldLen01("")(s"(implicit M: Monoid[${tpes.prodTpeF(F)}])")}: Inj[@tpes.prodTpeF(F), @{wrapTpe(z.focus)}] =@if(isId) { lifta@{z.index}F[Id, @{tpes.tpeParams}] } else { {
+      @tpes.foldLen01("")("val t = M.zero.run\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((tupleAccesses(z.lefts.toList, 0) :+ "x") ++
+        tupleAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
+    }
     }
 
-    implicit def lifta@{f.index}Inverse[F[_], @{tpes.tpeParams}]: Inj[F[@{f.focus}], @tpes.prodTpe] = Inj.instance(_.run@{f.toList.tupleAccess(f.index + 1)})
-}
+    implicit def lifta@{z.index}@{F}Inverse[@{tp}@{tpes.tpeParams}]: Inj[@{wrapTpe(z.focus)}, @tpes.prodTpeF(F)] =@if(isId) { lifta@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(_.run@{z.toList.tupleAccess(z.index + 1)}) }

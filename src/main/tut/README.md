@@ -22,19 +22,22 @@ import scalaz.syntax.monoid._
 import scalaz.syntax.either._
 import scalaz.{Show, \/, ~>}
 val SIS = AndXor.build[String, Int, List[String]]
-import SIS.instances._ // for inject instances
-implicit val ds: Decidable[Show] = new Decidable[Show] { def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] = Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_))) }
-SIS.combine[Show].choose.show(SIS.inj("foo"))
+implicit val ds: Decidable[Show] = new Decidable[Show] {
+  def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] =
+    Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_)))
+
+  def contramap[A, B](fa: Show[A])(f: B => A): Show[B] =
+    Show.show[B]((b: B) => fa.show(f(b)))
+}
+SIS.combine[Show].choose.show(SIS.inj("foo": scalaz.Id.Id[String]))
 SIS.combine[Show].choose.show(SIS.inj(2))
 SIS.combine[Show].choose.show(SIS.inj(List("bar", "baz")))
 
 // lift into monoidal product
 val SISF = AndXor.buildF[String, Int, List[String]]
 val SISL = SISF[List]
-import SISL.instances._ // for inject instances
 val ls = SISL.lift(List(4)) |+| SISL.lift(List("foo")) |+| SISL.lift(List(List("bar")))
 val SISO = SISF[Option]
-import SISO.instances._ // for inject instances
 val os = SISO.lift(Option(4)) |+| SISO.lift(Option("foo")) |+| SISO.lift(Option(List("bar")))
 
 // convert between F[_]s using a ~>
@@ -45,12 +48,12 @@ SISO.transformP(o2l)(os)
 
 // sequence Cop or Prod to Id
 SISO.sequenceC(SISO.inj(Option("foo")))
-SISO.sequenceP((Option("foo"), Option(1), Option(List("bar"))))
+SISO.sequenceP(SISO.Prod((Option("foo"), Option(1), Option(List("bar")))))
 
 // map given index of Cop or Prod
 import andxor.MapN.syntax._
-SISO.inj(Option(2)).map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
-SISO.lift(Option("foo")).map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
+SISO.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
+SISO.lift(Option("foo")).run.map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
 
 // extract specific type from Cop or Prod
 SISO.extractC[Option[String]](SISO.inj(Option("foo")))
