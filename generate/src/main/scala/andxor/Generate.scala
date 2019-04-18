@@ -36,9 +36,9 @@ object Generate extends App {
   }
 
   maybeWrite("AndXor.scala", template.txt.AndXor(tpeLists))
-  maybeWrite("Types.scala", template.txt.Types(tpeLists), false)
+  maybeWrite("Types.scala", template.txt.Types(tpeLists))
   tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))
   maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(2)))
-  maybeWrite("MapN.scala", template.txt.MapN(tpeLists.last), false)
+  maybeWrite("MapN.scala", template.txt.MapN(tpeLists.last))
   maybeWrite("Tuple.scala", template.txt.Tuple(tupleTpes))
 }

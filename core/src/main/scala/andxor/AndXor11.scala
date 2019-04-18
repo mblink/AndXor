@@ -17,7 +17,7 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
   type AndXor[G[_]] = AndXorF.Repr[G]
 
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]], a2: G[F[A3]], a3: G[F[A4]], a4: G[F[A5]], a5: G[F[A6]], a6: G[F[A7]], a7: G[F[A8]], a8: G[F[A9]], a9: G[F[A10]], a10: G[F[A11]])
-    : ComposeAndXor[G, Cop, Prod] =
+      : ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
         Combine.choose11(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)(f(_).run)

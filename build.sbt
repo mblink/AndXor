@@ -65,9 +65,10 @@ lazy val publishSettings = Seq(
 lazy val generate = project.in(file("generate"))
   .settings(commonSettings ++ Seq(
     name := "andxor-generate",
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies ++= Seq(
       "com.github.pathikrit" %% "better-files" % "3.5.0",
-      "com.geirsson" %% "scalafmt-core" % "1.6.0-RC4",
+      "org.scalameta" %% "scalafmt-core" % "2.0.0-RC6",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     ),
     TwirlKeys.templateImports := Seq()
