@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.1.8-MD2",
+  version := "0.1.7",
   libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.2.26"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -74,7 +74,8 @@ lazy val generate = project.in(file("generate"))
     TwirlKeys.templateImports := Seq()
   )).enablePlugins(SbtTwirl)
 
-lazy val core = project.in(file("core")).settings(commonSettings ++ publishSettings ++ Seq(name := "andxor-core"))
+lazy val core = project.in(file("core"))
+  .settings(commonSettings ++ publishSettings ++ Seq(name := "andxor-core"))
 
 lazy val root = project.in(file("."))
   .settings(commonSettings ++ Seq(
