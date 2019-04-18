@@ -10,11 +10,17 @@ trait Map2P[A1, A2] {
     (f(a0), a1)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2)): (B, A2) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2))(f: A2 => B): (A1, B) = {
     val a0 = p._1
     val a1 = p._2
     (a0, f(a1))
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2))(implicit d0: DummyImplicit): (A1, B) =
+    map2(p)(f)
 
 }
 
@@ -23,8 +29,14 @@ trait Map2C[A1, A2] {
   def map1[B](c: (A1 \/ A2))(f: A1 => B): (B \/ A2) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ A2)): (B \/ A2) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ A2))(f: A2 => B): (A1 \/ B) =
     c.map(f)
+
+  def mapAt[B](f: A2 => B)(c: (A1 \/ A2))(implicit d0: DummyImplicit): (A1 \/ B) =
+    map2(c)(f)
 
 }
 
@@ -37,12 +49,18 @@ trait Map3P[A1, A2, A3] {
     (f(a0), a1, a2)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3)): (B, A2, A3) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3))(f: A2 => B): (A1, B, A3) = {
     val a0 = p._1
     val a1 = p._2
     val a2 = p._3
     (a0, f(a1), a2)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3))(implicit d0: DummyImplicit): (A1, B, A3) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3))(f: A3 => B): (A1, A2, B) = {
     val a0 = p._1
@@ -51,6 +69,9 @@ trait Map3P[A1, A2, A3] {
     (a0, a1, f(a2))
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B) =
+    map3(p)(f)
+
 }
 
 trait Map3C[A1, A2, A3] {
@@ -58,11 +79,20 @@ trait Map3C[A1, A2, A3] {
   def map1[B](c: (A1 \/ (A2 \/ A3)))(f: A1 => B): (B \/ (A2 \/ A3)) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ A3))): (B \/ (A2 \/ A3)) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ A3)))(f: A2 => B): (A1 \/ (B \/ A3)) =
     c.map(_.leftMap(f))
 
+  def mapAt[B](f: A2 => B)(c: (A1 \/ (A2 \/ A3)))(implicit d0: DummyImplicit): (A1 \/ (B \/ A3)) =
+    map2(c)(f)
+
   def map3[B](c: (A1 \/ (A2 \/ A3)))(f: A3 => B): (A1 \/ (A2 \/ B)) =
     c.map(_.map(f))
+
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ A3)))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ B)) =
+    map3(c)(f)
 
 }
 
@@ -76,6 +106,9 @@ trait Map4P[A1, A2, A3, A4] {
     (f(a0), a1, a2, a3)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4)): (B, A2, A3, A4) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4))(f: A2 => B): (A1, B, A3, A4) = {
     val a0 = p._1
     val a1 = p._2
@@ -83,6 +116,9 @@ trait Map4P[A1, A2, A3, A4] {
     val a3 = p._4
     (a0, f(a1), a2, a3)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4))(implicit d0: DummyImplicit): (A1, B, A3, A4) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4))(f: A3 => B): (A1, A2, B, A4) = {
     val a0 = p._1
@@ -92,6 +128,9 @@ trait Map4P[A1, A2, A3, A4] {
     (a0, a1, f(a2), a3)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4))(f: A4 => B): (A1, A2, A3, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -100,6 +139,9 @@ trait Map4P[A1, A2, A3, A4] {
     (a0, a1, a2, f(a3))
   }
 
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B) =
+    map4(p)(f)
+
 }
 
 trait Map4C[A1, A2, A3, A4] {
@@ -107,14 +149,26 @@ trait Map4C[A1, A2, A3, A4] {
   def map1[B](c: (A1 \/ (A2 \/ (A3 \/ A4))))(f: A1 => B): (B \/ (A2 \/ (A3 \/ A4))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ (A3 \/ A4)))): (B \/ (A2 \/ (A3 \/ A4))) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ (A3 \/ A4))))(f: A2 => B): (A1 \/ (B \/ (A3 \/ A4))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(c: (A1 \/ (A2 \/ (A3 \/ A4))))(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ A4))) =
+    map2(c)(f)
 
   def map3[B](c: (A1 \/ (A2 \/ (A3 \/ A4))))(f: A3 => B): (A1 \/ (A2 \/ (B \/ A4))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ (A3 \/ A4))))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ A4))) =
+    map3(c)(f)
+
   def map4[B](c: (A1 \/ (A2 \/ (A3 \/ A4))))(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ B))) =
     c.map(_.map(_.map(f)))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ A4))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ B))) =
+    map4(c)(f)
 
 }
 
@@ -129,6 +183,9 @@ trait Map5P[A1, A2, A3, A4, A5] {
     (f(a0), a1, a2, a3, a4)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5)): (B, A2, A3, A4, A5) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5))(f: A2 => B): (A1, B, A3, A4, A5) = {
     val a0 = p._1
     val a1 = p._2
@@ -137,6 +194,9 @@ trait Map5P[A1, A2, A3, A4, A5] {
     val a4 = p._5
     (a0, f(a1), a2, a3, a4)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5))(f: A3 => B): (A1, A2, B, A4, A5) = {
     val a0 = p._1
@@ -147,6 +207,9 @@ trait Map5P[A1, A2, A3, A4, A5] {
     (a0, a1, f(a2), a3, a4)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5))(f: A4 => B): (A1, A2, A3, B, A5) = {
     val a0 = p._1
     val a1 = p._2
@@ -155,6 +218,9 @@ trait Map5P[A1, A2, A3, A4, A5] {
     val a4 = p._5
     (a0, a1, a2, f(a3), a4)
   }
+
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4, A5))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5))(f: A5 => B): (A1, A2, A3, A4, B) = {
     val a0 = p._1
@@ -165,6 +231,9 @@ trait Map5P[A1, A2, A3, A4, A5] {
     (a0, a1, a2, a3, f(a4))
   }
 
+  def mapAt[B](f: A5 => B)(p: (A1, A2, A3, A4, A5))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B) =
+    map5(p)(f)
+
 }
 
 trait Map5C[A1, A2, A3, A4, A5] {
@@ -172,17 +241,32 @@ trait Map5C[A1, A2, A3, A4, A5] {
   def map1[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ A5)))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5))))): (B \/ (A2 \/ (A3 \/ (A4 \/ A5)))) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ A5)))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ A5)))) =
+    map2(c)(f)
 
   def map3[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ A5)))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ A5)))) =
+    map3(c)(f)
+
   def map4[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ A5)))) =
     c.map(_.map(_.map(_.leftMap(f))))
 
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ A5)))) =
+    map4(c)(f)
+
   def map5[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ B)))) =
     c.map(_.map(_.map(_.map(f))))
+
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ A5)))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ B)))) =
+    map5(c)(f)
 
 }
 
@@ -198,6 +282,9 @@ trait Map6P[A1, A2, A3, A4, A5, A6] {
     (f(a0), a1, a2, a3, a4, a5)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6)): (B, A2, A3, A4, A5, A6) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6))(f: A2 => B): (A1, B, A3, A4, A5, A6) = {
     val a0 = p._1
     val a1 = p._2
@@ -207,6 +294,9 @@ trait Map6P[A1, A2, A3, A4, A5, A6] {
     val a5 = p._6
     (a0, f(a1), a2, a3, a4, a5)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6))(f: A3 => B): (A1, A2, B, A4, A5, A6) = {
     val a0 = p._1
@@ -218,6 +308,9 @@ trait Map6P[A1, A2, A3, A4, A5, A6] {
     (a0, a1, f(a2), a3, a4, a5)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6))(f: A4 => B): (A1, A2, A3, B, A5, A6) = {
     val a0 = p._1
     val a1 = p._2
@@ -227,6 +320,9 @@ trait Map6P[A1, A2, A3, A4, A5, A6] {
     val a5 = p._6
     (a0, a1, a2, f(a3), a4, a5)
   }
+
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4, A5, A6))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6))(f: A5 => B): (A1, A2, A3, A4, B, A6) = {
     val a0 = p._1
@@ -238,6 +334,9 @@ trait Map6P[A1, A2, A3, A4, A5, A6] {
     (a0, a1, a2, a3, f(a4), a5)
   }
 
+  def mapAt[B](f: A5 => B)(p: (A1, A2, A3, A4, A5, A6))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6))(f: A6 => B): (A1, A2, A3, A4, A5, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -248,6 +347,9 @@ trait Map6P[A1, A2, A3, A4, A5, A6] {
     (a0, a1, a2, a3, a4, f(a5))
   }
 
+  def mapAt[B](f: A6 => B)(p: (A1, A2, A3, A4, A5, A6))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B) =
+    map6(p)(f)
+
 }
 
 trait Map6C[A1, A2, A3, A4, A5, A6] {
@@ -255,20 +357,42 @@ trait Map6C[A1, A2, A3, A4, A5, A6] {
   def map1[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6)))))): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ A6))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ A6))))) =
+    map2(c)(f)
 
   def map3[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ A6))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ A6))))) =
+    map3(c)(f)
+
   def map4[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ A6))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ A6))))) =
+    map4(c)(f)
 
   def map5[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ A6))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](
+      f: A5 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ A6))))) =
+    map5(c)(f)
+
   def map6[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ B))))) =
     c.map(_.map(_.map(_.map(_.map(f)))))
+
+  def mapAt[B](
+      f: A6 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ B))))) =
+    map6(c)(f)
 
 }
 
@@ -285,6 +409,9 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
     (f(a0), a1, a2, a3, a4, a5, a6)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7)): (B, A2, A3, A4, A5, A6, A7) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7) = {
     val a0 = p._1
     val a1 = p._2
@@ -295,6 +422,9 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
     val a6 = p._7
     (a0, f(a1), a2, a3, a4, a5, a6)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7) = {
     val a0 = p._1
@@ -307,6 +437,9 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
     (a0, a1, f(a2), a3, a4, a5, a6)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6, A7))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7) = {
     val a0 = p._1
     val a1 = p._2
@@ -317,6 +450,9 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
     val a6 = p._7
     (a0, a1, a2, f(a3), a4, a5, a6)
   }
+
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4, A5, A6, A7))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7) = {
     val a0 = p._1
@@ -329,6 +465,9 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
     (a0, a1, a2, a3, f(a4), a5, a6)
   }
 
+  def mapAt[B](f: A5 => B)(p: (A1, A2, A3, A4, A5, A6, A7))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7) = {
     val a0 = p._1
     val a1 = p._2
@@ -339,6 +478,9 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
     val a6 = p._7
     (a0, a1, a2, a3, a4, f(a5), a6)
   }
+
+  def mapAt[B](f: A6 => B)(p: (A1, A2, A3, A4, A5, A6, A7))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B) = {
     val a0 = p._1
@@ -351,6 +493,11 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
     (a0, a1, a2, a3, a4, a5, f(a6))
   }
 
+  def mapAt[B](
+      f: A7 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B) =
+    map7(p)(f)
+
 }
 
 trait Map7C[A1, A2, A3, A4, A5, A6, A7] {
@@ -358,23 +505,50 @@ trait Map7C[A1, A2, A3, A4, A5, A6, A7] {
   def map1[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7))))))): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
+    map2(c)(f)
 
   def map3[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
+    map3(c)(f)
+
   def map4[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ A7)))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ A7)))))) =
+    map4(c)(f)
 
   def map5[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ A7)))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](
+      f: A5 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ A7)))))) =
+    map5(c)(f)
+
   def map6[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ A7)))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
 
+  def mapAt[B](f: A6 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ A7)))))) =
+    map6(c)(f)
+
   def map7[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))))(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ B)))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(f))))))
+
+  def mapAt[B](f: A7 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ B)))))) =
+    map7(c)(f)
 
 }
 
@@ -392,6 +566,9 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8)): (B, A2, A3, A4, A5, A6, A7, A8) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8) = {
     val a0 = p._1
     val a1 = p._2
@@ -403,6 +580,9 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     val a7 = p._8
     (a0, f(a1), a2, a3, a4, a5, a6, a7)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8) = {
     val a0 = p._1
@@ -416,6 +596,9 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8) = {
     val a0 = p._1
     val a1 = p._2
@@ -427,6 +610,9 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     val a7 = p._8
     (a0, a1, a2, f(a3), a4, a5, a6, a7)
   }
+
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8) = {
     val a0 = p._1
@@ -440,6 +626,9 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7)
   }
 
+  def mapAt[B](f: A5 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8) = {
     val a0 = p._1
     val a1 = p._2
@@ -451,6 +640,11 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     val a7 = p._8
     (a0, a1, a2, a3, a4, f(a5), a6, a7)
   }
+
+  def mapAt[B](
+      f: A6 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8) = {
     val a0 = p._1
@@ -464,6 +658,11 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7)
   }
 
+  def mapAt[B](
+      f: A7 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -476,6 +675,11 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
     (a0, a1, a2, a3, a4, a5, a6, f(a7))
   }
 
+  def mapAt[B](f: A8 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B) =
+    map8(p)(f)
+
 }
 
 trait Map8C[A1, A2, A3, A4, A5, A6, A7, A8] {
@@ -483,26 +687,66 @@ trait Map8C[A1, A2, A3, A4, A5, A6, A7, A8] {
   def map1[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
+    map2(c)(f)
 
   def map3[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
+    map3(c)(f)
+
   def map4[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](
+      f: A4 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
+    map4(c)(f)
 
   def map5[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ A8))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ A8))))))) =
+    map5(c)(f)
+
   def map6[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ A8))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ A8))))))) =
+    map6(c)(f)
 
   def map7[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ A8))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ A8))))))) =
+    map7(c)(f)
+
   def map8[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ B))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ B))))))) =
+    map8(c)(f)
 
 }
 
@@ -521,6 +765,9 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9)): (B, A2, A3, A4, A5, A6, A7, A8, A9) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9) = {
     val a0 = p._1
     val a1 = p._2
@@ -533,6 +780,9 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     val a8 = p._9
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9) = {
     val a0 = p._1
@@ -547,6 +797,9 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9) = {
     val a0 = p._1
     val a1 = p._2
@@ -559,6 +812,9 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     val a8 = p._9
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8)
   }
+
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9) = {
     val a0 = p._1
@@ -573,6 +829,9 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8)
   }
 
+  def mapAt[B](f: A5 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9) = {
     val a0 = p._1
     val a1 = p._2
@@ -585,6 +844,11 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     val a8 = p._9
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8)
   }
+
+  def mapAt[B](
+      f: A6 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9) = {
     val a0 = p._1
@@ -599,6 +863,11 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9) = {
     val a0 = p._1
     val a1 = p._2
@@ -611,6 +880,11 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     val a8 = p._9
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8)
   }
+
+  def mapAt[B](f: A8 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B, A9) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B) = {
     val a0 = p._1
@@ -625,6 +899,18 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8))
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B) =
+    map9(p)(f)
+
 }
 
 trait Map9C[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
@@ -632,29 +918,83 @@ trait Map9C[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
   def map1[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+    map2(c)(f)
 
   def map3[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](
+      f: A3 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+    map3(c)(f)
+
   def map4[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+    map4(c)(f)
 
   def map5[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+    map5(c)(f)
+
   def map6[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ A9)))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ A9)))))))) =
+    map6(c)(f)
 
   def map7[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ A9)))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ A9)))))))) =
+    map7(c)(f)
+
   def map8[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ A9)))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
 
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ A9)))))))) =
+    map8(c)(f)
+
   def map9[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ B)))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f))))))))
+
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ B)))))))) =
+    map9(c)(f)
 
 }
 
@@ -674,6 +1014,9 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10) = {
     val a0 = p._1
     val a1 = p._2
@@ -687,6 +1030,9 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     val a9 = p._10
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10) = {
     val a0 = p._1
@@ -702,6 +1048,9 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10) = {
     val a0 = p._1
     val a1 = p._2
@@ -715,6 +1064,9 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     val a9 = p._10
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9)
   }
+
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10) = {
     val a0 = p._1
@@ -730,6 +1082,11 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9)
   }
 
+  def mapAt[B](
+      f: A5 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10) = {
     val a0 = p._1
     val a1 = p._2
@@ -743,6 +1100,11 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     val a9 = p._10
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9)
   }
+
+  def mapAt[B](
+      f: A6 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10) = {
     val a0 = p._1
@@ -758,6 +1120,11 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10) = {
     val a0 = p._1
     val a1 = p._2
@@ -771,6 +1138,11 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     val a9 = p._10
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9)
   }
+
+  def mapAt[B](f: A8 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10) = {
     val a0 = p._1
@@ -786,6 +1158,18 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -800,6 +1184,19 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9))
   }
 
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B) =
+    map10(p)(f)
+
 }
 
 trait Map10C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
@@ -807,32 +1204,106 @@ trait Map10C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
   def map1[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+    map1(c)(f)
+
   def map2[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](
+      f: A2 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+    map2(c)(f)
 
   def map3[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+    map3(c)(f)
+
   def map4[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+    map4(c)(f)
 
   def map5[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+    map5(c)(f)
+
   def map6[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+    map6(c)(f)
 
   def map7[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ A10))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ A10))))))))) =
+    map7(c)(f)
+
   def map8[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ A10))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ A10))))))))) =
+    map8(c)(f)
 
   def map9[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ A10))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ A10))))))))) =
+    map9(c)(f)
+
   def map10[B](c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ B))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ B))))))))) =
+    map10(c)(f)
 
 }
 
@@ -853,6 +1324,9 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11) = {
     val a0 = p._1
     val a1 = p._2
@@ -867,6 +1341,9 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     val a10 = p._11
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11) = {
     val a0 = p._1
@@ -883,6 +1360,9 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11) = {
     val a0 = p._1
     val a1 = p._2
@@ -897,6 +1377,9 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     val a10 = p._11
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10)
   }
+
+  def mapAt[B](f: A4 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11) = {
     val a0 = p._1
@@ -913,6 +1396,11 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10)
   }
 
+  def mapAt[B](
+      f: A5 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11) = {
     val a0 = p._1
     val a1 = p._2
@@ -927,6 +1415,11 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     val a10 = p._11
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11) = {
     val a0 = p._1
@@ -943,6 +1436,11 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11) = {
     val a0 = p._1
     val a1 = p._2
@@ -957,6 +1455,11 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     val a10 = p._11
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10)
   }
+
+  def mapAt[B](f: A8 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11) = {
     val a0 = p._1
@@ -973,6 +1476,18 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11) = {
     val a0 = p._1
     val a1 = p._2
@@ -987,6 +1502,19 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     val a10 = p._11
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B) = {
     val a0 = p._1
@@ -1003,6 +1531,20 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10))
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B) =
+    map11(p)(f)
+
 }
 
 trait Map11C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
@@ -1012,55 +1554,145 @@ trait Map11C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](
+      f: A1 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ A11)))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ A11)))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ A11)))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ A11)))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ A11)))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
 
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ A11)))))))))) =
+    map10(c)(f)
+
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ B)))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f))))))))))
+
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ B)))))))))) =
+    map11(c)(f)
 
 }
 
@@ -1082,6 +1714,9 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) = {
     val a0 = p._1
     val a1 = p._2
@@ -1097,6 +1732,9 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     val a11 = p._12
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12) = {
     val a0 = p._1
@@ -1114,6 +1752,9 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12) = {
     val a0 = p._1
     val a1 = p._2
@@ -1129,6 +1770,11 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     val a11 = p._12
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11)
   }
+
+  def mapAt[B](
+      f: A4 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12) = {
     val a0 = p._1
@@ -1146,6 +1792,11 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11)
   }
 
+  def mapAt[B](
+      f: A5 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12) = {
     val a0 = p._1
     val a1 = p._2
@@ -1161,6 +1812,11 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     val a11 = p._12
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12) = {
     val a0 = p._1
@@ -1178,6 +1834,11 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12) = {
     val a0 = p._1
     val a1 = p._2
@@ -1193,6 +1854,11 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     val a11 = p._12
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11)
   }
+
+  def mapAt[B](f: A8 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12) = {
     val a0 = p._1
@@ -1210,6 +1876,18 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12) = {
     val a0 = p._1
     val a1 = p._2
@@ -1225,6 +1903,19 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     val a11 = p._12
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12) = {
     val a0 = p._1
@@ -1242,6 +1933,20 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12) =
+    map11(p)(f)
+
   def map12[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -1258,6 +1963,21 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11))
   }
 
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B) =
+    map12(p)(f)
+
 }
 
 trait Map12C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
@@ -1267,60 +1987,169 @@ trait Map12C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](
+      f: A1 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ A12))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ A12))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ A12))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ A12))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ A12))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ B))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ B))))))))))) =
+    map12(c)(f)
 
 }
 
@@ -1343,6 +2172,9 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) = {
     val a0 = p._1
     val a1 = p._2
@@ -1359,6 +2191,9 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     val a12 = p._13
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) = {
     val a0 = p._1
@@ -1377,6 +2212,9 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)
   }
 
+  def mapAt[B](f: A3 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13) = {
     val a0 = p._1
     val a1 = p._2
@@ -1393,6 +2231,11 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     val a12 = p._13
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12)
   }
+
+  def mapAt[B](
+      f: A4 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13) = {
     val a0 = p._1
@@ -1411,6 +2254,11 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13) = {
     val a0 = p._1
     val a1 = p._2
@@ -1427,6 +2275,11 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     val a12 = p._13
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13) = {
     val a0 = p._1
@@ -1445,6 +2298,11 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13) = {
     val a0 = p._1
     val a1 = p._2
@@ -1461,6 +2319,17 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     val a12 = p._13
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13) = {
     val a0 = p._1
@@ -1479,6 +2348,18 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13) = {
     val a0 = p._1
     val a1 = p._2
@@ -1495,6 +2376,19 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     val a12 = p._13
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13) = {
     val a0 = p._1
@@ -1513,6 +2407,20 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13) =
+    map11(p)(f)
+
   def map12[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13) = {
     val a0 = p._1
     val a1 = p._2
@@ -1529,6 +2437,21 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     val a12 = p._13
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13) =
+    map12(p)(f)
 
   def map13[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B) = {
     val a0 = p._1
@@ -1547,6 +2470,22 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12))
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B) =
+    map13(p)(f)
+
 }
 
 trait Map13C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
@@ -1556,65 +2495,190 @@ trait Map13C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ A13)))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ A13)))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ A13)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
 
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ A13)))))))))))) =
+    map12(c)(f)
+
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ B)))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f))))))))))))
+
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ B)))))))))))) =
+    map13(c)(f)
 
 }
 
@@ -1638,6 +2702,9 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) = {
     val a0 = p._1
     val a1 = p._2
@@ -1655,6 +2722,9 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     val a13 = p._14
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) = {
     val a0 = p._1
@@ -1674,6 +2744,11 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
   }
 
+  def mapAt[B](
+      f: A3 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) = {
     val a0 = p._1
     val a1 = p._2
@@ -1691,6 +2766,11 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     val a13 = p._14
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)
   }
+
+  def mapAt[B](
+      f: A4 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14) = {
     val a0 = p._1
@@ -1710,6 +2790,11 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14) = {
     val a0 = p._1
     val a1 = p._2
@@ -1727,6 +2812,11 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     val a13 = p._14
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14) = {
     val a0 = p._1
@@ -1746,6 +2836,11 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14) = {
     val a0 = p._1
     val a1 = p._2
@@ -1763,6 +2858,17 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     val a13 = p._14
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14) = {
     val a0 = p._1
@@ -1782,6 +2888,18 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14) = {
     val a0 = p._1
     val a1 = p._2
@@ -1799,6 +2917,19 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     val a13 = p._14
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14) = {
     val a0 = p._1
@@ -1818,6 +2949,20 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14) =
+    map11(p)(f)
+
   def map12[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14) = {
     val a0 = p._1
     val a1 = p._2
@@ -1835,6 +2980,21 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     val a13 = p._14
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14) =
+    map12(p)(f)
 
   def map13[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14) = {
     val a0 = p._1
@@ -1854,6 +3014,22 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14) =
+    map13(p)(f)
+
   def map14[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -1872,6 +3048,23 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13))
   }
 
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B) =
+    map14(p)(f)
+
 }
 
 trait Map14C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
@@ -1881,70 +3074,215 @@ trait Map14C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ A14))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ A14))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ A14))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ A14))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ B))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))))))))
+
+  def mapAt[B](f: A14 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ B))))))))))))) =
+    map14(c)(f)
 
 }
 
@@ -1969,6 +3307,9 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
     val a1 = p._2
@@ -1987,6 +3328,9 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     val a14 = p._15
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
   }
+
+  def mapAt[B](f: A2 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
@@ -2007,6 +3351,11 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
   }
 
+  def mapAt[B](
+      f: A3 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
     val a1 = p._2
@@ -2025,6 +3374,11 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     val a14 = p._15
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
@@ -2045,6 +3399,11 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
     val a1 = p._2
@@ -2063,6 +3422,11 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     val a14 = p._15
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
@@ -2083,6 +3447,11 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
     val a1 = p._2
@@ -2101,6 +3470,17 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     val a14 = p._15
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15) = {
     val a0 = p._1
@@ -2121,6 +3501,18 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15) = {
     val a0 = p._1
     val a1 = p._2
@@ -2139,6 +3531,19 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     val a14 = p._15
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15) = {
     val a0 = p._1
@@ -2159,6 +3564,20 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15) =
+    map11(p)(f)
+
   def map12[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15) = {
     val a0 = p._1
     val a1 = p._2
@@ -2177,6 +3596,21 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     val a14 = p._15
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15) =
+    map12(p)(f)
 
   def map13[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15) = {
     val a0 = p._1
@@ -2197,6 +3631,22 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15) =
+    map13(p)(f)
+
   def map14[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15) = {
     val a0 = p._1
     val a1 = p._2
@@ -2215,6 +3665,23 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     val a14 = p._15
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15) =
+    map14(p)(f)
 
   def map15[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B) = {
     val a0 = p._1
@@ -2235,6 +3702,24 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14))
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B) =
+    map15(p)(f)
+
 }
 
 trait Map15C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
@@ -2244,75 +3729,238 @@ trait Map15C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ A15)))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ A15)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
 
+  def mapAt[B](f: A14 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ A15)))))))))))))) =
+    map14(c)(f)
+
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))
   )(f: A15 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ B)))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f))))))))))))))
+
+  def mapAt[B](f: A15 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ B)))))))))))))) =
+    map15(c)(f)
 
 }
 
@@ -2338,6 +3986,9 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
     val a1 = p._2
@@ -2357,6 +4008,11 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a15 = p._16
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
+
+  def mapAt[B](
+      f: A2 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
@@ -2378,6 +4034,11 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
 
+  def mapAt[B](
+      f: A3 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
     val a1 = p._2
@@ -2397,6 +4058,11 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a15 = p._16
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
@@ -2418,6 +4084,11 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
     val a1 = p._2
@@ -2437,6 +4108,11 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a15 = p._16
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
@@ -2458,6 +4134,11 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14, a15)
   }
 
+  def mapAt[B](f: A7 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
     val a1 = p._2
@@ -2477,6 +4158,17 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a15 = p._16
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14, a15)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
@@ -2498,6 +4190,18 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14, a15)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16) = {
     val a0 = p._1
     val a1 = p._2
@@ -2517,6 +4221,19 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a15 = p._16
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14, a15)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16) = {
     val a0 = p._1
@@ -2538,6 +4255,20 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14, a15)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16) =
+    map11(p)(f)
+
   def map12[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16) = {
     val a0 = p._1
     val a1 = p._2
@@ -2557,6 +4288,21 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a15 = p._16
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14, a15)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16) =
+    map12(p)(f)
 
   def map13[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16) = {
     val a0 = p._1
@@ -2578,6 +4324,22 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14, a15)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16) =
+    map13(p)(f)
+
   def map14[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16) = {
     val a0 = p._1
     val a1 = p._2
@@ -2597,6 +4359,23 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a15 = p._16
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14, a15)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16) =
+    map14(p)(f)
 
   def map15[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16) = {
     val a0 = p._1
@@ -2618,6 +4397,24 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14), a15)
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16) =
+    map15(p)(f)
+
   def map16[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -2638,6 +4435,25 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, f(a15))
   }
 
+  def mapAt[B](f: A16 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B) =
+    map16(p)(f)
+
 }
 
 trait Map16C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {
@@ -2647,80 +4463,264 @@ trait Map16C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
+
+  def mapAt[B](f: A14 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ A16))))))))))))))) =
+    map14(c)(f)
 
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A15 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ A16))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))
 
+  def mapAt[B](f: A15 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ A16))))))))))))))) =
+    map15(c)(f)
+
   def map16[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))
   )(f: A16 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ B))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))))))))))
+
+  def mapAt[B](f: A16 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ B))))))))))))))) =
+    map16(c)(f)
 
 }
 
@@ -2747,6 +4747,9 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -2767,6 +4770,11 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
+
+  def mapAt[B](
+      f: A2 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
@@ -2789,6 +4797,11 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
 
+  def mapAt[B](f: A3 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -2809,6 +4822,11 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
@@ -2831,6 +4849,11 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -2851,6 +4874,11 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
@@ -2873,6 +4901,16 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
 
+  def mapAt[B](f: A7 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -2893,6 +4931,17 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14, a15, a16)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
@@ -2915,6 +4964,18 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14, a15, a16)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -2935,6 +4996,19 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14, a15, a16)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17) = {
     val a0 = p._1
@@ -2957,6 +5031,20 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14, a15, a16)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17) =
+    map11(p)(f)
+
   def map12[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -2977,6 +5065,21 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14, a15, a16)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17) =
+    map12(p)(f)
 
   def map13[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17) = {
     val a0 = p._1
@@ -2999,6 +5102,22 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14, a15, a16)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17) =
+    map13(p)(f)
+
   def map14[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -3019,6 +5138,23 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14, a15, a16)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17) =
+    map14(p)(f)
 
   def map15[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17) = {
     val a0 = p._1
@@ -3041,6 +5177,24 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14), a15, a16)
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17) =
+    map15(p)(f)
+
   def map16[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17) = {
     val a0 = p._1
     val a1 = p._2
@@ -3061,6 +5215,25 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a16 = p._17
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, f(a15), a16)
   }
+
+  def mapAt[B](f: A16 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17) =
+    map16(p)(f)
 
   def map17[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B) = {
     val a0 = p._1
@@ -3083,6 +5256,26 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, f(a16))
   }
 
+  def mapAt[B](f: A17 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B) =
+    map17(p)(f)
+
 }
 
 trait Map17C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {
@@ -3092,85 +5285,289 @@ trait Map17C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
+
+  def mapAt[B](f: A14 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+    map14(c)(f)
 
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A15 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))
 
+  def mapAt[B](f: A15 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ A17)))))))))))))))) =
+    map15(c)(f)
+
   def map16[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A16 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ A17)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))
 
+  def mapAt[B](f: A16 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ A17)))))))))))))))) =
+    map16(c)(f)
+
   def map17[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))
   )(f: A17 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ B)))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f))))))))))))))))
+
+  def mapAt[B](f: A17 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ B)))))))))))))))) =
+    map17(c)(f)
 
 }
 
@@ -3198,6 +5595,9 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
 
+  def mapAt[B](f: A1 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map1(p)(f)
+
   def map2[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3219,6 +5619,11 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
+
+  def mapAt[B](f: A2 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
+  )(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map2(p)(f)
 
   def map3[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
@@ -3242,6 +5647,11 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
 
+  def mapAt[B](f: A3 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map3(p)(f)
+
   def map4[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3263,6 +5673,11 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map4(p)(f)
 
   def map5[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
@@ -3286,6 +5701,11 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map5(p)(f)
+
   def map6[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3307,6 +5727,11 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map6(p)(f)
 
   def map7[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
@@ -3330,6 +5755,16 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
 
+  def mapAt[B](f: A7 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map7(p)(f)
+
   def map8[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3351,6 +5786,17 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map8(p)(f)
 
   def map9[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
@@ -3374,6 +5820,18 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14, a15, a16, a17)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map9(p)(f)
+
   def map10[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3395,6 +5853,19 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14, a15, a16, a17)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18) =
+    map10(p)(f)
 
   def map11[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
@@ -3418,6 +5889,20 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14, a15, a16, a17)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18) =
+    map11(p)(f)
+
   def map12[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3439,6 +5924,21 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14, a15, a16, a17)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18) =
+    map12(p)(f)
 
   def map13[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18) = {
     val a0 = p._1
@@ -3462,6 +5962,22 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14, a15, a16, a17)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18) =
+    map13(p)(f)
+
   def map14[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3483,6 +5999,23 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14, a15, a16, a17)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18) =
+    map14(p)(f)
 
   def map15[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18) = {
     val a0 = p._1
@@ -3506,6 +6039,24 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14), a15, a16, a17)
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18) =
+    map15(p)(f)
+
   def map16[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18) = {
     val a0 = p._1
     val a1 = p._2
@@ -3527,6 +6078,25 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a17 = p._18
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, f(a15), a16, a17)
   }
+
+  def mapAt[B](f: A16 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18) =
+    map16(p)(f)
 
   def map17[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18) = {
     val a0 = p._1
@@ -3550,6 +6120,26 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, f(a16), a17)
   }
 
+  def mapAt[B](f: A17 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18) =
+    map17(p)(f)
+
   def map18[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B) = {
     val a0 = p._1
     val a1 = p._2
@@ -3572,6 +6162,27 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, f(a17))
   }
 
+  def mapAt[B](f: A18 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B) =
+    map18(p)(f)
+
 }
 
 trait Map18C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {
@@ -3581,90 +6192,315 @@ trait Map18C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
+
+  def mapAt[B](f: A14 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map14(c)(f)
 
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A15 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))
 
+  def mapAt[B](f: A15 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+    map15(c)(f)
+
   def map16[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A16 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))
+
+  def mapAt[B](f: A16 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ A18))))))))))))))))) =
+    map16(c)(f)
 
   def map17[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A17 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ A18))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))
 
+  def mapAt[B](f: A17 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ A18))))))))))))))))) =
+    map17(c)(f)
+
   def map18[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))
   )(f: A18 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ B))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))))))))))))
+
+  def mapAt[B](f: A18 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ B))))))))))))))))) =
+    map18(c)(f)
 
 }
 
@@ -3695,6 +6531,11 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
 
+  def mapAt[B](
+      f: A1 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map1(p)(f)
+
   def map2[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) = {
@@ -3719,6 +6560,11 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
+
+  def mapAt[B](f: A2 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
+  )(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map2(p)(f)
 
   def map3[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -3745,6 +6591,11 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
 
+  def mapAt[B](f: A3 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map3(p)(f)
+
   def map4[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) = {
@@ -3769,6 +6620,11 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map4(p)(f)
 
   def map5[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -3795,6 +6651,11 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map5(p)(f)
+
   def map6[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) = {
@@ -3819,6 +6680,11 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
+
+  def mapAt[B](f: A6 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map6(p)(f)
 
   def map7[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -3845,6 +6711,16 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
 
+  def mapAt[B](f: A7 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map7(p)(f)
+
   def map8[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) = {
@@ -3869,6 +6745,17 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map8(p)(f)
 
   def map9[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -3895,6 +6782,18 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map9(p)(f)
+
   def map10[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19) = {
@@ -3919,6 +6818,19 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14, a15, a16, a17, a18)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map10(p)(f)
 
   def map11[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -3945,6 +6857,20 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14, a15, a16, a17, a18)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19) =
+    map11(p)(f)
+
   def map12[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19) = {
@@ -3969,6 +6895,21 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14, a15, a16, a17, a18)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19) =
+    map12(p)(f)
 
   def map13[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -3995,6 +6936,22 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14, a15, a16, a17, a18)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19) =
+    map13(p)(f)
+
   def map14[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19) = {
@@ -4019,6 +6976,23 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14, a15, a16, a17, a18)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19) =
+    map14(p)(f)
 
   def map15[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -4045,6 +7019,24 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14), a15, a16, a17, a18)
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19) =
+    map15(p)(f)
+
   def map16[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19) = {
@@ -4069,6 +7061,25 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, f(a15), a16, a17, a18)
   }
+
+  def mapAt[B](f: A16 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19) =
+    map16(p)(f)
 
   def map17[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -4095,6 +7106,26 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, f(a16), a17, a18)
   }
 
+  def mapAt[B](f: A17 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19) =
+    map17(p)(f)
+
   def map18[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19) = {
@@ -4119,6 +7150,27 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a18 = p._19
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, f(a17), a18)
   }
+
+  def mapAt[B](f: A18 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19) =
+    map18(p)(f)
 
   def map19[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
@@ -4145,6 +7197,28 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, f(a18))
   }
 
+  def mapAt[B](f: A19 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B) =
+    map19(p)(f)
+
 }
 
 trait Map19C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {
@@ -4154,95 +7228,343 @@ trait Map19C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit
+  ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
+
+  def mapAt[B](f: A14 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map14(c)(f)
 
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A15 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))
 
+  def mapAt[B](f: A15 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map15(c)(f)
+
   def map16[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A16 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))
+
+  def mapAt[B](f: A16 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+    map16(c)(f)
 
   def map17[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A17 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))
 
+  def mapAt[B](f: A17 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ A19)))))))))))))))))) =
+    map17(c)(f)
+
   def map18[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A18 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ A19)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))))
 
+  def mapAt[B](f: A18 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ A19)))))))))))))))))) =
+    map18(c)(f)
+
   def map19[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))
   )(f: A19 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ B)))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f))))))))))))))))))
+
+  def mapAt[B](f: A19 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ B)))))))))))))))))) =
+    map19(c)(f)
 
 }
 
@@ -4274,6 +7596,11 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](
+      f: A1 => B
+  )(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map1(p)(f)
+
   def map2[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) = {
@@ -4299,6 +7626,11 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A2 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
+  )(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map2(p)(f)
 
   def map3[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4326,6 +7658,11 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](f: A3 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map3(p)(f)
+
   def map4[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) = {
@@ -4351,6 +7688,11 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map4(p)(f)
 
   def map5[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4378,6 +7720,11 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map5(p)(f)
+
   def map6[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) = {
@@ -4403,6 +7750,15 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A6 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map6(p)(f)
 
   def map7[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4430,6 +7786,16 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](f: A7 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map7(p)(f)
+
   def map8[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) = {
@@ -4455,6 +7821,17 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map8(p)(f)
 
   def map9[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4482,6 +7859,18 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map9(p)(f)
+
   def map10[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) = {
@@ -4507,6 +7896,19 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map10(p)(f)
 
   def map11[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4534,6 +7936,20 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14, a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map11(p)(f)
+
   def map12[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20) = {
@@ -4559,6 +7975,21 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14, a15, a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20) =
+    map12(p)(f)
 
   def map13[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4586,6 +8017,22 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14, a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20) =
+    map13(p)(f)
+
   def map14[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20) = {
@@ -4611,6 +8058,23 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14, a15, a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20) =
+    map14(p)(f)
 
   def map15[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4638,6 +8102,24 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14), a15, a16, a17, a18, a19)
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20) =
+    map15(p)(f)
+
   def map16[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20) = {
@@ -4663,6 +8145,25 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, f(a15), a16, a17, a18, a19)
   }
+
+  def mapAt[B](f: A16 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20) =
+    map16(p)(f)
 
   def map17[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4690,6 +8191,26 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, f(a16), a17, a18, a19)
   }
 
+  def mapAt[B](f: A17 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20) =
+    map17(p)(f)
+
   def map18[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20) = {
@@ -4715,6 +8236,27 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a19 = p._20
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, f(a17), a18, a19)
   }
+
+  def mapAt[B](f: A18 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20) =
+    map18(p)(f)
 
   def map19[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
@@ -4742,6 +8284,28 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, f(a18), a19)
   }
 
+  def mapAt[B](f: A19 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20) =
+    map19(p)(f)
+
   def map20[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(f: A20 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B) = {
@@ -4768,6 +8332,29 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, f(a19))
   }
 
+  def mapAt[B](f: A20 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B) =
+    map20(p)(f)
+
 }
 
 trait Map20C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {
@@ -4777,100 +8364,371 @@ trait Map20C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](f: A2 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
+  )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](f: A3 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit
+  ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](f: A4 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](f: A5 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](f: A6 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](f: A7 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](f: A8 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](f: A11 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](f: A12 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](f: A13 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
+
+  def mapAt[B](f: A14 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map14(c)(f)
 
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A15 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))
 
+  def mapAt[B](f: A15 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map15(c)(f)
+
   def map16[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A16 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))
+
+  def mapAt[B](f: A16 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map16(c)(f)
 
   def map17[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A17 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))
 
+  def mapAt[B](f: A17 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+    map17(c)(f)
+
   def map18[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A18 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))))
+
+  def mapAt[B](f: A18 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ A20))))))))))))))))))) =
+    map18(c)(f)
 
   def map19[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A19 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ A20))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))))
 
+  def mapAt[B](f: A19 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ A20))))))))))))))))))) =
+    map19(c)(f)
+
   def map20[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))
   )(f: A20 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ B))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))))))))))))))
+
+  def mapAt[B](f: A20 => B)(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ B))))))))))))))))))) =
+    map20(c)(f)
 
 }
 
@@ -4903,6 +8761,11 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A1 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
+  ): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map1(p)(f)
+
   def map2[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) = {
@@ -4929,6 +8792,11 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A2 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
+  )(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map2(p)(f)
 
   def map3[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -4957,6 +8825,11 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A3 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map3(p)(f)
+
   def map4[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) = {
@@ -4983,6 +8856,11 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map4(p)(f)
 
   def map5[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5011,6 +8889,11 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map5(p)(f)
+
   def map6[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) = {
@@ -5037,6 +8920,15 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A6 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map6(p)(f)
 
   def map7[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5065,6 +8957,16 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A7 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map7(p)(f)
+
   def map8[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) = {
@@ -5091,6 +8993,17 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map8(p)(f)
 
   def map9[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5119,6 +9032,18 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map9(p)(f)
+
   def map10[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) = {
@@ -5145,6 +9070,19 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map10(p)(f)
 
   def map11[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5173,6 +9111,20 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map11(p)(f)
+
   def map12[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21) = {
@@ -5199,6 +9151,21 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14, a15, a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map12(p)(f)
 
   def map13[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5227,6 +9194,22 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14, a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21) =
+    map13(p)(f)
+
   def map14[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21) = {
@@ -5253,6 +9236,23 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14, a15, a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21) =
+    map14(p)(f)
 
   def map15[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5281,6 +9281,24 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14), a15, a16, a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21) =
+    map15(p)(f)
+
   def map16[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21) = {
@@ -5307,6 +9325,25 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, f(a15), a16, a17, a18, a19, a20)
   }
+
+  def mapAt[B](f: A16 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21) =
+    map16(p)(f)
 
   def map17[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5335,6 +9372,26 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, f(a16), a17, a18, a19, a20)
   }
 
+  def mapAt[B](f: A17 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21) =
+    map17(p)(f)
+
   def map18[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21) = {
@@ -5361,6 +9418,27 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, f(a17), a18, a19, a20)
   }
+
+  def mapAt[B](f: A18 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21) =
+    map18(p)(f)
 
   def map19[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5389,6 +9467,28 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, f(a18), a19, a20)
   }
 
+  def mapAt[B](f: A19 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21) =
+    map19(p)(f)
+
   def map20[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(f: A20 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21) = {
@@ -5415,6 +9515,29 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a20 = p._21
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, f(a19), a20)
   }
+
+  def mapAt[B](f: A20 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21) =
+    map20(p)(f)
 
   def map21[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
@@ -5443,6 +9566,30 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, f(a20))
   }
 
+  def mapAt[B](f: A21 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit,
+      d19: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B) =
+    map21(p)(f)
+
 }
 
 trait Map21C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {
@@ -5452,105 +9599,423 @@ trait Map21C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   )(f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A2 => B): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](
+      f: A2 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit
+  ): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A3 => B): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](
+      f: A3 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit
+  ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A4 => B): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](
+      f: A4 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A5 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](
+      f: A5 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A6 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](
+      f: A6 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A7 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](
+      f: A7 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A8 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](
+      f: A8 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A9 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+      : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A10 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit, d8: DummyImplicit)
+      : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A11 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](
+      f: A11 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A12 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](
+      f: A12 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A13 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](
+      f: A13 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A14 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
+
+  def mapAt[B](
+      f: A14 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map14(c)(f)
 
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A15 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))
 
+  def mapAt[B](
+      f: A15 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map15(c)(f)
+
   def map16[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A16 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))
+
+  def mapAt[B](
+      f: A16 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map16(c)(f)
 
   def map17[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A17 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))
 
+  def mapAt[B](
+      f: A17 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map17(c)(f)
+
   def map18[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A18 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))))
+
+  def mapAt[B](
+      f: A18 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+    map18(c)(f)
 
   def map19[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A19 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))))
 
+  def mapAt[B](
+      f: A19 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ A21)))))))))))))))))))) =
+    map19(c)(f)
+
   def map20[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A20 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ A21)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))))))
 
+  def mapAt[B](
+      f: A20 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ A21)))))))))))))))))))) =
+    map20(c)(f)
+
   def map21[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))
   )(f: A21 => B): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ B)))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f))))))))))))))))))))
+
+  def mapAt[B](
+      f: A21 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit,
+      d19: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ B)))))))))))))))))))) =
+    map21(c)(f)
 
 }
 
@@ -5584,6 +10049,11 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (f(a0), a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A1 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
+  ): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map1(p)(f)
+
   def map2[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) = {
@@ -5611,6 +10081,11 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, f(a1), a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A2 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
+  )(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map2(p)(f)
 
   def map3[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -5640,6 +10115,11 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, f(a2), a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A3 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map3(p)(f)
+
   def map4[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) = {
@@ -5667,6 +10147,11 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, f(a3), a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A4 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map4(p)(f)
 
   def map5[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -5696,6 +10181,11 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, f(a4), a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A5 => B)(
+      p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map5(p)(f)
+
   def map6[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) = {
@@ -5723,6 +10213,15 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, f(a5), a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A6 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map6(p)(f)
 
   def map7[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -5752,6 +10251,16 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, f(a6), a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A7 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map7(p)(f)
+
   def map8[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) = {
@@ -5779,6 +10288,17 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, a5, a6, f(a7), a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A8 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map8(p)(f)
 
   def map9[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -5808,6 +10328,18 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, f(a8), a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A9 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map9(p)(f)
+
   def map10[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) = {
@@ -5835,6 +10367,19 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, f(a9), a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A10 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map10(p)(f)
 
   def map11[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -5864,6 +10409,20 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, f(a10), a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A11 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map11(p)(f)
+
   def map12[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) = {
@@ -5891,6 +10450,21 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, f(a11), a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A12 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map12(p)(f)
 
   def map13[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -5920,6 +10494,22 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, f(a12), a13, a14, a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A13 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map13(p)(f)
+
   def map14[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22) = {
@@ -5947,6 +10537,23 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, f(a13), a14, a15, a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A14 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22) =
+    map14(p)(f)
 
   def map15[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -5976,6 +10583,24 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, f(a14), a15, a16, a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A15 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21, A22) =
+    map15(p)(f)
+
   def map16[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22) = {
@@ -6003,6 +10628,25 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, f(a15), a16, a17, a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A16 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22) =
+    map16(p)(f)
 
   def map17[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -6032,6 +10676,26 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, f(a16), a17, a18, a19, a20, a21)
   }
 
+  def mapAt[B](f: A17 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21, A22) =
+    map17(p)(f)
+
   def map18[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22) = {
@@ -6059,6 +10723,27 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, f(a17), a18, a19, a20, a21)
   }
+
+  def mapAt[B](f: A18 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22) =
+    map18(p)(f)
 
   def map19[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -6088,6 +10773,28 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, f(a18), a19, a20, a21)
   }
 
+  def mapAt[B](f: A19 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21, A22) =
+    map19(p)(f)
+
   def map20[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A20 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22) = {
@@ -6115,6 +10822,29 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     val a21 = p._22
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, f(a19), a20, a21)
   }
+
+  def mapAt[B](f: A20 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22) =
+    map20(p)(f)
 
   def map21[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
@@ -6144,6 +10874,30 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, f(a20), a21)
   }
 
+  def mapAt[B](f: A21 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit,
+      d19: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B, A22) =
+    map21(p)(f)
+
   def map22[B](
       p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(f: A22 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B) = {
@@ -6172,6 +10926,31 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
     (a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, f(a21))
   }
 
+  def mapAt[B](f: A22 => B)(p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit,
+      d19: DummyImplicit,
+      d20: DummyImplicit
+  ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B) =
+    map22(p)(f)
+
 }
 
 trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] {
@@ -6183,12 +10962,24 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.leftMap(f)
 
+  def mapAt[B](f: A1 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
+  ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map1(c)(f)
+
   def map2[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A2 => B
   ): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.leftMap(f))
+
+  def mapAt[B](
+      f: A2 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit
+  ): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map2(c)(f)
 
   def map3[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6197,12 +10988,29 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.leftMap(f)))
 
+  def mapAt[B](
+      f: A3 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit
+  ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map3(c)(f)
+
   def map4[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A4 => B
   ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.leftMap(f))))
+
+  def mapAt[B](
+      f: A4 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map4(c)(f)
 
   def map5[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6211,12 +11019,33 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.leftMap(f)))))
 
+  def mapAt[B](
+      f: A5 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map5(c)(f)
+
   def map6[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A6 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))
+
+  def mapAt[B](
+      f: A6 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map6(c)(f)
 
   def map7[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6225,12 +11054,37 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))
 
+  def mapAt[B](
+      f: A7 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map7(c)(f)
+
   def map8[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A8 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))
+
+  def mapAt[B](
+      f: A8 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map8(c)(f)
 
   def map9[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6239,12 +11093,24 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))
 
+  def mapAt[B](f: A9 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+      : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map9(c)(f)
+
   def map10[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A10 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))
+
+  def mapAt[B](f: A10 => B)(
+      c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
+  )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit, d8: DummyImplicit)
+      : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map10(c)(f)
 
   def map11[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6253,12 +11119,45 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))
 
+  def mapAt[B](
+      f: A11 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map11(c)(f)
+
   def map12[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A12 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))
+
+  def mapAt[B](
+      f: A12 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map12(c)(f)
 
   def map13[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6267,12 +11166,49 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))
 
+  def mapAt[B](
+      f: A13 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map13(c)(f)
+
   def map14[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A14 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))
+
+  def mapAt[B](
+      f: A14 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map14(c)(f)
 
   def map15[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6281,12 +11217,53 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))
 
+  def mapAt[B](
+      f: A15 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map15(c)(f)
+
   def map16[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A16 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))
+
+  def mapAt[B](
+      f: A16 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map16(c)(f)
 
   def map17[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6295,12 +11272,57 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))
 
+  def mapAt[B](
+      f: A17 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map17(c)(f)
+
   def map18[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A18 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))))
+
+  def mapAt[B](
+      f: A18 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map18(c)(f)
 
   def map19[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6309,12 +11331,61 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))))
 
+  def mapAt[B](
+      f: A19 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+    map19(c)(f)
+
   def map20[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A20 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ (A21 \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f))))))))))))))))))))
+
+  def mapAt[B](
+      f: A20 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ (A21 \/ A22))))))))))))))))))))) =
+    map20(c)(f)
 
   def map21[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
@@ -6323,12 +11394,65 @@ trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (B \/ A22))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.leftMap(f)))))))))))))))))))))
 
+  def mapAt[B](
+      f: A21 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit,
+      d19: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (B \/ A22))))))))))))))))))))) =
+    map21(c)(f)
+
   def map22[B](
       c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))
   )(
       f: A22 => B
   ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ B))))))))))))))))))))) =
     c.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(_.map(f)))))))))))))))))))))
+
+  def mapAt[B](
+      f: A22 => B
+  )(c: (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))))(
+      implicit d0: DummyImplicit,
+      d1: DummyImplicit,
+      d2: DummyImplicit,
+      d3: DummyImplicit,
+      d4: DummyImplicit,
+      d5: DummyImplicit,
+      d6: DummyImplicit,
+      d7: DummyImplicit,
+      d8: DummyImplicit,
+      d9: DummyImplicit,
+      d10: DummyImplicit,
+      d11: DummyImplicit,
+      d12: DummyImplicit,
+      d13: DummyImplicit,
+      d14: DummyImplicit,
+      d15: DummyImplicit,
+      d16: DummyImplicit,
+      d17: DummyImplicit,
+      d18: DummyImplicit,
+      d19: DummyImplicit,
+      d20: DummyImplicit
+  ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ B))))))))))))))))))))) =
+    map22(c)(f)
 
 }
 
@@ -6341,7 +11465,13 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B) =
         mapN.map2(p)(f)
 
     }
@@ -6352,7 +11482,13 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ A2)) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ A2) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ B)) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ B) =
         mapN.map2(c)(f)
 
     }
@@ -6363,10 +11499,19 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3) =
         mapN.map2(p)(f)
 
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3) =
+        mapN.map2(p)(f)
+
       def map3[B](f: A3 => B): (A1, A2, B) =
+        mapN.map3(p)(f)
+
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B) =
         mapN.map3(p)(f)
 
     }
@@ -6377,10 +11522,19 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ A3))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ A3)) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ A3))) =
         mapN.map2(c)(f)
 
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ A3)) =
+        mapN.map2(c)(f)
+
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ B))) =
+        mapN.map3(c)(f)
+
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ B)) =
         mapN.map3(c)(f)
 
     }
@@ -6391,13 +11545,25 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B) =
         mapN.map4(p)(f)
 
     }
@@ -6408,13 +11574,25 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ A4)))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ A4))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ A4)))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ A4))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ A4)))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ A4))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ B)))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ B))) =
         mapN.map4(c)(f)
 
     }
@@ -6425,16 +11603,31 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5) =
         mapN.map4(p)(f)
 
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5) =
+        mapN.map4(p)(f)
+
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B) =
+        mapN.map5(p)(f)
+
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B) =
         mapN.map5(p)(f)
 
     }
@@ -6445,16 +11638,31 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ A5))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ A5)))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ A5))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ A5)))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ A5))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ A5)))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ A5))))) =
         mapN.map4(c)(f)
 
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ A5)))) =
+        mapN.map4(c)(f)
+
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ B))))) =
+        mapN.map5(c)(f)
+
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ B)))) =
         mapN.map5(c)(f)
 
     }
@@ -6465,19 +11673,37 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B) =
         mapN.map6(p)(f)
 
     }
@@ -6488,19 +11714,37 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6)))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ A6))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ A6)))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ A6))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ A6)))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ A6))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ A6)))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ A6))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ A6)))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ A6))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ B)))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ B))))) =
         mapN.map6(c)(f)
 
     }
@@ -6511,22 +11755,43 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7) =
         mapN.map6(p)(f)
 
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7) =
+        mapN.map6(p)(f)
+
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B) =
+        mapN.map7(p)(f)
+
+      def mapAt[B](f: A7 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B) =
         mapN.map7(p)(f)
 
     }
@@ -6537,22 +11802,45 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ A7))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ A7)))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ A7))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ A7)))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ A7))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ A7)))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ A7))))))) =
         mapN.map6(c)(f)
 
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ A7)))))) =
+        mapN.map6(c)(f)
+
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ B))))))) =
+        mapN.map7(c)(f)
+
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ B)))))) =
         mapN.map7(c)(f)
 
     }
@@ -6563,25 +11851,51 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](
+          f: A8 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B) =
         mapN.map8(p)(f)
 
     }
@@ -6592,25 +11906,59 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ A8)))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ A8))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ A8)))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ A8))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ A8)))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ A8))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ A8)))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ A8))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ B)))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ B))))))) =
         mapN.map8(c)(f)
 
     }
@@ -6621,28 +11969,58 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9) =
         mapN.map8(p)(f)
 
+      def mapAt[B](
+          f: A8 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B, A9) =
+        mapN.map8(p)(f)
+
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B) =
+        mapN.map9(p)(f)
+
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B) =
         mapN.map9(p)(f)
 
     }
@@ -6653,28 +12031,68 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ A9))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ A9)))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ A9))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ A9)))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ A9))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ A9)))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ A9))))))))) =
         mapN.map8(c)(f)
 
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ A9)))))))) =
+        mapN.map8(c)(f)
+
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ B))))))))) =
+        mapN.map9(c)(f)
+
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ B)))))))) =
         mapN.map9(c)(f)
 
     }
@@ -6685,31 +12103,74 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](
+          f: A8 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B) =
         mapN.map10(p)(f)
 
     }
@@ -6720,31 +12181,89 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ A10)))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ A10))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ A10)))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ A10))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ A10)))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ A10))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ A10)))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ A10))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ B)))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ B))))))))) =
         mapN.map10(c)(f)
 
     }
@@ -6755,34 +12274,93 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11) =
         mapN.map7(p)(f)
 
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](
+          f: A8 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11) =
         mapN.map10(p)(f)
 
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11) =
+        mapN.map10(p)(f)
+
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B) =
+        mapN.map11(p)(f)
+
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B) =
         mapN.map11(p)(f)
 
     }
@@ -6793,34 +12371,108 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](
+          f: A5 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ A11))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ A11)))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ A11))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ A11)))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ A11))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ A11)))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ A11))))))))))) =
         mapN.map10(c)(f)
 
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ A11)))))))))) =
+        mapN.map10(c)(f)
+
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ B))))))))))) =
+        mapN.map11(c)(f)
+
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ B)))))))))) =
         mapN.map11(c)(f)
 
     }
@@ -6831,37 +12483,117 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12) =
         mapN.map7(p)(f)
 
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B) =
         mapN.map12(p)(f)
 
     }
@@ -6872,37 +12604,130 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](
+          f: A5 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ A12)))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ A12))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ A12)))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ A12))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ A12)))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ A12))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ A12)))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ A12))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ B)))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ B))))))))))) =
         mapN.map12(c)(f)
 
     }
@@ -6913,40 +12738,136 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13) =
         mapN.map7(p)(f)
 
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13) =
         mapN.map12(p)(f)
 
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13) =
+        mapN.map12(p)(f)
+
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B) =
+        mapN.map13(p)(f)
+
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B) =
         mapN.map13(p)(f)
 
     }
@@ -6957,40 +12878,151 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](
+          f: A4 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](
+          f: A5 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ A13))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ A13)))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ A13))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ A13)))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ A13))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ A13)))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ A13))))))))))))) =
         mapN.map12(c)(f)
 
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ A13)))))))))))) =
+        mapN.map12(c)(f)
+
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ B))))))))))))) =
+        mapN.map13(c)(f)
+
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ B)))))))))))) =
         mapN.map13(c)(f)
 
     }
@@ -7001,43 +13033,156 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map7(p)(f)
 
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B) =
         mapN.map14(p)(f)
 
     }
@@ -7050,43 +13195,174 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](
+          f: A4 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ A14)))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ A14))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ A14)))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ A14))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ A14)))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ A14))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ A14)))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ A14))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](f: A14 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ B)))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ B))))))))))))) =
         mapN.map14(c)(f)
 
     }
@@ -7097,46 +13373,179 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map7(p)(f)
 
+      def mapAt[B](
+          f: A7 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15) =
         mapN.map14(p)(f)
 
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15) =
+        mapN.map14(p)(f)
+
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B) =
+        mapN.map15(p)(f)
+
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B) =
         mapN.map15(p)(f)
 
     }
@@ -7149,46 +13558,195 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](
+          f: A4 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ A15))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ A15)))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ A15))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ A15)))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ A15))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ A15)))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](f: A14 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ A15))))))))))))))) =
         mapN.map14(c)(f)
 
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ A15)))))))))))))) =
+        mapN.map14(c)(f)
+
       def map15[B](f: A15 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ B))))))))))))))) =
+        mapN.map15(c)(f)
+
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ B)))))))))))))) =
         mapN.map15(c)(f)
 
     }
@@ -7199,49 +13757,206 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16) =
         mapN.map14(p)(f)
 
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16) =
         mapN.map15(p)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16) =
+        mapN.map15(p)(f)
+
       def map16[B](f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B) =
+        mapN.map16(p)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B) =
         mapN.map16(p)(f)
 
     }
@@ -7254,49 +13969,221 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](
+          f: A3 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ A16))))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ A16)))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ A16))))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](f: A14 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ A16)))))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ A16))))))))))))))) =
         mapN.map14(c)(f)
 
       def map15[B](f: A15 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ A16)))))))))))))))) =
         mapN.map15(c)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ A16))))))))))))))) =
+        mapN.map15(c)(f)
+
       def map16[B](f: A16 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ B)))))))))))))))) =
+        mapN.map16(c)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ B))))))))))))))) =
         mapN.map16(c)(f)
 
     }
@@ -7307,52 +14194,229 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17) =
         mapN.map14(p)(f)
 
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17) =
         mapN.map15(p)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17) =
+        mapN.map15(p)(f)
+
       def map16[B](f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17) =
         mapN.map16(p)(f)
 
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17) =
+        mapN.map16(p)(f)
+
       def map17[B](f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B) =
+        mapN.map17(p)(f)
+
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B) =
         mapN.map17(p)(f)
 
     }
@@ -7365,52 +14429,244 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](
+          f: A3 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](f: A14 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ A17))))))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ A17)))))))))))))))) =
         mapN.map14(c)(f)
 
       def map15[B](f: A15 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ A17))))))))))))))))) =
         mapN.map15(c)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ A17)))))))))))))))) =
+        mapN.map15(c)(f)
+
       def map16[B](f: A16 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ A17))))))))))))))))) =
         mapN.map16(c)(f)
 
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ A17)))))))))))))))) =
+        mapN.map16(c)(f)
+
       def map17[B](f: A17 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ B))))))))))))))))) =
+        mapN.map17(c)(f)
+
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ B)))))))))))))))) =
         mapN.map17(c)(f)
 
     }
@@ -7421,55 +14677,253 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map5(p)(f)
 
+      def mapAt[B](f: A5 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18) =
         mapN.map14(p)(f)
 
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18) =
         mapN.map15(p)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18) =
+        mapN.map15(p)(f)
+
       def map16[B](f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18) =
+        mapN.map16(p)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18) =
         mapN.map16(p)(f)
 
       def map17[B](f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18) =
         mapN.map17(p)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18) =
+        mapN.map17(p)(f)
+
       def map18[B](f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B) =
+        mapN.map18(p)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B) =
         mapN.map18(p)(f)
 
     }
@@ -7482,55 +14936,271 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](
+          f: A2 => B
+      )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit
+      ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](f: A14 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
         mapN.map14(c)(f)
 
       def map15[B](f: A15 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ A18)))))))))))))))))) =
         mapN.map15(c)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ A18))))))))))))))))) =
+        mapN.map15(c)(f)
+
       def map16[B](f: A16 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ A18)))))))))))))))))) =
+        mapN.map16(c)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ A18))))))))))))))))) =
         mapN.map16(c)(f)
 
       def map17[B](f: A17 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ A18)))))))))))))))))) =
         mapN.map17(c)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ A18))))))))))))))))) =
+        mapN.map17(c)(f)
+
       def map18[B](f: A18 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ B)))))))))))))))))) =
+        mapN.map18(c)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ B))))))))))))))))) =
         mapN.map18(c)(f)
 
     }
@@ -7544,58 +15214,280 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map5(p)(f)
 
+      def mapAt[B](
+          f: A5 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](
+          f: A6 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19) =
         mapN.map14(p)(f)
 
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19) =
         mapN.map15(p)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19) =
+        mapN.map15(p)(f)
+
       def map16[B](f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19) =
+        mapN.map16(p)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19) =
         mapN.map16(p)(f)
 
       def map17[B](f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19) =
         mapN.map17(p)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19) =
+        mapN.map17(p)(f)
+
       def map18[B](f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19) =
         mapN.map18(p)(f)
 
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19) =
+        mapN.map18(p)(f)
+
       def map19[B](f: A19 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B) =
+        mapN.map19(p)(f)
+
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B) =
         mapN.map19(p)(f)
 
     }
@@ -7609,58 +15501,296 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](
+          f: A2 => B
+      )(implicit d0: DummyImplicit): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit
+      ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](f: A14 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map14(c)(f)
 
       def map15[B](f: A15 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map15(c)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map15(c)(f)
+
       def map16[B](f: A16 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ A19))))))))))))))))))) =
+        mapN.map16(c)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ A19)))))))))))))))))) =
         mapN.map16(c)(f)
 
       def map17[B](f: A17 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ A19))))))))))))))))))) =
         mapN.map17(c)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ A19)))))))))))))))))) =
+        mapN.map17(c)(f)
+
       def map18[B](f: A18 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ A19))))))))))))))))))) =
         mapN.map18(c)(f)
 
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ A19)))))))))))))))))) =
+        mapN.map18(c)(f)
+
       def map19[B](f: A19 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ B))))))))))))))))))) =
+        mapN.map19(c)(f)
+
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ B)))))))))))))))))) =
         mapN.map19(c)(f)
 
     }
@@ -7674,61 +15804,310 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map5(p)(f)
 
+      def mapAt[B](
+          f: A5 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20) =
         mapN.map14(p)(f)
 
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20) =
         mapN.map15(p)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20) =
+        mapN.map15(p)(f)
+
       def map16[B](f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20) =
+        mapN.map16(p)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20) =
         mapN.map16(p)(f)
 
       def map17[B](f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20) =
         mapN.map17(p)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20) =
+        mapN.map17(p)(f)
+
       def map18[B](f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20) =
+        mapN.map18(p)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20) =
         mapN.map18(p)(f)
 
       def map19[B](f: A19 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20) =
         mapN.map19(p)(f)
 
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20) =
+        mapN.map19(p)(f)
+
       def map20[B](f: A20 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B) =
+        mapN.map20(p)(f)
+
+      def mapAt[B](f: A20 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B) =
         mapN.map20(p)(f)
 
     }
@@ -7742,61 +16121,322 @@ object MapN {
       def map1[B](f: A1 => B): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](f: A1 => B): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](f: A2 => B): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(
+          implicit d0: DummyImplicit
+      ): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](f: A3 => B): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit
+      ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](f: A4 => B): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](f: A5 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](f: A6 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](f: A7 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](f: A8 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](f: A9 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](f: A10 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](f: A11 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](f: A12 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](f: A13 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](f: A14 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map14(c)(f)
 
       def map15[B](f: A15 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map15(c)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map15(c)(f)
+
       def map16[B](f: A16 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map16(c)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map16(c)(f)
 
       def map17[B](f: A17 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ A20)))))))))))))))))))) =
         mapN.map17(c)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ A20))))))))))))))))))) =
+        mapN.map17(c)(f)
+
       def map18[B](f: A18 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ A20)))))))))))))))))))) =
+        mapN.map18(c)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ A20))))))))))))))))))) =
         mapN.map18(c)(f)
 
       def map19[B](f: A19 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ A20)))))))))))))))))))) =
         mapN.map19(c)(f)
 
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ A20))))))))))))))))))) =
+        mapN.map19(c)(f)
+
       def map20[B](f: A20 => B): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ B)))))))))))))))))))) =
+        mapN.map20(c)(f)
+
+      def mapAt[B](f: A20 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ B))))))))))))))))))) =
         mapN.map20(c)(f)
 
     }
@@ -7810,64 +16450,337 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map5(p)(f)
 
+      def mapAt[B](
+          f: A5 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map14(p)(f)
 
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21) =
         mapN.map15(p)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21) =
+        mapN.map15(p)(f)
+
       def map16[B](f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21) =
+        mapN.map16(p)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21) =
         mapN.map16(p)(f)
 
       def map17[B](f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21) =
         mapN.map17(p)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21) =
+        mapN.map17(p)(f)
+
       def map18[B](f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21) =
+        mapN.map18(p)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21) =
         mapN.map18(p)(f)
 
       def map19[B](f: A19 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21) =
         mapN.map19(p)(f)
 
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21) =
+        mapN.map19(p)(f)
+
       def map20[B](f: A20 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21) =
         mapN.map20(p)(f)
 
+      def mapAt[B](f: A20 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21) =
+        mapN.map20(p)(f)
+
       def map21[B](f: A21 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B) =
+        mapN.map21(p)(f)
+
+      def mapAt[B](f: A21 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit,
+          d19: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B) =
         mapN.map21(p)(f)
 
     }
@@ -7883,9 +16796,19 @@ object MapN {
       ): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](
+          f: A1 => B
+      ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](
           f: A2 => B
       ): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(
+          implicit d0: DummyImplicit
+      ): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](
@@ -7893,9 +16816,22 @@ object MapN {
       ): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit
+      ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](
           f: A4 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](
@@ -7903,9 +16839,26 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](
           f: A6 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](
@@ -7913,9 +16866,30 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](
           f: A8 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](
@@ -7923,9 +16897,26 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](
           f: A10 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](
@@ -7933,9 +16924,38 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](
           f: A12 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](
@@ -7943,9 +16963,42 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](
           f: A14 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map14(c)(f)
 
       def map15[B](
@@ -7953,9 +17006,46 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map15(c)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map15(c)(f)
+
       def map16[B](
           f: A16 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map16(c)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map16(c)(f)
 
       def map17[B](
@@ -7963,9 +17053,50 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map17(c)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map17(c)(f)
+
       def map18[B](
           f: A18 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ A21))))))))))))))))))))) =
+        mapN.map18(c)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ A21)))))))))))))))))))) =
         mapN.map18(c)(f)
 
       def map19[B](
@@ -7973,14 +17104,83 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ A21))))))))))))))))))))) =
         mapN.map19(c)(f)
 
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ A21)))))))))))))))))))) =
+        mapN.map19(c)(f)
+
       def map20[B](
           f: A20 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ A21))))))))))))))))))))) =
         mapN.map20(c)(f)
 
+      def mapAt[B](f: A20 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ A21)))))))))))))))))))) =
+        mapN.map20(c)(f)
+
       def map21[B](
           f: A21 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ B))))))))))))))))))))) =
+        mapN.map21(c)(f)
+
+      def mapAt[B](f: A21 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit,
+          d19: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ B)))))))))))))))))))) =
         mapN.map21(c)(f)
 
     }
@@ -7994,67 +17194,365 @@ object MapN {
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map1(p)(f)
 
+      def mapAt[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map1(p)(f)
+
       def map2[B](f: A2 => B): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map2(p)(f)
+
+      def mapAt[B](f: A2 => B)(implicit d0: DummyImplicit): (A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map2(p)(f)
 
       def map3[B](f: A3 => B): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map3(p)(f)
 
+      def mapAt[B](f: A3 => B)(implicit d0: DummyImplicit, d1: DummyImplicit): (A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map3(p)(f)
+
       def map4[B](f: A4 => B): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map4(p)(f)
+
+      def mapAt[B](f: A4 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit): (A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map4(p)(f)
 
       def map5[B](f: A5 => B): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map5(p)(f)
 
+      def mapAt[B](
+          f: A5 => B
+      )(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit): (A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map5(p)(f)
+
       def map6[B](f: A6 => B): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map6(p)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map6(p)(f)
 
       def map7[B](f: A7 => B): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map7(p)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map7(p)(f)
+
       def map8[B](f: A8 => B): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map8(p)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map8(p)(f)
 
       def map9[B](f: A9 => B): (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map9(p)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map9(p)(f)
+
       def map10[B](f: A10 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map10(p)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map10(p)(f)
 
       def map11[B](f: A11 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map11(p)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map11(p)(f)
+
       def map12[B](f: A12 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map12(p)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map12(p)(f)
 
       def map13[B](f: A13 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map13(p)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map13(p)(f)
+
       def map14[B](f: A14 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map14(p)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map14(p)(f)
 
       def map15[B](f: A15 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map15(p)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21, A22) =
+        mapN.map15(p)(f)
+
       def map16[B](f: A16 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22) =
+        mapN.map16(p)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22) =
         mapN.map16(p)(f)
 
       def map17[B](f: A17 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21, A22) =
         mapN.map17(p)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21, A22) =
+        mapN.map17(p)(f)
+
       def map18[B](f: A18 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22) =
+        mapN.map18(p)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22) =
         mapN.map18(p)(f)
 
       def map19[B](f: A19 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21, A22) =
         mapN.map19(p)(f)
 
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21, A22) =
+        mapN.map19(p)(f)
+
       def map20[B](f: A20 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22) =
+        mapN.map20(p)(f)
+
+      def mapAt[B](f: A20 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22) =
         mapN.map20(p)(f)
 
       def map21[B](f: A21 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B, A22) =
         mapN.map21(p)(f)
 
+      def mapAt[B](f: A21 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit,
+          d19: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B, A22) =
+        mapN.map21(p)(f)
+
       def map22[B](f: A22 => B): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B) =
+        mapN.map22(p)(f)
+
+      def mapAt[B](f: A22 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit,
+          d19: DummyImplicit,
+          d20: DummyImplicit
+      ): (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B) =
         mapN.map22(p)(f)
 
     }
@@ -8070,9 +17568,19 @@ object MapN {
       ): ((B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map1(c)(f)
 
+      def mapAt[B](
+          f: A1 => B
+      ): (B \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map1(c)(f)
+
       def map2[B](
           f: A2 => B
       ): ((A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map2(c)(f)
+
+      def mapAt[B](f: A2 => B)(
+          implicit d0: DummyImplicit
+      ): (A1 \/ (B \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map2(c)(f)
 
       def map3[B](
@@ -8080,9 +17588,22 @@ object MapN {
       ): ((A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map3(c)(f)
 
+      def mapAt[B](f: A3 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit
+      ): (A1 \/ (A2 \/ (B \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map3(c)(f)
+
       def map4[B](
           f: A4 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map4(c)(f)
+
+      def mapAt[B](f: A4 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (B \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map4(c)(f)
 
       def map5[B](
@@ -8090,9 +17611,26 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map5(c)(f)
 
+      def mapAt[B](f: A5 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (B \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map5(c)(f)
+
       def map6[B](
           f: A6 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map6(c)(f)
+
+      def mapAt[B](f: A6 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (B \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map6(c)(f)
 
       def map7[B](
@@ -8100,9 +17638,30 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map7(c)(f)
 
+      def mapAt[B](f: A7 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (B \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map7(c)(f)
+
       def map8[B](
           f: A8 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map8(c)(f)
+
+      def mapAt[B](f: A8 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (B \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map8(c)(f)
 
       def map9[B](
@@ -8110,9 +17669,26 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map9(c)(f)
 
+      def mapAt[B](f: A9 => B)(implicit d0: DummyImplicit, d1: DummyImplicit, d2: DummyImplicit, d3: DummyImplicit, d4: DummyImplicit, d5: DummyImplicit, d6: DummyImplicit, d7: DummyImplicit)
+          : (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (B \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map9(c)(f)
+
       def map10[B](
           f: A10 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map10(c)(f)
+
+      def mapAt[B](f: A10 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (B \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map10(c)(f)
 
       def map11[B](
@@ -8120,9 +17696,38 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map11(c)(f)
 
+      def mapAt[B](f: A11 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (B \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map11(c)(f)
+
       def map12[B](
           f: A12 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map12(c)(f)
+
+      def mapAt[B](f: A12 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (B \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map12(c)(f)
 
       def map13[B](
@@ -8130,9 +17735,42 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map13(c)(f)
 
+      def mapAt[B](f: A13 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (B \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map13(c)(f)
+
       def map14[B](
           f: A14 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map14(c)(f)
+
+      def mapAt[B](f: A14 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (B \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map14(c)(f)
 
       def map15[B](
@@ -8140,9 +17778,46 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map15(c)(f)
 
+      def mapAt[B](f: A15 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (B \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map15(c)(f)
+
       def map16[B](
           f: A16 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map16(c)(f)
+
+      def mapAt[B](f: A16 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (B \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map16(c)(f)
 
       def map17[B](
@@ -8150,9 +17825,50 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map17(c)(f)
 
+      def mapAt[B](f: A17 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (B \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map17(c)(f)
+
       def map18[B](
           f: A18 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map18(c)(f)
+
+      def mapAt[B](f: A18 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (B \/ (A19 \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map18(c)(f)
 
       def map19[B](
@@ -8160,9 +17876,54 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ (A21 \/ A22)))))))))))))))))))))) =
         mapN.map19(c)(f)
 
+      def mapAt[B](f: A19 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (B \/ (A20 \/ (A21 \/ A22))))))))))))))))))))) =
+        mapN.map19(c)(f)
+
       def map20[B](
           f: A20 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ (A21 \/ A22)))))))))))))))))))))) =
+        mapN.map20(c)(f)
+
+      def mapAt[B](f: A20 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (B \/ (A21 \/ A22))))))))))))))))))))) =
         mapN.map20(c)(f)
 
       def map21[B](
@@ -8170,9 +17931,58 @@ object MapN {
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (B \/ A22)))))))))))))))))))))) =
         mapN.map21(c)(f)
 
+      def mapAt[B](f: A21 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit,
+          d19: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (B \/ A22))))))))))))))))))))) =
+        mapN.map21(c)(f)
+
       def map22[B](
           f: A22 => B
       ): ((A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ B)))))))))))))))))))))) =
+        mapN.map22(c)(f)
+
+      def mapAt[B](f: A22 => B)(
+          implicit d0: DummyImplicit,
+          d1: DummyImplicit,
+          d2: DummyImplicit,
+          d3: DummyImplicit,
+          d4: DummyImplicit,
+          d5: DummyImplicit,
+          d6: DummyImplicit,
+          d7: DummyImplicit,
+          d8: DummyImplicit,
+          d9: DummyImplicit,
+          d10: DummyImplicit,
+          d11: DummyImplicit,
+          d12: DummyImplicit,
+          d13: DummyImplicit,
+          d14: DummyImplicit,
+          d15: DummyImplicit,
+          d16: DummyImplicit,
+          d17: DummyImplicit,
+          d18: DummyImplicit,
+          d19: DummyImplicit,
+          d20: DummyImplicit
+      ): (A1 \/ (A2 \/ (A3 \/ (A4 \/ (A5 \/ (A6 \/ (A7 \/ (A8 \/ (A9 \/ (A10 \/ (A11 \/ (A12 \/ (A13 \/ (A14 \/ (A15 \/ (A16 \/ (A17 \/ (A18 \/ (A19 \/ (A20 \/ (A21 \/ B))))))))))))))))))))) =
         mapN.map22(c)(f)
 
     }

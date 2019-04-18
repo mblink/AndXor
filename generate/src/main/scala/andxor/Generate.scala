@@ -27,8 +27,13 @@ object Generate extends App {
     val f = cwd/"core"/"src"/"main"/"scala"/"andxor"/name
     val code = "package andxor\n\n" ++ txt.toString
     if (f.notExists || noWs(f.contentAsString) != noWs(code)) {
-      println(s"Writing $f")
-      f.overwrite(format.fold(Scalafmt.format(code, conf).get.toString, code))
+      println(s"Generating $f...")
+      val toWrite = format.fold({
+        println("    formatting...")
+        Scalafmt.format(code, conf).get.toString
+      }, code)
+      println("    writing...")
+      f.overwrite(toWrite)
       ()
     } else {
       println(s"Skipping $f -- content is unchanged")

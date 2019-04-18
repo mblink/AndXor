@@ -55,6 +55,10 @@ import andxor.MapN.syntax._
 SISO.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
 SISO.lift(Option("foo")).run.map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
 
+// map a unique type at an arbitrary index of a Cop or Prod
+SIS.lift(2).run.mapAt((_: Int) + 3)
+SIS.inj(List("Hello ", "Goodbye cruel ")).run.mapAt((_: List[String]).map(_ ++ "world"))
+
 // extract specific type from Cop or Prod
 SISO.extractC[Option[String]](SISO.inj(Option("foo")))
 SISO.extractC[Option[Int]](SISO.inj(Option("foo")))

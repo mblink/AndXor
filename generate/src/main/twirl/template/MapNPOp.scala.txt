@@ -6,3 +6,6 @@
   def map@{z.index + 1}[B](f: @{z.focus} => B): @{z.modify(_ => "B").toList.prod} =
     mapN.map@{z.index + 1}(p)(f)
 
+  def mapAt[B](f: @{z.focus} => B)@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
+    l => s"(implicit ${l.map(_ => "DummyImplicit").paramSig("d")})")}: @{z.modify(_ => "B").toList.prod} =
+    mapN.map@{z.index + 1}(p)(f)

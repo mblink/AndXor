@@ -9,3 +9,7 @@
       .updated(z.index, s"f(${z.toList.paramList("a")(z.index)})")
       .mkTuple}
   }
+
+  def mapAt[B](f: @{z.focus} => B)(p: @{z.toList.prod})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
+    l => s"(implicit ${l.map(_ => "DummyImplicit").paramSig("d")})")}: @{z.modify(_ => "B").toList.prod} =
+    map@{z.index + 1}(p)(f)
