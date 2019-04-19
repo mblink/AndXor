@@ -8,21 +8,35 @@ import scalaz.Id.Id
 object types {
   private val MF = InvariantFunctor[Monoid]
   @tpeLists.map { tpes =>
-  case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})
+  @* TODO - why does adding aliases to mapN functions blow up compile time? *@
+  case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})@*@if(tpes.length <= 1) { } else { {
+    private val p = this
+    private val mapN = new Map@{tpes.length}P[@{tpes.tpeParamsF("F")}] {}
+    @tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")
+  }}*@
+
   trait @{tpes.prodName}LP {
     implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
       MF.xmap(M, @{tpes.prodTpe}(_), (_: @{tpes.prodTpe}).run)
 
     @tpes.zipper(template.txt.Lift(_, false).toString.trim).mkString("\n\n    ")
   }
+
   object @{tpes.prodName} extends @{tpes.prodName}LP {
     @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
   }
 
-  case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})
+  @* TODO - why does adding aliases to mapN functions blow up compile time? *@
+  case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@*@if(tpes.length <= 1) { } else { {
+    private val c = this
+    private val mapN = new Map@{tpes.length}C[@{tpes.tpeParamsF("F")}] {}
+    @tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")
+  }}*@
+
   trait @{tpes.copName}LP {
     @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
   }
+
   object @{tpes.copName} extends @{tpes.copName}LP {
     @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
   }

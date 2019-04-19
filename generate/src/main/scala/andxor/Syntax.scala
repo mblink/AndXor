@@ -8,9 +8,13 @@ import scalaz.syntax.std.boolean._
 object syntax {
   val tupleLen = 22
 
+  def range(start: Int, end: Int): List[Int] = start.to(end).toList
+
   def parens(s: String): String = s"($s)"
 
-  implicit class TpesOps(tpes: List[String]) {
+  type LS = List[String]
+
+  implicit class TpesOps(tpes: LS) {
     def copName = s"Cop${tpes.length}"
     def copTpeDef = s"$copName[F[_], $tpeParams]"
     def copTpeF(F: String) = s"$copName[$F, $tpeParams]"
@@ -44,6 +48,7 @@ object syntax {
     def prodK(F: String): String = prodBase(t => s"$F[$t]")
 
     def tpeParams: String = tpes.mkString(", ")
+    def tpeParamsF(F: String): String = tpes.map(s => s"$F[$s]").mkString(", ")
 
     def paramSig(FG: List[String], a: String): String =
       tpes.zipWithIndex.map(s => s"${a}${s._2}: ${FG.foldRight(s._1)((e, a) => s"${e}[${a}]")}").mkString(", ")
@@ -80,8 +85,8 @@ object syntax {
     def prod: String = tpes.map(_._1).prod
   }
 
-  implicit class ZipperOps[A](z: Zipper[A]) {
-    def toList: List[A] = z.toStream.toList
+  implicit class ZipperOps(z: Zipper[String]) {
+    def toList: List[String] = z.toStream.toList
 
     def djVal(v: String): String =
       z.lefts.foldLeft(Some(z.rights).filter(_.nonEmpty).map(_ => s"-\\/($v)").getOrElse(v))((a, _) => s"\\/-($a)")
@@ -94,5 +99,11 @@ object syntax {
       }
       folds(v)
     }
+
+    def wrapProdOrTuple(prod: Boolean)(inner: String): String =
+      s"${prod.fold(s"${z.modify(_ => "B").toList.prodTpe}(", "")}${inner}${prod.fold(")", "")}"
+
+    def wrapCopOrTuple(cop: Boolean)(inner: String): String =
+      s"${cop.fold(s"${z.modify(_ => "B").toList.copTpe}(", "")}${inner}${cop.fold(")", "")}"
   }
 }

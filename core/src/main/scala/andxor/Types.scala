@@ -7,6 +7,7 @@ object types {
   private val MF = InvariantFunctor[Monoid]
 
   case class Prod1[F[_], A1](run: (F[A1]))
+
   trait Prod1LP {
     implicit def Prod1Monoid[F[_], A1](implicit M: Monoid[(F[A1])]): Monoid[Prod1[F, A1]] =
       MF.xmap(M, Prod1[F, A1](_), (_: Prod1[F, A1]).run)
@@ -17,6 +18,7 @@ object types {
 
     implicit def lifta0FInverse[F[_], A1]: Inj[F[A1], Prod1[F, A1]] = Inj.instance(_.run)
   }
+
   object Prod1 extends Prod1LP {
     implicit def lifta0Id[A1]: Inj[Prod1[Id, A1], A1] = lifta0F[Id, A1]
 
@@ -24,6 +26,7 @@ object types {
   }
 
   case class Cop1[F[_], A1](run: F[A1])
+
   trait Cop1LP {
     implicit def prisma0F[F[_], A1]: Prism[Cop1[F, A1], F[A1]] = new Prism[Cop1[F, A1], F[A1]] {
       def getOption(c: Cop1[F, A1]): Option[F[A1]] = Some(c.run)
@@ -34,6 +37,7 @@ object types {
 
     implicit def inja0FInverse[F[_], A1]: Inj[Option[F[A1]], Cop1[F, A1]] = Inj.instance(prisma0F.getOption(_))
   }
+
   object Cop1 extends Cop1LP {
     implicit def prisma0Id[A1]: Prism[Cop1[Id, A1], A1] = prisma0F[Id, A1]
 
@@ -43,6 +47,7 @@ object types {
   }
 
   case class Prod2[F[_], A1, A2](run: (F[A1], F[A2]))
+
   trait Prod2LP {
     implicit def Prod2Monoid[F[_], A1, A2](implicit M: Monoid[(F[A1], F[A2])]): Monoid[Prod2[F, A1, A2]] =
       MF.xmap(M, Prod2[F, A1, A2](_), (_: Prod2[F, A1, A2]).run)
@@ -61,6 +66,7 @@ object types {
 
     implicit def lifta1FInverse[F[_], A1, A2]: Inj[F[A2], Prod2[F, A1, A2]] = Inj.instance(_.run._2)
   }
+
   object Prod2 extends Prod2LP {
     implicit def lifta0Id[A1, A2](implicit M: Monoid[Prod2[Id, A1, A2]]): Inj[Prod2[Id, A1, A2], A1] = lifta0F[Id, A1, A2]
 
@@ -72,6 +78,7 @@ object types {
   }
 
   case class Cop2[F[_], A1, A2](run: (F[A1] \/ F[A2]))
+
   trait Cop2LP {
     implicit def prisma0F[F[_], A1, A2]: Prism[Cop2[F, A1, A2], F[A1]] = new Prism[Cop2[F, A1, A2], F[A1]] {
       def getOption(c: Cop2[F, A1, A2]): Option[F[A1]] = c.run match {
@@ -97,6 +104,7 @@ object types {
 
     implicit def inja1FInverse[F[_], A1, A2]: Inj[Option[F[A2]], Cop2[F, A1, A2]] = Inj.instance(prisma1F.getOption(_))
   }
+
   object Cop2 extends Cop2LP {
     implicit def prisma0Id[A1, A2]: Prism[Cop2[Id, A1, A2], A1] = prisma0F[Id, A1, A2]
 
@@ -112,6 +120,7 @@ object types {
   }
 
   case class Prod3[F[_], A1, A2, A3](run: (F[A1], F[A2], F[A3]))
+
   trait Prod3LP {
     implicit def Prod3Monoid[F[_], A1, A2, A3](implicit M: Monoid[(F[A1], F[A2], F[A3])]): Monoid[Prod3[F, A1, A2, A3]] =
       MF.xmap(M, Prod3[F, A1, A2, A3](_), (_: Prod3[F, A1, A2, A3]).run)
@@ -137,6 +146,7 @@ object types {
 
     implicit def lifta2FInverse[F[_], A1, A2, A3]: Inj[F[A3], Prod3[F, A1, A2, A3]] = Inj.instance(_.run._3)
   }
+
   object Prod3 extends Prod3LP {
     implicit def lifta0Id[A1, A2, A3](implicit M: Monoid[Prod3[Id, A1, A2, A3]]): Inj[Prod3[Id, A1, A2, A3], A1] = lifta0F[Id, A1, A2, A3]
 
@@ -152,6 +162,7 @@ object types {
   }
 
   case class Cop3[F[_], A1, A2, A3](run: (F[A1] \/ (F[A2] \/ F[A3])))
+
   trait Cop3LP {
     implicit def prisma0F[F[_], A1, A2, A3]: Prism[Cop3[F, A1, A2, A3], F[A1]] = new Prism[Cop3[F, A1, A2, A3], F[A1]] {
       def getOption(c: Cop3[F, A1, A2, A3]): Option[F[A1]] = c.run match {
@@ -189,6 +200,7 @@ object types {
 
     implicit def inja2FInverse[F[_], A1, A2, A3]: Inj[Option[F[A3]], Cop3[F, A1, A2, A3]] = Inj.instance(prisma2F.getOption(_))
   }
+
   object Cop3 extends Cop3LP {
     implicit def prisma0Id[A1, A2, A3]: Prism[Cop3[Id, A1, A2, A3], A1] = prisma0F[Id, A1, A2, A3]
 
@@ -210,6 +222,7 @@ object types {
   }
 
   case class Prod4[F[_], A1, A2, A3, A4](run: (F[A1], F[A2], F[A3], F[A4]))
+
   trait Prod4LP {
     implicit def Prod4Monoid[F[_], A1, A2, A3, A4](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4])]): Monoid[Prod4[F, A1, A2, A3, A4]] =
       MF.xmap(M, Prod4[F, A1, A2, A3, A4](_), (_: Prod4[F, A1, A2, A3, A4]).run)
@@ -242,6 +255,7 @@ object types {
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4]: Inj[F[A4], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run._4)
   }
+
   object Prod4 extends Prod4LP {
     implicit def lifta0Id[A1, A2, A3, A4](implicit M: Monoid[Prod4[Id, A1, A2, A3, A4]]): Inj[Prod4[Id, A1, A2, A3, A4], A1] = lifta0F[Id, A1, A2, A3, A4]
 
@@ -261,6 +275,7 @@ object types {
   }
 
   case class Cop4[F[_], A1, A2, A3, A4](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ F[A4]))))
+
   trait Cop4LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4]: Prism[Cop4[F, A1, A2, A3, A4], F[A1]] = new Prism[Cop4[F, A1, A2, A3, A4], F[A1]] {
       def getOption(c: Cop4[F, A1, A2, A3, A4]): Option[F[A1]] = c.run match {
@@ -310,6 +325,7 @@ object types {
 
     implicit def inja3FInverse[F[_], A1, A2, A3, A4]: Inj[Option[F[A4]], Cop4[F, A1, A2, A3, A4]] = Inj.instance(prisma3F.getOption(_))
   }
+
   object Cop4 extends Cop4LP {
     implicit def prisma0Id[A1, A2, A3, A4]: Prism[Cop4[Id, A1, A2, A3, A4], A1] = prisma0F[Id, A1, A2, A3, A4]
 
@@ -337,6 +353,7 @@ object types {
   }
 
   case class Prod5[F[_], A1, A2, A3, A4, A5](run: (F[A1], F[A2], F[A3], F[A4], F[A5]))
+
   trait Prod5LP {
     implicit def Prod5Monoid[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5])]): Monoid[Prod5[F, A1, A2, A3, A4, A5]] =
       MF.xmap(M, Prod5[F, A1, A2, A3, A4, A5](_), (_: Prod5[F, A1, A2, A3, A4, A5]).run)
@@ -376,6 +393,7 @@ object types {
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A5], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run._5)
   }
+
   object Prod5 extends Prod5LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[Id, A1, A2, A3, A4, A5]]): Inj[Prod5[Id, A1, A2, A3, A4, A5], A1] = lifta0F[Id, A1, A2, A3, A4, A5]
 
@@ -399,6 +417,7 @@ object types {
   }
 
   case class Cop5[F[_], A1, A2, A3, A4, A5](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5])))))
+
   trait Cop5LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5]: Prism[Cop5[F, A1, A2, A3, A4, A5], F[A1]] = new Prism[Cop5[F, A1, A2, A3, A4, A5], F[A1]] {
       def getOption(c: Cop5[F, A1, A2, A3, A4, A5]): Option[F[A1]] = c.run match {
@@ -460,6 +479,7 @@ object types {
 
     implicit def inja4FInverse[F[_], A1, A2, A3, A4, A5]: Inj[Option[F[A5]], Cop5[F, A1, A2, A3, A4, A5]] = Inj.instance(prisma4F.getOption(_))
   }
+
   object Cop5 extends Cop5LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5]: Prism[Cop5[Id, A1, A2, A3, A4, A5], A1] = prisma0F[Id, A1, A2, A3, A4, A5]
 
@@ -493,6 +513,7 @@ object types {
   }
 
   case class Prod6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]))
+
   trait Prod6LP {
     implicit def Prod6Monoid[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])]): Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]] =
       MF.xmap(M, Prod6[F, A1, A2, A3, A4, A5, A6](_), (_: Prod6[F, A1, A2, A3, A4, A5, A6]).run)
@@ -539,6 +560,7 @@ object types {
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A6], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run._6)
   }
+
   object Prod6 extends Prod6LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[Id, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[Id, A1, A2, A3, A4, A5, A6], A1] = lifta0F[Id, A1, A2, A3, A4, A5, A6]
 
@@ -566,6 +588,7 @@ object types {
   }
 
   case class Cop6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6]))))))
+
   trait Cop6LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6]: Prism[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]] = new Prism[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]] {
       def getOption(c: Cop6[F, A1, A2, A3, A4, A5, A6]): Option[F[A1]] = c.run match {
@@ -639,6 +662,7 @@ object types {
 
     implicit def inja5FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[Option[F[A6]], Cop6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(prisma5F.getOption(_))
   }
+
   object Cop6 extends Cop6LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6]: Prism[Cop6[Id, A1, A2, A3, A4, A5, A6], A1] = prisma0F[Id, A1, A2, A3, A4, A5, A6]
 
@@ -678,6 +702,7 @@ object types {
   }
 
   case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7]))
+
   trait Prod7LP {
     implicit def Prod7Monoid[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])]): Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
       MF.xmap(M, Prod7[F, A1, A2, A3, A4, A5, A6, A7](_), (_: Prod7[F, A1, A2, A3, A4, A5, A6, A7]).run)
@@ -731,6 +756,7 @@ object types {
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A7], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run._7)
   }
+
   object Prod7 extends Prod7LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[Id, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[Id, A1, A2, A3, A4, A5, A6, A7], A1] =
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7]
@@ -769,6 +795,7 @@ object types {
   }
 
   case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ F[A7])))))))
+
   trait Cop7LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7]: Prism[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] = new Prism[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] {
       def getOption(c: Cop7[F, A1, A2, A3, A4, A5, A6, A7]): Option[F[A1]] = c.run match {
@@ -854,6 +881,7 @@ object types {
 
     implicit def inja6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Option[F[A7]], Cop7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(prisma6F.getOption(_))
   }
+
   object Cop7 extends Cop7LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7]: Prism[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A1] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7]
 
@@ -899,6 +927,7 @@ object types {
   }
 
   case class Prod8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]))
+
   trait Prod8LP {
     implicit def Prod8Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])]): Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
       MF.xmap(M, Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8](_), (_: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]).run)
@@ -959,6 +988,7 @@ object types {
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A8], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run._8)
   }
+
   object Prod8 extends Prod8LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A1] =
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
@@ -1002,6 +1032,7 @@ object types {
   }
 
   case class Cop8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ F[A8]))))))))
+
   trait Cop8LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Prism[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] = new Prism[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] {
       def getOption(c: Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]): Option[F[A1]] = c.run match {
@@ -1099,6 +1130,7 @@ object types {
 
     implicit def inja7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Option[F[A8]], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(prisma7F.getOption(_))
   }
+
   object Cop8 extends Cop8LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8]: Prism[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A1] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
 
@@ -1150,6 +1182,7 @@ object types {
   }
 
   case class Prod9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9]))
+
   trait Prod9LP {
     implicit def Prod9Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9])]
@@ -1219,6 +1252,7 @@ object types {
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A9], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run._9)
   }
+
   object Prod9 extends Prod9LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit M: Monoid[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1] =
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
@@ -1267,6 +1301,7 @@ object types {
   }
 
   case class Cop9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ F[A9])))))))))
+
   trait Cop9LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Prism[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A1]] = new Prism[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A1]] {
       def getOption(c: Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]): Option[F[A1]] = c.run match {
@@ -1376,6 +1411,7 @@ object types {
 
     implicit def inja8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Option[F[A9]], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(prisma8F.getOption(_))
   }
+
   object Cop9 extends Cop9LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9]: Prism[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
@@ -1433,6 +1469,7 @@ object types {
   }
 
   case class Prod10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]))
+
   trait Prod10LP {
     implicit def Prod10Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10])]
@@ -1529,6 +1566,7 @@ object types {
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A10], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run._10)
   }
+
   object Prod10 extends Prod10LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
         implicit M: Monoid[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]
@@ -1592,6 +1630,7 @@ object types {
   }
 
   case class Cop10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ F[A10]))))))))))
+
   trait Cop10LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Prism[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A1]] =
       new Prism[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A1]] {
@@ -1723,6 +1762,7 @@ object types {
 
     implicit def inja9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Option[F[A10]], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(prisma9F.getOption(_))
   }
+
   object Cop10 extends Cop10LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Prism[Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
 
@@ -1796,6 +1836,7 @@ object types {
   }
 
   case class Prod11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11]))
+
   trait Prod11LP {
     implicit def Prod11Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])]
@@ -1901,6 +1942,7 @@ object types {
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A11], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run._11)
   }
+
   object Prod11 extends Prod11LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
         implicit M: Monoid[Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]
@@ -1981,6 +2023,7 @@ object types {
   }
 
   case class Cop11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11])))))))))))
+
   trait Cop11LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Prism[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A1]] =
       new Prism[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A1]] {
@@ -2125,6 +2168,7 @@ object types {
 
     implicit def inja10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Option[F[A11]], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(prisma10F.getOption(_))
   }
+
   object Cop11 extends Cop11LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Prism[Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1] =
       prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
@@ -2216,6 +2260,7 @@ object types {
   }
 
   case class Prod12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12]))
+
   trait Prod12LP {
     implicit def Prod12Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12])]
@@ -2330,6 +2375,7 @@ object types {
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A12], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run._12)
   }
+
   object Prod12 extends Prod12LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
         implicit M: Monoid[Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]
@@ -2419,6 +2465,7 @@ object types {
   case class Cop12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ F[A12])))))))))))
   )
+
   trait Cop12LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Prism[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A1]] =
       new Prism[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], F[A1]] {
@@ -2592,6 +2639,7 @@ object types {
     implicit def inja11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[Option[F[A12]], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       Inj.instance(prisma11F.getOption(_))
   }
+
   object Cop12 extends Cop12LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Prism[Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1] =
       prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
@@ -2703,6 +2751,7 @@ object types {
   }
 
   case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13]))
+
   trait Prod13LP {
     implicit def Prod13Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13])]
@@ -2826,6 +2875,7 @@ object types {
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A13], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run._13)
   }
+
   object Prod13 extends Prod13LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
         implicit M: Monoid[Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]
@@ -2922,6 +2972,7 @@ object types {
   case class Cop13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ F[A13]))))))))))))
   )
+
   trait Cop13LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Prism[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A1]] =
       new Prism[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], F[A1]] {
@@ -3125,6 +3176,7 @@ object types {
     implicit def inja12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[Option[F[A13]], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       Inj.instance(prisma12F.getOption(_))
   }
+
   object Cop13 extends Cop13LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Prism[Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1] =
       prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
@@ -3245,6 +3297,7 @@ object types {
   }
 
   case class Prod14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14]))
+
   trait Prod14LP {
     implicit def Prod14Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14])]
@@ -3391,6 +3444,7 @@ object types {
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A14], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       Inj.instance(_.run._14)
   }
+
   object Prod14 extends Prod14LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
         implicit M: Monoid[Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]
@@ -3494,6 +3548,7 @@ object types {
   case class Cop14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ F[A14])))))))))))))
   )
+
   trait Cop14LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Prism[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A1]] =
       new Prism[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], F[A1]] {
@@ -3715,6 +3770,7 @@ object types {
     implicit def inja13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[Option[F[A14]], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       Inj.instance(prisma13F.getOption(_))
   }
+
   object Cop14 extends Cop14LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Prism[Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1] =
       prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
@@ -3846,6 +3902,7 @@ object types {
   case class Prod15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15])
   )
+
   trait Prod15LP {
     implicit def Prod15Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15])]
@@ -4002,6 +4059,7 @@ object types {
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A15], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       Inj.instance(_.run._15)
   }
+
   object Prod15 extends Prod15LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
         implicit M: Monoid[Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]
@@ -4112,6 +4170,7 @@ object types {
   case class Cop15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ F[A15]))))))))))))))
   )
+
   trait Cop15LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Prism[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A1]] =
       new Prism[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], F[A1]] {
@@ -4351,6 +4410,7 @@ object types {
     implicit def inja14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
         : Inj[Option[F[A15]], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = Inj.instance(prisma14F.getOption(_))
   }
+
   object Cop15 extends Cop15LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Prism[Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1] =
       prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
@@ -4491,6 +4551,7 @@ object types {
   case class Prod16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16])
   )
+
   trait Prod16LP {
     implicit def Prod16Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16])]
@@ -4689,6 +4750,7 @@ object types {
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[F[A16], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run._16)
   }
+
   object Prod16 extends Prod16LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
         implicit M: Monoid[Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]
@@ -4806,6 +4868,7 @@ object types {
   case class Cop16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ F[A16])))))))))))))))
   )
+
   trait Cop16LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: Prism[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A1]] =
       new Prism[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], F[A1]] {
@@ -5069,6 +5132,7 @@ object types {
     implicit def inja15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[Option[F[A16]], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(prisma15F.getOption(_))
   }
+
   object Cop16 extends Cop16LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: Prism[Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1] =
       prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
@@ -5218,6 +5282,7 @@ object types {
   case class Prod17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17])
   )
+
   trait Prod17LP {
     implicit def Prod17Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17])]
@@ -5483,6 +5548,7 @@ object types {
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[F[A17], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run._17)
   }
+
   object Prod17 extends Prod17LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
         implicit M: Monoid[Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]
@@ -5624,6 +5690,7 @@ object types {
   case class Cop17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ F[A17]))))))))))))))))
   )
+
   trait Cop17LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Prism[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], F[A1]] =
@@ -5914,6 +5981,7 @@ object types {
     implicit def inja16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[Option[F[A17]], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(prisma16F.getOption(_))
   }
+
   object Cop17 extends Cop17LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Prism[Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
@@ -6089,6 +6157,7 @@ object types {
   case class Prod18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18])
   )
+
   trait Prod18LP {
     implicit def Prod18Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18])]
@@ -6369,6 +6438,7 @@ object types {
     implicit def lifta17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[F[A18], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run._18)
   }
+
   object Prod18 extends Prod18LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
         implicit M: Monoid[Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]
@@ -6538,6 +6608,7 @@ object types {
         A18
       ])))))))))))))))))
   )
+
   trait Cop18LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Prism[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], F[A1]] =
@@ -6845,6 +6916,7 @@ object types {
     implicit def inja17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[Option[F[A18]], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(prisma17F.getOption(_))
   }
+
   object Cop18 extends Cop18LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Prism[Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1] =
@@ -7066,6 +7138,7 @@ object types {
   case class Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19])
   )
+
   trait Prod19LP {
     implicit def Prod19Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19])]
@@ -7361,6 +7434,7 @@ object types {
     implicit def lifta18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[F[A19], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run._19)
   }
+
   object Prod19 extends Prod19LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
         implicit M: Monoid[Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]
@@ -7539,6 +7613,7 @@ object types {
         A19
       ]))))))))))))))))))
   )
+
   trait Cop19LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Prism[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], F[A1]] =
@@ -7863,6 +7938,7 @@ object types {
     implicit def inja18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[Option[F[A19]], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(prisma18F.getOption(_))
   }
+
   object Cop19 extends Cop19LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Prism[Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1] =
@@ -8096,6 +8172,7 @@ object types {
   case class Prod20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20])
   )
+
   trait Prod20LP {
     implicit def Prod20Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20])]
@@ -8406,6 +8483,7 @@ object types {
     implicit def lifta19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[F[A20], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run._20)
   }
+
   object Prod20 extends Prod20LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
         implicit M: Monoid[Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]
@@ -8593,6 +8671,7 @@ object types {
         A19
       ] \/ F[A20])))))))))))))))))))
   )
+
   trait Cop20LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Prism[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], F[A1]] =
@@ -8940,6 +9019,7 @@ object types {
     implicit def inja19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[Option[F[A20]], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(prisma19F.getOption(_))
   }
+
   object Cop20 extends Cop20LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Prism[Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1] =
@@ -9185,6 +9265,7 @@ object types {
   case class Prod21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21])
   )
+
   trait Prod21LP {
     implicit def Prod21Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21])]
@@ -9510,6 +9591,7 @@ object types {
     implicit def lifta20FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[F[A21], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run._21)
   }
+
   object Prod21 extends Prod21LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
         implicit M: Monoid[Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]
@@ -9706,6 +9788,7 @@ object types {
         A19
       ] \/ (F[A20] \/ F[A21]))))))))))))))))))))
   )
+
   trait Cop21LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Prism[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], F[A1]] =
@@ -10074,6 +10157,7 @@ object types {
     implicit def inja20FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[Option[F[A21]], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(prisma20F.getOption(_))
   }
+
   object Cop21 extends Cop21LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Prism[Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1] =
@@ -10331,6 +10415,7 @@ object types {
   case class Prod22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21], F[A22])
   )
+
   trait Prod22LP {
     implicit def Prod22Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21], F[A22])]
@@ -10671,6 +10756,7 @@ object types {
     implicit def lifta21FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[F[A22], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run._22)
   }
+
   object Prod22 extends Prod22LP {
     implicit def lifta0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
         implicit M: Monoid[Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]
@@ -10876,6 +10962,7 @@ object types {
         A19
       ] \/ (F[A20] \/ (F[A21] \/ F[A22])))))))))))))))))))))
   )
+
   trait Cop22LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Prism[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], F[A1]] =
@@ -11265,6 +11352,7 @@ object types {
     implicit def inja21FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[Option[F[A22]], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(prisma21F.getOption(_))
   }
+
   object Cop22 extends Cop22LP {
     implicit def prisma0Id[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Prism[Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1] =
