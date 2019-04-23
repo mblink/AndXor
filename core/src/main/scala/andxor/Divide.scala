@@ -4,6 +4,11 @@ import scala.language.higherKinds
 import scalaz.Contravariant
 
 trait Divide[F[_]] extends Contravariant[F] {
+
+  def contramap[A, B](fa: F[A])(f: B => A): F[B] = divide(conquer[Unit], fa)(b => ((), f(b)))
+
+  def conquer[A]: F[A]
+
   final def divide[A, B, C](fa: =>F[A], fb: =>F[B])(f: C => (A, B)): F[C] =
     divide2(fa, fb)(f)
 
