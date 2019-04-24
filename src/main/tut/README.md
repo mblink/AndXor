@@ -52,12 +52,12 @@ SISO.sequenceP(SISO.Prod((Option("foo"), Option(1), Option(List("bar")))))
 
 // map given index of Cop or Prod
 import andxor.MapN.syntax._
-SISO.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
-SISO.lift(Option("foo")).run.map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
+SISO.inj(Option(2)).map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
+SISO.lift(Option("foo")).map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
 
 // map a unique type at an arbitrary index of a Cop or Prod
-SIS.lift(2).run.mapAt((_: Int) + 3)
-SIS.inj(List("Hello ", "Goodbye cruel ")).run.mapAt((_: List[String]).map(_ ++ "world"))
+SIS.lift(2).mapAt((_: Int) + 3)
+SIS.inj(List("Hello ", "Goodbye cruel ")).mapAt((_: List[String]).map(_ ++ "world"))
 
 // extract specific type from Cop or Prod
 SISO.extractC[Option[String]](SISO.inj(Option("foo")))
