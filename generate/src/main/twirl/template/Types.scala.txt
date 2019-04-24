@@ -2,6 +2,7 @@
 
 @(tpeLists: List[List[String]])
 
+import io.estatico.newtype.macros.newtype
 import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
 import scalaz.Id.Id
 
@@ -9,7 +10,7 @@ object types {
   private val MF = InvariantFunctor[Monoid]
   @tpeLists.map { tpes =>
   @* TODO - why does adding aliases to mapN functions blow up compile time? *@
-  case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})@*@if(tpes.length <= 1) { } else { {
+  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})@*@if(tpes.length <= 1) { } else { {
     private val p = this
     private val mapN = new Map@{tpes.length}P[@{tpes.tpeParamsF("F")}] {}
     @tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")
@@ -27,7 +28,7 @@ object types {
   }
 
   @* TODO - why does adding aliases to mapN functions blow up compile time? *@
-  case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@*@if(tpes.length <= 1) { } else { {
+  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@*@if(tpes.length <= 1) { } else { {
     private val c = this
     private val mapN = new Map@{tpes.length}C[@{tpes.tpeParamsF("F")}] {}
     @tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")

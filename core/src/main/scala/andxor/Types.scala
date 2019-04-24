@@ -1,12 +1,12 @@
 package andxor
 
+import io.estatico.newtype.macros.newtype
 import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
 import scalaz.Id.Id
 
 object types {
   private val MF = InvariantFunctor[Monoid]
-
-  case class Prod1[F[_], A1](run: (F[A1]))
+  @newtype case class Prod1[F[_], A1](run: (F[A1]))
 
   trait Prod1LP {
     implicit def Prod1Monoid[F[_], A1](implicit M: Monoid[(F[A1])]): Monoid[Prod1[F, A1]] =
@@ -24,8 +24,7 @@ object types {
 
     implicit def lifta0IdInverse[A1]: Inj[A1, Prod1[Id, A1]] = lifta0FInverse[Id, A1]
   }
-
-  case class Cop1[F[_], A1](run: F[A1])
+  @newtype case class Cop1[F[_], A1](run: F[A1])
 
   trait Cop1LP {
     implicit def prisma0F[F[_], A1]: Prism[Cop1[F, A1], F[A1]] = new Prism[Cop1[F, A1], F[A1]] {
@@ -45,8 +44,7 @@ object types {
 
     implicit def inja0IdInverse[F[_], A1]: Inj[Option[A1], Cop1[Id, A1]] = inja0FInverse[Id, A1]
   }
-
-  case class Prod2[F[_], A1, A2](run: (F[A1], F[A2]))
+  @newtype case class Prod2[F[_], A1, A2](run: (F[A1], F[A2]))
 
   trait Prod2LP {
     implicit def Prod2Monoid[F[_], A1, A2](implicit M: Monoid[(F[A1], F[A2])]): Monoid[Prod2[F, A1, A2]] =
@@ -76,8 +74,7 @@ object types {
 
     implicit def lifta1IdInverse[A1, A2]: Inj[A2, Prod2[Id, A1, A2]] = lifta1FInverse[Id, A1, A2]
   }
-
-  case class Cop2[F[_], A1, A2](run: (F[A1] \/ F[A2]))
+  @newtype case class Cop2[F[_], A1, A2](run: (F[A1] \/ F[A2]))
 
   trait Cop2LP {
     implicit def prisma0F[F[_], A1, A2]: Prism[Cop2[F, A1, A2], F[A1]] = new Prism[Cop2[F, A1, A2], F[A1]] {
@@ -118,8 +115,7 @@ object types {
 
     implicit def inja1IdInverse[F[_], A1, A2]: Inj[Option[A2], Cop2[Id, A1, A2]] = inja1FInverse[Id, A1, A2]
   }
-
-  case class Prod3[F[_], A1, A2, A3](run: (F[A1], F[A2], F[A3]))
+  @newtype case class Prod3[F[_], A1, A2, A3](run: (F[A1], F[A2], F[A3]))
 
   trait Prod3LP {
     implicit def Prod3Monoid[F[_], A1, A2, A3](implicit M: Monoid[(F[A1], F[A2], F[A3])]): Monoid[Prod3[F, A1, A2, A3]] =
@@ -160,8 +156,7 @@ object types {
 
     implicit def lifta2IdInverse[A1, A2, A3]: Inj[A3, Prod3[Id, A1, A2, A3]] = lifta2FInverse[Id, A1, A2, A3]
   }
-
-  case class Cop3[F[_], A1, A2, A3](run: (F[A1] \/ (F[A2] \/ F[A3])))
+  @newtype case class Cop3[F[_], A1, A2, A3](run: (F[A1] \/ (F[A2] \/ F[A3])))
 
   trait Cop3LP {
     implicit def prisma0F[F[_], A1, A2, A3]: Prism[Cop3[F, A1, A2, A3], F[A1]] = new Prism[Cop3[F, A1, A2, A3], F[A1]] {
@@ -220,8 +215,7 @@ object types {
 
     implicit def inja2IdInverse[F[_], A1, A2, A3]: Inj[Option[A3], Cop3[Id, A1, A2, A3]] = inja2FInverse[Id, A1, A2, A3]
   }
-
-  case class Prod4[F[_], A1, A2, A3, A4](run: (F[A1], F[A2], F[A3], F[A4]))
+  @newtype case class Prod4[F[_], A1, A2, A3, A4](run: (F[A1], F[A2], F[A3], F[A4]))
 
   trait Prod4LP {
     implicit def Prod4Monoid[F[_], A1, A2, A3, A4](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4])]): Monoid[Prod4[F, A1, A2, A3, A4]] =
@@ -273,8 +267,7 @@ object types {
 
     implicit def lifta3IdInverse[A1, A2, A3, A4]: Inj[A4, Prod4[Id, A1, A2, A3, A4]] = lifta3FInverse[Id, A1, A2, A3, A4]
   }
-
-  case class Cop4[F[_], A1, A2, A3, A4](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ F[A4]))))
+  @newtype case class Cop4[F[_], A1, A2, A3, A4](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ F[A4]))))
 
   trait Cop4LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4]: Prism[Cop4[F, A1, A2, A3, A4], F[A1]] = new Prism[Cop4[F, A1, A2, A3, A4], F[A1]] {
@@ -351,8 +344,7 @@ object types {
 
     implicit def inja3IdInverse[F[_], A1, A2, A3, A4]: Inj[Option[A4], Cop4[Id, A1, A2, A3, A4]] = inja3FInverse[Id, A1, A2, A3, A4]
   }
-
-  case class Prod5[F[_], A1, A2, A3, A4, A5](run: (F[A1], F[A2], F[A3], F[A4], F[A5]))
+  @newtype case class Prod5[F[_], A1, A2, A3, A4, A5](run: (F[A1], F[A2], F[A3], F[A4], F[A5]))
 
   trait Prod5LP {
     implicit def Prod5Monoid[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5])]): Monoid[Prod5[F, A1, A2, A3, A4, A5]] =
@@ -415,8 +407,7 @@ object types {
 
     implicit def lifta4IdInverse[A1, A2, A3, A4, A5]: Inj[A5, Prod5[Id, A1, A2, A3, A4, A5]] = lifta4FInverse[Id, A1, A2, A3, A4, A5]
   }
-
-  case class Cop5[F[_], A1, A2, A3, A4, A5](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5])))))
+  @newtype case class Cop5[F[_], A1, A2, A3, A4, A5](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5])))))
 
   trait Cop5LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5]: Prism[Cop5[F, A1, A2, A3, A4, A5], F[A1]] = new Prism[Cop5[F, A1, A2, A3, A4, A5], F[A1]] {
@@ -511,8 +502,7 @@ object types {
 
     implicit def inja4IdInverse[F[_], A1, A2, A3, A4, A5]: Inj[Option[A5], Cop5[Id, A1, A2, A3, A4, A5]] = inja4FInverse[Id, A1, A2, A3, A4, A5]
   }
-
-  case class Prod6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]))
+  @newtype case class Prod6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]))
 
   trait Prod6LP {
     implicit def Prod6Monoid[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])]): Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]] =
@@ -586,8 +576,7 @@ object types {
 
     implicit def lifta5IdInverse[A1, A2, A3, A4, A5, A6]: Inj[A6, Prod6[Id, A1, A2, A3, A4, A5, A6]] = lifta5FInverse[Id, A1, A2, A3, A4, A5, A6]
   }
-
-  case class Cop6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6]))))))
+  @newtype case class Cop6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6]))))))
 
   trait Cop6LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6]: Prism[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]] = new Prism[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]] {
@@ -700,8 +689,7 @@ object types {
 
     implicit def inja5IdInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[Option[A6], Cop6[Id, A1, A2, A3, A4, A5, A6]] = inja5FInverse[Id, A1, A2, A3, A4, A5, A6]
   }
-
-  case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7]))
+  @newtype case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7]))
 
   trait Prod7LP {
     implicit def Prod7Monoid[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])]): Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
@@ -793,8 +781,7 @@ object types {
 
     implicit def lifta6IdInverse[A1, A2, A3, A4, A5, A6, A7]: Inj[A7, Prod7[Id, A1, A2, A3, A4, A5, A6, A7]] = lifta6FInverse[Id, A1, A2, A3, A4, A5, A6, A7]
   }
-
-  case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ F[A7])))))))
+  @newtype case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ F[A7])))))))
 
   trait Cop7LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7]: Prism[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] = new Prism[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] {
@@ -925,8 +912,7 @@ object types {
 
     implicit def inja6IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Option[A7], Cop7[Id, A1, A2, A3, A4, A5, A6, A7]] = inja6FInverse[Id, A1, A2, A3, A4, A5, A6, A7]
   }
-
-  case class Prod8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]))
+  @newtype case class Prod8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]))
 
   trait Prod8LP {
     implicit def Prod8Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])]): Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
@@ -1030,8 +1016,7 @@ object types {
 
     implicit def lifta7IdInverse[A1, A2, A3, A4, A5, A6, A7, A8]: Inj[A8, Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] = lifta7FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8]
   }
-
-  case class Cop8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ F[A8]))))))))
+  @newtype case class Cop8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ F[A8]))))))))
 
   trait Cop8LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Prism[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] = new Prism[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] {
@@ -1180,8 +1165,7 @@ object types {
 
     implicit def inja7IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Option[A8], Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] = inja7FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8]
   }
-
-  case class Prod9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9]))
+  @newtype case class Prod9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9]))
 
   trait Prod9LP {
     implicit def Prod9Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
@@ -1299,8 +1283,7 @@ object types {
 
     implicit def lifta8IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[A9, Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = lifta8FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
   }
-
-  case class Cop9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ F[A9])))))))))
+  @newtype case class Cop9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ F[A9])))))))))
 
   trait Cop9LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Prism[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A1]] = new Prism[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A1]] {
@@ -1467,8 +1450,7 @@ object types {
 
     implicit def inja8IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Option[A9], Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = inja8FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
   }
-
-  case class Prod10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]))
+  @newtype case class Prod10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10]))
 
   trait Prod10LP {
     implicit def Prod10Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
@@ -1628,8 +1610,7 @@ object types {
 
     implicit def lifta9IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[A10, Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = lifta9FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
   }
-
-  case class Cop10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ F[A10]))))))))))
+  @newtype case class Cop10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ F[A10]))))))))))
 
   trait Cop10LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Prism[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A1]] =
@@ -1834,8 +1815,7 @@ object types {
     implicit def inja9IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Option[A10], Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       inja9FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
   }
-
-  case class Prod11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11]))
+  @newtype case class Prod11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11]))
 
   trait Prod11LP {
     implicit def Prod11Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
@@ -2021,8 +2001,9 @@ object types {
     implicit def lifta10IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[A11, Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       lifta10FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
   }
-
-  case class Cop11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11])))))))))))
+  @newtype case class Cop11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+      run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ F[A11]))))))))))
+  )
 
   trait Cop11LP {
     implicit def prisma0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Prism[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A1]] =
@@ -2258,8 +2239,7 @@ object types {
     implicit def inja10IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Option[A11], Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       inja10FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
   }
-
-  case class Prod12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12]))
+  @newtype case class Prod12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12]))
 
   trait Prod12LP {
     implicit def Prod12Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
@@ -2461,8 +2441,7 @@ object types {
     implicit def lifta11IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[A12, Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       lifta11FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
   }
-
-  case class Cop12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+  @newtype case class Cop12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ F[A12])))))))))))
   )
 
@@ -2749,8 +2728,7 @@ object types {
     implicit def inja11IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[Option[A12], Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       inja11FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
   }
-
-  case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13]))
+  @newtype case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13]))
 
   trait Prod13LP {
     implicit def Prod13Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
@@ -2968,8 +2946,7 @@ object types {
     implicit def lifta12IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[A13, Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       lifta12FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
   }
-
-  case class Cop13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+  @newtype case class Cop13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ F[A13]))))))))))))
   )
 
@@ -3295,8 +3272,9 @@ object types {
     implicit def inja12IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[Option[A13], Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       inja12FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
   }
-
-  case class Prod14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14]))
+  @newtype case class Prod14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+      run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14])
+  )
 
   trait Prod14LP {
     implicit def Prod14Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
@@ -3544,8 +3522,7 @@ object types {
     implicit def lifta13IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[A14, Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       lifta13FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
   }
-
-  case class Cop14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+  @newtype case class Cop14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ F[A14])))))))))))))
   )
 
@@ -3898,8 +3875,7 @@ object types {
     implicit def inja13IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[Option[A14], Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       inja13FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
   }
-
-  case class Prod15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+  @newtype case class Prod15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15])
   )
 
@@ -4166,8 +4142,7 @@ object types {
     implicit def lifta14IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[A15, Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       lifta14FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
   }
-
-  case class Cop15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+  @newtype case class Cop15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ F[A15]))))))))))))))
   )
 
@@ -4547,8 +4522,7 @@ object types {
     implicit def inja14IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
         : Inj[Option[A15], Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = inja14FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
   }
-
-  case class Prod16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+  @newtype case class Prod16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16])
   )
 
@@ -4864,8 +4838,7 @@ object types {
     implicit def lifta15IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: Inj[A16, Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       lifta15FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
   }
-
-  case class Cop16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+  @newtype case class Cop16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ F[A16])))))))))))))))
   )
 
@@ -5278,8 +5251,7 @@ object types {
     implicit def inja15IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[Option[A16], Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = inja15FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
   }
-
-  case class Prod17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+  @newtype case class Prod17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17])
   )
 
@@ -5686,8 +5658,7 @@ object types {
         : Inj[A17, Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       lifta16FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
   }
-
-  case class Cop17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+  @newtype case class Cop17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ F[A17]))))))))))))))))
   )
 
@@ -6153,8 +6124,7 @@ object types {
         : Inj[Option[A17], Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       inja16FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
   }
-
-  case class Prod18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+  @newtype case class Prod18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18])
   )
 
@@ -6602,8 +6572,7 @@ object types {
         : Inj[A18, Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       lifta17FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
   }
-
-  case class Cop18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+  @newtype case class Cop18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ F[
         A18
       ])))))))))))))))))
@@ -7134,8 +7103,7 @@ object types {
         : Inj[Option[A18], Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       inja17FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
   }
-
-  case class Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+  @newtype case class Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19])
   )
 
@@ -7607,8 +7575,7 @@ object types {
         : Inj[A19, Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       lifta18FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
   }
-
-  case class Cop19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+  @newtype case class Cop19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ F[
         A19
       ]))))))))))))))))))
@@ -8168,8 +8135,7 @@ object types {
         : Inj[Option[A19], Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       inja18FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
   }
-
-  case class Prod20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+  @newtype case class Prod20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20])
   )
 
@@ -8665,8 +8631,7 @@ object types {
         : Inj[A20, Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       lifta19FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
   }
-
-  case class Cop20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+  @newtype case class Cop20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[
         A19
       ] \/ F[A20])))))))))))))))))))
@@ -9261,8 +9226,7 @@ object types {
         : Inj[Option[A20], Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       inja19FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
   }
-
-  case class Prod21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+  @newtype case class Prod21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21])
   )
 
@@ -9782,8 +9746,7 @@ object types {
         : Inj[A21, Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       lifta20FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
   }
-
-  case class Cop21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+  @newtype case class Cop21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[
         A19
       ] \/ (F[A20] \/ F[A21]))))))))))))))))))))
@@ -10411,8 +10374,7 @@ object types {
         : Inj[Option[A21], Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       inja20FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
   }
-
-  case class Prod22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+  @newtype case class Prod22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
       run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19], F[A20], F[A21], F[A22])
   )
 
@@ -10956,8 +10918,7 @@ object types {
         : Inj[A22, Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       lifta21FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
   }
-
-  case class Cop22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+  @newtype case class Cop22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
       run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ (F[A10] \/ (F[A11] \/ (F[A12] \/ (F[A13] \/ (F[A14] \/ (F[A15] \/ (F[A16] \/ (F[A17] \/ (F[A18] \/ (F[
         A19
       ] \/ (F[A20] \/ (F[A21] \/ F[A22])))))))))))))))))))))
