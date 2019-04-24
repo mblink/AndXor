@@ -1,14 +1,19 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
-  scalaVersion := "2.12.7",
+  scalaVersion := "2.12.8",
   version := "0.1.7",
   libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.2.26"),
+  addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
     "-explaintypes",
     "-feature",
+    "-language:higherKinds",
+    "-language:implicitConversions",
     "-unchecked",
+    "-P:splain:all",
+    "-P:splain:rewrite:andxor\\.types\\.((Cop|Prod)\\d+)\\.Type/$1",
     "-Xcheckinit",
     "-Xfatal-warnings",
     "-Xfuture",
@@ -63,16 +68,21 @@ lazy val publishSettings = Seq(
 lazy val generate = project.in(file("generate"))
   .settings(commonSettings ++ Seq(
     name := "andxor-generate",
+    resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies ++= Seq(
       "com.github.pathikrit" %% "better-files" % "3.5.0",
-      "com.geirsson" %% "scalafmt-core" % "1.6.0-RC4",
+      "org.scalameta" %% "scalafmt-core" % "2.0.0-RC6",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     ),
     TwirlKeys.templateImports := Seq()
   )).enablePlugins(SbtTwirl)
 
 lazy val core = project.in(file("core"))
-  .settings(commonSettings ++ publishSettings ++ Seq(name := "andxor-core"))
+  .settings(commonSettings ++ publishSettings ++ Seq(
+    name := "andxor-core",
+    libraryDependencies += "io.estatico" %% "newtype" % "0.4.2",
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+  ))
 
 lazy val root = project.in(file("."))
   .settings(commonSettings ++ Seq(

@@ -1,0 +1,49 @@
+@import andxor.syntax._
+@import scalaz.syntax.std.boolean._
+
+@(tpeLists: List[List[String]])
+
+import io.estatico.newtype.macros.newtype
+import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
+import scalaz.Id.Id
+
+object types {
+  object dummy {
+    @tpeLists.map(_.length).map { i =>
+    sealed trait Dummy@{i}; object Dummy@{i} { implicit val inst: Dummy@{i} = new Dummy@{i} {} }}
+  }
+
+  import dummy._
+
+  private val MF = InvariantFunctor[Monoid]
+  @tpeLists.map { tpes =>
+  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})@{(tpes.length <= 1).fold("", s""" {
+    private def mapN = new Map${tpes.length}P[${tpes.tpeParamsF("F")}] {}
+    ${tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
+  }""")}
+
+  trait @{tpes.prodName}LP {
+    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
+      MF.xmap(M, @{tpes.prodTpe}(_), (_: @{tpes.prodTpe}).run)
+
+    @tpes.zipper(template.txt.Lift(_, false).toString.trim).mkString("\n\n    ")
+  }
+
+  object @{tpes.prodName} extends @{tpes.prodName}LP {
+    @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
+  }
+
+  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{(tpes.length <= 1).fold("", s""" {
+    private def mapN = new Map${tpes.length}C[${tpes.tpeParamsF("F")}] {}
+    ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
+  }""")}
+
+  trait @{tpes.copName}LP {
+    @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
+  }
+
+  object @{tpes.copName} extends @{tpes.copName}LP {
+    @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
+  }
+  }
+}

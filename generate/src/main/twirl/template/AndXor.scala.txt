@@ -1,6 +1,5 @@
 @(tpes: List[List[String]])
 
-import scala.language.higherKinds
 import scalaz.{Apply, Monoid}
 
 abstract class ComposeAndXor[F[_], Cop, Prod] {

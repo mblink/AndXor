@@ -1,12 +1,20 @@
 @import andxor.syntax._
 @import scalaz.Zipper
+@import scalaz.syntax.std.boolean._
 
-@(z: Zipper[String])
+@(z: Zipper[String], prod: Boolean)
 
-  def map@{z.index + 1}[B](p: (@{z.toList.prod}))(f: @{z.focus} => B):
-  (@{z.modify(_ => "B").toList.prod}) = {
-    val (@{z.toList.params("a")}) = p
-    (@{z.toList.paramList("a")
+  def map@{z.index + 1}[B](p: @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.toList)})(f: @{prod.fold(s"F[${z.focus}]", z.focus)} => @{prod.fold(s"F[B]", "B")}): @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.modify(_ => "B").toList)} = {
+    @if(prod) {
+    @{z.modify(_ => "B").toList.prodTpe}(mapN.map@{z.index + 1}(p.run)(f))
+    } else {
+    @{z.toList.tupleVals("a", "p", "    ")}
+    @{z.toList.paramList("a")
       .updated(z.index, s"f(${z.toList.paramList("a")(z.index)})")
-      .mkString(", ")})
+      .mkTuple}
+    }
   }
+
+  def mapAt[B](f: @{prod.fold(s"F[${z.focus}]", z.focus)} => @{prod.fold(s"F[B]", "B")})(p: @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.toList)})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
+    _ => z.dummyImpl(prod))}: @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.modify(_ => "B").toList)} =
+    @z.wrapProdOrTuple(prod)(s"mapN.map${z.index + 1}(p${prod.fold(".run", "")})(f)")

@@ -1,9 +1,12 @@
 @import andxor.syntax._
 @import scalaz.Zipper
+@import scalaz.syntax.std.boolean._
 
-@(z: Zipper[String])
+@(z: Zipper[String], cop: Boolean)
 
-  def map@{z.index + 1}[B](f: @{z.focus} => B): (@{z.modify(_ => "B").toList.dj}) =
-    mapN.map@{z.index + 1}(c)(f)
+  def map@{z.index + 1}[B](f: @{cop.fold(s"F[${z.focus}]", z.focus)} => @{cop.fold(s"F[B]", "B")}): @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.modify(_ => "B").toList)} =
+    @z.wrapCopOrTuple(cop)(s"mapN.map${z.index + 1}(${cop.fold("run", "c")})(f)")
 
-
+  def mapAt[B](f: @{cop.fold(s"F[${z.focus}]", z.focus)} => @{cop.fold(s"F[B]", "B")})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
+    _ => z.dummyImpl(cop))}: @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.modify(_ => "B").toList)} =
+    @z.wrapCopOrTuple(cop)(s"mapN.map${cop.fold("At(f)(run)", s"${z.index + 1}(c)(f)")}")

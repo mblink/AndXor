@@ -1,6 +1,6 @@
 @import andxor.syntax._
 
 @(tpes: List[String])
-  def build[@{tpes.prod}]: AndXor@{tpes.length}[@{tpes.prod}] = AndXor@{tpes.length}[@{tpes.prod}]
-  def buildF[@{tpes.prod}]: AndXorF@{tpes.length}[@{tpes.prod}] = AndXorF@{tpes.length}[@{tpes.prod}]
-  def buildK[F[_], @{tpes.prod}]: AndXorK@{tpes.length}[F, @{tpes.prod}] = AndXorK@{tpes.length}[F, @{tpes.prod}]
+  def build[@{tpes.tpeParams}]: AndXor@{tpes.length}[@{tpes.tpeParams}] = AndXor@{tpes.length}[@{tpes.tpeParams}]
+  def buildF[@{tpes.tpeParams}]: AndXorF@{tpes.length}[@{tpes.tpeParams}] = AndXorF@{tpes.length}[@{tpes.tpeParams}]
+  def buildK[F[_], @{tpes.tpeParams}]: AndXorK@{tpes.length}[F, @{tpes.tpeParams}] = AndXorK@{tpes.length}[F, @{tpes.tpeParams}]
