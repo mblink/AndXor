@@ -2,6 +2,7 @@
 
 @(tpes: List[String])
 
+import andxor.types.dummy._
 import scalaz.\/
 
 @range(2, tpes.length).map { n =>

@@ -13,5 +13,5 @@
     }
 
   def mapAt[B](f: @{cop.fold(s"F[${z.focus}]", z.focus)} => @{cop.fold(s"F[B]", "B")})(c: @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.toList)})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
-    l => s"(implicit ${l.map(_ => "DummyImplicit").paramSig("d")})")}: @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.modify(_ => "B").toList)} =
+    _ => z.dummyImpl(cop))}: @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.modify(_ => "B").toList)} =
     @z.wrapCopOrTuple(cop)(s"mapN.map${z.index + 1}(c${cop.fold(".run", "")})(f)")

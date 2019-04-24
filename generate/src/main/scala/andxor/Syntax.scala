@@ -105,5 +105,8 @@ object syntax {
 
     def wrapCopOrTuple(cop: Boolean)(inner: String): String =
       s"${cop.fold(s"${z.modify(_ => "B").toList.copTpe}(", "")}${inner}${cop.fold(")", "")}"
+
+    def dummyImpl(used: Boolean): String =
+      s"(implicit ${used.fold("", "@scalaz.unused ")}d: Dummy${z.index + 1})"
   }
 }

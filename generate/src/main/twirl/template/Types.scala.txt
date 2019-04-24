@@ -1,4 +1,5 @@
 @import andxor.syntax._
+@import scalaz.syntax.std.boolean._
 
 @(tpeLists: List[List[String]])
 
@@ -7,14 +8,19 @@ import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
 import scalaz.Id.Id
 
 object types {
+  object dummy {
+    @tpeLists.map(_.length).map { i =>
+    sealed trait Dummy@{i}; object Dummy@{i} { implicit val inst: Dummy@{i} = new Dummy@{i} {} }}
+  }
+
+  import dummy._
+
   private val MF = InvariantFunctor[Monoid]
   @tpeLists.map { tpes =>
-  @* TODO - why does adding aliases to mapN functions blow up compile time? *@
-  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})@*@if(tpes.length <= 1) { } else { {
-    private val p = this
-    private val mapN = new Map@{tpes.length}P[@{tpes.tpeParamsF("F")}] {}
-    @tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")
-  }}*@
+  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})@{(tpes.length <= 1).fold("", s""" {
+    private def mapN = new Map${tpes.length}P[${tpes.tpeParamsF("F")}] {}
+    ${tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
+  }""")}
 
   trait @{tpes.prodName}LP {
     implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
@@ -27,12 +33,10 @@ object types {
     @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
   }
 
-  @* TODO - why does adding aliases to mapN functions blow up compile time? *@
-  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@*@if(tpes.length <= 1) { } else { {
-    private val c = this
-    private val mapN = new Map@{tpes.length}C[@{tpes.tpeParamsF("F")}] {}
-    @tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")
-  }}*@
+  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{(tpes.length <= 1).fold("", s""" {
+    private def mapN = new Map${tpes.length}C[${tpes.tpeParamsF("F")}] {}
+    ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
+  }""")}
 
   trait @{tpes.copName}LP {
     @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")

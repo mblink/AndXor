@@ -16,5 +16,5 @@
   }
 
   def mapAt[B](f: @{prod.fold(s"F[${z.focus}]", z.focus)} => @{prod.fold(s"F[B]", "B")})(p: @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.toList)})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
-    l => s"(implicit ${l.map(_ => "DummyImplicit").paramSig("d")})")}: @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.modify(_ => "B").toList)} =
+    _ => z.dummyImpl(prod))}: @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.modify(_ => "B").toList)} =
     @z.wrapProdOrTuple(prod)(s"mapN.map${z.index + 1}(p${prod.fold(".run", "")})(f)")
