@@ -1,92 +1,66 @@
 package andxor
 
 import scala.deprecated
-import scala.collection.immutable.Map
+import scala.collection.immutable.{Map, StringOps}
 import scala.collection.breakOut
 import scala.reflect.internal.util._
 import scala.tools.nsc._
 import scala.tools.nsc.plugins._
 import scala.tools.nsc.transform._
 
-/**
- * A compiler plugin for code generation when an annotation is on a class, trait
- * or object. For classes and traits, ensures that a companion is created and
- * passes both to the implementation.
- *
- * TL;DR a drop-in replacement for syntactic annotation macros.
- *
- * The main advantage over annotation macros is that it works in all tooling
- * (except IntelliJ) and this approach will work in the long term
- * (macro-paradise is abandoned).
- *
- * The caveats are that typechecking and naming will not occur, so the code
- * generation / rewrites must be purely syntactic. If you require any type
- * inference, point your generated code at a blackbox macro that you implement
- * downstream.
- *
- * Unlike macro annotations, the annotation is not removed. This avoids false
- * negatives regarding unused imports. It should be possible to add a -cleanup
- * phase to remove the trigger annotations if needed.
- */
 abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
   import global._
   override lazy val description: String =
     s"Generates code for annotations $triggers"
 
-  case class NEL[A](head: A, tail: List[A]) { def toList: List[A] = List(head) ::: tail }
-  object NEL {
-    def apply[A](a: A, as: A*): NEL[A] = NEL(a, as.toList)
-    def fromList[A](l: List[A]): Option[NEL[A]] = l match {
-      case h :: t => Some(NEL(h, t))
-      case _ => None
-    }
-  }
-
-  // - The class itself
-  // - Optional list of type params
-  // - One or more explicit parameter groups
-  // - Up to one implicit parameter group
-  case class ClassT(
-    klass: ClassDef,
-    arity: Int,
-    tpeParams: Option[NEL[TypeDef]],
-    paramGroups: NEL[List[ValDef]],
-    implParams: Option[NEL[ValDef]]
-  ) {
-    lazy val classTpe = AppliedTypeTree(Ident(klass.name), tpeParams.map(_.toList).getOrElse(Nil).map(t => Ident(t.name)))
-  }
-
-  def isImplicitVal(v: ValDef): Boolean = v.mods.hasFlag(Flag.IMPLICIT)
-  def isImplicitVal(vs: List[ValDef]): Boolean = vs.forall(isImplicitVal(_))
-
-  def getClassT(klass: ClassDef): ClassT = {
-    val (ps, ips) = klass.impl.collect { case d@DefDef(_, name, _, _, _, _) if name == termNames.CONSTRUCTOR => d } match {
-      case DefDef(_, _, _, vh :: vt, _, _) :: Nil if !isImplicitVal(vh) =>
-        vt.span(!isImplicitVal(_)) match {
-          case (e, i :: Nil) => (NEL(vh, e:_*), NEL.fromList(i))
-          case (e, Nil) => (NEL(vh, e:_*), None)
-          case _ => abort(s"Found more than one implicit parameter group for ${klass.name}")
-        }
-      case _ => abort(s"Failed to find exactly one constructor for ${klass.name}")
-    }
-    ClassT(klass, ps.toList.flatten.length, NEL.fromList(klass.tparams), ps, ips)
-  }
-
   /** Annotations that trigger the plugin */
   def triggers: List[String]
 
-  def updateClass(triggered: List[Tree], klass: ClassT): ClassT
-  def updateCompanion(triggered: List[Tree], klass: ClassT, companion: ModuleDef): ModuleDef
+  def updateClass(triggered: List[Tree], clazz: ClassDef): ClassDef
+  def updateCompanion(
+    triggered: List[Tree],
+    clazz: ClassDef,
+    companion: ModuleDef
+  ): ModuleDef
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef
 
   /** Use to create code that shortcuts in ENSIME and ScalaIDE */
   def isIde: Boolean      = global.isInstanceOf[tools.nsc.interactive.Global]
   def isScaladoc: Boolean = global.isInstanceOf[tools.nsc.doc.ScaladocGlobal]
 
+  private case class PrettyPrinter(level: Int, inQuotes: Boolean, backslashed: Boolean) {
+    val indent = List.fill(level)("  ").mkString
+
+    def transform(char: Char): (PrettyPrinter, String) = {
+      val (pp, f): (PrettyPrinter, PrettyPrinter => String) = char match {
+        case '"' if inQuotes && !backslashed => (copy(inQuotes = false), _ => s"$char")
+        case '"' if !inQuotes => (copy(inQuotes = true), _ => s"$char")
+        case '\\' if inQuotes && !backslashed => (copy(backslashed = true), _ => s"$char")
+
+        case ',' if !inQuotes => (this, p => s",\n${p.indent}")
+        case '(' if !inQuotes => (copy(level = level + 1), p => s"(\n${p.indent}")
+        case ')' if !inQuotes => (copy(level = level - 1), p => s"\n${p.indent})")
+        case _ => (this, _ => s"$char")
+      }
+      (pp, f(pp))
+    }
+  }
+
+  private def prettyPrint(raw: String): String =
+    new StringOps(raw).foldLeft((PrettyPrinter(0, false, false), new StringBuilder(""))) { case ((pp, sb), char) =>
+      val (newPP, res) = pp.transform(char)
+      (newPP, sb.append(res))
+    }._2.toString.replaceAll("""\(\s+\)""", "()")
+
+  private def showTree(tree: Tree, pretty: Boolean): String =
+    if (pretty) prettyPrint(showRaw(tree)) else showRaw(tree)
+
   // best way to inspect a tree, just call this
-  def debug(name: String, tree: Tree): Unit =
-    println(s"====\n$name ${tree.id} ${tree.pos}:\n${showCode(tree)}\n${showRaw(tree).split(')').mkString(")\n")}")
+  def debug(name: String, tree: Tree, pretty: Boolean = false): Unit =
+    Predef.println(
+      s"====\n$name ${tree.id} ${tree.pos}:\n${showCode(tree)}\n${showTree(tree, pretty)}"
+    )
 
   // recovers the final part of an annotation
   def annotationName(ann: Tree): TermName =
@@ -96,7 +70,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
     }.getOrElse(abort(s"no name for $ann"))
 
   // case classes without companions should inherit Function
-  def addSuperFunction(@deprecated("unused", "") klass: ClassT): Boolean =
+  def addSuperFunction(@deprecated("unused", "") clazz: ClassDef): Boolean =
     true
 
   implicit class RichTree[T <: Tree](private val t: T) {
@@ -139,8 +113,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
     private def hasTrigger(mods: Modifiers): Boolean =
       Triggers.exists(mods.hasAnnotationNamed)
 
-    private def extractTrigger(c: ClassT): (ClassT, List[Tree]) = {
-      val trigger = getTriggers(c.klass.mods.annotations)
+    private def extractTrigger(c: ClassDef): (ClassDef, List[Tree]) = {
+      val trigger = getTriggers(c.mods.annotations)
       //val mods = c.mods.mapAnnotations { anns => anns.filterNot(isNamed(_, Trigger)) }
       // if we remove the annotation, like a macro annotation, we end up with a
       // compiler warning saying that the annotation is unused. Perhaps we could
@@ -166,16 +140,46 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
       case _                                           => false
     }
 
+    private def getConstructor(clazz: ClassDef): Option[DefDef] =
+      clazz.impl.collect { case d@DefDef(_, nme.CONSTRUCTOR, _, _, _, _) => d }.headOption
+
+    private def hasSimpleConstructor(clazz: ClassDef): Boolean =
+      getConstructor(clazz) match {
+        case Some(DefDef(_, _, _, ps :: Nil, _, _)) if !ps.exists(_.mods.hasFlag(Flag.IMPLICIT)) => true
+        case _ => false
+      }
+
     /** generates a zero-functionality companion for a class */
-    private def genCompanion(klass: ClassT): ModuleDef = {
+    private def genCompanion(clazz: ClassDef): ModuleDef = {
       val mods =
-        if (klass.klass.mods.hasFlag(Flag.PRIVATE))
-          Modifiers(Flag.PRIVATE, klass.klass.mods.privateWithin)
-        else if (klass.klass.mods.hasFlag(Flag.PROTECTED))
-          Modifiers(Flag.PROTECTED, klass.klass.mods.privateWithin)
+        if (clazz.mods.hasFlag(Flag.PRIVATE))
+          Modifiers(Flag.PRIVATE, clazz.mods.privateWithin)
+        else if (clazz.mods.hasFlag(Flag.PROTECTED))
+          Modifiers(Flag.PROTECTED, clazz.mods.privateWithin)
         else NoMods
 
-      val isCase = klass.klass.mods.hasFlag(Flag.CASE)
+      val isCase = clazz.mods.hasFlag(Flag.CASE)
+
+      lazy val accessors = clazz.impl.collect {
+        case ValDef(mods, _, tpt, _) if mods.hasFlag(Flag.CASEACCESSOR) =>
+          tpt.duplicate
+      }
+
+      def sup =
+        if (isCase &&
+            clazz.tparams.isEmpty &&
+            hasSimpleConstructor(clazz) &&
+            addSuperFunction(clazz) &&
+            accessors.size <= 22) {
+          AppliedTypeTree(
+            Select(
+              Select(Ident(nme.ROOTPKG), nme.scala_),
+              TypeName(s"Function${accessors.size}")
+            ),
+            accessors ::: List(Ident(clazz.name))
+          )
+        } else
+          Select(Ident(nme.scala_), nme.AnyRef.toTypeName)
 
       def toString_ =
         DefDef(
@@ -184,7 +188,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
           Nil,
           Nil,
           Select(Select(Ident(nme.java), nme.lang), nme.String.toTypeName),
-          Literal(Constant(klass.klass.name.companionName.decode))
+          Literal(Constant(clazz.name.companionName.decode))
         )
 
       val cons = DefDef(
@@ -198,9 +202,9 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
       ModuleDef(
         mods | Flag.SYNTHETIC,
-        klass.klass.name.companionName,
+        clazz.name.companionName,
         Template(
-          List(Select(Ident(nme.scala_), nme.AnyRef.toTypeName)),
+          List(sup),
           noSelfType,
           cons :: (if (isCase) List(toString_) else Nil)
         )
@@ -286,20 +290,17 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
 
       trees.flatMap {
         case ClassNoCompanion(c) if hasTrigger(c.mods) =>
-          val klass            = getClassT(c)
-          val companion        = genCompanion(klass).withAllPos(c.pos)
-          val (cleaned, ann)   = extractTrigger(klass)
+          val companion        = genCompanion(c).withAllPos(c.pos)
+          val (cleaned, ann)   = extractTrigger(c)
           val updatedCompanion = updateCompanion(ann, cleaned, companion)
-          List(updateClass(ann, cleaned).klass, updatedCompanion)
+          List(updateClass(ann, cleaned), updatedCompanion)
 
         case ClassHasCompanion(c) if hasTrigger(c.mods) =>
-          val klass          = getClassT(c)
-          val (cleaned, ann) = extractTrigger(klass)
-          List(updateClass(ann, cleaned).klass)
+          val (cleaned, ann) = extractTrigger(c)
+          List(updateClass(ann, cleaned))
 
         case CompanionAndClass(companion, c) if hasTrigger(c.mods) =>
-          val klass          = getClassT(c)
-          val (cleaned, ann) = extractTrigger(klass)
+          val (cleaned, ann) = extractTrigger(c)
           List(updateCompanion(ann, cleaned, companion))
 
         case m: ModuleDef if hasTrigger(m.mods) =>
@@ -314,4 +315,5 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   }
 
   override lazy val components: List[PluginComponent] = List(phase)
+
 }
