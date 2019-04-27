@@ -34,8 +34,8 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
 
     }
 
-  val injEv = combine[Inj.Aux[Cop]#Out].choose
-  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
+  val injEv = combine[Inj[Cop, ?]].choose
+  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj[Prod, ?]].divide
 
   def transformP[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Prod => AndXorK2[G, A1, A2]#Prod =
     (p: AndXorK2[F, A1, A2]#Prod) => {

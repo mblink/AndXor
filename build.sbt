@@ -1,13 +1,13 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.0",
+  version := "0.2.0-MD2",
   libraryDependencies ++= Seq(
     "org.scalaz" %% "scalaz-core" % "7.2.26",
-    "com.chuusai" %% "shapeless" % "2.3.3",
-    "io.argonaut" %% "argonaut" % "6.2.3"
+    "com.chuusai" %% "shapeless" % "2.3.3"
   ),
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
@@ -60,7 +60,10 @@ lazy val commonSettings = Seq(
   scalacOptions in Compile ++= Seq("-Yprofile-trace", s"/Users/mrdziuban/Desktop/${name.value}.trace"),
   scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
   scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-  skip in publish := true
+  skip in publish := true,
+  publishArtifact in (Compile, packageDoc) := false,
+  publishArtifact in packageDoc := false,
+  sources in (Compile, doc) := Seq()
 )
 
 lazy val publishSettings = Seq(
@@ -72,7 +75,8 @@ lazy val publishSettings = Seq(
 )
 
 lazy val generate = project.in(file("generate"))
-  .settings(commonSettings ++ Seq(
+  .settings(commonSettings)
+  .settings(Seq(
     name := "andxor-generate",
     resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies ++= Seq(
@@ -84,14 +88,40 @@ lazy val generate = project.in(file("generate"))
   )).enablePlugins(SbtTwirl)
 
 lazy val core = project.in(file("core"))
-  .settings(commonSettings ++ publishSettings ++ Seq(
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(Seq(
     name := "andxor-core",
     libraryDependencies += "io.estatico" %% "newtype" % "0.4.2",
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
   ))
 
+lazy val argonaut = project.in(file("argonaut"))
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(Seq(
+    name := "andxor-argonaut",
+    libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.3"
+  ))
+  .dependsOn(core)
+
+lazy val circeVersion = "0.10.0"
+lazy val circe = project.in(file("circe"))
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(Seq(
+    name := "andxor-circe",
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core",
+      "io.circe" %% "circe-parser"
+    ).map(_ % circeVersion)
+  ))
+  .dependsOn(core)
+
 lazy val plugin = project.in(file("plugin"))
-  .settings(commonSettings ++ publishSettings ++ Seq(
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(Seq(
     name := "andxor-plugin",
     libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
     scalacOptions in (Compile, console) ++= {
@@ -103,13 +133,17 @@ lazy val plugin = project.in(file("plugin"))
       Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
     }
   ))
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(
+    core % "compile->compile;test->test",
+    argonaut % "test->test"
+  )
 
 lazy val root = project.in(file("."))
-  .settings(commonSettings ++ Seq(
+  .settings(commonSettings)
+  .settings(Seq(
     tutTargetDirectory := file("."),
     scalacOptions in Tut := (scalacOptions in (Compile, console)).value
   ))
   .dependsOn(core)
-  .aggregate(generate, core)
+  .aggregate(generate, core, argonaut, circe, plugin)
   .enablePlugins(TutPlugin)

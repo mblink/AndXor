@@ -64,8 +64,8 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
 
     }
 
-  val injEv = combine[Inj.Aux[Cop]#Out].choose
-  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
+  val injEv = combine[Inj[Cop, ?]].choose
+  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj[Prod, ?]].divide
 
   def transformP[G[_]](nt: (F ~> G)): AndXorK19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]#Prod => AndXorK19[
     G,
