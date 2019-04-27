@@ -315,5 +315,4 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
   }
 
   override lazy val components: List[PluginComponent] = List(phase)
-
 }
