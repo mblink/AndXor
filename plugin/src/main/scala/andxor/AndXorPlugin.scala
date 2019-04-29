@@ -5,10 +5,18 @@ import scala.tools.nsc.Global
 class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global) {
   private val derivableAnn = "derivable"
   private val covariantAnn = "deriveCovariant"
+  private val labelledCovariantAnn = "deriveLabelledCovariant"
   private val contravariantAnn = "deriveContravariant"
+  private val labelledContravariantAnn = "deriveLabelledContravariant"
 
   val name: String = "andxor"
-  val triggers: List[String] = List(derivableAnn, covariantAnn, contravariantAnn)
+  val triggers: List[String] = List(
+    derivableAnn,
+    covariantAnn,
+    labelledCovariantAnn,
+    contravariantAnn,
+    labelledContravariantAnn
+  )
 
   import global._
   import global.internal.constantType
@@ -45,45 +53,66 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
   private val isoObj = q"$isoPkg.IsoSet"
   private val isoTpe = Select(isoPkg, TypeName("IsoSet"))
 
-  private val andxorName = TermName("andxor")
-  private val isoName = TermName("andxorIso")
+  trait GenClassDef {
+    val klass: ClassDef
+    def andxorName: TermName
+    def isoName: TermName
+    def tpes: List[Tree]
 
-  implicit class ClassDefOps(c: ClassDef) {
+    def mkValue(inst: Tree, param: ValDef): Tree
+    def normalizeValue(v: Tree): Tree
+
     def arity: Int = paramGroups.flatten.length
 
     private def isImplGroup(vs: List[ValDef]): Boolean =
       vs.exists(_.mods.hasFlag(Flag.IMPLICIT))
 
     private def getParams: (List[List[ValDef]], List[ValDef]) =
-      c.impl.collect { case d@DefDef(_, nme.CONSTRUCTOR, _, _, _, _) => d } match {
+      klass.impl.collect { case d@DefDef(_, nme.CONSTRUCTOR, _, _, _, _) => d } match {
         case DefDef(_, _, _, vh :: vt, _, _) :: Nil if !isImplGroup(vh) =>
           vt.span(!isImplGroup(_)) match {
             case (e, i :: Nil) => (vh :: e, i)
             case (e, Nil) => (vh :: e, Nil)
-            case _ => abort(s"Found more than one implicit parameter group for ${c.name}")
+            case _ => abort(s"Found more than one implicit parameter group for ${klass.name}")
           }
-        case _ => abort(s"Failed to find exactly one constructor for ${c.name}")
+        case _ => abort(s"Failed to find exactly one constructor for ${klass.name}")
       }
 
     def paramGroups: List[List[ValDef]] = getParams._1
     def implParams: List[ValDef] = getParams._2
 
-    def classTpe: AppliedTypeTree = AppliedTypeTree(Ident(c.name), c.tparams.map(t => Ident(t.name)))
+    def classTpe: AppliedTypeTree = AppliedTypeTree(Ident(klass.name), klass.tparams.map(t => Ident(t.name)))
 
-    def labelledTpes: List[AppliedTypeTree] =
-      paramGroups.flatten.map(p => AppliedTypeTree(labelledTpe, List(p.tpt.duplicate, strLit(p.name.decodedName.toString))))
+    def andxorTpes(F: Option[Tree]): List[Tree] = F.toList ++ tpes
 
-    def andxorTpes(F: Option[Tree]): List[Tree] =
-      F.toList ++ labelledTpes
-
-    private def andxorGen(f: String => Name): Tree = Select(q"$andxorPkg", f(s"AndXor${c.arity}"))
+    private def andxorGen(f: String => Name): Tree = Select(q"$andxorPkg", f(s"AndXor$arity"))
     def andxorObj: Tree = andxorGen(TermName(_))
     def andxorTpe: Tree = AppliedTypeTree(andxorGen(TypeName(_)), andxorTpes(None))
 
-    private def prodGen(f: String => Name): Tree = Select(q"$andxorPkg.types", f(s"Prod${c.arity}"))
+    private def prodGen(f: String => Name): Tree = Select(q"$andxorPkg.types", f(s"Prod$arity"))
     def prodObj: Tree = prodGen(TermName(_))
     def prodTpe: Tree = AppliedTypeTree(prodGen(TypeName(_)), andxorTpes(Some(idTpe)))
 
+    def name: TypeName = klass.name
+    def tparams: List[TypeDef] = klass.tparams
+  }
+
+  case class BaseClassDef(klass: ClassDef) extends GenClassDef {
+    val andxorName = TermName("andxor")
+    val isoName = TermName("andxorIso")
+    def tpes: List[Tree] = paramGroups.flatten.map(_.tpt.duplicate)
+    def mkValue(inst: Tree, param: ValDef): Tree = q"$inst.${param.name}"
+    def normalizeValue(v: Tree): Tree = v
+  }
+
+  case class LabelledClassDef(klass: ClassDef) extends GenClassDef {
+    val andxorName = TermName("andxorLabelled")
+    val isoName = TermName("andxorLabelledIso")
+    def tpes: List[Tree] =
+      paramGroups.flatten.map(p => AppliedTypeTree(labelledTpe, List(p.tpt.duplicate, strLit(p.name.decodedName.toString))))
+    def mkValue(inst: Tree, param: ValDef): Tree =
+      q"$labelledObj.apply[${param.tpt.duplicate}]($inst.${param.name}, ${Literal(Constant(param.name.decodedName.toString))})"
+    def normalizeValue(v: Tree): Tree = Select(v, TermName("value"))
   }
 
   def regenModule(comp: ModuleDef, extras: List[Tree]): ModuleDef =
@@ -101,57 +130,59 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
 
   def updateClass(triggered: List[Tree], klass: ClassDef): ClassDef = klass
 
-  def updateCompanion(triggered: List[Tree], klass: ClassDef, companion: ModuleDef): ModuleDef = {
-    triggered.map(getTypeclasses(_))
+  def updateCompanion(triggered: List[Tree], klass: ClassDef, companion: ModuleDef): ModuleDef =
     regenModule(companion, List(
-      genAndxor(klass),
-      genIso(klass)
+      genAndxor(BaseClassDef(klass)),
+      genAndxor(LabelledClassDef(klass)),
+      genIso(BaseClassDef(klass)),
+      genIso(LabelledClassDef(klass))
     ) ++ triggered.flatMap(genDerivedTypeclasses(_, klass)))
-  }
 
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef = module
 
-  def valOrDef[A](klass: ClassDef)(forVal: ClassDef => A, forDef: ClassDef => A): A =
-    (klass.tparams, klass.implParams) match {
-      case (Nil, Nil) => forVal(klass)
-      case _ => forDef(klass)
+  def valOrDef[A](tparams: List[TypeDef], implParams: List[Tree])(forVal: => A, forDef: => A): A =
+    (tparams, implParams) match {
+      case (Nil, Nil) => forVal
+      case _ => forDef
     }
+
+  def valOrDef[A](klass: GenClassDef)(forVal: => A, forDef: => A): A =
+    valOrDef(klass.tparams, klass.implParams)(forVal, forDef)
 
   def strLit(name: String): TypeTree = TypeTree(constantType(Constant(name)))
 
-  def mkAndxor(klass: ClassDef): Tree =
+  def mkAndxor(klass: GenClassDef): Tree =
     TypeApply(klass.andxorObj, klass.andxorTpes(None))
 
-  def andxorVal(klass: ClassDef): Tree =
+  def andxorVal(klass: GenClassDef): Tree =
     ValDef(
       Modifiers(Flag.SYNTHETIC),
-      andxorName,
+      klass.andxorName,
       klass.andxorTpe,
       mkAndxor(klass)
     )
 
-  def andxorDef(klass: ClassDef): DefDef =
+  def andxorDef(klass: GenClassDef): DefDef =
     DefDef(
       Modifiers(Flag.SYNTHETIC),
-      andxorName,
+      klass.andxorName,
       klass.tparams.map(_.duplicate),
       Nil,
       klass.andxorTpe,
       mkAndxor(klass)
     )
 
-  def genAndxor(klass: ClassDef): Tree = valOrDef(klass)(andxorVal, andxorDef)
+  def genAndxor(klass: GenClassDef): Tree = valOrDef(klass)(andxorVal(klass), andxorDef(klass))
 
-  def mkTuple(c: ClassDef): List[Tree] = {
-    val params = c.paramGroups.flatten
-      .map(p => q"$labelledObj.apply[${p.tpt.duplicate}](x.${p.name}, ${Literal(Constant(p.name.decodedName.toString))})")
-    if (params.length <= 1) params else List(Apply(tupleN(c.arity), params))
+  def mkTuple(klass: GenClassDef): List[Tree] = {
+    val params = klass.paramGroups.flatten.map(klass.mkValue(Ident("x"), _))
+    if (params.length <= 1) params else List(Apply(tupleN(klass.arity), params))
     // List(params.dropRight(1).foldRight(params.last)((p, acc) => Apply(tuple2, List(p, acc))))
   }
 
   def tupleAccess(idx: Int): Select = Select(Ident("x"), TermName(s"t$idx"))
 
-  def mkIso(c: ClassDef): Tree =
+  def mkIso(c: GenClassDef): Tree =
     if (isIde || isScaladoc) Literal(Constant(null))
     else Apply(
       Select(isoObj, TermName("apply")),
@@ -164,28 +195,28 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
         Function(
           List(ValDef(Modifiers(Flag.PARAM | Flag.SYNTHETIC), TermName("x"), c.prodTpe, EmptyTree)),
           c.paramGroups.foldLeft[(Int, Tree)]((1, Select(New(Ident(c.name)), nme.CONSTRUCTOR))) { case ((i, acc), group) =>
-            (i + group.length, Apply(acc, group.zipWithIndex.map(t => Select(tupleAccess(i + t._2), TermName("value")))))
+            (i + group.length, Apply(acc, group.zipWithIndex.map(t => c.normalizeValue(tupleAccess(i + t._2)))))
           }._2)))
 
-  def isoVal(klass: ClassDef): ValDef =
+  def isoVal(klass: GenClassDef): ValDef =
     ValDef(
       Modifiers(Flag.SYNTHETIC),
-      isoName,
+      klass.isoName,
       AppliedTypeTree(isoTpe, List(Ident(klass.name), klass.prodTpe)),
       mkIso(klass)
     )
 
-  def isoDef(klass: ClassDef): DefDef =
+  def isoDef(klass: GenClassDef): DefDef =
     DefDef(
       Modifiers(Flag.SYNTHETIC),
-      isoName,
+      klass.isoName,
       klass.tparams.map(_.duplicate),
       Some(klass.implParams).filter(_.nonEmpty).map(List(_)).getOrElse(Nil),
       AppliedTypeTree(isoTpe, List(klass.classTpe, klass.prodTpe)),
       mkIso(klass)
     )
 
-  def genIso(klass: ClassDef): Tree = valOrDef(klass)(isoVal, isoDef)
+  def genIso(klass: GenClassDef): Tree = valOrDef(klass)(isoVal(klass), isoDef(klass))
 
   sealed trait Variance {
     val typeclassTpe: Tree
@@ -205,7 +236,12 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
     val mapFunction = TermName("contramap")
     val isoFunction = TermName("to")
   }
-  type Typeclass = (Variance, (TermName, TreeTypeName))
+  case class Typeclass(
+    variance: Variance,
+    klass: GenClassDef,
+    memberName: TermName,
+    typeclass: TreeTypeName,
+  )
 
   def getTypeclasses0(ann: Tree): List[(TermName, TreeTypeName)] =
     ann.children.collect {
@@ -213,66 +249,78 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
       case i @ Ident(_)                             => TreeTermName(i)
     }.map(ttn => memberName(ttn.tree) -> ttn.toTypeName)
 
-  def getTypeclasses(ann: Tree): List[Typeclass] =
+  def getTypeclasses(ann: Tree, klass: ClassDef): List[Typeclass] = {
+    val (baseKlass, labelledKlass) = (BaseClassDef(klass), LabelledClassDef(klass))
+    val unlabelled = (v: Variance) => (t: (TermName, TreeTypeName)) => Typeclass(v, baseKlass, t._1, t._2)
+    val labelled = (v: Variance) => (t: (TermName, TreeTypeName)) => Typeclass(v, labelledKlass, t._1, t._2)
+    val f = (g: ((TermName, TreeTypeName)) => Typeclass) => getTypeclasses0(ann).map(g)
+
     annotationName(ann) match {
       case TermName(`derivableAnn`) => Nil
-      case TermName(`covariantAnn`) => getTypeclasses0(ann).map((Covariant, _))
-      case TermName(`contravariantAnn`) => getTypeclasses0(ann).map((Contravariant, _))
+      case TermName(x @ (`covariantAnn` | `contravariantAnn`)) =>
+        f(unlabelled(if (x == covariantAnn) Covariant else Contravariant))
+      case TermName(x @ (`labelledCovariantAnn` | `labelledContravariantAnn`)) =>
+        f(labelled(if (x == labelledCovariantAnn) Covariant else Contravariant))
       case t => abort(s"Unknown andxor annotation: $t")
     }
+  }
 
-  def derivedTypeclass(variance: Variance, typeclass: TreeTypeName, klass: ClassDef): Tree =
+  def derivedTypeclass(tc: Typeclass): Tree =
     Apply(
       Apply(
-        Select(q"$scalaPkg.Predef.implicitly[${variance.typeclassTpe}[${typeclass.tree.duplicate}]]", variance.mapFunction),
+        Select(q"$scalaPkg.Predef.implicitly[${tc.variance.typeclassTpe}[${tc.typeclass.tree.duplicate}]]", tc.variance.mapFunction),
         List(
           Select(
             Apply(
               TypeApply(
                 Select(
-                  Ident(andxorName),
+                  Ident(tc.klass.andxorName),
                   TermName("combine")
                 ),
-                List(typeclass.tree.duplicate)
+                List(tc.typeclass.tree.duplicate)
               ),
-              klass.labelledTpes.map(t => q"$scalaPkg.Predef.implicitly[${typeclass.tree.duplicate}[$t]]")
+              // TODO - why do I have to call `implicitly` to get the labelled type to be picked up correctly?
+              /*
+              [error] AndXorPluginTest.scala:53:14: implicit error;
+              [error] !I a0: Read[Labelled[String] {type L = Witness.Aux[String]}]
+              [error]   case class Test2(
+              */
+              tc.klass.tpes.map(t => q"$scalaPkg.Predef.implicitly[${tc.typeclass.tree.duplicate}[$t]]")
             ),
-            variance.derivationFunction
+            tc.variance.derivationFunction
           )
         )
       ),
-      List(Select(Ident(isoName), variance.isoFunction))
+      List(Select(Ident(tc.klass.isoName), tc.variance.isoFunction))
     )
 
-  def derivedTypeclassVal(klass: ClassDef): Typeclass => ValDef = { case (variance, (memberName, typeclass)) =>
+  def derivedTypeclassVal(tc: Typeclass): ValDef =
     ValDef(
       Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
-      memberName,
-      AppliedTypeTree(typeclass.tree.duplicate, List(klass.classTpe)),
-      derivedTypeclass(variance, typeclass, klass)
+      tc.memberName,
+      AppliedTypeTree(tc.typeclass.tree.duplicate, List(tc.klass.classTpe)),
+      derivedTypeclass(tc)
     )
-  }
 
-  def derivedTypeclassDef(klass: ClassDef): Typeclass => DefDef = { case (variance, (memberName, typeclass)) =>
+  def derivedTypeclassDef(tc: Typeclass): DefDef =
     DefDef(
       Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
-      memberName,
-      klass.tparams.map(_.duplicate),
-      List(klass.implParams ++ klass.tparams.zipWithIndex.map { case (t, i) =>
+      tc.memberName,
+      tc.klass.tparams.map(_.duplicate),
+      List(tc.klass.implParams ++ tc.klass.tparams.zipWithIndex.map { case (t, i) =>
         ValDef(
           Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
           TermName(s"evidence$$$i"),
-          AppliedTypeTree(typeclass.tree.duplicate, List(Ident(t.name))),
+          AppliedTypeTree(tc.typeclass.tree.duplicate, List(Ident(t.name))),
           EmptyTree
         )
       }),
-      AppliedTypeTree(typeclass.tree.duplicate, List(klass.classTpe)),
-      derivedTypeclass(variance, typeclass, klass)
+      AppliedTypeTree(tc.typeclass.tree.duplicate, List(tc.klass.classTpe)),
+      derivedTypeclass(tc)
     )
-  }
 
   def genDerivedTypeclasses(ann: Tree, klass: ClassDef): List[Tree] = {
-    val gen: Typeclass => Tree = valOrDef(klass)(derivedTypeclassVal _, derivedTypeclassDef _)
-    getTypeclasses(ann).map(gen)
+    val gen: Typeclass => Tree = valOrDef(klass.tparams, BaseClassDef(klass).implParams)(derivedTypeclassVal _, derivedTypeclassDef _)
+    getTypeclasses(ann, klass).map(gen)
   }
 }

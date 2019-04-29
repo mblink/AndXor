@@ -57,7 +57,6 @@ lazy val commonSettings = Seq(
     "-Ycache-plugin-class-loader:last-modified",
     "-Ycache-macro-class-loader:last-modified"
   ),
-  scalacOptions in Compile ++= Seq("-Yprofile-trace", s"/Users/mrdziuban/Desktop/${name.value}.trace"),
   scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
   scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
   skip in publish := true,

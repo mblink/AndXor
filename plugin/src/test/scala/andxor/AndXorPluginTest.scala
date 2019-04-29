@@ -7,10 +7,13 @@ import scala.annotation.Annotation
 import scalaz.{Apply, Show}
 import scalaz.std.option._
 import scalaz.syntax.apply._
+import scalaz.syntax.id._
 import shapeless.{Witness => W}
 
 final class deriveCovariant(val typeclasses: AnyRef*) extends Annotation
+final class deriveLabelledCovariant(val typeclasses: AnyRef*) extends Annotation
 final class deriveContravariant(val typeclasses: AnyRef*) extends Annotation
+final class deriveLabelledContravariant(val typeclasses: AnyRef*) extends Annotation
 
 object typeclasses {
   implicit def showLabelled[A, L <: String]: Show[Labelled.Aux[A, L]] =
@@ -36,34 +39,52 @@ object typeclasses {
       def ap[A, B](fa: => Read[A])(f: => Read[A => B]): Read[B] = s => (f.read(s) |@| fa.read(s))(_(_))
     }
   }
+
+  trait Csv[A] { def toCsv(a: A): List[String] }
+  object Csv {
+    implicit val csvStr: Csv[String] = List(_)
+    implicit val csvInt: Csv[Int] = i => List(i.toString)
+    implicit val csvBool: Csv[Boolean] = b => List(b.toString)
+    implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] = _.flatMap(c.toCsv(_))
+
+    implicit val csvDivide: Divide[Csv] = new Divide[Csv] {
+      def conquer[A]: Csv[A] = _ => Nil
+      def divide2[A1, A2, Z](a1: => Csv[A1], a2: => Csv[A2])(f: Z => (A1, A2)): Csv[Z] =
+        f(_) |> (t => a1.toCsv(t._1) ++ a2.toCsv(t._2))
+    }
+  }
 }
 
 object types {
   import typeclasses._
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test1(
     x1: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test2(
     x1: String,
     x2: Int
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test3(
     x1: String,
     x2: Int,
     x3: Boolean
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test4(
     x1: String,
     x2: Int,
@@ -71,8 +92,9 @@ object types {
     x4: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test5(
     x1: String,
     x2: Int,
@@ -81,8 +103,9 @@ object types {
     x5: Int
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test6(
     x1: String,
     x2: Int,
@@ -92,8 +115,9 @@ object types {
     x6: Boolean
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test7(
     x1: String,
     x2: Int,
@@ -104,8 +128,9 @@ object types {
     x7: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test8(
     x1: String,
     x2: Int,
@@ -117,8 +142,9 @@ object types {
     x8: Int
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test9(
     x1: String,
     x2: Int,
@@ -131,8 +157,9 @@ object types {
     x9: Boolean
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test10(
     x1: String,
     x2: Int,
@@ -146,8 +173,9 @@ object types {
     x10: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test11(
     x1: String,
     x2: Int,
@@ -162,8 +190,9 @@ object types {
     x11: Int
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test12(
     x1: String,
     x2: Int,
@@ -179,8 +208,9 @@ object types {
     x12: Boolean
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test13(
     x1: String,
     x2: Int,
@@ -197,8 +227,9 @@ object types {
     x13: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test14(
     x1: String,
     x2: Int,
@@ -216,8 +247,9 @@ object types {
     x14: Int
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test15(
     x1: String,
     x2: Int,
@@ -236,8 +268,9 @@ object types {
     x15: Boolean
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test16(
     x1: String,
     x2: Int,
@@ -257,8 +290,9 @@ object types {
     x16: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test17(
     x1: String,
     x2: Int,
@@ -279,8 +313,9 @@ object types {
     x17: Int
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test18(
     x1: String,
     x2: Int,
@@ -302,8 +337,9 @@ object types {
     x18: Boolean
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test19(
     x1: String,
     x2: Int,
@@ -326,8 +362,9 @@ object types {
     x19: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test20(
     x1: String,
     x2: Int,
@@ -351,8 +388,9 @@ object types {
     x20: Int
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test21(
     x1: String,
     x2: Int,
@@ -377,8 +415,9 @@ object types {
     x21: Boolean
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Test22(
     x1: String,
     x2: Int,
@@ -404,15 +443,18 @@ object types {
     x22: String
   )
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Multi(str: String)(val int: Int)
 
 
-  @deriveCovariant(Read, DecodeJson)
-  @deriveContravariant(Show, EncodeJson)
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class TParam[A](foo: A)
 
-  @deriveContravariant(Show)
+@deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show)
   case class OneToMany[A, B](one: A, many: List[B])
 }
