@@ -3,12 +3,12 @@ package andxor
 import scala.tools.nsc.Global
 
 class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global) {
-  private val andxorAnn = "andxor"
+  private val derivableAnn = "derivable"
   private val covariantAnn = "deriveCovariant"
   private val contravariantAnn = "deriveContravariant"
 
   val name: String = "andxor"
-  val triggers: List[String] = List(andxorAnn, covariantAnn, contravariantAnn)
+  val triggers: List[String] = List(derivableAnn, covariantAnn, contravariantAnn)
 
   import global._
   import global.internal.constantType
@@ -36,7 +36,8 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
   private val labelledTpe = Select(labelledObj, TypeName("Aux"))
 
   private val scalaPkg = q"_root_.scala"
-  private val tuple2 = q"$scalaPkg.Tuple2.apply"
+  private def tupleN(n: Int): Tree = Select(Select(scalaPkg, TermName(s"Tuple$n")), TermName("apply"))
+  // private val tuple2 = tupleN(2)
 
   private val scalazPkg = q"_root_.scalaz"
   private val idTpe = Select(q"$scalazPkg.Id", TypeName("Id"))
@@ -44,10 +45,11 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
   private val isoObj = q"$isoPkg.IsoSet"
   private val isoTpe = Select(isoPkg, TypeName("IsoSet"))
 
-  private val andxorIsoName = TermName("andxorIso")
+  private val andxorName = TermName("andxor")
+  private val isoName = TermName("andxorIso")
 
   implicit class ClassDefOps(c: ClassDef) {
-    def arity: Int = paramGroups.toList.flatten.length
+    def arity: Int = paramGroups.flatten.length
 
     private def isImplGroup(vs: List[ValDef]): Boolean =
       vs.exists(_.mods.hasFlag(Flag.IMPLICIT))
@@ -68,13 +70,20 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
 
     def classTpe: AppliedTypeTree = AppliedTypeTree(Ident(c.name), c.tparams.map(t => Ident(t.name)))
 
-    def prodTpes(F: Option[Tree]): List[Tree] =
-      F.toList ++ c.paramGroups.toList.flatten.map(p =>
-        AppliedTypeTree(labelledTpe, List(p.tpt.duplicate, strLit(p.name.decodedName.toString))))
+    def labelledTpes: List[AppliedTypeTree] =
+      paramGroups.flatten.map(p => AppliedTypeTree(labelledTpe, List(p.tpt.duplicate, strLit(p.name.decodedName.toString))))
+
+    def andxorTpes(F: Option[Tree]): List[Tree] =
+      F.toList ++ labelledTpes
+
+    private def andxorGen(f: String => Name): Tree = Select(q"$andxorPkg", f(s"AndXor${c.arity}"))
+    def andxorObj: Tree = andxorGen(TermName(_))
+    def andxorTpe: Tree = AppliedTypeTree(andxorGen(TypeName(_)), andxorTpes(None))
 
     private def prodGen(f: String => Name): Tree = Select(q"$andxorPkg.types", f(s"Prod${c.arity}"))
     def prodObj: Tree = prodGen(TermName(_))
-    def prodTpe: Tree = AppliedTypeTree(prodGen(TypeName(_)), c.prodTpes(Some(idTpe)))
+    def prodTpe: Tree = AppliedTypeTree(prodGen(TypeName(_)), andxorTpes(Some(idTpe)))
+
   }
 
   def regenModule(comp: ModuleDef, extras: List[Tree]): ModuleDef =
@@ -94,7 +103,10 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
 
   def updateCompanion(triggered: List[Tree], klass: ClassDef, companion: ModuleDef): ModuleDef = {
     triggered.map(getTypeclasses(_))
-    regenModule(companion, genIso(klass) :: triggered.flatMap(genDerivedTypeclasses(_, klass)))
+    regenModule(companion, List(
+      genAndxor(klass),
+      genIso(klass)
+    ) ++ triggered.flatMap(genDerivedTypeclasses(_, klass)))
   }
 
   def updateModule(triggered: List[Tree], module: ModuleDef): ModuleDef = module
@@ -107,10 +119,34 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
 
   def strLit(name: String): TypeTree = TypeTree(constantType(Constant(name)))
 
+  def mkAndxor(klass: ClassDef): Tree =
+    TypeApply(klass.andxorObj, klass.andxorTpes(None))
+
+  def andxorVal(klass: ClassDef): Tree =
+    ValDef(
+      Modifiers(Flag.SYNTHETIC),
+      andxorName,
+      klass.andxorTpe,
+      mkAndxor(klass)
+    )
+
+  def andxorDef(klass: ClassDef): DefDef =
+    DefDef(
+      Modifiers(Flag.SYNTHETIC),
+      andxorName,
+      klass.tparams.map(_.duplicate),
+      Nil,
+      klass.andxorTpe,
+      mkAndxor(klass)
+    )
+
+  def genAndxor(klass: ClassDef): Tree = valOrDef(klass)(andxorVal, andxorDef)
+
   def mkTuple(c: ClassDef): List[Tree] = {
-    val params = c.paramGroups.toList.flatten
+    val params = c.paramGroups.flatten
       .map(p => q"$labelledObj.apply[${p.tpt.duplicate}](x.${p.name}, ${Literal(Constant(p.name.decodedName.toString))})")
-    List(params.dropRight(1).foldRight(params.last)((p, acc) => Apply(tuple2, List(p, acc))))
+    if (params.length <= 1) params else List(Apply(tupleN(c.arity), params))
+    // List(params.dropRight(1).foldRight(params.last)((p, acc) => Apply(tuple2, List(p, acc))))
   }
 
   def tupleAccess(idx: Int): Select = Select(Ident("x"), TermName(s"t$idx"))
@@ -123,47 +159,51 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
         Function(
           List(ValDef(Modifiers(Flag.PARAM | Flag.SYNTHETIC), TermName("x"), c.classTpe, EmptyTree)),
           Apply(
-            TypeApply(Select(c.prodObj, TermName("apply")), c.prodTpes(Some(idTpe))),
+            TypeApply(Select(c.prodObj, TermName("apply")), c.andxorTpes(Some(idTpe))),
             mkTuple(c))),
         Function(
           List(ValDef(Modifiers(Flag.PARAM | Flag.SYNTHETIC), TermName("x"), c.prodTpe, EmptyTree)),
-          c.paramGroups.toList.foldLeft[(Int, Tree)]((1, Select(New(Ident(c.name)), nme.CONSTRUCTOR))) { case ((i, acc), group) =>
+          c.paramGroups.foldLeft[(Int, Tree)]((1, Select(New(Ident(c.name)), nme.CONSTRUCTOR))) { case ((i, acc), group) =>
             (i + group.length, Apply(acc, group.zipWithIndex.map(t => Select(tupleAccess(i + t._2), TermName("value")))))
           }._2)))
 
-  def isoValDef(klass: ClassDef): ValDef =
+  def isoVal(klass: ClassDef): ValDef =
     ValDef(
-      Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
-      andxorIsoName,
+      Modifiers(Flag.SYNTHETIC),
+      isoName,
       AppliedTypeTree(isoTpe, List(Ident(klass.name), klass.prodTpe)),
       mkIso(klass)
     )
 
-  def isoDefDef(klass: ClassDef): DefDef =
+  def isoDef(klass: ClassDef): DefDef =
     DefDef(
-      Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
-      andxorIsoName,
+      Modifiers(Flag.SYNTHETIC),
+      isoName,
       klass.tparams.map(_.duplicate),
       Some(klass.implParams).filter(_.nonEmpty).map(List(_)).getOrElse(Nil),
       AppliedTypeTree(isoTpe, List(klass.classTpe, klass.prodTpe)),
       mkIso(klass)
     )
 
-  def genIso(klass: ClassDef): Tree = valOrDef(klass)(isoValDef, isoDefDef)
+  def genIso(klass: ClassDef): Tree = valOrDef(klass)(isoVal, isoDef)
 
   sealed trait Variance {
-    val derivationFunction: Tree
-    def prodDerivationFunction(klass: ClassDef): Tree
+    val typeclassTpe: Tree
+    val derivationFunction: TermName
+    val mapFunction: TermName
+    val isoFunction: TermName
   }
   case object Covariant extends Variance {
-    val derivationFunction = q"$andxorPkg.derivation.deriveCovariant"
-    def prodDerivationFunction(klass: ClassDef): Tree =
-      Select(klass.prodObj, TermName(s"Prod${klass.arity}TCApplyId"))
+    val typeclassTpe = Select(scalazPkg, TypeName("Apply"))
+    val derivationFunction = TermName("apply")
+    val mapFunction = TermName("map")
+    val isoFunction = TermName("from")
   }
   case object Contravariant extends Variance {
-    val derivationFunction = q"$andxorPkg.derivation.deriveContravariant"
-    def prodDerivationFunction(klass: ClassDef): Tree =
-      Select(klass.prodObj, TermName(s"Prod${klass.arity}TCDivideId"))
+    val typeclassTpe = Select(andxorPkg, TypeName("Divide"))
+    val derivationFunction = TermName("divide")
+    val mapFunction = TermName("contramap")
+    val isoFunction = TermName("to")
   }
   type Typeclass = (Variance, (TermName, TreeTypeName))
 
@@ -175,7 +215,7 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
 
   def getTypeclasses(ann: Tree): List[Typeclass] =
     annotationName(ann) match {
-      case TermName(`andxorAnn`) => Nil
+      case TermName(`derivableAnn`) => Nil
       case TermName(`covariantAnn`) => getTypeclasses0(ann).map((Covariant, _))
       case TermName(`contravariantAnn`) => getTypeclasses0(ann).map((Contravariant, _))
       case t => abort(s"Unknown andxor annotation: $t")
@@ -184,26 +224,33 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
   def derivedTypeclass(variance: Variance, typeclass: TreeTypeName, klass: ClassDef): Tree =
     Apply(
       Apply(
-        TypeApply(
-          variance.derivationFunction,
-          List(klass.classTpe, klass.prodTpe, typeclass.tree.duplicate)
-        ),
-        List(Ident(andxorIsoName))
-      ),
-      List(
-        q"$scalaPkg.Predef.implicitly",
-        TypeApply(
-          variance.prodDerivationFunction(klass),
-          typeclass.tree.duplicate :: klass.prodTpes(None)
+        Select(q"$scalaPkg.Predef.implicitly[${variance.typeclassTpe}[${typeclass.tree.duplicate}]]", variance.mapFunction),
+        List(
+          Select(
+            Apply(
+              TypeApply(
+                Select(
+                  Ident(andxorName),
+                  TermName("combine")
+                ),
+                List(typeclass.tree.duplicate)
+              ),
+              klass.labelledTpes.map(t => q"$scalaPkg.Predef.implicitly[${typeclass.tree.duplicate}[$t]]")
+            ),
+            variance.derivationFunction
+          )
         )
-      ))
+      ),
+      List(Select(Ident(isoName), variance.isoFunction))
+    )
 
   def derivedTypeclassVal(klass: ClassDef): Typeclass => ValDef = { case (variance, (memberName, typeclass)) =>
     ValDef(
       Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
       memberName,
       AppliedTypeTree(typeclass.tree.duplicate, List(klass.classTpe)),
-      derivedTypeclass(variance, typeclass, klass))
+      derivedTypeclass(variance, typeclass, klass)
+    )
   }
 
   def derivedTypeclassDef(klass: ClassDef): Typeclass => DefDef = { case (variance, (memberName, typeclass)) =>
@@ -220,7 +267,8 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
         )
       }),
       AppliedTypeTree(typeclass.tree.duplicate, List(klass.classTpe)),
-      derivedTypeclass(variance, typeclass, klass))
+      derivedTypeclass(variance, typeclass, klass)
+    )
   }
 
   def genDerivedTypeclasses(ann: Tree, klass: ClassDef): List[Tree] = {

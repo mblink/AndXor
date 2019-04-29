@@ -293,6 +293,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin {
           val companion        = genCompanion(c).withAllPos(c.pos)
           val (cleaned, ann)   = extractTrigger(c)
           val updatedCompanion = updateCompanion(ann, cleaned, companion)
+          println(updatedCompanion)
           List(updateClass(ann, cleaned), updatedCompanion)
 
         case ClassHasCompanion(c) if hasTrigger(c.mods) =>

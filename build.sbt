@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.0-MD2",
+  version := "0.2.0-MD5",
   libraryDependencies ++= Seq(
     "org.scalaz" %% "scalaz-core" % "7.2.26",
     "com.chuusai" %% "shapeless" % "2.3.3"

@@ -5,9 +5,8 @@
 
 import andxor.tuple._
 import io.estatico.newtype.macros.newtype
-import scalaz.{\/, -\/, \/-, Apply, /*Contravariant, Functor,*/ InvariantFunctor, Monoid}
+import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
 import scalaz.Id.Id
-// import scalaz.Isomorphism.<=>
 
 object types {
   object dummy {
@@ -32,26 +31,10 @@ object types {
       MF.xmap(M, @{tpes.prodTpe}(_), (_: @{tpes.prodTpe}).run)
 
     @tpes.zipper(template.txt.Lift(_, false).toString.trim).mkString("\n\n    ")
-    @tpes.tcDef("    ", DivideTC(tpes), false)
-    @tpes.tcDef("    ", ApplyTC(tpes), false)
   }
 
   object @{tpes.prodName} extends @{tpes.prodName}LP {
     @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
-    @tpes.tcDef("    ", DivideTC(tpes), true)
-    @tpes.tcDef("    ", ApplyTC(tpes), true)
-
-    /*implicit def @{tpes.prodName}IsoTCCovariant[TC[_], F[_], T, @{tpes.tpeParams}](
-        implicit iso: T <=> @{tpes.prodTpe},
-        tc: TC[@{tpes.prodTpe}],
-        F: Functor[TC]): TC[T] =
-      F.map[@{tpes.prodTpe}, T](tc)(iso.from(_))
-
-    implicit def @{tpes.prodName}IsoTCContravariant[TC[_], F[_], T, @{tpes.tpeParams}](
-        implicit iso: T <=> @{tpes.prodTpe},
-        tc: TC[@{tpes.prodTpe}],
-        F: Contravariant[TC]): TC[T] =
-      F.contramap[@{tpes.prodTpe}, T](tc)(iso.to(_))*/
   }
 
   @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{(tpes.length <= 1).fold("", s""" {
@@ -61,14 +44,10 @@ object types {
 
   trait @{tpes.copName}LP {
     @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
-    @tpes.tcDef("    ", DecidableTC(tpes), false)
-    @tpes.tcDef("    ", AltTC(tpes), false)
   }
 
   object @{tpes.copName} extends @{tpes.copName}LP {
     @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
-    @tpes.tcDef("    ", DecidableTC(tpes), true)
-    @tpes.tcDef("    ", AltTC(tpes), true)
   }
   }
 }

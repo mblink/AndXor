@@ -9,7 +9,6 @@ import scalaz.std.option._
 import scalaz.syntax.apply._
 import shapeless.{Witness => W}
 
-final class andxor extends Annotation
 final class deriveCovariant(val typeclasses: AnyRef*) extends Annotation
 final class deriveContravariant(val typeclasses: AnyRef*) extends Annotation
 
@@ -41,14 +40,12 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test1(
     x1: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test2(
@@ -56,7 +53,6 @@ object types {
     x2: Int
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test3(
@@ -65,7 +61,6 @@ object types {
     x3: Boolean
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test4(
@@ -75,7 +70,6 @@ object types {
     x4: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test5(
@@ -86,7 +80,6 @@ object types {
     x5: Int
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test6(
@@ -98,7 +91,6 @@ object types {
     x6: Boolean
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test7(
@@ -111,7 +103,6 @@ object types {
     x7: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test8(
@@ -125,7 +116,6 @@ object types {
     x8: Int
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test9(
@@ -140,7 +130,6 @@ object types {
     x9: Boolean
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test10(
@@ -156,7 +145,6 @@ object types {
     x10: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test11(
@@ -173,7 +161,6 @@ object types {
     x11: Int
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test12(
@@ -191,7 +178,6 @@ object types {
     x12: Boolean
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test13(
@@ -210,7 +196,6 @@ object types {
     x13: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test14(
@@ -230,7 +215,6 @@ object types {
     x14: Int
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test15(
@@ -251,7 +235,6 @@ object types {
     x15: Boolean
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test16(
@@ -273,7 +256,6 @@ object types {
     x16: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test17(
@@ -296,7 +278,6 @@ object types {
     x17: Int
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test18(
@@ -320,7 +301,6 @@ object types {
     x18: Boolean
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test19(
@@ -345,7 +325,6 @@ object types {
     x19: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test20(
@@ -371,7 +350,6 @@ object types {
     x20: Int
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test21(
@@ -398,7 +376,6 @@ object types {
     x21: Boolean
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Test22(
@@ -426,14 +403,15 @@ object types {
     x22: String
   )
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class Multi(str: String)(val int: Int)
 
 
-  @andxor
   @deriveCovariant(Read, DecodeJson)
   @deriveContravariant(Show, EncodeJson)
   case class TParam[A](foo: A)
+
+  @deriveContravariant(Show)
+  case class OneToMany[A, B](one: A, many: List[B])
 }

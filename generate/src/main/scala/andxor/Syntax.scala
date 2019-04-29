@@ -2,11 +2,11 @@ package andxor
 
 import scalaz.Zipper
 import scalaz.syntax.comonad._
-import scalaz.syntax.id._
+// import scalaz.syntax.id._
 import scalaz.syntax.std.boolean._
 
 object syntax {
-  val tupleLen = 4
+  val tupleLen = 22
 
   def range(start: Int, end: Int): List[Int] = start.to(end).toList
 
@@ -68,7 +68,8 @@ object syntax {
     def dj: String = djBase(identity _)
     def djK(F: String): String = djBase(t => s"$F[$t]")
 
-    def mkTuple: String = tpes.reduceRight((tpe, acc) => parens(tpe ++ ", " ++ acc))
+    def mkTuple: String = if (tpes.length <= 1) tpes.mkString(", ") else parens(tpes.mkString(", "))
+      // tpes.reduceRight((tpe, acc) => parens(tpe ++ ", " ++ acc))
 
     def tupleVals(a: String, v: String, spaces: String, sIx: Int = 0): String =
       paramList(a, sIx).zipWithIndex.map(t => s"val ${t._1} = ${v}${tupleAccess(t._2 + 1)}").mkString(s"\n$spaces")
@@ -108,9 +109,9 @@ object syntax {
 
     def tupleAccess(idx: Int): String = foldLen01("")(s".t$idx")
 
-    def tupleAccessNoSyntax(idx: Int): String =
-      toZipper.move(idx - 1).get |> (z => z.lefts.foldLeft(Some(z.rights)
-        .filter(_.nonEmpty).map(_ => "._1").getOrElse(""))((a, _) => s"._2$a"))
+    def tupleAccessNoSyntax(idx: Int): String = foldLen01("")(s"._$idx")
+      // toZipper.move(idx - 1).get |> (z => z.lefts.foldLeft(Some(z.rights)
+      //   .filter(_.nonEmpty).map(_ => "._1").getOrElse(""))((a, _) => s"._2$a"))
 
     def foldLen0[A](eq0: => A)(gt0: => A): A = (tpes.length == 0).fold(eq0, gt0)
     def foldLen01[A](lteq1: => A)(gt1: => A): A = (tpes.length <= 1).fold(lteq1, gt1)
