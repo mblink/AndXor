@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.{\/, Monoid}
+import scalaz.{\/, Semigroup}
 
 trait Inj[Cop, A] {
   def apply(a: A): Cop
@@ -13,22 +13,22 @@ object Inj {
 
   implicit def decidableInj[Cop]: Decidable[Inj[Cop, ?]] =
     new Decidable[Inj[Cop, ?]] {
-      def lose[A](f: A => Void): Inj[Cop, A] =
-        instance(a => absurd(f(a)))
+      def contramap[A, B](fa: Inj[Cop, A])(f: B => A): Inj[Cop, B] =
+        instance(b => fa(f(b)))
 
       def choose2[Z, A1, A2](a1: => Inj[Cop, A1], a2: => Inj[Cop, A2])(f: Z => (A1 \/ A2)): Inj[Cop, Z] =
         instance(f(_).fold(a1(_), a2(_)))
     }
 
-  implicit def divideInj[Prod](implicit M: Monoid[Prod]): Divide[Inj[Prod, ?]] =
+  implicit def divideInj[Prod](implicit S: Semigroup[Prod]): Divide[Inj[Prod, ?]] =
     new Divide[Inj[Prod, ?]] {
-      def conquer[A]: Inj[Prod, A] =
-        instance(_ => M.zero)
+      def contramap[A, B](fa: Inj[Prod, A])(f: B => A): Inj[Prod, B] =
+        instance(b => fa(f(b)))
 
       def divide2[A1, A2, Z](a1: => Inj[Prod, A1], a2: => Inj[Prod, A2])(f: Z => (A1, A2)): Inj[Prod, Z] =
         instance { z =>
           val (i1, i2) = f(z)
-          M.append(a1(i1), a2(i2))
+          S.append(a1(i1), a2(i2))
         }
     }
 }

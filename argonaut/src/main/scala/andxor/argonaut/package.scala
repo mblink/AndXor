@@ -10,7 +10,7 @@ package object argonaut {
     EncodeJson(l => Json(l.label.value -> ej(l.value)))
 
   implicit val encodeJsonDivide: Divide[EncodeJson] = new Divide[EncodeJson] {
-    def conquer[A]: EncodeJson[A] = EncodeJson(_ => Json())
+    def contramap[A, B](fa: EncodeJson[A])(f: B => A): EncodeJson[B] = fa.contramap(f)
     def divide2[A1, A2, Z](a1: => EncodeJson[A1], a2: => EncodeJson[A2])(f: Z => (A1, A2)): EncodeJson[Z] =
       EncodeJson(f(_) |> (t => a1(t._1).deepmerge(a2(t._2))))
   }

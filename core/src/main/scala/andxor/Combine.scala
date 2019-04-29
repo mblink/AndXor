@@ -7,49 +7,49 @@ object Combine {
   def divide2[F[_], A1, A2, Z](a1: => F[A1], a2: => F[A2])(f: Z => (A1, A2))(implicit D: Divide[F]): F[Z] = D.divide2(a1, a2)(f)
 
   def divide3[F[_], A1, A2, A3, Z](a0: => F[A1], a1: => F[A2], a2: => F[A3])(
-      f: Z => (A1, (A2, A3))
+      f: Z => (A1, A2, A3)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, a2)) { z =>
     val t = f(z)
     (t.t1, (t.t2, t.t3))
   }
 
   def divide4[F[_], A1, A2, A3, A4, Z](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4])(
-      f: Z => (A1, (A2, (A3, A4)))
+      f: Z => (A1, A2, A3, A4)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, a3))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, t.t4)))
   }
 
   def divide5[F[_], A1, A2, A3, A4, A5, Z](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5])(
-      f: Z => (A1, (A2, (A3, (A4, A5))))
+      f: Z => (A1, A2, A3, A4, A5)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, a4)))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, (t.t4, t.t5))))
   }
 
   def divide6[F[_], A1, A2, A3, A4, A5, A6, Z](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6])(
-      f: Z => (A1, (A2, (A3, (A4, (A5, A6)))))
+      f: Z => (A1, A2, A3, A4, A5, A6)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, D.tuple2(a4, a5))))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, t.t6)))))
   }
 
   def divide7[F[_], A1, A2, A3, A4, A5, A6, A7, Z](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6], a6: => F[A7])(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, A7))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, D.tuple2(a4, D.tuple2(a5, a6)))))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, t.t7))))))
   }
 
   def divide8[F[_], A1, A2, A3, A4, A5, A6, A7, A8, Z](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6], a6: => F[A7], a7: => F[A8])(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, A8)))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, D.tuple2(a4, D.tuple2(a5, D.tuple2(a6, a7))))))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, t.t8)))))))
   }
 
   def divide9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, Z](a0: => F[A1], a1: => F[A2], a2: => F[A3], a3: => F[A4], a4: => F[A5], a5: => F[A6], a6: => F[A7], a7: => F[A8], a8: => F[A9])(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, A9))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, D.tuple2(a4, D.tuple2(a5, D.tuple2(a6, D.tuple2(a7, a8)))))))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, t.t9))))))))
@@ -67,7 +67,7 @@ object Combine {
       a8: => F[A9],
       a9: => F[A10]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, A10)))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, D.tuple2(a4, D.tuple2(a5, D.tuple2(a6, D.tuple2(a7, D.tuple2(a8, a9))))))))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, t.t10)))))))))
@@ -86,7 +86,7 @@ object Combine {
       a9: => F[A10],
       a10: => F[A11]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, A11))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, D.tuple2(a4, D.tuple2(a5, D.tuple2(a6, D.tuple2(a7, D.tuple2(a8, D.tuple2(a9, a10)))))))))) { z =>
     val t = f(z)
     (t.t1, (t.t2, (t.t3, (t.t4, (t.t5, (t.t6, (t.t7, (t.t8, (t.t9, (t.t10, t.t11))))))))))
@@ -106,7 +106,7 @@ object Combine {
       a10: => F[A11],
       a11: => F[A12]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, A12)))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)
   )(implicit D: Divide[F]): F[Z] = D.divide2(a0, D.tuple2(a1, D.tuple2(a2, D.tuple2(a3, D.tuple2(a4, D.tuple2(a5, D.tuple2(a6, D.tuple2(a7, D.tuple2(a8, D.tuple2(a9, D.tuple2(a10, a11))))))))))) {
     z =>
       val t = f(z)
@@ -128,7 +128,7 @@ object Combine {
       a11: => F[A12],
       a12: => F[A13]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, A13))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -154,7 +154,7 @@ object Combine {
       a12: => F[A13],
       a13: => F[A14]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, A14)))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -184,7 +184,7 @@ object Combine {
       a13: => F[A14],
       a14: => F[A15]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, A15))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -218,7 +218,7 @@ object Combine {
       a14: => F[A15],
       a15: => F[A16]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, A16)))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -256,7 +256,7 @@ object Combine {
       a15: => F[A16],
       a16: => F[A17]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, A17))))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -298,7 +298,7 @@ object Combine {
       a16: => F[A17],
       a17: => F[A18]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, A18)))))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -344,7 +344,7 @@ object Combine {
       a17: => F[A18],
       a18: => F[A19]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, A19))))))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -394,7 +394,7 @@ object Combine {
       a18: => F[A19],
       a19: => F[A20]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, (A19, A20)))))))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -448,7 +448,7 @@ object Combine {
       a19: => F[A20],
       a20: => F[A21]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, (A19, (A20, A21))))))))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -506,7 +506,7 @@ object Combine {
       a20: => F[A21],
       a21: => F[A22]
   )(
-      f: Z => (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, (A19, (A20, (A21, A22)))))))))))))))))))))
+      f: Z => (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)
   )(implicit D: Divide[F]): F[Z] =
     D.divide2(
       a0,
@@ -1239,47 +1239,47 @@ object Combine {
 
   def apply2[F[_], A1, A2, R](a1: => F[A1], a2: => F[A2])(f: (A1, A2) => R)(implicit A: Apply[F]): F[R] = A.apply2(a1, a2)(f)
 
-  def apply3[F[_], A1, A2, A3, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3])(f: (A1, (A2, A3)) => R)(implicit A: Apply[F]): F[R] = {
+  def apply3[F[_], A1, A2, A3, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3])(f: (A1, A2, A3) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => f(a0, (a1, a2)))))
+    ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => f(a0, a1, a2))))
   }
 
-  def apply4[F[_], A1, A2, A3, A4, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4])(f: (A1, (A2, (A3, A4))) => R)(implicit A: Apply[F]): F[R] = {
+  def apply4[F[_], A1, A2, A3, A4, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4])(f: (A1, A2, A3, A4) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => f(a0, (a1, (a2, a3)))))))
+    ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => f(a0, a1, a2, a3)))))
   }
 
-  def apply5[F[_], A1, A2, A3, A4, A5, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5])(f: (A1, (A2, (A3, (A4, A5)))) => R)(implicit A: Apply[F]): F[R] = {
+  def apply5[F[_], A1, A2, A3, A4, A5, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5])(f: (A1, A2, A3, A4, A5) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => f(a0, (a1, (a2, (a3, a4)))))))))
+    ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => f(a0, a1, a2, a3, a4))))))
   }
 
   def apply6[F[_], A1, A2, A3, A4, A5, A6, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6])(
-      f: (A1, (A2, (A3, (A4, (A5, A6))))) => R
+      f: (A1, A2, A3, A4, A5, A6) => R
   )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => f(a0, (a1, (a2, (a3, (a4, a5)))))))))))
+    ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => f(a0, a1, a2, a3, a4, a5)))))))
   }
 
   def apply7[F[_], A1, A2, A3, A4, A5, A6, A7, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6], fa6: => F[A7])(
-      f: (A1, (A2, (A3, (A4, (A5, (A6, A7)))))) => R
+      f: (A1, A2, A3, A4, A5, A6, A7) => R
   )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => f(a0, (a1, (a2, (a3, (a4, (a5, a6)))))))))))))
+    ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => f(a0, a1, a2, a3, a4, a5, a6))))))))
   }
 
   def apply8[F[_], A1, A2, A3, A4, A5, A6, A7, A8, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6], fa6: => F[A7], fa7: => F[A8])(
-      f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, A8))))))) => R
+      f: (A1, A2, A3, A4, A5, A6, A7, A8) => R
   )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, a7)))))))))))))))
+    ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => f(a0, a1, a2, a3, a4, a5, a6, a7)))))))))
   }
 
   def apply9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, R](fa0: => F[A1], fa1: => F[A2], fa2: => F[A3], fa3: => F[A4], fa4: => F[A5], fa5: => F[A6], fa6: => F[A7], fa7: => F[A8], fa8: => F[A9])(
-      f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, A9)))))))) => R
+      f: (A1, A2, A3, A4, A5, A6, A7, A8, A9) => R
   )(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa8)(ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, a8)))))))))))))))))
+    ap(fa8)(ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8))))))))))
   }
 
   def apply10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R](
@@ -1293,13 +1293,9 @@ object Combine {
       fa7: => F[A8],
       fa8: => F[A9],
       fa9: => F[A10]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, A10))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10) => R)(implicit A: Apply[F]): F[R] = {
     import A._
-    ap(fa9)(
-      ap(fa8)(
-        ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, a9)))))))))))))))))
-      )
-    )
+    ap(fa9)(ap(fa8)(ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9)))))))))))
   }
 
   def apply11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R](
@@ -1314,16 +1310,12 @@ object Combine {
       fa8: => F[A9],
       fa9: => F[A10],
       fa10: => F[A11]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, A11)))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa10)(
       ap(fa9)(
         ap(fa8)(
-          ap(fa7)(
-            ap(fa6)(
-              ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, a10))))))))))))))))
-            )
-          )
+          ap(fa7)(ap(fa6)(ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)))))))))
         )
       )
     )
@@ -1342,7 +1334,7 @@ object Combine {
       fa9: => F[A10],
       fa10: => F[A11],
       fa11: => F[A12]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, A12))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa11)(
       ap(fa10)(
@@ -1350,13 +1342,7 @@ object Combine {
           ap(fa8)(
             ap(fa7)(
               ap(fa6)(
-                ap(fa5)(
-                  ap(fa4)(
-                    ap(fa3)(
-                      ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, a11))))))))))))))
-                    )
-                  )
-                )
+                ap(fa5)(ap(fa4)(ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)))))))
               )
             )
           )
@@ -1379,7 +1365,7 @@ object Combine {
       fa10: => F[A11],
       fa11: => F[A12],
       fa12: => F[A13]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, A13)))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa12)(
       ap(fa11)(
@@ -1390,13 +1376,7 @@ object Combine {
                 ap(fa6)(
                   ap(fa5)(
                     ap(fa4)(
-                      ap(fa3)(
-                        ap(fa2)(
-                          ap(fa1)(
-                            map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, a12)))))))))))))
-                          )
-                        )
-                      )
+                      ap(fa3)(ap(fa2)(ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12)))))
                     )
                   )
                 )
@@ -1423,7 +1403,7 @@ object Combine {
       fa11: => F[A12],
       fa12: => F[A13],
       fa13: => F[A14]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, A14))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa13)(
       ap(fa12)(
@@ -1437,13 +1417,7 @@ object Combine {
                       ap(fa4)(
                         ap(fa3)(
                           ap(fa2)(
-                            ap(fa1)(
-                              map(fa0)(
-                                a0 =>
-                                  a1 =>
-                                    a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, (a12, a13)))))))))))))
-                              )
-                            )
+                            ap(fa1)(map(fa0)(a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13)))
                           )
                         )
                       )
@@ -1474,7 +1448,7 @@ object Combine {
       fa12: => F[A13],
       fa13: => F[A14],
       fa14: => F[A15]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, A15)))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa14)(
       ap(fa13)(
@@ -1491,13 +1465,7 @@ object Combine {
                             ap(fa2)(
                               ap(fa1)(
                                 map(fa0)(
-                                  a0 =>
-                                    a1 =>
-                                      a2 =>
-                                        a3 =>
-                                          a4 =>
-                                            a5 =>
-                                              a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => a14 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, (a12, (a13, a14))))))))))))))
+                                  a0 => a1 => a2 => a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => a14 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14)
                                 )
                               )
                             )
@@ -1532,7 +1500,7 @@ object Combine {
       fa13: => F[A14],
       fa14: => F[A15],
       fa15: => F[A16]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, A16))))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa15)(
       ap(fa14)(
@@ -1553,14 +1521,7 @@ object Combine {
                                     a0 =>
                                       a1 =>
                                         a2 =>
-                                          a3 =>
-                                            a4 =>
-                                              a5 =>
-                                                a6 =>
-                                                  a7 =>
-                                                    a8 =>
-                                                      a9 =>
-                                                        a10 => a11 => a12 => a13 => a14 => a15 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, (a12, (a13, (a14, a15)))))))))))))))
+                                          a3 => a4 => a5 => a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => a14 => a15 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15)
                                   )
                                 )
                               )
@@ -1597,7 +1558,7 @@ object Combine {
       fa14: => F[A15],
       fa15: => F[A16],
       fa16: => F[A17]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, A17)))))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa16)(
       ap(fa15)(
@@ -1622,14 +1583,7 @@ object Combine {
                                             a3 =>
                                               a4 =>
                                                 a5 =>
-                                                  a6 =>
-                                                    a7 =>
-                                                      a8 =>
-                                                        a9 =>
-                                                          a10 =>
-                                                            a11 =>
-                                                              a12 =>
-                                                                a13 => a14 => a15 => a16 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, (a12, (a13, (a14, (a15, a16))))))))))))))))
+                                                  a6 => a7 => a8 => a9 => a10 => a11 => a12 => a13 => a14 => a15 => a16 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16)
                                     )
                                   )
                                 )
@@ -1668,7 +1622,7 @@ object Combine {
       fa15: => F[A16],
       fa16: => F[A17],
       fa17: => F[A18]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, A18))))))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa17)(
       ap(fa16)(
@@ -1698,13 +1652,7 @@ object Combine {
                                                       a7 =>
                                                         a8 =>
                                                           a9 =>
-                                                            a10 =>
-                                                              a11 =>
-                                                                a12 =>
-                                                                  a13 =>
-                                                                    a14 =>
-                                                                      a15 =>
-                                                                        a16 => a17 => f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, (a12, (a13, (a14, (a15, (a16, a17)))))))))))))))))
+                                                            a10 => a11 => a12 => a13 => a14 => a15 => a16 => a17 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17)
                                       )
                                     )
                                   )
@@ -1745,7 +1693,7 @@ object Combine {
       fa16: => F[A17],
       fa17: => F[A18],
       fa18: => F[A19]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, A19)))))))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa18)(
       ap(fa17)(
@@ -1779,13 +1727,7 @@ object Combine {
                                                               a10 =>
                                                                 a11 =>
                                                                   a12 =>
-                                                                    a13 =>
-                                                                      a14 =>
-                                                                        a15 =>
-                                                                          a16 =>
-                                                                            a17 =>
-                                                                              a18 =>
-                                                                                f(a0, (a1, (a2, (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, (a12, (a13, (a14, (a15, (a16, (a17, a18))))))))))))))))))
+                                                                    a13 => a14 => a15 => a16 => a17 => a18 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18)
                                         )
                                       )
                                     )
@@ -1828,7 +1770,7 @@ object Combine {
       fa17: => F[A18],
       fa18: => F[A19],
       fa19: => F[A20]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, (A19, A20))))))))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa19)(
       ap(fa18)(
@@ -1865,21 +1807,7 @@ object Combine {
                                                                     a12 =>
                                                                       a13 =>
                                                                         a14 =>
-                                                                          a15 =>
-                                                                            a16 =>
-                                                                              a17 =>
-                                                                                a18 =>
-                                                                                  a19 =>
-                                                                                    f(
-                                                                                      a0,
-                                                                                      (
-                                                                                        a1,
-                                                                                        (
-                                                                                          a2,
-                                                                                          (a3, (a4, (a5, (a6, (a7, (a8, (a9, (a10, (a11, (a12, (a13, (a14, (a15, (a16, (a17, (a18, a19))))))))))))))))
-                                                                                        )
-                                                                                      )
-                                                                                    )
+                                                                          a15 => a16 => a17 => a18 => a19 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19)
                                           )
                                         )
                                       )
@@ -1924,7 +1852,7 @@ object Combine {
       fa18: => F[A19],
       fa19: => F[A20],
       fa20: => F[A21]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, (A19, (A20, A21)))))))))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa20)(
       ap(fa19)(
@@ -1965,28 +1893,7 @@ object Combine {
                                                                             a15 =>
                                                                               a16 =>
                                                                                 a17 =>
-                                                                                  a18 =>
-                                                                                    a19 =>
-                                                                                      a20 =>
-                                                                                        f(
-                                                                                          a0,
-                                                                                          (
-                                                                                            a1,
-                                                                                            (
-                                                                                              a2,
-                                                                                              (
-                                                                                                a3,
-                                                                                                (
-                                                                                                  a4,
-                                                                                                  (
-                                                                                                    a5,
-                                                                                                    (a6, (a7, (a8, (a9, (a10, (a11, (a12, (a13, (a14, (a15, (a16, (a17, (a18, (a19, a20))))))))))))))
-                                                                                                  )
-                                                                                                )
-                                                                                              )
-                                                                                            )
-                                                                                          )
-                                                                                        )
+                                                                                  a18 => a19 => a20 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20)
                                             )
                                           )
                                         )
@@ -2033,7 +1940,7 @@ object Combine {
       fa19: => F[A20],
       fa20: => F[A21],
       fa21: => F[A22]
-  )(f: (A1, (A2, (A3, (A4, (A5, (A6, (A7, (A8, (A9, (A10, (A11, (A12, (A13, (A14, (A15, (A16, (A17, (A18, (A19, (A20, (A21, A22))))))))))))))))))))) => R)(implicit A: Apply[F]): F[R] = {
+  )(f: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) => R)(implicit A: Apply[F]): F[R] = {
     import A._
     ap(fa21)(
       ap(fa20)(
@@ -2078,32 +1985,7 @@ object Combine {
                                                                                     a18 =>
                                                                                       a19 =>
                                                                                         a20 =>
-                                                                                          a21 =>
-                                                                                            f(
-                                                                                              a0,
-                                                                                              (
-                                                                                                a1,
-                                                                                                (
-                                                                                                  a2,
-                                                                                                  (
-                                                                                                    a3,
-                                                                                                    (
-                                                                                                      a4,
-                                                                                                      (
-                                                                                                        a5,
-                                                                                                        (
-                                                                                                          a6,
-                                                                                                          (
-                                                                                                            a7,
-                                                                                                            (a8, (a9, (a10, (a11, (a12, (a13, (a14, (a15, (a16, (a17, (a18, (a19, (a20, a21)))))))))))))
-                                                                                                          )
-                                                                                                        )
-                                                                                                      )
-                                                                                                    )
-                                                                                                  )
-                                                                                                )
-                                                                                              )
-                                                                                            )
+                                                                                          a21 => f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21)
                                               )
                                             )
                                           )

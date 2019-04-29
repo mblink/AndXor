@@ -10,7 +10,7 @@ package object circe {
     Encoder.instance(l => Json.obj(l.label.value -> e(l.value)))
 
   implicit val encoderDivide: Divide[Encoder] = new Divide[Encoder] {
-    def conquer[A]: Encoder[A] = Encoder(_ => Json.obj())
+    def contramap[A, B](fa: Encoder[A])(f: B => A): Encoder[B] = fa.contramap(f)
     def divide2[A1, A2, Z](a1: => Encoder[A1], a2: => Encoder[A2])(f: Z => (A1, A2)): Encoder[Z] =
       Encoder.instance(f(_) |> (t => a1(t._1).deepMerge(a2(t._2))))
   }
