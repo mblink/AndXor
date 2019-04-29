@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.0-MD5",
+  version := "0.2.0-MD7",
   libraryDependencies ++= Seq(
     "org.scalaz" %% "scalaz-core" % "7.2.26",
     "com.chuusai" %% "shapeless" % "2.3.3"
@@ -57,7 +57,6 @@ lazy val commonSettings = Seq(
     "-Ycache-plugin-class-loader:last-modified",
     "-Ycache-macro-class-loader:last-modified"
   ),
-  scalacOptions in Compile ++= Seq("-Yprofile-trace", s"/Users/mrdziuban/Desktop/${name.value}.trace"),
   scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
   scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
   skip in publish := true,
