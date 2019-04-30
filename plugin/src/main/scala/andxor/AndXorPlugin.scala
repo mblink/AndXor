@@ -194,7 +194,7 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
             mkTuple(c))),
         Function(
           List(ValDef(Modifiers(Flag.PARAM | Flag.SYNTHETIC), TermName("x"), c.prodTpe, EmptyTree)),
-          c.paramGroups.foldLeft[(Int, Tree)]((1, Select(New(Ident(c.name)), nme.CONSTRUCTOR))) { case ((i, acc), group) =>
+          c.paramGroups.foldLeft[(Int, Tree)]((1, Select(New(c.classTpe), nme.CONSTRUCTOR))) { case ((i, acc), group) =>
             (i + group.length, Apply(acc, group.zipWithIndex.map(t => c.normalizeValue(tupleAccess(i + t._2)))))
           }._2)))
 
@@ -302,19 +302,25 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
       derivedTypeclass(tc)
     )
 
+  def tparamsFor(tpe: TypeDef): List[TypeDef] = {
+    val name = tpe.name.decodedName.toString
+    tpe :: tpe.tparams.zipWithIndex.flatMap { case (t, i) => tparamsFor(t.duplicate.copy(name = TypeName(s"${name}A${i}"))) }
+  }
+
+  def applyTparams(tpe: TypeDef): AppliedTypeTree =
+    AppliedTypeTree(Ident(tpe.name), tparamsFor(tpe).drop(1).map(t => if (t.tparams.isEmpty) Ident(t.name) else applyTparams(t)))
+
   def derivedTypeclassDef(tc: Typeclass): DefDef =
     DefDef(
       Modifiers(Flag.IMPLICIT | Flag.SYNTHETIC),
       tc.memberName,
-      tc.klass.tparams.map(_.duplicate),
-      List(tc.klass.implParams ++ tc.klass.tparams.zipWithIndex.map { case (t, i) =>
-        ValDef(
-          Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
-          TermName(s"evidence$$$i"),
-          AppliedTypeTree(tc.typeclass.tree.duplicate, List(Ident(t.name))),
-          EmptyTree
-        )
-      }),
+      tc.klass.tparams.map(_.duplicate).flatMap(tparamsFor(_)),
+      List(tc.klass.implParams ++ tc.klass.tparams.map(_.duplicate).zipWithIndex.map(t => ValDef(
+        Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
+        TermName(s"evidence$$${t._2}"),
+        AppliedTypeTree(tc.typeclass.tree.duplicate, List(applyTparams(t._1))),
+        EmptyTree
+      ))),
       AppliedTypeTree(tc.typeclass.tree.duplicate, List(tc.klass.classTpe)),
       derivedTypeclass(tc)
     )
