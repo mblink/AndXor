@@ -832,4 +832,165 @@ object types {
     x21: A21,
     x22: A22
   )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK1[F[_], A1](
+    run: F[A1]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK2[F[_, _], A1, A2](
+    run: F[A1, A2]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK3[F[_, _, _], A1, A2, A3](
+    run: F[A1, A2, A3]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK4[F[_, _, _, _], A1, A2, A3, A4](
+    run: F[A1, A2, A3, A4]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK5[F[_, _, _, _, _], A1, A2, A3, A4, A5](
+    run: F[A1, A2, A3, A4, A5]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK6[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](
+    run: F[A1, A2, A3, A4, A5, A6]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK7[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](
+    run: F[A1, A2, A3, A4, A5, A6, A7]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK8[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK9[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK10[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK11[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK12[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK13[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK14[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK15[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK16[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK17[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK18[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK19[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK20[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK21[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class HK22[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+    run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+  )
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
+  case class Implicits(i: Int)(implicit b: Boolean, val s: String) {
+    println(b)
+  }
 }
