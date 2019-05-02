@@ -18,6 +18,10 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
     labelledContravariantAnn
   )
 
+  implicit class AOps[A](a: A) {
+    def ap[B](f: A => B): B = f(a)
+  }
+
   import global._
   import global.internal.constantType
 
@@ -282,21 +286,13 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
         Select(q"$scalaPkg.Predef.implicitly[${tc.variance.typeclassTpe}[${tc.typeclass.tree.duplicate}]]", tc.variance.mapFunction),
         List(
           Select(
-            Apply(
-              TypeApply(
-                Select(
-                  Ident(tc.klass.andxorName),
-                  TermName("combine")
-                ),
-                List(tc.typeclass.tree.duplicate)
+            TypeApply(
+              Select(
+                Ident(tc.klass.andxorName).ap(x =>
+                  if (tc.klass.tparams.isEmpty) x else TypeApply(x, tc.klass.tparams.map(t => Ident(t.name)))),
+                TermName("combineId")
               ),
-              // TODO - why do I have to call `implicitly` to get the labelled type to be picked up correctly?
-              /*
-              [error] AndXorPluginTest.scala:53:14: implicit error;
-              [error] !I a0: Read[Labelled[String] {type L = Witness.Aux[String]}]
-              [error]   case class Test2(
-              */
-              tc.klass.tpes.map(t => q"$scalaPkg.Predef.implicitly[${tc.typeclass.tree.duplicate}[$t]]")
+              List(tc.typeclass.tree.duplicate)
             ),
             tc.variance.derivationFunction
           )
@@ -312,14 +308,6 @@ class AndXorPlugin(override val global: Global) extends AnnotationPlugin(global)
       AppliedTypeTree(tc.typeclass.tree.duplicate, List(tc.klass.classTpe)),
       derivedTypeclass(tc)
     )
-
-  def tparamsFor(tpe: TypeDef): List[TypeDef] = {
-    val name = tpe.name.decodedName.toString
-    tpe :: tpe.tparams.zipWithIndex.flatMap { case (t, i) => tparamsFor(t.duplicate.copy(name = TypeName(s"${name}A${i}"))) }
-  }
-
-  def applyTparams(tpe: TypeDef): AppliedTypeTree =
-    AppliedTypeTree(Ident(tpe.name), tparamsFor(tpe).drop(1).map(t => if (t.tparams.isEmpty) Ident(t.name) else applyTparams(t)))
 
   def derivedTypeclassDef(tc: Typeclass): DefDef =
     DefDef(
