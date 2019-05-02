@@ -15,6 +15,10 @@ trait AndXorK8[F[_], A1, A2, A3, A4, A5, A6, A7, A8] extends AndXor {
   val AndXorF = AndXorF8[A1, A2, A3, A4, A5, A6, A7, A8]
   type AndXor[G[_]] = AndXorF.Repr[G]
 
+  def combineId[G[_]](implicit @scalaz.unused ev: F[_] =:= Id[_], a0: G[A1], a1: G[A2], a2: G[A3], a3: G[A4], a4: G[A5], a5: G[A6], a6: G[A7], a7: G[A8])
+      : ComposeAndXor[G, Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8], Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] =
+    AndXor8[A1, A2, A3, A4, A5, A6, A7, A8].combine[G]
+
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]], a2: G[F[A3]], a3: G[F[A4]], a4: G[F[A5]], a5: G[F[A6]], a6: G[F[A7]], a7: G[F[A8]]): ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =

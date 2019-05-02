@@ -15,6 +15,9 @@ trait AndXorK3[F[_], A1, A2, A3] extends AndXor {
   val AndXorF = AndXorF3[A1, A2, A3]
   type AndXor[G[_]] = AndXorF.Repr[G]
 
+  def combineId[G[_]](implicit @scalaz.unused ev: F[_] =:= Id[_], a0: G[A1], a1: G[A2], a2: G[A3]): ComposeAndXor[G, Cop3[Id, A1, A2, A3], Prod3[Id, A1, A2, A3]] =
+    AndXor3[A1, A2, A3].combine[G]
+
   def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]], a2: G[F[A3]]): ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =

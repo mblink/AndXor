@@ -24,6 +24,51 @@ trait AndXorK19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
   val AndXorF = AndXorF19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
   type AndXor[G[_]] = AndXorF.Repr[G]
 
+  def combineId[G[_]](
+      implicit @scalaz.unused ev: F[_] =:= Id[_],
+      a0: G[A1],
+      a1: G[A2],
+      a2: G[A3],
+      a3: G[A4],
+      a4: G[A5],
+      a5: G[A6],
+      a6: G[A7],
+      a7: G[A8],
+      a8: G[A9],
+      a9: G[A10],
+      a10: G[A11],
+      a11: G[A12],
+      a12: G[A13],
+      a13: G[A14],
+      a14: G[A15],
+      a15: G[A16],
+      a16: G[A17],
+      a17: G[A18],
+      a18: G[A19]
+  ): ComposeAndXor[G, Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Prod19[
+    Id,
+    A1,
+    A2,
+    A3,
+    A4,
+    A5,
+    A6,
+    A7,
+    A8,
+    A9,
+    A10,
+    A11,
+    A12,
+    A13,
+    A14,
+    A15,
+    A16,
+    A17,
+    A18,
+    A19
+  ]] =
+    AndXor19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].combine[G]
+
   def combine[G[_]](
       implicit a0: G[F[A1]],
       a1: G[F[A2]],

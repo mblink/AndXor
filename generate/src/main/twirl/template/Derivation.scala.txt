@@ -16,9 +16,19 @@ object derivation {
     def deriveContravariant[TC[_], A](iso: A <=> axo.Prod)(implicit F: Divide[TC], @{tpes.paramSig(List("TC", "F"), "a")}): TC[A] =
       F.contramap(axo.combine[TC].divide)(iso.to(_))
   }
+
+  trait Derivation@{tpes.length}PId[@{tpes.tpeParams}] {
+    val axo = AndXor@{tpes.length}[@{tpes.tpeParams}]
+
+    def deriveCovariant[TC[_], A](iso: A <=> axo.Prod)(implicit F: Apply[TC], @{tpes.paramSig("TC", "a")}): TC[A] =
+      F.map(axo.combine[TC].apply)(iso.from(_))
+
+    def deriveContravariant[TC[_], A](iso: A <=> axo.Prod)(implicit F: Divide[TC], @{tpes.paramSig("TC", "a")}): TC[A] =
+      F.contramap(axo.combine[TC].divide)(iso.to(_))
+  }
   }
 
-  object syntax {
+  trait LPSyntax {
     @tpeLists.map { tpes =>
     implicit class Derivation@{tpes.length}POps[A, F[_], @{tpes.tpeParams}](iso: A <=> AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Prod) {
       val derive = new Derivation@{tpes.length}P[F, @{tpes.tpeParams}] {}
@@ -27,6 +37,20 @@ object derivation {
         derive.deriveCovariant[TC, A](iso)
 
       def deriveContravariant[TC[_]](implicit F: Divide[TC], @{tpes.paramSig(List("TC", "F"), "a")}): TC[A] =
+        derive.deriveContravariant[TC, A](iso)
+    }
+    }
+  }
+
+  object syntax extends LPSyntax {
+    @tpeLists.map { tpes =>
+    implicit class Derivation@{tpes.length}POps[A, @{tpes.tpeParams}](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod) {
+      val derive = new Derivation@{tpes.length}PId[@{tpes.tpeParams}] {}
+
+      def deriveCovariant[TC[_]](implicit F: Apply[TC], @{tpes.paramSig("TC", "a")}): TC[A] =
+        derive.deriveCovariant[TC, A](iso)
+
+      def deriveContravariant[TC[_]](implicit F: Divide[TC], @{tpes.paramSig("TC", "a")}): TC[A] =
         derive.deriveContravariant[TC, A](iso)
     }
     }

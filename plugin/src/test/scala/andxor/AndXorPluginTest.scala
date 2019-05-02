@@ -990,6 +990,11 @@ object types {
   @deriveLabelledCovariant(Read, DecodeJson)
   @deriveContravariant(Csv)
   @deriveLabelledContravariant(Show, EncodeJson)
+  case class HKFG[F[_[_]], G[_]](run: F[G])
+
+  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriveContravariant(Csv)
+  @deriveLabelledContravariant(Show, EncodeJson)
   case class Implicits(i: Int)(implicit b: Boolean, val s: String) {
     println(b)
   }

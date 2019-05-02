@@ -17,6 +17,9 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
   val AndXorF = AndXorF@{tpes.length}[@{tpes.tpeParams}]
   type AndXor[G[_]] = AndXorF.Repr[G]
 
+  def combineId[G[_]](implicit @@scalaz.unused ev: F[_] =:= Id[_], @{tpes.foldLen0("a0: G[Unit]")(tpes.paramSig("G", "a"))}): ComposeAndXor[G, @{tpes.copTpeF("Id")}, @{tpes.prodTpeF("Id")}] =
+    AndXor@{tpes.length}[@{tpes.tpeParams}].combine[G]
+
   def combine[G[_]](implicit @{tpes.foldLen0("a0: G[F[Unit]]")(tpes.paramSig(List("G", "F"), "a"))}): ComposeAndXor[G, Cop, Prod] =
     new ComposeAndXor[G, Cop, Prod] {
       def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
