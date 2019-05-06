@@ -17,7 +17,7 @@ package object tuple {
     }
   }
 
-  @tpeLists.map { tpes =>
+  @tpeLists.filter(_.length > 1).map { tpes =>
   implicit class Tuple@{tpes.length}Ops[@{tpes.tpeParams}](t: @{tpes.mkTuple}) {
     @template.txt.TupleAccess("t", tpes)
   }
