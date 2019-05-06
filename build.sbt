@@ -134,7 +134,8 @@ lazy val plugin = project.in(file("plugin"))
   ))
   .dependsOn(
     core % "compile->compile;test->test",
-    argonaut % "test->test"
+    argonaut % "test->test",
+    circe % "test->test"
   )
 
 lazy val root = project.in(file("."))
