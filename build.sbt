@@ -1,3 +1,5 @@
+import andxor.generators._
+
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
@@ -40,6 +42,7 @@ lazy val commonSettings = Seq(
     "-Xlint:unsound-match",
     "-Yno-adapted-args",
     "-Ypartial-unification",
+    "-Yrangepos",
     "-Ywarn-dead-code",
     "-Ywarn-extra-implicit",
     "-Ywarn-inaccessible",
@@ -122,15 +125,19 @@ lazy val plugin = project.in(file("plugin"))
   .settings(publishSettings)
   .settings(Seq(
     name := "andxor-plugin",
-    libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    scalacOptions in (Compile, console) ++= {
-      val jar = (packageBin in Compile).value
-      Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-    },
-    scalacOptions in Test ++= {
-      val jar = (packageBin in Compile).value
-      Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-    }
+    scalagenGenerators := Set(LabelledCovariant),
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+      "org.scalameta" %% "scalameta" % "4.1.0"
+    ),
+    // scalacOptions in (Compile, console) ++= {
+    //   val jar = (packageBin in Compile).value
+    //   Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+    // },
+    // scalacOptions in Test ++= {
+    //   val jar = (packageBin in Compile).value
+    //   Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+    // }
   ))
   .dependsOn(
     core % "compile->compile;test->test",
