@@ -2,19 +2,12 @@ package andxor.test
 
 import andxor.{Divide, Labelled}
 // import andxor.argonaut._
-import argonaut.{DecodeJson/*, EncodeJson*/}
-import scala.annotation.Annotation
+import argonaut.{DecodeJson, EncodeJson}
 import scalaz.{Apply, Show}
 import scalaz.std.option._
 import scalaz.syntax.apply._
 import scalaz.syntax.id._
 import shapeless.{Witness => W}
-
-final class andxor extends Annotation
-final class deriveCovariant(val typeclasses: AnyRef*) extends Annotation
-final class deriveLabelledCovariant(val typeclasses: AnyRef*) extends Annotation
-final class deriveContravariant(val typeclasses: AnyRef*) extends Annotation
-final class deriveLabelledContravariant(val typeclasses: AnyRef*) extends Annotation
 
 object typeclasses {
   implicit def showLabelled[A, L <: String]: Show[Labelled.Aux[A, L]] =
@@ -59,9 +52,11 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
-  @deriveLabelledCovariant(Read, DecodeJson)
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
   case class Test1(
     x1: String
   )

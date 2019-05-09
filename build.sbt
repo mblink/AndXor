@@ -1,4 +1,4 @@
-import andxor.generators._
+import andxor.generators
 
 lazy val commonSettings = Seq(
   organization := "andxor",
@@ -123,9 +123,10 @@ lazy val circe = project.in(file("circe"))
 lazy val plugin = project.in(file("plugin"))
   .settings(commonSettings)
   .settings(publishSettings)
+  .settings(scalagenTestGenerateSettings)
   .settings(Seq(
     name := "andxor-plugin",
-    scalagenGenerators := Set(LabelledCovariant),
+    scalagenGenerators := generators.all,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
       "org.scalameta" %% "scalameta" % "4.1.0"
@@ -142,6 +143,18 @@ lazy val plugin = project.in(file("plugin"))
   .dependsOn(
     core % "compile->compile;test->test",
     argonaut % "test->test"
+  )
+
+lazy val pluginTest = project.in(file("plugin-test"))
+  .settings(commonSettings)
+  .settings(Seq(
+    name := "andxor-plugin-test",
+    scalagenGenerators := generators.all
+  ))
+  .dependsOn(
+    core % "compile->compile",
+    plugin % "test->compile",
+    argonaut % "compile->compile"
   )
 
 lazy val root = project.in(file("."))
