@@ -1,7 +1,7 @@
 package andxor.test
 
 import andxor.{Divide, Labelled}
-// import andxor.argonaut._
+import andxor.argonaut._
 import argonaut.{DecodeJson, EncodeJson}
 import scalaz.{Apply, Show}
 import scalaz.std.option._
@@ -61,26 +61,32 @@ object types {
     x1: String
   )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
-  // case class Test2(
-  //   x1: String,
-  //   x2: Int
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test2(
+    x1: String,
+    x2: Int
+  )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test3(
   //   x1: String,
   //   x2: Int,
   //   x3: Boolean
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test4(
   //   x1: String,
   //   x2: Int,
@@ -88,9 +94,11 @@ object types {
   //   x4: String
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test5(
   //   x1: String,
   //   x2: Int,
@@ -99,9 +107,11 @@ object types {
   //   x5: Int
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test6(
   //   x1: String,
   //   x2: Int,
@@ -111,9 +121,11 @@ object types {
   //   x6: Boolean
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test7(
   //   x1: String,
   //   x2: Int,
@@ -124,9 +136,11 @@ object types {
   //   x7: String
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test8(
   //   x1: String,
   //   x2: Int,
@@ -138,9 +152,11 @@ object types {
   //   x8: Int
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test9(
   //   x1: String,
   //   x2: Int,
@@ -153,9 +169,11 @@ object types {
   //   x9: Boolean
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test10(
   //   x1: String,
   //   x2: Int,
@@ -169,9 +187,11 @@ object types {
   //   x10: String
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test11(
   //   x1: String,
   //   x2: Int,
@@ -186,9 +206,11 @@ object types {
   //   x11: Int
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test12(
   //   x1: String,
   //   x2: Int,
@@ -204,9 +226,11 @@ object types {
   //   x12: Boolean
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test13(
   //   x1: String,
   //   x2: Int,
@@ -223,9 +247,11 @@ object types {
   //   x13: String
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test14(
   //   x1: String,
   //   x2: Int,
@@ -243,9 +269,11 @@ object types {
   //   x14: Int
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test15(
   //   x1: String,
   //   x2: Int,
@@ -264,9 +292,11 @@ object types {
   //   x15: Boolean
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test16(
   //   x1: String,
   //   x2: Int,
@@ -286,9 +316,11 @@ object types {
   //   x16: String
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test17(
   //   x1: String,
   //   x2: Int,
@@ -309,9 +341,11 @@ object types {
   //   x17: Int
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test18(
   //   x1: String,
   //   x2: Int,
@@ -333,9 +367,11 @@ object types {
   //   x18: Boolean
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test19(
   //   x1: String,
   //   x2: Int,
@@ -358,9 +394,11 @@ object types {
   //   x19: String
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test20(
   //   x1: String,
   //   x2: Int,
@@ -384,9 +422,11 @@ object types {
   //   x20: Int
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test21(
   //   x1: String,
   //   x2: Int,
@@ -411,9 +451,11 @@ object types {
   //   x21: Boolean
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Test22(
   //   x1: String,
   //   x2: Int,
@@ -439,39 +481,49 @@ object types {
   //   x22: String
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Multi(str: String)(val int: Int)
 
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams1[A1](
   //   x1: A1
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams2[A1, A2](
   //   x1: A1,
   //   x2: A2
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams3[A1, A2, A3](
   //   x1: A1,
   //   x2: A2,
   //   x3: A3
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams4[A1, A2, A3, A4](
   //   x1: A1,
   //   x2: A2,
@@ -479,9 +531,11 @@ object types {
   //   x4: A4
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams5[A1, A2, A3, A4, A5](
   //   x1: A1,
   //   x2: A2,
@@ -490,9 +544,11 @@ object types {
   //   x5: A5
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams6[A1, A2, A3, A4, A5, A6](
   //   x1: A1,
   //   x2: A2,
@@ -502,9 +558,11 @@ object types {
   //   x6: A6
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams7[A1, A2, A3, A4, A5, A6, A7](
   //   x1: A1,
   //   x2: A2,
@@ -515,9 +573,11 @@ object types {
   //   x7: A7
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams8[A1, A2, A3, A4, A5, A6, A7, A8](
   //   x1: A1,
   //   x2: A2,
@@ -529,9 +589,11 @@ object types {
   //   x8: A8
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams9[A1, A2, A3, A4, A5, A6, A7, A8, A9](
   //   x1: A1,
   //   x2: A2,
@@ -544,9 +606,11 @@ object types {
   //   x9: A9
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
   //   x1: A1,
   //   x2: A2,
@@ -560,9 +624,11 @@ object types {
   //   x10: A10
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
   //   x1: A1,
   //   x2: A2,
@@ -577,9 +643,11 @@ object types {
   //   x11: A11
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
   //   x1: A1,
   //   x2: A2,
@@ -595,9 +663,11 @@ object types {
   //   x12: A12
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
   //   x1: A1,
   //   x2: A2,
@@ -614,9 +684,11 @@ object types {
   //   x13: A13
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
   //   x1: A1,
   //   x2: A2,
@@ -634,9 +706,11 @@ object types {
   //   x14: A14
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
   //   x1: A1,
   //   x2: A2,
@@ -655,9 +729,11 @@ object types {
   //   x15: A15
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
   //   x1: A1,
   //   x2: A2,
@@ -677,9 +753,11 @@ object types {
   //   x16: A16
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
   //   x1: A1,
   //   x2: A2,
@@ -700,9 +778,11 @@ object types {
   //   x17: A17
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
   //   x1: A1,
   //   x2: A2,
@@ -724,9 +804,11 @@ object types {
   //   x18: A18
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
   //   x1: A1,
   //   x2: A2,
@@ -749,9 +831,11 @@ object types {
   //   x19: A19
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
   //   x1: A1,
   //   x2: A2,
@@ -775,9 +859,11 @@ object types {
   //   x20: A20
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
   //   x1: A1,
   //   x2: A2,
@@ -802,9 +888,11 @@ object types {
   //   x21: A21
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class TParams22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
   //   x1: A1,
   //   x2: A2,
@@ -830,168 +918,216 @@ object types {
   //   x22: A22
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK1[F[_], A1](
   //   run: F[A1]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK2[F[_, _], A1, A2](
   //   run: F[A1, A2]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK3[F[_, _, _], A1, A2, A3](
   //   run: F[A1, A2, A3]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK4[F[_, _, _, _], A1, A2, A3, A4](
   //   run: F[A1, A2, A3, A4]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK5[F[_, _, _, _, _], A1, A2, A3, A4, A5](
   //   run: F[A1, A2, A3, A4, A5]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK6[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](
   //   run: F[A1, A2, A3, A4, A5, A6]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK7[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](
   //   run: F[A1, A2, A3, A4, A5, A6, A7]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK8[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK9[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK10[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK11[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK12[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK13[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK14[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK15[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK16[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK17[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK18[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK19[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK20[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK21[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HK22[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
   //   run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
   // )
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class HKFG[F[_[_]], G[_]](run: F[G])
 
-  // @deriveLabelledCovariant(Read, DecodeJson)
-  // @deriveContravariant(Csv)
-  // @deriveLabelledContravariant(Show, EncodeJson)
+  // @deriving(
+  //   labelledCovariant = Vector(Read, DecodeJson),
+  //   contravariant = Vector(Csv),
+  //   labelledContravariant = Vector(Show, EncodeJson)
+  // )
   // case class Implicits(i: Int)(implicit b: Boolean, val s: String) {
   //   println(b)
   // }

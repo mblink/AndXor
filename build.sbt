@@ -8,7 +8,7 @@ lazy val commonSettings = Seq(
     "org.scalaz" %% "scalaz-core" % "7.2.26",
     "com.chuusai" %% "shapeless" % "2.3.3"
   ),
-  addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
+  // addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -18,8 +18,8 @@ lazy val commonSettings = Seq(
     "-language:higherKinds",
     "-language:implicitConversions",
     "-unchecked",
-    "-P:splain:all",
-    "-P:splain:rewrite:andxor\\.types\\.((Cop|Prod)\\d+)\\.Type/$1",
+    // "-P:splain:all",
+    // "-P:splain:rewrite:andxor\\.types\\.((Cop|Prod)\\d+)\\.Type/$1",
     "-Xcheckinit",
     "-Xfatal-warnings",
     "-Xfuture",
@@ -123,13 +123,12 @@ lazy val circe = project.in(file("circe"))
 lazy val plugin = project.in(file("plugin"))
   .settings(commonSettings)
   .settings(publishSettings)
-  .settings(scalagenTestGenerateSettings)
   .settings(Seq(
     name := "andxor-plugin",
     scalagenGenerators := generators.all,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-      "org.scalameta" %% "scalameta" % "4.1.0"
+      "org.scalameta" %% "scalameta" % "4.1.9"
     ),
     // scalacOptions in (Compile, console) ++= {
     //   val jar = (packageBin in Compile).value
