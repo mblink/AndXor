@@ -120,31 +120,7 @@ lazy val circe = project.in(file("circe"))
   ))
   .dependsOn(core)
 
-lazy val plugin = project.in(file("plugin"))
-  .settings(commonSettings)
-  .settings(publishSettings)
-  .settings(Seq(
-    name := "andxor-plugin",
-    scalagenGenerators := generators.all,
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-      "org.scalameta" %% "scalameta" % "4.1.9"
-    ),
-    // scalacOptions in (Compile, console) ++= {
-    //   val jar = (packageBin in Compile).value
-    //   Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-    // },
-    // scalacOptions in Test ++= {
-    //   val jar = (packageBin in Compile).value
-    //   Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-    // }
-  ))
-  .dependsOn(
-    core % "compile->compile;test->test",
-    argonaut % "test->test"
-  )
-
-lazy val pluginTest = project.in(file("plugin-test"))
+lazy val generatorTest = project.in(file("plugin-test"))
   .settings(commonSettings)
   .settings(Seq(
     name := "andxor-plugin-test",
@@ -152,7 +128,6 @@ lazy val pluginTest = project.in(file("plugin-test"))
   ))
   .dependsOn(
     core % "compile->compile",
-    plugin % "test->compile",
     argonaut % "compile->compile"
   )
 
@@ -163,5 +138,5 @@ lazy val root = project.in(file("."))
     scalacOptions in Tut := (scalacOptions in (Compile, console)).value
   ))
   .dependsOn(core)
-  .aggregate(generate, core, argonaut, circe, plugin)
+  .aggregate(generate, core, argonaut, circe, generatorTest)
   .enablePlugins(TutPlugin)

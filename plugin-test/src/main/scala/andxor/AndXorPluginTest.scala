@@ -71,415 +71,415 @@ object types {
     x2: Int
   )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test3(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test3(
+    x1: String,
+    x2: Int,
+    x3: Boolean
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test4(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test4(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test5(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test5(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test6(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test6(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test7(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test7(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test8(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test8(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test9(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test9(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test10(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test10(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test11(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test11(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test12(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test12(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test13(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test13(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test14(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test14(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test15(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test15(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test16(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean,
-  //   x16: String
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test16(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean,
+    x16: String
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test17(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean,
-  //   x16: String,
-  //   x17: Int
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test17(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean,
+    x16: String,
+    x17: Int
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test18(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean,
-  //   x16: String,
-  //   x17: Int,
-  //   x18: Boolean
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test18(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean,
+    x16: String,
+    x17: Int,
+    x18: Boolean
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test19(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean,
-  //   x16: String,
-  //   x17: Int,
-  //   x18: Boolean,
-  //   x19: String
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test19(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean,
+    x16: String,
+    x17: Int,
+    x18: Boolean,
+    x19: String
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test20(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean,
-  //   x16: String,
-  //   x17: Int,
-  //   x18: Boolean,
-  //   x19: String,
-  //   x20: Int
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test20(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean,
+    x16: String,
+    x17: Int,
+    x18: Boolean,
+    x19: String,
+    x20: Int
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test21(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean,
-  //   x16: String,
-  //   x17: Int,
-  //   x18: Boolean,
-  //   x19: String,
-  //   x20: Int,
-  //   x21: Boolean
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test21(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean,
+    x16: String,
+    x17: Int,
+    x18: Boolean,
+    x19: String,
+    x20: Int,
+    x21: Boolean
+  )
 
-  // @deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // case class Test22(
-  //   x1: String,
-  //   x2: Int,
-  //   x3: Boolean,
-  //   x4: String,
-  //   x5: Int,
-  //   x6: Boolean,
-  //   x7: String,
-  //   x8: Int,
-  //   x9: Boolean,
-  //   x10: String,
-  //   x11: Int,
-  //   x12: Boolean,
-  //   x13: String,
-  //   x14: Int,
-  //   x15: Boolean,
-  //   x16: String,
-  //   x17: Int,
-  //   x18: Boolean,
-  //   x19: String,
-  //   x20: Int,
-  //   x21: Boolean,
-  //   x22: String
-  // )
+  @deriving(
+    labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Test22(
+    x1: String,
+    x2: Int,
+    x3: Boolean,
+    x4: String,
+    x5: Int,
+    x6: Boolean,
+    x7: String,
+    x8: Int,
+    x9: Boolean,
+    x10: String,
+    x11: Int,
+    x12: Boolean,
+    x13: String,
+    x14: Int,
+    x15: Boolean,
+    x16: String,
+    x17: Int,
+    x18: Boolean,
+    x19: String,
+    x20: Int,
+    x21: Boolean,
+    x22: String
+  )
 
   // @deriving(
   //   labelledCovariant = Vector(Read, DecodeJson),

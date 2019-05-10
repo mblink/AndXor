@@ -85,10 +85,10 @@ object generators {
     Set()
   }
 
-  def valOrDef(mods: List[Mod], name: Term.Name, tparams: List[Type.Param], tpe: Type, body: Term): Defn =
-    tparams match {
-      case Nil => q"val ${Pat.Var(name)}: $tpe = $body"
-      case _   => q"def $name[..${tparams}]: $tpe = $body"
+  def valOrDef(mods: List[Mod], name: Term.Name, tparams: List[Type.Param], params: List[List[Term.Param]], tpe: Type, body: Term): Defn =
+    (tparams, params) match {
+      case (Nil, Nil) => q"val ${Pat.Var(name)}: $tpe = $body"
+      case _   => q"def $name[..${tparams}](...$params): $tpe = $body"
     }
 
   lazy val name = "deriving"
@@ -165,7 +165,7 @@ object generators {
     def mkAndxor(klass: GenClassDef): Term = q"${klass.andxorObj}[..${klass.andxorTpes}]"
 
     def andxor(klass: GenClassDef): Defn =
-      valOrDef(Nil, klass.andxorName, klass.tparams, klass.andxorTpe, mkAndxor(klass))
+      valOrDef(Nil, klass.andxorName, klass.tparams, Nil, klass.andxorTpe, mkAndxor(klass))
 
     def mkTupleFromClass(klass: GenClassDef): Term =
       klass.params.flatten match {
@@ -189,7 +189,7 @@ object generators {
       """
 
     def iso(klass: GenClassDef): Defn =
-      valOrDef(Nil, klass.isoName, klass.tparams, klass.isoTpe, mkIso(klass))
+      valOrDef(Nil, klass.isoName, klass.tparams, Nil, klass.isoTpe, mkIso(klass))
 
     case class Typeclass(
       klass: GenClassDef,
@@ -228,7 +228,8 @@ object generators {
       """
 
     def derivedTypeclass(tc: Typeclass): Defn =
-      valOrDef(List(Mod.Implicit()), tc.memberName, tc.klass.tparams, t"${tc.typeclass}[${tc.klass.classTpe}]", mkDerivedTypeclass(tc))
+      // TODO - add implicit params
+      valOrDef(List(Mod.Implicit()), tc.memberName, tc.klass.tparams, Nil, t"${tc.typeclass}[${tc.klass.classTpe}]", mkDerivedTypeclass(tc))
 
     override def extendCompanion(klass: Defn.Class): List[Stat] = {
       val annots = klass.mods.flatMap(_ match {
