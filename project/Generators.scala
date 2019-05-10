@@ -1,12 +1,14 @@
 package andxor
 
 import scala.meta._
+import scala.meta.contrib.equality.Structurally
 import scala.meta.prettyprinters._
 import scala.meta.gen._
 
 object generators {
   // Andxor types
   private lazy val andxorPkg = q"_root_.andxor"
+  private lazy val andxorTpesPkg = q"_root_.andxor.types"
   private lazy val labelled = q"$andxorPkg.Labelled"
 
   // Scala types
@@ -79,11 +81,11 @@ object generators {
   def maybeTpeParams[T](tparams: List[Type.Param])(empty: => T, nonEmpty: List[Type] => T): T =
     Some(tparams).filter(_.nonEmpty).fold(empty)(ts => nonEmpty(ts.map(t => Type.Name(t.name.value))))
 
-  def getTypeNames(tpe: Type): Set[Type.Name] = {
-    debug("tpe", tpe)
-    // TODO
-    Set()
-  }
+  def getTypeNames(tpe: Tree): Set[Type.Name] =
+    (tpe match {
+      case t @ Type.Name(_) => Set(t)
+      case _ => Set()
+    }) ++ tpe.children.flatMap(getTypeNames(_))
 
   def valOrDef(mods: List[Mod], name: Term.Name, tparams: List[Type.Param], params: List[List[Term.Param]], tpe: Type, body: Term): Defn =
     (tparams, params) match {
@@ -106,13 +108,21 @@ object generators {
 
     trait GenClassDef {
       val klass: Defn.Class
-
       lazy val name: Type.Name = klass.name
+
+      private def mkParam(p: Term.Param): Param = p.decltpe match {
+        case Some(tpe) => Param(p, tpe)
+        case None => abort(s"Failed to generate code for $name because parameter ${p.name} has no declared type")
+      }
+      private def isImplGroup(ps: List[Param]): Boolean = ps.exists(_.param.mods.has[Mod.Implicit])
+
       lazy val tparams: List[Type.Param] = klass.tparams
-      lazy val params: List[List[Param]] = klass.ctor.paramss.map(_.map(x => x.decltpe match {
-        case Some(tpe) => Param(x, tpe)
-        case None => abort(s"Failed to generate code for $name because parameter ${x.name} has no declared type")
-      }))
+      lazy val params: List[List[Param]] = klass.ctor.paramss.map(_.map(mkParam))
+      lazy val implParams: List[Param] = params.find(isImplGroup).getOrElse(Nil)
+      lazy val abstractParams: List[Param] = {
+        val abstractTpeNames = tparams.map(t => Structurally(t.name)).toSet
+        params.flatten.filter(param => getTypeNames(param.tpe).exists(abstractTpeNames.contains(_)))
+      }
       lazy val arity: Int = params.flatten.length
 
       def andxorName: Term.Name
@@ -122,21 +132,17 @@ object generators {
       def mkValue(inst: Term, param: Param): Term
       def normalizeValue(v: Term): Term
 
-      lazy val abstractParams: List[Param] = {
-        val abstractTpeNames = klass.tparams.map(_.name).toSet
-        params.flatten.filter(param => getTypeNames(param.tpe).exists(abstractTpeNames.contains(_)))
-      }
-
       lazy val classTpe: Type = maybeTpeParams(tparams)(t"$name", ts => t"$name[..$ts]")
 
       lazy val andxorTpes: List[Type] = id :: tpes
 
       private lazy val andxorNName = s"AndXorK$arity"
       lazy val andxorObj: Term = q"$andxorPkg.${Term.Name(andxorNName)}"
-      lazy val andxorTpe: Type = t"$andxorPkg.${Type.Name(andxorNName)}[..${andxorTpes}]"
+      lazy val andxorTpe: Type = t"$andxorPkg.${Type.Name(andxorNName)}[..$andxorTpes]"
 
-      lazy val prodObj: Term = q"$andxorName.Prod"
-      lazy val prodTpe: Type = t"${Type.Singleton(andxorName)}#Prod"
+      private lazy val prodNName = s"Prod$arity"
+      lazy val prodObj: Term = q"$andxorTpesPkg.${Term.Name(prodNName)}"
+      lazy val prodTpe: Type = t"$andxorTpesPkg.${Type.Name(prodNName)}[..$andxorTpes]"
 
       lazy val isoTpe: Type = t"$isoSetTpe[$classTpe, $prodTpe]"
     }
@@ -184,7 +190,7 @@ object generators {
     def mkIso(klass: GenClassDef): Term =
       q"""
       $isoSetObj[${klass.classTpe}, ${klass.prodTpe}](
-        (x: ${klass.classTpe}) => ${klass.prodObj}(${mkTupleFromClass(klass)}),
+        (x: ${klass.classTpe}) => ${klass.prodObj}[..${klass.andxorTpes}](${mkTupleFromClass(klass)}),
         (x: ${klass.prodTpe}) => new ${klass.classTpe}(...${constructorArgs(klass)}))
       """
 
@@ -227,9 +233,23 @@ object generators {
         )(${tc.klass.isoName}.${tc.variance.isoFunction})
       """
 
-    def derivedTypeclass(tc: Typeclass): Defn =
-      // TODO - add implicit params
-      valOrDef(List(Mod.Implicit()), tc.memberName, tc.klass.tparams, Nil, t"${tc.typeclass}[${tc.klass.classTpe}]", mkDerivedTypeclass(tc))
+    /*
+    List(tc.klass.implParams.map(_.duplicate) ++ tc.klass.abstractParams.zipWithIndex.map(t =>
+       ValDef(
+         Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
+         TermName(s"evidence$$${t._2}"),
+         AppliedTypeTree(tc.typeclass.tree.duplicate, List(t._1.tpt.duplicate)),
+         EmptyTree))),
+    */
+
+    def derivedTypeclass(tc: Typeclass): Defn = {
+      val res = valOrDef(List(Mod.Implicit()), tc.memberName, tc.klass.tparams,
+        List(tc.klass.abstractParams.map(param =>
+          param"implicit ${Term.fresh("ev")}: ${tc.typeclass}[${param.tpe}]")),
+        t"${tc.typeclass}[${tc.klass.classTpe}]", mkDerivedTypeclass(tc))
+      debug("RES", res)
+      res
+    }
 
     override def extendCompanion(klass: Defn.Class): List[Stat] = {
       val annots = klass.mods.flatMap(_ match {
