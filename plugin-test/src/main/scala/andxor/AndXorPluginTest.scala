@@ -10,11 +10,10 @@ import scalaz.std.string._
 import scalaz.syntax.apply._
 import scalaz.syntax.id._
 import scalaz.syntax.std.string._
-import shapeless.{Witness => W}
 
 object typeclasses {
-  implicit def showLabelled[A: Show, L <: String]: Show[Labelled.Aux[A, L]] =
-    Show.shows(l => s"""${l.label.value} := ${Show[A].shows(l.value)}""" ++ "\n")
+  implicit def showLabelled[A: Show, L <: Singleton with String]: Show[Labelled.Aux[A, L]] =
+    Show.shows(l => s"""${l.label} := ${Show[A].shows(l.value)}""" ++ "\n")
 
   implicit val showDivide: Divide[Show] = new Divide[Show] {
     def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
@@ -28,8 +27,8 @@ object typeclasses {
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
-    implicit def readLabelled[A, L <: String](implicit w: W.Aux[L], r: Read[A]): Read[Labelled.Aux[A, L]] =
-      _.split("\n").flatMap(_.split(s"${w.value} := ", 2).lift(1).flatMap(r.read(_)).map(Labelled(_, w))).headOption
+    implicit def readLabelled[A, L <: Singleton with String](implicit l: L, r: Read[A]): Read[Labelled.Aux[A, L]] =
+      _.split("\n").flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_)).map(Labelled(_, l))).headOption
 
     implicit val readStr: Read[String] = """^"(.*)"$""".r.findFirstIn(_)
     implicit val readInt: Read[Int] = _.parseInt.toOption

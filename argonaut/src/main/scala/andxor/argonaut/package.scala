@@ -3,11 +3,10 @@ package andxor
 import _root_.argonaut.{DecodeJson, EncodeJson, Json}
 import scalaz.Apply
 import scalaz.syntax.id._
-import shapeless.{Witness => W}
 
 package object argonaut {
-  implicit def encodeJsonLabelled[L <: String, A](implicit ej: EncodeJson[A]): EncodeJson[Labelled.Aux[A, L]] =
-    EncodeJson(l => Json(l.label.value -> ej(l.value)))
+  implicit def encodeJsonLabelled[L <: Singleton with String, A](implicit ej: EncodeJson[A]): EncodeJson[Labelled.Aux[A, L]] =
+    EncodeJson(l => Json(l.label -> ej(l.value)))
 
   implicit val encodeJsonDivide: Divide[EncodeJson] = new Divide[EncodeJson] {
     def contramap[A, B](fa: EncodeJson[A])(f: B => A): EncodeJson[B] = fa.contramap(f)
@@ -15,8 +14,8 @@ package object argonaut {
       EncodeJson(f(_) |> (t => a1(t._1).deepmerge(a2(t._2))))
   }
 
-  implicit def decodeJsonLabelled[L <: String, A: DecodeJson](implicit w: W.Aux[L]): DecodeJson[Labelled.Aux[A, L]] =
-    DecodeJson(_.get[A](w.value).map(Labelled(_, w)))
+  implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit l: L): DecodeJson[Labelled.Aux[A, L]] =
+    DecodeJson(_.get[A](l).map(Labelled(_, l)))
 
   implicit val decodeJsonApply: Apply[DecodeJson] = new Apply[DecodeJson] {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)

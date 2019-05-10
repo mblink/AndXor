@@ -3,11 +3,10 @@ package andxor
 import _root_.io.circe.{Decoder, Encoder, Json}
 import scalaz.Apply
 import scalaz.syntax.id._
-import shapeless.{Witness => W}
 
 package object circe {
-  implicit def encoderLabelled[L <: String, A](implicit e: Encoder[A]): Encoder[Labelled.Aux[A, L]] =
-    Encoder.instance(l => Json.obj(l.label.value -> e(l.value)))
+  implicit def encoderLabelled[L <: Singleton with String, A](implicit e: Encoder[A]): Encoder[Labelled.Aux[A, L]] =
+    Encoder.instance(l => Json.obj(l.label -> e(l.value)))
 
   implicit val encoderDivide: Divide[Encoder] = new Divide[Encoder] {
     def contramap[A, B](fa: Encoder[A])(f: B => A): Encoder[B] = fa.contramap(f)
@@ -15,8 +14,8 @@ package object circe {
       Encoder.instance(f(_) |> (t => a1(t._1).deepMerge(a2(t._2))))
   }
 
-  implicit def decoderLabelled[L <: String, A: Decoder](implicit w: W.Aux[L]): Decoder[Labelled.Aux[A, L]] =
-    Decoder.instance(_.get[A](w.value).map(Labelled(_, w)))
+  implicit def decoderLabelled[L <: Singleton with String, A: Decoder](implicit l: L): Decoder[Labelled.Aux[A, L]] =
+    Decoder.instance(_.get[A](l).map(Labelled(_, l)))
 
   implicit val decoderApply: Apply[Decoder] = new Apply[Decoder] {
     def map[A, B](fa: Decoder[A])(f: A => B): Decoder[B] = fa.map(f)

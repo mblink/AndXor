@@ -102,7 +102,20 @@ object generators {
     private lazy val andxorLabelledName = Term.fresh("andxorLabelled")
     private lazy val labelledIsoName = Term.fresh("andxorLabelledIso")
 
+    case class Label(paramName: Name) {
+      private val namePrefix = s"andxor_label_${paramName.value}_"
+
+      lazy val valName = Term.fresh(namePrefix)
+      private lazy val implValName = Term.fresh(s"${namePrefix}_impl")
+      lazy val defns: List[Defn.Val] = List(
+        q"val ${Pat.Var(valName)}: String = ${Lit.String(paramName.value)}",
+        q"implicit val ${Pat.Var(implValName)}: $singletonTpe = $valName"
+      )
+      lazy val singletonTpe: Type.Singleton = Type.Singleton(valName)
+    }
+
     case class Param(param: Term.Param, tpe: Type) {
+      lazy val label: Label = Label(param.name)
       lazy val termName: Term.Name = Term.Name(param.name.value)
     }
 
@@ -158,15 +171,17 @@ object generators {
     case class LabelledClassDef(klass: Defn.Class) extends GenClassDef {
       val andxorName = andxorLabelledName
       val isoName = labelledIsoName
-      def tpes: List[Type] = params.flatten.map(p => t"""_root_.andxor.Labelled.Aux[${p.tpe},
-        ${termToType(q"_root_.shapeless.Witness.${Term.Name(s""""${p.param.name.value}"""")}.T")}]""")
+      def tpes: List[Type] = params.flatten.map(p => t"_root_.andxor.Labelled.Aux[${p.tpe}, ${p.label.singletonTpe}]")
       def mkValue(inst: Term, param: Param): Term =
-        q"$labelled[${param.tpe}]($inst.${param.termName}, ${Lit.String(param.param.name.value)})"
+        q"$labelled[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
       def normalizeValue(v: Term): Term = q"$v.value"
     }
 
     def memberName(t: Tree): Term.Name =
       Term.fresh(s"andxor_${t.toString.toLowerCase.replace(".", "_")}")
+
+    def labels(klass: LabelledClassDef): List[Defn.Val] =
+      klass.params.flatten.flatMap(_.label.defns)
 
     def mkAndxor(klass: GenClassDef): Term = q"${klass.andxorObj}[..${klass.andxorTpes}]"
 
@@ -207,14 +222,14 @@ object generators {
     def getTypeclasses0(tcs: List[Term], klass: GenClassDef, variance: Variance): List[Typeclass] =
       tcs.map(tc => Typeclass(klass, termToType(tc), variance, memberName(tc)))
 
-    def getTypeclasses(args: List[List[Term]], _klass: Defn.Class): List[Typeclass] =
+    def getTypeclasses(args: List[List[Term]], baseKlass: BaseClassDef, labelledKlass: LabelledClassDef): List[Typeclass] =
       List[(String, Variance, Boolean)](
         ("covariant", Covariant, false),
         ("labelledCovariant", Covariant, true),
         ("contravariant", Contravariant, false),
         ("labelledContravariant", Contravariant, true)
       ).flatMap { case (term, variance, labelled) =>
-        val klass = if (labelled) LabelledClassDef(_klass) else BaseClassDef(_klass)
+        val klass = if (labelled) labelledKlass else baseKlass
         args.flatten.flatMap(_ match {
           case Term.Assign(Term.Name(`term`), q"List(..$tcs)") => getTypeclasses0(tcs, klass, variance)
           case Term.Assign(Term.Name(`term`), q"Set(..$tcs)") => getTypeclasses0(tcs, klass, variance)
@@ -224,7 +239,7 @@ object generators {
         })
       }
 
-    def mkDerivedTypeclass(tc: Typeclass): Term =
+    def mkDerivedTypeclass(tc: Typeclass, baseKlass: BaseClassDef, labelledKlass: LabelledClassDef): Term =
       q"""
       $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]]
         .${tc.variance.mapFunction}(
@@ -233,23 +248,25 @@ object generators {
         )(${tc.klass.isoName}.${tc.variance.isoFunction})
       """
 
-    def derivedTypeclass(tc: Typeclass): Defn =
+    def derivedTypeclass(tc: Typeclass, baseKlass: BaseClassDef, labelledKlass: LabelledClassDef): Defn =
       valOrDef(List(Mod.Implicit()), tc.memberName, tc.klass.tparams,
         Some(tc.klass.abstractParams).filter(_.nonEmpty).fold(List[List[Term.Param]]())(
           ps => List(ps.map(p => param"implicit ${Term.fresh("ev")}: ${tc.typeclass}[${p.tpe}]"))),
-        t"${tc.typeclass}[${tc.klass.classTpe}]", mkDerivedTypeclass(tc))
+        t"${tc.typeclass}[${tc.klass.classTpe}]", mkDerivedTypeclass(tc, baseKlass, labelledKlass))
 
     override def extendCompanion(klass: Defn.Class): List[Stat] = {
+      val (base, labelled) = (BaseClassDef(klass), LabelledClassDef(klass))
       val annots = klass.mods.flatMap(_ match {
-        case Mod.Annot(Init(Type.Name(`name`), _, args)) => getTypeclasses(args, klass)
+        case Mod.Annot(Init(Type.Name(`name`), _, args)) => getTypeclasses(args, base, labelled)
         case _ => Nil
       })
-      List(
-        andxor(BaseClassDef(klass)),
-        andxor(LabelledClassDef(klass)),
-        iso(BaseClassDef(klass)),
-        iso(LabelledClassDef(klass)),
-      ) ++ annots.map(derivedTypeclass)
+
+      labels(labelled) ::: List(
+        andxor(base),
+        andxor(labelled),
+        iso(base),
+        iso(labelled),
+      ) ++ annots.map(derivedTypeclass(_, base, labelled))
     }
   }
 }

@@ -4,11 +4,9 @@ lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
   version := "0.2.5",
-  libraryDependencies ++= Seq(
-    "org.scalaz" %% "scalaz-core" % "7.2.26",
-    "com.chuusai" %% "shapeless" % "2.3.3"
-  ),
-  // addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
+  version := "0.2.0-MD10",
+  libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.26",
+  addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -18,8 +16,8 @@ lazy val commonSettings = Seq(
     "-language:higherKinds",
     "-language:implicitConversions",
     "-unchecked",
-    // "-P:splain:all",
-    // "-P:splain:rewrite:andxor\\.types\\.((Cop|Prod)\\d+)\\.Type/$1",
+    "-P:splain:all",
+    "-P:splain:rewrite:andxor\\.types\\.((Cop|Prod)\\d+)\\.Type/$1",
     "-Xcheckinit",
     "-Xfatal-warnings",
     "-Xfuture",
