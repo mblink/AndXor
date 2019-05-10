@@ -89,8 +89,8 @@ object generators {
 
   def valOrDef(mods: List[Mod], name: Term.Name, tparams: List[Type.Param], params: List[List[Term.Param]], tpe: Type, body: Term): Defn =
     (tparams, params) match {
-      case (Nil, Nil) => q"val ${Pat.Var(name)}: $tpe = $body"
-      case _   => q"def $name[..${tparams}](...$params): $tpe = $body"
+      case (Nil, Nil) => q"..$mods val ${Pat.Var(name)}: $tpe = $body"
+      case _   =>        q"..$mods def $name[..${tparams}](...$params): $tpe = $body"
     }
 
   lazy val name = "deriving"
@@ -233,23 +233,11 @@ object generators {
         )(${tc.klass.isoName}.${tc.variance.isoFunction})
       """
 
-    /*
-    List(tc.klass.implParams.map(_.duplicate) ++ tc.klass.abstractParams.zipWithIndex.map(t =>
-       ValDef(
-         Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC),
-         TermName(s"evidence$$${t._2}"),
-         AppliedTypeTree(tc.typeclass.tree.duplicate, List(t._1.tpt.duplicate)),
-         EmptyTree))),
-    */
-
-    def derivedTypeclass(tc: Typeclass): Defn = {
-      val res = valOrDef(List(Mod.Implicit()), tc.memberName, tc.klass.tparams,
-        List(tc.klass.abstractParams.map(param =>
-          param"implicit ${Term.fresh("ev")}: ${tc.typeclass}[${param.tpe}]")),
+    def derivedTypeclass(tc: Typeclass): Defn =
+      valOrDef(List(Mod.Implicit()), tc.memberName, tc.klass.tparams,
+        Some(tc.klass.abstractParams).filter(_.nonEmpty).fold(List[List[Term.Param]]())(
+          ps => List(ps.map(p => param"implicit ${Term.fresh("ev")}: ${tc.typeclass}[${p.tpe}]"))),
         t"${tc.typeclass}[${tc.klass.classTpe}]", mkDerivedTypeclass(tc))
-      debug("RES", res)
-      res
-    }
 
     override def extendCompanion(klass: Defn.Class): List[Stat] = {
       val annots = klass.mods.flatMap(_ match {
