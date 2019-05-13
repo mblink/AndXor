@@ -1,7 +1,8 @@
 package andxor
 
 import scala.language.higherKinds
-import scalaz.{Contravariant, Monoid}
+import scalaz.{Contravariant, IsomorphismContravariant, Monoid}
+import scalaz.Isomorphism.<~>
 
 trait Divide[F[_]] extends Contravariant[F] {
   final def divide[A, B, C](fa: =>F[A], fb: =>F[B])(f: C => (A, B)): F[C] =
@@ -15,6 +16,17 @@ trait Divide[F[_]] extends Contravariant[F] {
 }
 
 object Divide {
+  def apply[F[_]](implicit ev: Divide[F]): Divide[F] = ev
+
+  def fromIso[F[_], G[_]](i: F <~> G)(implicit D: Divide[G]): Divide[F] =
+    new Divide[F] with IsomorphismContravariant[F, G] {
+      implicit val G: Contravariant[G] = D
+      val iso: F <~> G = i
+
+      def divide2[A1, A2, Z](a1: => F[A1], a2: => F[A2])(f: Z => (A1, A2)): F[Z] =
+        iso.from(D.divide2(iso.to(a1), iso.to(a2))(f))
+    }
+
   implicit def divideFunction1[O](implicit M: Monoid[O]): Divide[? => O] = new Divide[? => O] {
     def contramap[A, B](r: A => O)(f: B => A): B => O = b => r(f(b))
     def divide2[A1, A2, Z](a1: => A1 => O, a2: => A2 => O)(f: Z => (A1, A2)): Z => O = z => {
