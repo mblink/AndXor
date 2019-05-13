@@ -1,7 +1,6 @@
 package andxor
 
 import java.nio.charset.StandardCharsets
-import java.util.Base64
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.contrib.equality.Structurally
@@ -22,6 +21,12 @@ object generators {
   private lazy val id = t"$scalazPkg.Id.Id"
   private lazy val isoSetObj = q"$scalazPkg.Isomorphism.IsoSet"
   private lazy val isoSetTpe = t"$scalazPkg.Isomorphism.IsoSet"
+  private lazy val tagObj = q"$scalazPkg.Tag"
+  private lazy val tagTpe = t"_root_.scalaz.@@"
+  private lazy val adtValTagTpe = t"$andxorPkg.tags.ADTValue"
+  private lazy val adtValTagObj = q"$tagObj.of[$adtValTagTpe]"
+  private def mkAdtVal(inst: Term): Term = q"$adtValTagObj($inst)"
+  private def adtValTpe(tpe: Type): Type = t"$tagTpe[$tpe, $adtValTagTpe]"
 
   lazy val all: Set[Generator] = Set(Deriving)
 
@@ -115,8 +120,7 @@ object generators {
 
   case class Label(paramName: Name) {
     // Don't use `Term.fresh` because label name needs to be deterministic
-    lazy val valName = Term.Name(s"andxor_label_${Base64.getEncoder
-      .encodeToString(paramName.value.getBytes(StandardCharsets.UTF_8))}".stripSuffix("="))
+    lazy val valName = Term.Name(s"andxor_label_${paramName.value}")
     private lazy val implValName = Term.Name(s"${valName}_impl")
     lazy val defns: List[Defn.Val] = List(
       q"val ${Pat.Var(valName)}: String = ${Lit.String(paramName.value)}",
@@ -174,7 +178,7 @@ object generators {
     }).getOrElse(Nil)).flatMap(childOfTpe(tpeName, _))
 
   def childrenToParams(children: List[Either[Defn.Class, Defn.Object]]): List[Param] =
-    children.map(c => Param(c.name, c.tpe))
+    children.map(c => Param(c.name, adtValTpe(c.tpe)))
 
   sealed abstract class GenTree(
     val params: List[List[Param]],
@@ -250,35 +254,38 @@ object generators {
   }
 
   case class CopTree(
+    children: List[Either[Defn.Class, Defn.Object]],
     override val name: Type.Name,
-    companion: Option[Defn.Object],
-    owner: Option[Tree],
     override val tparams: List[Type.Param],
     override val labelled: Boolean
-  ) extends GenTree(List(childrenToParams(getChildrenOfTpe(name, companion, owner))), name, tparams, "Cop") {
+  ) extends GenTree(List(childrenToParams(children)), name, tparams, "Cop") {
     val ps: List[Param] = params.flatten
 
     def mkValue(inst: Term, param: Param): Term =
-      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst, ${param.label.valName})"
-      else          q"$inst"
+      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}](${mkAdtVal(inst)}, ${param.label.valName})"
+      else          mkAdtVal(inst)
 
     lazy val iso: Term =
       q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => x match {
-          ..case ${ps.map(p => p"case inst: ${p.tpe} => $andxorName.inj(${mkValue(q"inst", p)})")}
+          ..case ${children.zip(ps).map(t => p"case inst: ${t._1.tpe} => $andxorName.inj(${mkValue(q"inst", t._2)})")}
         },
-        (x: $reprTpe) => ${ps.tail.foldRight[Term](if (ps.length == 1 && labelled) q"x.run.value" else q"x.run")(
-          (_, acc) => q"${if (labelled) q"$acc.bimap(_.value, _.value)" else acc}.merge[$id[$tpe]]")})
+        (x: $reprTpe) => ${ps.tail.foldRight[Term](if (ps.length == 1 && labelled) q"$adtValTagObj.unwrap(x.run.value)" else q"x.run")(
+          (_, acc) => q"${if (labelled) q"$acc.bimap(x => $adtValTagObj.unwrap(x.value), x => $adtValTagObj.unwrap(x.value))"
+                          else q"$acc.bimap($adtValTagObj.unwrap(_), $adtValTagObj.unwrap(_))"}.merge[$id[$tpe]]")})
       """
   }
 
   object CopTree {
+    def apply(name: Type.Name, companion: Option[Defn.Object], owner: Option[Tree], tparams: List[Type.Param], labelled: Boolean): CopTree =
+      new CopTree(getChildrenOfTpe(name, companion, owner), name, tparams, labelled)
+
     def apply(c: Defn.Class, l: Boolean): GenTree =
-      new CopTree(c.name, c.companionObject, c.owner, c.tparams, l)
+      apply(c.name, c.companionObject, c.owner, c.tparams, l)
 
     def apply(t: Defn.Trait, l: Boolean): GenTree =
-      new CopTree(t.name, t.companionObject, t.owner, t.tparams, l)
+      apply(t.name, t.companionObject, t.owner, t.tparams, l)
   }
 
   def memberName(t: Tree): Term.Name =

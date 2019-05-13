@@ -2,8 +2,9 @@ package andxor.test
 
 import andxor.{Decidable, Divide, Labelled}
 import andxor.argonaut._
+import andxor.tags._
 import argonaut.{DecodeJson, EncodeJson}
-import scalaz.{\/, Apply, Show}
+import scalaz.{\/, @@, Apply, Tag, Show}
 import scalaz.std.anyVal._
 import scalaz.std.option._
 import scalaz.std.string._
@@ -46,6 +47,8 @@ object typeclasses {
     implicit val csvInt: Csv[Int] = i => List(i.toString)
     implicit val csvBool: Csv[Boolean] = b => List(b.toString)
     implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] = _.flatMap(c.toCsv(_))
+    implicit def csvAdtVal[A, L <: Singleton with String]: Csv[Labelled.Aux[A @@ ADTValue, L]] =
+      a => List(a.label)
 
     implicit val csvDivide: Divide[Csv] = new Divide[Csv] {
       def conquer[A]: Csv[A] = _ => Nil
@@ -66,12 +69,13 @@ object types {
 
   @deriving(
     // labelledCovariant = Vector(Read, DecodeJson),
-    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Csv),
     // labelledContravariant = Vector(Show, EncodeJson)
   )
   sealed trait Foo
   case object Bar extends Foo
-  class Baz() extends Foo
+  @deriving(contravariant = Vector(Csv))
+  case class Baz(s: String) extends Foo
 
   @deriving(
     labelledCovariant = Vector(Read, DecodeJson),
