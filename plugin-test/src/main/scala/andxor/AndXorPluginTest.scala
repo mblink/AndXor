@@ -1,9 +1,9 @@
 package andxor.test
 
-import andxor.{Divide, Labelled}
+import andxor.{Decidable, Divide, Labelled}
 import andxor.argonaut._
 import argonaut.{DecodeJson, EncodeJson}
-import scalaz.{Apply, Show}
+import scalaz.{\/, Apply, Show}
 import scalaz.std.anyVal._
 import scalaz.std.option._
 import scalaz.std.string._
@@ -52,11 +52,26 @@ object typeclasses {
       def divide2[A1, A2, Z](a1: => Csv[A1], a2: => Csv[A2])(f: Z => (A1, A2)): Csv[Z] =
         f(_) |> (t => a1.toCsv(t._1) ++ a2.toCsv(t._2))
     }
+
+    implicit val csvDecide: Decidable[Csv] = new Decidable[Csv] {
+      def lose[A](f: A => Void): Csv[A] = a => absurd(f(a))
+      def choose2[Z, A1, A2](a1: => Csv[A1], a2: => Csv[A2])(f: Z => (A1 \/ A2)): Csv[Z] =
+        f(_).fold(a1.toCsv(_), a2.toCsv(_))
+    }
   }
 }
 
 object types {
   import typeclasses._
+
+  @deriving(
+    // labelledCovariant = Vector(Read, DecodeJson),
+    contravariant = Vector(Csv),
+    // labelledContravariant = Vector(Show, EncodeJson)
+  )
+  sealed trait Foo
+  case object Bar extends Foo
+  class Baz() extends Foo
 
   @deriving(
     labelledCovariant = Vector(Read, DecodeJson),
