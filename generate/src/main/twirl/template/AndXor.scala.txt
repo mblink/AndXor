@@ -14,13 +14,21 @@ abstract class ComposeAndXor[F[_], Cop, Prod] {
   def apply(implicit a: Apply[F]): F[Prod] = mkApply(identity _)
 }
 
+trait AndXorEvidence[Cop, Prod] {
+  implicit val injEv: Inj[Cop, Cop]
+  implicit def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod]
+  implicit def injCopToProdEv(implicit M: Monoid[Prod]): Inj[Prod, Cop]
+
+  implicit def injProdToVecCopEvHelper[A](implicit i: Inj[Cop, A]): Inj[Vector[Cop], A] = Inj.instance(a => Vector(i(a)))
+  implicit val injProdToVecCopEv: Inj[Vector[Cop], Prod]
+}
+
 trait AndXor {
   type Cop
   type Prod
-  val injEv: Inj[Cop, Cop]
   def inj[A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
-  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod]
   def lift[A](a: A)(implicit inj: Inj[Prod, A]): Prod = inj(a)
+  val evidence: AndXorEvidence[Cop, Prod]
 }
 
 object AndXor {

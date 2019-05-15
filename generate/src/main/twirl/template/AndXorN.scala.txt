@@ -5,6 +5,7 @@
 import andxor.types.{@{tpes.copName}, @{tpes.prodName}}
 import scalaz.{Apply, Functor, PlusEmpty, Monoid@{tpes.foldLen01("")(", \\/, -\\/, \\/-")}, ~>}
 import scalaz.Id.Id
+import scalaz.std.vector._
 
 trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
   type Prod = @{tpes.prodTpe}
@@ -36,8 +37,12 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
         }
   }
 
-  val injEv = combine[Inj.Aux[Cop]#Out].choose
-  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
+  object evidence extends AndXorEvidence[Cop, Prod] {
+    implicit val injEv: Inj[Cop, Cop] = combine[Inj[Cop, ?]].choose
+    implicit def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj[Prod, ?]].divide
+    implicit def injCopToProdEv(implicit M: Monoid[Prod]): Inj[Prod, Cop] = combine[Inj[Prod, ?]].choose
+    implicit val injProdToVecCopEv: Inj[Vector[Cop], Prod] = combine[Inj[Vector[Cop], ?]].divide
+  }
 
   def transformP[G[_]](nt: (F ~> G)):
   AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Prod => AndXorK@{tpes.length}[G, @{tpes.tpeParams}]#Prod =

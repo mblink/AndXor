@@ -3,6 +3,7 @@ package andxor
 import andxor.types.{Cop11, Prod11}
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
+import scalaz.std.vector._
 
 trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndXor {
   type Prod = Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
@@ -36,8 +37,12 @@ trait AndXorK11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] extends AndX
 
     }
 
-  val injEv = combine[Inj.Aux[Cop]#Out].choose
-  def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj.Aux[Prod]#Out].divide
+  object evidence extends AndXorEvidence[Cop, Prod] {
+    implicit val injEv: Inj[Cop, Cop] = combine[Inj[Cop, ?]].choose
+    implicit def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj[Prod, ?]].divide
+    implicit def injCopToProdEv(implicit M: Monoid[Prod]): Inj[Prod, Cop] = combine[Inj[Prod, ?]].choose
+    implicit val injProdToVecCopEv: Inj[Vector[Cop], Prod] = combine[Inj[Vector[Cop], ?]].divide
+  }
 
   def transformP[G[_]](nt: (F ~> G)): AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod => AndXorK11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod =
     (p: AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]#Prod) => {
