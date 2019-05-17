@@ -1,6 +1,7 @@
 package andxor
 
 import andxor.types.{Cop1, Prod1}
+import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, ~>}
 import scalaz.Id.Id
 import scalaz.std.vector._
@@ -78,11 +79,20 @@ trait AndXorK1[F[_], A1] extends AndXor {
       (List(ht1._1.map(TI.inj(_: Id[A1]))).flatten,
         TG.Prod((ht1._2)))
     }
-    @scala.annotation.tailrec
+
+    @tailrec
+    def appendAll(out: C, q: PQ[TI.Cop]): C =
+      q.isEmpty match {
+        case true => out
+        case false =>
+          val newOut = M.append(out, map(q.dequeue))
+          appendAll(newOut, q)
+      }
+
+    @tailrec
     def go(prod: TG.Prod, q: PQ[TI.Cop], out: C): C =
       (prod.run.==((PE.empty[A1]))) match {
-        case true =>
-          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+        case true => appendAll(out, q)
         case false => q.isEmpty match {
           case true => {
             val (hs, ts) = uncons(prod)
@@ -90,12 +100,11 @@ trait AndXorK1[F[_], A1] extends AndXor {
             go(ts, q, out)
           }
           case false => q.dequeue.run match {
-            case x => {
+            case dj @ _ =>
               val pr = prod.run
               val (h, t) = U(pr)
               go(TG.Prod((t)),
-                q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.inj(x))))
-          }
+                q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.Cop(dj))))
 
           }
         }

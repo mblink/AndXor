@@ -3,6 +3,7 @@
 @(tpes: List[String])
 
 import andxor.types.{@{tpes.copName}, @{tpes.prodName}}
+import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid@{tpes.foldLen01("")(", \\/, -\\/, \\/-")}, ~>}
 import scalaz.Id.Id
 import scalaz.std.vector._
@@ -90,11 +91,20 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
       (List(@{tpes.zip(Stream.from(1)).map(t => s"ht${t._2}._1.map(TI.inj(_: Id[${t._1}]))").mkString(", ")}).flatten,
         TG.Prod(@{1.to(tpes.length).toList.map(i => s"ht$i._2").mkTuple}))
     }
-    @@scala.annotation.tailrec
+
+    @@tailrec
+    def appendAll(out: C, q: PQ[TI.Cop]): C =
+      q.isEmpty match {
+        case true => out
+        case false =>
+          val newOut = M.append(out, map(q.dequeue))
+          appendAll(newOut, q)
+      }
+
+    @@tailrec
     def go(prod: TG.Prod, q: PQ[TI.Cop], out: C): C =
       (prod.run.==(@{tpes.map(t => s"PE.empty[${t}]").mkTuple})) match {
-        case true =>
-          q.foldLeft(out)((acc, el) => M.append(acc, map(el)))
+        case true => appendAll(out, q)
         case false => q.isEmpty match @{s"""{
           case true => {
             val (hs, ts) = uncons(prod)
