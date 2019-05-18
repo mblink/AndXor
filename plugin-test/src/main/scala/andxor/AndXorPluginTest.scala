@@ -4,7 +4,7 @@ import andxor.{Decidable, Divide, Labelled}
 import andxor.argonaut._
 import andxor.tags._
 import argonaut.{DecodeJson, EncodeJson}
-import scalaz.{\/, @@, Apply, Tag, Show}
+import scalaz.{\/, @@, Apply, Show}
 import scalaz.std.anyVal._
 import scalaz.std.option._
 import scalaz.std.string._
@@ -67,15 +67,15 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  @deriving(
-    // labelledCovariant = Vector(Read, DecodeJson),
-    labelledContravariant = Vector(Csv),
-    // labelledContravariant = Vector(Show, EncodeJson)
-  )
-  sealed trait Foo
-  case object Bar extends Foo
-  @deriving(contravariant = Vector(Csv))
-  case class Baz(s: String) extends Foo
+  // @deriving(
+  //   // labelledCovariant = Vector(Read, DecodeJson),
+  //   labelledContravariant = Vector(Csv),
+  //   // labelledContravariant = Vector(Show, EncodeJson)
+  // )
+  // sealed trait Foo
+  // case object Bar extends Foo
+  // @deriving(contravariant = Vector(Csv))
+  // case class Baz(s: String) extends Foo
 
   @deriving(
     labelledCovariant = Vector(Read, DecodeJson),
