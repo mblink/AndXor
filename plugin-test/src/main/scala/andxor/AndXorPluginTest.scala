@@ -18,7 +18,6 @@ object typeclasses {
 
   implicit val showDivide: Divide[Show] = new Divide[Show] {
     def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
-    def conquer[A]: Show[A] = Show.shows(_ => "")
     def divide2[A1, A2, Z](fa1: => Show[A1], fa2: => Show[A2])(f: Z => (A1, A2)): Show[Z] =
       Show.show { z =>
         val (a1, a2) = f(z)
@@ -51,13 +50,13 @@ object typeclasses {
       a => List(a.label)
 
     implicit val csvDivide: Divide[Csv] = new Divide[Csv] {
-      def conquer[A]: Csv[A] = _ => Nil
+      def contramap[A, B](fa: Csv[A])(f: B => A): Csv[B] = b => fa.toCsv(f(b))
       def divide2[A1, A2, Z](a1: => Csv[A1], a2: => Csv[A2])(f: Z => (A1, A2)): Csv[Z] =
         f(_) |> (t => a1.toCsv(t._1) ++ a2.toCsv(t._2))
     }
 
     implicit val csvDecide: Decidable[Csv] = new Decidable[Csv] {
-      def lose[A](f: A => Void): Csv[A] = a => absurd(f(a))
+      def contramap[A, B](fa: Csv[A])(f: B => A): Csv[B] = b => fa.toCsv(f(b))
       def choose2[Z, A1, A2](a1: => Csv[A1], a2: => Csv[A2])(f: Z => (A1 \/ A2)): Csv[Z] =
         f(_).fold(a1.toCsv(_), a2.toCsv(_))
     }

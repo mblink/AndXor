@@ -314,8 +314,8 @@ object generators {
 
   def getTypeclasses(args: List[List[Term]], base: GenTree, labelled: GenTree): List[Typeclass] = {
     val (co, contra): (Covariant, Contravariant) = base match {
-      case p: ProdTree => (CovariantProduct, ContravariantProduct)
-      case c: CopTree  => (CovariantCoproduct, ContravariantCoproduct)
+      case _: ProdTree => (CovariantProduct, ContravariantProduct)
+      case _: CopTree  => (CovariantCoproduct, ContravariantCoproduct)
     }
     List[(String, Variance, Boolean)](
       ("covariant", co, false),
@@ -334,7 +334,7 @@ object generators {
     }
   }
 
-  def mkDerivedTypeclass(tc: Typeclass, base: GenTree, labelled: GenTree): Term =
+  def mkDerivedTypeclass(tc: Typeclass): Term =
     q"""
     $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]]
       .${tc.variance.mapFunction}(
@@ -343,11 +343,11 @@ object generators {
       )(${tc.tree.isoName}.${tc.variance.isoFunction})
     """
 
-  def derivedTypeclass(tc: Typeclass, base: GenTree, labelled: GenTree): Defn =
+  def derivedTypeclass(tc: Typeclass): Defn =
     valOrDef(List(Mod.Implicit()), tc.memberName, tc.tree.tparams,
       Some(tc.tree.abstractParams).filter(_.nonEmpty).fold(List[List[Term.Param]]())(
         ps => List(ps.map(p => param"implicit ${Term.fresh("ev")}: ${tc.typeclass}[${p.tpe}]"))),
-      t"${tc.typeclass}[${tc.tree.tpe}]", mkDerivedTypeclass(tc, base, labelled))
+      t"${tc.typeclass}[${tc.tree.tpe}]", mkDerivedTypeclass(tc))
 
   def mkStats(base: GenTree, labelled: GenTree, mods: List[Mod]): List[Stat] =
     labels(labelled) ::: List(
@@ -358,7 +358,7 @@ object generators {
     ) ++ mods.flatMap(_ match {
       case Mod.Annot(Init(Type.Name(`name`), _, args)) => getTypeclasses(args, base, labelled)
       case _ => Nil
-    }).map(derivedTypeclass(_, base, labelled))
+    }).map(derivedTypeclass)
 
   case object Deriving extends CompanionGenerator(name) { self =>
     override def extendCompanion(c: Defn.Class): List[Stat] =
