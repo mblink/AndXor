@@ -4,6 +4,7 @@ import andxor.{Decidable, Divide, Labelled}
 import andxor.argonaut._
 import andxor.tags._
 import argonaut.{DecodeJson, EncodeJson}
+import scala.annotation.Annotation
 import scalaz.{\/, @@, Apply, Show}
 import scalaz.std.anyVal._
 import scalaz.std.option._
@@ -11,6 +12,15 @@ import scalaz.std.string._
 import scalaz.syntax.apply._
 import scalaz.syntax.id._
 import scalaz.syntax.std.string._
+
+object annotations {
+  final class deriving(
+    val covariant: Vector[AnyRef] = Vector(),
+    val labelledCovariant: Vector[AnyRef] = Vector(),
+    val contravariant: Vector[AnyRef] = Vector(),
+    val labelledContravariant: Vector[AnyRef] = Vector(),
+  ) extends Annotation
+}
 
 object typeclasses {
   implicit def showLabelled[A: Show, L <: Singleton with String]: Show[Labelled.Aux[A, L]] =
@@ -66,17 +76,10 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  // @deriving(
-  //   // labelledCovariant = Vector(Read, DecodeJson),
-  //   labelledContravariant = Vector(Csv),
-  //   // labelledContravariant = Vector(Show, EncodeJson)
-  // )
-  // sealed trait Foo
-  // case object Bar extends Foo
-  // @deriving(contravariant = Vector(Csv))
-  // case class Baz(s: String) extends Foo
+  @annotations.deriving case class NoInstances(s: String)
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -85,7 +88,8 @@ object types {
     x1: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -95,7 +99,8 @@ object types {
     x2: Int
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -106,7 +111,8 @@ object types {
     x3: Boolean
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -118,7 +124,8 @@ object types {
     x4: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -131,7 +138,8 @@ object types {
     x5: Int
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -145,7 +153,8 @@ object types {
     x6: Boolean
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -160,7 +169,8 @@ object types {
     x7: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -176,7 +186,8 @@ object types {
     x8: Int
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -193,7 +204,8 @@ object types {
     x9: Boolean
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -211,7 +223,8 @@ object types {
     x10: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -230,7 +243,8 @@ object types {
     x11: Int
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -250,7 +264,8 @@ object types {
     x12: Boolean
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -271,7 +286,8 @@ object types {
     x13: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -293,7 +309,8 @@ object types {
     x14: Int
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -316,7 +333,8 @@ object types {
     x15: Boolean
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -340,7 +358,8 @@ object types {
     x16: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -365,7 +384,8 @@ object types {
     x17: Int
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -391,7 +411,8 @@ object types {
     x18: Boolean
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -418,7 +439,8 @@ object types {
     x19: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -446,7 +468,8 @@ object types {
     x20: Int
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -475,7 +498,8 @@ object types {
     x21: Boolean
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -505,7 +529,8 @@ object types {
     x22: String
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -513,7 +538,8 @@ object types {
   case class Multi(str: String)(val int: Int)
 
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -522,7 +548,8 @@ object types {
     x1: A1
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -532,7 +559,8 @@ object types {
     x2: A2
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -543,7 +571,8 @@ object types {
     x3: A3
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -555,7 +584,8 @@ object types {
     x4: A4
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -568,7 +598,8 @@ object types {
     x5: A5
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -582,7 +613,8 @@ object types {
     x6: A6
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -597,7 +629,8 @@ object types {
     x7: A7
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -613,7 +646,8 @@ object types {
     x8: A8
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -630,7 +664,8 @@ object types {
     x9: A9
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -648,7 +683,8 @@ object types {
     x10: A10
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -667,7 +703,8 @@ object types {
     x11: A11
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -687,7 +724,8 @@ object types {
     x12: A12
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -708,7 +746,8 @@ object types {
     x13: A13
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -730,7 +769,8 @@ object types {
     x14: A14
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -753,7 +793,8 @@ object types {
     x15: A15
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -777,7 +818,8 @@ object types {
     x16: A16
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -802,7 +844,8 @@ object types {
     x17: A17
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -828,7 +871,8 @@ object types {
     x18: A18
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -855,7 +899,8 @@ object types {
     x19: A19
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -883,7 +928,8 @@ object types {
     x20: A20
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -912,7 +958,8 @@ object types {
     x21: A21
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -942,7 +989,8 @@ object types {
     x22: A22
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -951,7 +999,8 @@ object types {
     run: F[A1]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -960,7 +1009,8 @@ object types {
     run: F[A1, A2]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -969,7 +1019,8 @@ object types {
     run: F[A1, A2, A3]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -978,7 +1029,8 @@ object types {
     run: F[A1, A2, A3, A4]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -987,7 +1039,8 @@ object types {
     run: F[A1, A2, A3, A4, A5]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -996,7 +1049,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1005,7 +1059,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1014,7 +1069,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1023,7 +1079,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1032,7 +1089,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1041,7 +1099,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1050,7 +1109,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1059,7 +1119,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1068,7 +1129,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1077,7 +1139,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1086,7 +1149,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1095,7 +1159,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1104,7 +1169,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1113,7 +1179,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1122,7 +1189,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1131,7 +1199,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
@@ -1140,7 +1209,8 @@ object types {
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
   )
 
-  @deriving(
+  @annotations.deriving(
+    covariant = Vector(),
     labelledCovariant = Vector(Read, DecodeJson),
     contravariant = Vector(Csv),
     labelledContravariant = Vector(Show, EncodeJson)
