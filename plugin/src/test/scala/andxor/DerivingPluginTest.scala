@@ -5,7 +5,8 @@ import andxor.argonaut._
 import andxor.tags._
 import argonaut.{DecodeJson, EncodeJson}
 import scala.annotation.Annotation
-import scalaz.{\/, @@, Apply, Show}
+import scalaz.{\/, @@, ~>, Apply, Cord, Show}
+import scalaz.Isomorphism.IsoFunctor
 import scalaz.std.anyVal._
 import scalaz.std.option._
 import scalaz.std.string._
@@ -26,14 +27,15 @@ object typeclasses {
   implicit def showLabelled[A: Show, L <: Singleton with String]: Show[Labelled.Aux[A, L]] =
     Show.shows(l => s"""${l.label} := ${Show[A].shows(l.value)}""" ++ "\n")
 
-  implicit val showDivide: Divide[Show] = new Divide[Show] {
-    def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
-    def divide2[A1, A2, Z](fa1: => Show[A1], fa2: => Show[A2])(f: Z => (A1, A2)): Show[Z] =
-      Show.show { z =>
-        val (a1, a2) = f(z)
-        fa1.show(a1) ++ fa2.show(a2)
-      }
-  }
+  implicit def showAdtVal[A, L <: Singleton with String]: Show[Labelled.Aux[A @@ ADTValue, L]] =
+    Show.shows(a => s"""ADTValue := ${a.label}""")
+
+  type ShowF[A] = A => Cord
+  implicit val showIso: IsoFunctor[Show, ShowF] =
+    IsoFunctor[Show, ShowF](Lambda[Show ~> ShowF](_.show _), Lambda[ShowF ~> Show](Show.show(_)))
+
+  implicit val showDecide: Decidable[Show] = Decidable.fromIso[Show, ShowF](showIso)
+  implicit val showDivide: Divide[Show] = Divide.fromIso[Show, ShowF](showIso)
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
@@ -56,6 +58,10 @@ object typeclasses {
     implicit val csvInt: Csv[Int] = i => List(i.toString)
     implicit val csvBool: Csv[Boolean] = b => List(b.toString)
     implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] = _.flatMap(c.toCsv(_))
+
+    implicit def csvLabelled[A: Csv, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled.Aux[A, L]] =
+      a => c.toCsv(a.value)
+
     implicit def csvAdtVal[A, L <: Singleton with String]: Csv[Labelled.Aux[A @@ ADTValue, L]] =
       a => List(a.label)
 
@@ -75,6 +81,18 @@ object typeclasses {
 
 object types {
   import typeclasses._
+
+  @annotations.deriving(
+    // labelledCovariant = Vector(Read, DecodeJson),
+    labelledContravariant = Vector(Csv, Show, EncodeJson)
+  )
+  sealed trait Foo
+  case object Bar extends Foo
+  @annotations.deriving(
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson)
+  )
+  case class Baz(s: String) extends Foo
 
   @annotations.deriving case class NoInstances(s: String)
 

@@ -1,15 +1,17 @@
 package andxor
 
-import scala.collection.breakOut
 import scala.{meta => m}
 import scala.meta.contrib._
-import scala.meta.contrib.equality.{Equal, Structurally}
+import scala.meta.contrib.equality.Structurally
 import scala.meta.quasiquotes._
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
 import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.transform.TypingTransformers
+import scalaz.Reader
+import scalaz.std.list._
+import scalaz.syntax.traverse._
 
 abstract class AnnotationPlugin(override val global: Global) extends Plugin { self =>
   val g: global.type = global
@@ -20,16 +22,51 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
   /** Annotations that trigger the plugin */
   def triggers: List[String]
 
-  def updateClass(triggered: List[m.Mod.Annot], clazz: m.Defn.Class): m.Defn.Class
-  def updateCompanion(
-    triggered: List[m.Mod.Annot],
-    clazz: m.Defn.Class,
-    companion: m.Defn.Object
-  ): m.Defn.Object
-  def updateModule(triggered: List[m.Mod.Annot], module: m.Defn.Object): m.Defn.Object
+  case class LocalScope(
+    classes: Map[String, m.Defn.Class],
+    objects: Map[String, m.Defn.Object],
+    traits: Map[String, m.Defn.Trait],
+    types: Map[String, m.Defn.Type]
+  )
 
-  def regenModule(comp: m.Defn.Object, extras: List[m.Stat]): m.Defn.Object =
-    comp.withStats(comp.extract[m.Stat] ::: extras)
+  def updateClass(@scalaz.unused anns: List[m.Mod.Annot], klass: m.Defn.Class): Reader[LocalScope, m.Defn.Class] = Reader(_ => klass)
+  def updateObject(@scalaz.unused anns: List[m.Mod.Annot], obj: m.Defn.Object): Reader[LocalScope, m.Defn.Object] = Reader(_ => obj)
+  def updateTrait(@scalaz.unused anns: List[m.Mod.Annot], tr: m.Defn.Trait): Reader[LocalScope, m.Defn.Trait] = Reader(_ => tr)
+  def updateType(@scalaz.unused anns: List[m.Mod.Annot], tpe: m.Defn.Type): Reader[LocalScope, m.Defn.Type] = Reader(_ => tpe)
+
+  def updateCompanion(
+    @scalaz.unused anns: List[m.Mod.Annot],
+    @scalaz.unused klass: m.Defn.Class,
+    companion: m.Defn.Object
+  ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
+
+  def updateCompanion(
+    @scalaz.unused anns: List[m.Mod.Annot],
+    @scalaz.unused tr: m.Defn.Trait,
+    companion: m.Defn.Object
+  ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
+
+  def updateCompanion(
+    @scalaz.unused anns: List[m.Mod.Annot],
+    @scalaz.unused tpe: m.Defn.Type,
+    companion: m.Defn.Object
+  ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
+
+  trait Named[A] { def name(a: A): m.Name }
+  object Named {
+    implicit val namedClass: Named[m.Defn.Class] = _.name
+    implicit val namedObject: Named[m.Defn.Object] = _.name
+    implicit val namedPkg: Named[m.Pkg] = _.name
+    implicit val namedTrait: Named[m.Defn.Trait] = _.name
+    implicit val namedType: Named[m.Defn.Type] = _.name
+  }
+  implicit class NamedOps[A](a: A)(implicit n: Named[A]) { def name: m.Name = n.name(a) }
+
+  def regenObject(obj: m.Defn.Object, extras: List[m.Stat]): m.Defn.Object =
+    extras match {
+      case Nil => obj
+      case x   => obj.withStats(obj.extract[m.Stat] ::: x)
+    }
 
   implicit class TreeOps(tree: m.Tree) {
     private def isOwner(t: m.Tree): Boolean =
@@ -100,8 +137,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       case _ => g.abort(s"no name for $ann")
     }
 
-  def structurallyEqual(t1: m.Tree, t2: m.Tree): Boolean =
-    implicitly[Equal[Structurally[m.Tree]]].isEqual(Structurally(t1), Structurally(t2))
+  def structurallyEqual(t1: m.Tree, t2: m.Tree): Boolean = t1.isEqual[Structurally](t2)
 
   private def phase = new PluginComponent with TypingTransformers {
     override val phaseName: String = AnnotationPlugin.this.name
@@ -138,15 +174,10 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
 
     private def hasTrigger(mods: List[m.Mod]): Boolean = getTriggers(mods).nonEmpty
 
-    private def extractTrigger(c: m.Defn.Class): (m.Defn.Class, List[m.Mod.Annot]) = {
-      val trigger = getTriggers(c.mods)
-      val update = c.withMods(c.extract[m.Mod].filterNot(trigger.contains(_)))
-      (update, trigger)
-    }
-    private def extractTrigger(o: m.Defn.Object): (m.Defn.Object, List[m.Mod.Annot]) = {
-      val trigger = getTriggers(o.mods)
-      val update = o.withMods(o.extract[m.Mod].filterNot(trigger.contains(_)))
-      (update, trigger)
+    private def extractTrigger[A <: m.Tree: Extract[?, m.Mod]: Replace[?, m.Mod]](tree: A): (List[m.Mod.Annot], A) = {
+      val trigger = getTriggers(tree.extract[m.Mod])
+      val update = tree.withMods(tree.extract[m.Mod].filterNot(trigger.contains(_)))
+      (trigger, update)
     }
 
     private def getTriggers(mods: List[m.Mod]): List[m.Mod.Annot] =
@@ -154,95 +185,73 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         case a: m.Mod.Annot if triggers.contains(annotationName(a)) => a
       }
 
-    /** generates a zero-functionality companion for a class */
-    private def genCompanion(clazz: m.Defn.Class): m.Defn.Object = {
-      val mods = clazz.mods.collectFirst { case p: m.Mod.Private => p }
-        .orElse(clazz.mods.collectFirst { case p: m.Mod.Protected => p })
+    /** generates a zero-functionality companion */
+    private def genCompanion[A <: m.Tree: Extract[?, m.Mod]: Named](tree: A): m.Defn.Object = {
+      val (name, mods) = (tree.name, tree.extract[m.Mod])
+      val objMods = mods.collectFirst { case p: m.Mod.Private => p }
+        .orElse(mods.collectFirst { case p: m.Mod.Protected => p })
         .toList
 
-      val isCase = clazz.mods.collectFirst { case _: m.Mod.Case => () }.nonEmpty
+      val isCase = mods.collectFirst { case _: m.Mod.Case => () }.nonEmpty
 
       def toString_ =
-        q"override def toString: _root_.java.lang.String = ${m.Lit.String(clazz.name.value)}"
+        q"override def toString: _root_.java.lang.String = ${m.Lit.String(name.value)}"
 
-      q"""..$mods object ${m.Term.Name(clazz.name.value)} extends _root_.scala.AnyRef {
+      q"""..$objMods object ${m.Term.Name(name.value)} extends _root_.scala.AnyRef {
         ..${if (isCase) List(toString_) else Nil}
       }"""
     }
 
+    private def updateTreeAndCompanion[A <: m.Stat: Extract[?, m.Mod]: Replace[?, m.Mod]: Named](
+      tree: A,
+      update: (List[m.Mod.Annot], A) => Reader[LocalScope, A],
+      updCompanion: (List[m.Mod.Annot], A, m.Defn.Object) => Reader[LocalScope, m.Defn.Object],
+    ): Reader[LocalScope, List[m.Stat]] =
+      for {
+        companion <- Reader((_: LocalScope).objects.getOrElse(tree.name.value, genCompanion(tree)))
+        (ann, cleaned) = extractTrigger(tree)
+        upd <- update(ann, cleaned)
+        updComp <- updCompanion(ann, cleaned, companion)
+      } yield List(upd, updComp)
+
     // responds to visiting all the parts of the tree and passes to decepticons
     // to do the rewrites
-    def autobots(tree: m.Tree): m.Tree = {
+    def autobots(tree: m.Tree): m.Tree =
       tree match {
-        // yuck, this finds classes and modules defined inside other classes.
-        // added for completeness.
-        case t: m.Defn.Class if hasTrigger(t) => t.withStats(decepticons(t.extract[m.Stat]))
-        case t: m.Defn.Object if hasTrigger(t) => t.withStats(decepticons(t.extract[m.Stat]))
-        case t: m.Defn.Trait if hasTrigger(t) => t.withStats(decepticons(t.extract[m.Stat]))
-        case t: m.Pkg if hasTrigger(t) => t.withStats(decepticons(t.extract[m.Stat]))
+        case t: m.Defn.Class if hasTrigger(t) => decepticons(t)
+        case t: m.Defn.Object if hasTrigger(t) => decepticons(t)
+        case t: m.Defn.Trait if hasTrigger(t) => decepticons(t)
+        case t: m.Pkg if hasTrigger(t) => decepticons(t)
         case t => t
       }
-    }
+
+    private def getLocals[T <: m.Tree: Extract[?, m.Stat], A <: m.Stat: Named](tree: T)(pf: PartialFunction[m.Tree, A]): Map[String, A] =
+      tree.extract[m.Stat].flatMap(pf.lift(_).map(a => a.name.value -> a)).toMap
+
+    private def runWithLocalScope[T <: m.Tree: Extract[?, m.Stat], A](tree: T, reader: Reader[LocalScope, A]): A =
+      reader.run(LocalScope(
+        getLocals(tree) { case c: m.Defn.Class => c },
+        getLocals(tree) { case o: m.Defn.Object => o },
+        getLocals(tree) { case t: m.Defn.Trait => t },
+        getLocals(tree) { case t: m.Defn.Type => t }))
 
     // does not recurse, let the autobots handle that
-    def decepticons(stats: List[m.Stat]): List[m.Stat] = {
-      val classes: Map[String, m.Defn.Class] = stats.collect {
-        case c: m.Defn.Class => c.name.value -> c
-      }(breakOut)
-
-      val modules: Map[String, m.Defn.Object] = stats.collect {
-        case m: m.Defn.Object => m.name.value -> m
-      }(breakOut)
-
-      object ClassNoCompanion {
-        def unapply(t: m.Tree): Option[m.Defn.Class] = t match {
-          case c: m.Defn.Class if !modules.contains(c.name.value) =>
-            Some(c)
-          case _ => None
-        }
-      }
-
-      object ClassHasCompanion {
-        def unapply(t: m.Tree): Option[m.Defn.Class] = t match {
-          case c: m.Defn.Class if modules.contains(c.name.value) =>
-            Some(c)
-          case _ => None
-        }
-      }
-
-      object CompanionAndClass {
-        def unapply(t: m.Tree): Option[(m.Defn.Object, m.Defn.Class)] = t match {
-          case m: m.Defn.Object =>
-            classes.get(m.name.value).map { c =>
-              (m, c)
-            }
-          case _ => None
-        }
-      }
-
-      stats.flatMap {
-        case ClassNoCompanion(c) if hasTrigger(c.mods) =>
-          val companion        = genCompanion(c)
-          val (cleaned, ann)   = extractTrigger(c)
-          val updatedCompanion = updateCompanion(ann, cleaned, companion)
-          List[m.Stat](updateClass(ann, cleaned), updatedCompanion)
-
-        case ClassHasCompanion(c) if hasTrigger(c.mods) =>
-          val (cleaned, ann) = extractTrigger(c)
-          List[m.Stat](updateClass(ann, cleaned))
-
-        case CompanionAndClass(companion, c) if hasTrigger(c.mods) =>
-          val (cleaned, ann) = extractTrigger(c)
-          List[m.Stat](updateCompanion(ann, cleaned, companion))
+    def decepticons[A <: m.Tree: Extract[?, m.Stat]: Replace[?, m.Stat]: Named](tree: A): A =
+      tree.withStats(runWithLocalScope(tree, tree.extract[m.Stat].traverseM(_ match {
+        case c: m.Defn.Class if hasTrigger(c.mods) =>
+          updateTreeAndCompanion[m.Defn.Class](c, updateClass, updateCompanion)
 
         case o: m.Defn.Object if hasTrigger(o.mods) =>
-          val (cleaned, ann) = extractTrigger(o)
-          List[m.Stat](updateModule(ann, cleaned))
+          (updateObject _).tupled(extractTrigger(o)).map(List[m.Stat](_))
 
-        case tr =>
-          List[m.Stat](tr)
-      }
-    }
+        case t: m.Defn.Trait if hasTrigger(t.mods) =>
+          updateTreeAndCompanion[m.Defn.Trait](t, updateTrait, updateCompanion)
+
+        case t: m.Defn.Type if hasTrigger(t.mods) =>
+          updateTreeAndCompanion[m.Defn.Type](t, updateType, updateCompanion)
+
+        case t => Reader(_ => List(t))
+      })))
   }
 
   override lazy val components: List[PluginComponent] = List(phase)

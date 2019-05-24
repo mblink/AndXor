@@ -1,18 +1,28 @@
 package andxor
 
+import andxor.tags._
 import _root_.argonaut.{DecodeJson, EncodeJson, Json}
-import scalaz.Apply
-import scalaz.syntax.id._
+import scalaz.{~>, @@, Apply, Monoid}
+import scalaz.Isomorphism.IsoFunctor
 
 package object argonaut {
+  implicit val jsonMonoid: Monoid[Json] = Monoid.instance[Json](_.deepmerge(_), Json())
+
   implicit def encodeJsonLabelled[L <: Singleton with String, A](implicit ej: EncodeJson[A]): EncodeJson[Labelled.Aux[A, L]] =
     EncodeJson(l => Json(l.label -> ej(l.value)))
 
-  implicit val encodeJsonDivide: Divide[EncodeJson] = new Divide[EncodeJson] {
-    def contramap[A, B](fa: EncodeJson[A])(f: B => A): EncodeJson[B] = fa.contramap(f)
-    def divide2[A1, A2, Z](a1: => EncodeJson[A1], a2: => EncodeJson[A2])(f: Z => (A1, A2)): EncodeJson[Z] =
-      EncodeJson(f(_) |> (t => a1(t._1).deepmerge(a2(t._2))))
-  }
+  implicit def encodeJsonAdtVal[A, L <: Singleton with String]: EncodeJson[Labelled.Aux[A @@ ADTValue, L]] =
+    EncodeJson(a => Json(a.label -> Json()))
+
+  type EncodeJsonF[A] = A => Json
+
+  implicit val encodeJsonIso: IsoFunctor[EncodeJson, EncodeJsonF] =
+    IsoFunctor[EncodeJson, EncodeJsonF](
+      Lambda[EncodeJson ~> EncodeJsonF](_.encode _),
+      Lambda[EncodeJsonF ~> EncodeJson](EncodeJson(_)))
+
+  implicit val encodeJsonDivide: Divide[EncodeJson] = Divide.fromIso(encodeJsonIso)
+  implicit val encodeJsonDecide: Decidable[EncodeJson] = Decidable.fromIso(encodeJsonIso)
 
   implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit l: L): DecodeJson[Labelled.Aux[A, L]] =
     DecodeJson(_.get[A](l).map(Labelled(_, l)))
