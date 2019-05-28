@@ -280,6 +280,15 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   def iso[P <: Param](tree: GenTree[P]): Defn =
     valOrDef(Nil, tree.isoName, tree.tparams, Nil, tree.isoTpe, tree.iso)
 
+  def implicits[P <: Param](tree: GenTree[P]): List[Defn] =
+    tree match {
+      case c: CopTree => c.children.zipWithIndex.flatMap { case (x, i) => x.fold(_ => Nil, o =>
+        List(valOrDef(List(Mod.Implicit()), Term.Name(s"andxor_${o.name.value}${if (c.labelled) "_labelled" else ""}_inst"),
+          Nil, Nil, c.tpes(i), c.mkValue(o.name, c.params(i)))))
+      }
+      case p: ProdTree => Nil
+    }
+
   case class Typeclass[P <: Param](
     tree: GenTree[P],
     typeclass: Type,
@@ -330,8 +339,13 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   def mkStats[P <: Param](mkTree: Boolean => GenTree[P], mods: List[Mod.Annot]): List[Stat] = {
     val (base, labelled) = (mkTree(false), mkTree(true))
     val tcs = mods.flatMap(m => getTypeclasses(m.init.argss, base, labelled))
-    List(q"object andxor { ..${labels(labelled) ::: List(andxor(base), andxor(labelled), iso(base), iso(labelled))} }") ++
-      (if (tcs.nonEmpty) List(q"import andxor._") else Nil) ++
-      tcs.map(derivedTypeclass)
+    List(q"""
+      object andxor {
+        ..${labels(labelled) :::
+            implicits(base) :::
+            implicits(labelled) :::
+            List(andxor(base), andxor(labelled), iso(base), iso(labelled))}
+      }
+    """) ::: (if (tcs.nonEmpty) List(q"import andxor._") else Nil) ::: tcs.map(derivedTypeclass)
   }
 }
