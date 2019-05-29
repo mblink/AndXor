@@ -4,7 +4,6 @@ import scala.meta._
 import scala.meta.contrib._
 import scala.meta.contrib.equality.Structurally
 import scala.tools.nsc.Global
-import scalaz.Reader
 
 class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   private val deriving = "deriving"

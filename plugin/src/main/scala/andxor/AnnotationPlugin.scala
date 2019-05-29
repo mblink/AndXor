@@ -9,9 +9,13 @@ import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.transform.TypingTransformers
-import scalaz.Reader
-import scalaz.std.list._
-import scalaz.syntax.traverse._
+
+private[andxor] final class u extends deprecated("unused", "")
+
+private[andxor] final case class Reader[A, B](run: A => B) {
+  def map[C](f: B => C): Reader[A, C] = Reader(run.andThen(f))
+  def flatMap[C](f: B => Reader[A, C]): Reader[A, C] = Reader(a => f(run(a)).run(a))
+}
 
 abstract class AnnotationPlugin(override val global: Global) extends Plugin { self =>
   val g: global.type = global
@@ -29,26 +33,26 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     types: Map[String, m.Defn.Type]
   )
 
-  def updateClass(@scalaz.unused anns: List[m.Mod.Annot], klass: m.Defn.Class): Reader[LocalScope, m.Defn.Class] = Reader(_ => klass)
-  def updateObject(@scalaz.unused anns: List[m.Mod.Annot], obj: m.Defn.Object): Reader[LocalScope, m.Defn.Object] = Reader(_ => obj)
-  def updateTrait(@scalaz.unused anns: List[m.Mod.Annot], tr: m.Defn.Trait): Reader[LocalScope, m.Defn.Trait] = Reader(_ => tr)
-  def updateType(@scalaz.unused anns: List[m.Mod.Annot], tpe: m.Defn.Type): Reader[LocalScope, m.Defn.Type] = Reader(_ => tpe)
+  def updateClass(@u anns: List[m.Mod.Annot], klass: m.Defn.Class): Reader[LocalScope, m.Defn.Class] = Reader(_ => klass)
+  def updateObject(@u anns: List[m.Mod.Annot], obj: m.Defn.Object): Reader[LocalScope, m.Defn.Object] = Reader(_ => obj)
+  def updateTrait(@u anns: List[m.Mod.Annot], tr: m.Defn.Trait): Reader[LocalScope, m.Defn.Trait] = Reader(_ => tr)
+  def updateType(@u anns: List[m.Mod.Annot], tpe: m.Defn.Type): Reader[LocalScope, m.Defn.Type] = Reader(_ => tpe)
 
   def updateCompanion(
-    @scalaz.unused anns: List[m.Mod.Annot],
-    @scalaz.unused klass: m.Defn.Class,
+    @u anns: List[m.Mod.Annot],
+    @u klass: m.Defn.Class,
     companion: m.Defn.Object
   ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
 
   def updateCompanion(
-    @scalaz.unused anns: List[m.Mod.Annot],
-    @scalaz.unused tr: m.Defn.Trait,
+    @u anns: List[m.Mod.Annot],
+    @u tr: m.Defn.Trait,
     companion: m.Defn.Object
   ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
 
   def updateCompanion(
-    @scalaz.unused anns: List[m.Mod.Annot],
-    @scalaz.unused tpe: m.Defn.Type,
+    @u anns: List[m.Mod.Annot],
+    @u tpe: m.Defn.Type,
     companion: m.Defn.Object
   ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
 
@@ -208,7 +212,10 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       updCompanion: (List[m.Mod.Annot], A, m.Defn.Object) => Reader[LocalScope, m.Defn.Object],
     ): Reader[LocalScope, List[m.Stat]] =
       for {
-        companion <- Reader((_: LocalScope).objects.getOrElse(tree.name.value, genCompanion(tree)))
+        companion <- Reader { (x: LocalScope) =>
+          println(s"*********************\n${tree.name.value}\n${x.objects.get(tree.name.value)}\n******************************")
+          x.objects.getOrElse(tree.name.value, genCompanion(tree))
+        }
         (ann, cleaned) = extractTrigger(tree)
         upd <- update(ann, cleaned)
         updComp <- updCompanion(ann, cleaned, companion)
@@ -228,16 +235,23 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     private def getLocals[T <: m.Tree: Extract[?, m.Stat], A <: m.Stat: Named](tree: T)(pf: PartialFunction[m.Tree, A]): Map[String, A] =
       tree.extract[m.Stat].flatMap(pf.lift(_).map(a => a.name.value -> a)).toMap
 
-    private def runWithLocalScope[T <: m.Tree: Extract[?, m.Stat], A](tree: T, reader: Reader[LocalScope, A]): A =
+    private def runWithLocalScope[T <: m.Tree: Extract[?, m.Stat], A](tree: T, reader: Reader[LocalScope, A]): A = {
+      val scope = LocalScope(
+        getLocals(tree) { case c: m.Defn.Class => c },
+        getLocals(tree) { case o: m.Defn.Object => o },
+        getLocals(tree) { case t: m.Defn.Trait => t },
+        getLocals(tree) { case t: m.Defn.Type => t })
+      println(scope)
       reader.run(LocalScope(
         getLocals(tree) { case c: m.Defn.Class => c },
         getLocals(tree) { case o: m.Defn.Object => o },
         getLocals(tree) { case t: m.Defn.Trait => t },
         getLocals(tree) { case t: m.Defn.Type => t }))
+    }
 
     // does not recurse, let the autobots handle that
     def decepticons[A <: m.Tree: Extract[?, m.Stat]: Replace[?, m.Stat]: Named](tree: A): A =
-      tree.withStats(runWithLocalScope(tree, tree.extract[m.Stat].traverseM(_ match {
+      tree.withStats(tree.extract[m.Stat].flatMap(x => runWithLocalScope(tree, x match {
         case c: m.Defn.Class if hasTrigger(c.mods) =>
           updateTreeAndCompanion[m.Defn.Class](c, updateClass, updateCompanion)
 
@@ -250,7 +264,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         case t: m.Defn.Type if hasTrigger(t.mods) =>
           updateTreeAndCompanion[m.Defn.Type](t, updateType, updateCompanion)
 
-        case t => Reader(_ => List(t))
+        case t => Reader((_: LocalScope) => List(t))
       })))
   }
 
