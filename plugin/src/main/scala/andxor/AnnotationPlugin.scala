@@ -1,5 +1,6 @@
 package andxor
 
+import scala.annotation.tailrec
 import scala.{meta => m}
 import scala.meta.contrib._
 import scala.meta.contrib.equality.Structurally
@@ -212,10 +213,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       updCompanion: (List[m.Mod.Annot], A, m.Defn.Object) => Reader[LocalScope, m.Defn.Object],
     ): Reader[LocalScope, List[m.Stat]] =
       for {
-        companion <- Reader { (x: LocalScope) =>
-          println(s"*********************\n${tree.name.value}\n${x.objects.get(tree.name.value)}\n******************************")
-          x.objects.getOrElse(tree.name.value, genCompanion(tree))
-        }
+        companion <- Reader((_: LocalScope).objects.getOrElse(tree.name.value, genCompanion(tree)))
         (ann, cleaned) = extractTrigger(tree)
         upd <- update(ann, cleaned)
         updComp <- updCompanion(ann, cleaned, companion)
@@ -232,40 +230,53 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         case t => t
       }
 
+    private def companionName[A <: m.Stat](tree: A): Option[m.Name] =
+      tree match {
+        case c: m.Defn.Class => Some(c.name)
+        case t: m.Defn.Trait => Some(t.name)
+        case t: m.Defn.Type => Some(t.name)
+        case _ => None
+      }
+
+    private def withoutCompanion[A <: m.Stat](tree: A, stats: Vector[m.Stat]): Vector[m.Stat] =
+      companionName(tree).fold(stats)(name => stats.filter(_ match {
+        case o: m.Defn.Object if o.name.value == name.value => false
+        case _ => true
+      }))
+
     private def getLocals[T <: m.Tree: Extract[?, m.Stat], A <: m.Stat: Named](tree: T)(pf: PartialFunction[m.Tree, A]): Map[String, A] =
       tree.extract[m.Stat].flatMap(pf.lift(_).map(a => a.name.value -> a)).toMap
 
-    private def runWithLocalScope[T <: m.Tree: Extract[?, m.Stat], A](tree: T, reader: Reader[LocalScope, A]): A = {
+    // does not recurse, let the autobots handle that
+    def decepticons[A <: m.Tree: Extract[?, m.Stat]: Replace[?, m.Stat]: Named](tree: A): A = {
       val scope = LocalScope(
         getLocals(tree) { case c: m.Defn.Class => c },
         getLocals(tree) { case o: m.Defn.Object => o },
         getLocals(tree) { case t: m.Defn.Trait => t },
         getLocals(tree) { case t: m.Defn.Type => t })
-      println(scope)
-      reader.run(LocalScope(
-        getLocals(tree) { case c: m.Defn.Class => c },
-        getLocals(tree) { case o: m.Defn.Object => o },
-        getLocals(tree) { case t: m.Defn.Trait => t },
-        getLocals(tree) { case t: m.Defn.Type => t }))
+
+      @tailrec
+      def go(queue: Vector[m.Stat], out: Vector[m.Stat]): Vector[m.Stat] =
+        queue match {
+          case Vector() => out
+
+          case (c: m.Defn.Class) +: tail if hasTrigger(c.mods) =>
+            go(withoutCompanion(c, tail), out ++ updateTreeAndCompanion[m.Defn.Class](c, updateClass, updateCompanion).run(scope))
+
+          case (o: m.Defn.Object) +: tail if hasTrigger(o.mods) =>
+            go(tail, out :+ (updateObject _).tupled(extractTrigger(o)).run(scope))
+
+          case (t: m.Defn.Trait) +: tail if hasTrigger(t.mods) =>
+            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Trait](t, updateTrait, updateCompanion).run(scope))
+
+          case (t: m.Defn.Type) +: tail if hasTrigger(t.mods) =>
+            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Type](t, updateType, updateCompanion).run(scope))
+
+          case t +: tail => go(tail, out :+ t)
+        }
+
+      tree.withStats(go(tree.extract[m.Stat].toVector, Vector()).toList)
     }
-
-    // does not recurse, let the autobots handle that
-    def decepticons[A <: m.Tree: Extract[?, m.Stat]: Replace[?, m.Stat]: Named](tree: A): A =
-      tree.withStats(tree.extract[m.Stat].flatMap(x => runWithLocalScope(tree, x match {
-        case c: m.Defn.Class if hasTrigger(c.mods) =>
-          updateTreeAndCompanion[m.Defn.Class](c, updateClass, updateCompanion)
-
-        case o: m.Defn.Object if hasTrigger(o.mods) =>
-          (updateObject _).tupled(extractTrigger(o)).map(List[m.Stat](_))
-
-        case t: m.Defn.Trait if hasTrigger(t.mods) =>
-          updateTreeAndCompanion[m.Defn.Trait](t, updateTrait, updateCompanion)
-
-        case t: m.Defn.Type if hasTrigger(t.mods) =>
-          updateTreeAndCompanion[m.Defn.Type](t, updateType, updateCompanion)
-
-        case t => Reader((_: LocalScope) => List(t))
-      })))
   }
 
   override lazy val components: List[PluginComponent] = List(phase)

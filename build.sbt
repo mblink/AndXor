@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.5-LOCAL-15",
+  version := "0.2.5-LOCAL-16",
   libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.26",
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
