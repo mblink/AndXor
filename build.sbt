@@ -1,8 +1,7 @@
-lazy val commonSettings = Seq(
+lazy val baseSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
   version := "0.2.5-LOCAL-16",
-  libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.26",
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
@@ -63,6 +62,8 @@ lazy val commonSettings = Seq(
   sources in (Compile, doc) := Seq()
 )
 
+lazy val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.26")
+
 lazy val publishSettings = Seq(
   skip in publish := false,
   bintrayOrganization := Some("bondlink"),
@@ -117,59 +118,79 @@ lazy val circe = project.in(file("circe"))
 
 lazy val scalametaV = "4.1.10"
 
-lazy val plugin = project.in(file("plugin"))
-  .settings(commonSettings)
+lazy val basePluginOptions = Seq(
+  scalacOptions -= "-Ywarn-unused:patvars",
+  libraryDependencies ++= Seq(
+    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+    "org.scalameta" %% "scalameta" % scalametaV,
+    "org.scalameta" %% "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+  )
+)
+
+lazy val pluginOptions = basePluginOptions ++ Seq(
+  scalacOptions in (Compile, console) ++= {
+    val jar = assembly.value
+    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+  },
+  scalacOptions in Test ++= {
+    val jar = assembly.value
+    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+  },
+  test.in(assembly) := {},
+  assemblyJarName.in(assembly) :=
+    name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
+  assemblyOption.in(assembly) ~= { _.copy(includeScala = false) },
+  Keys.`package`.in(Compile) := {
+    val slimJar = Keys.`package`.in(Compile).value
+    val fatJar = new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
+    val _ = assembly.value
+    IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
+    slimJar
+  },
+  packagedArtifact.in(Compile).in(packageBin) := {
+    val temp = packagedArtifact.in(Compile).in(packageBin).value
+    val (art, slimJar) = temp
+    val fatJar = new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
+    val _ = assembly.value
+    IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
+    (art, slimJar)
+  },
+  assemblyMergeStrategy.in(assembly) := {
+    case PathList("com", "sun", _*) => MergeStrategy.discard
+    case PathList("sun", _*) => MergeStrategy.discard
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+  }
+)
+
+lazy val annotationPlugin = project.in(file("annotation-plugin"))
+  .settings(baseSettings)
   .settings(publishSettings)
+  .settings(basePluginOptions)
   .settings(Seq(
-    name := "andxor-plugin",
+    name := "andxor-annotation-plugin",
     scalacOptions -= "-Ywarn-unused:patvars",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
       "org.scalameta" %% "scalameta" % scalametaV,
       "org.scalameta" %% "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-    ),
-    scalacOptions in (Compile, console) ++= {
-      val jar = assembly.value
-      Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-    },
-    scalacOptions in Test ++= {
-      val jar = assembly.value
-      Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-    },
-    test.in(assembly) := {},
-    assemblyJarName.in(assembly) :=
-      name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
-    assemblyOption.in(assembly) ~= { _.copy(includeScala = false) },
-    Keys.`package`.in(Compile) := {
-      val slimJar = Keys.`package`.in(Compile).value
-      val fatJar =
-        new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
-      val _ = assembly.value
-      IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
-      slimJar
-    },
-    packagedArtifact.in(Compile).in(packageBin) := {
-      val temp = packagedArtifact.in(Compile).in(packageBin).value
-      val (art, slimJar) = temp
-      val fatJar =
-        new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
-      val _ = assembly.value
-      IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
-      (art, slimJar)
-    },
-    assemblyMergeStrategy.in(assembly) := {
-      case PathList("com", "sun", _*) => MergeStrategy.discard
-      case PathList("sun", _*) => MergeStrategy.discard
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
-    }
+    )
   ))
-  .dependsOn(
-    core % "compile->compile;test->test",
-    argonaut % "test->test",
-    circe % "test->test"
-  )
+
+def compilerPlugin(proj: Project, nme: String) =
+  proj
+    .settings(baseSettings)
+    .settings(publishSettings)
+    .settings(pluginOptions)
+    .settings(name := nme)
+    .dependsOn(core % "compile->compile;test->test", annotationPlugin)
+
+lazy val deriving =
+  compilerPlugin(project.in(file("deriving")), "andxor-deriving")
+    .dependsOn(argonaut % "test->test", circe % "test->test")
+
+lazy val newtype = compilerPlugin(project.in(file("newtype")), "andxor-newtype")
 
 lazy val root = project.in(file("."))
   .settings(commonSettings)
@@ -178,5 +199,5 @@ lazy val root = project.in(file("."))
     scalacOptions in Tut := (scalacOptions in (Compile, console)).value
   ))
   .dependsOn(core)
-  .aggregate(generate, core, argonaut, circe, plugin)
+  .aggregate(generate, core, argonaut, circe, deriving, newtype)
   .enablePlugins(TutPlugin)

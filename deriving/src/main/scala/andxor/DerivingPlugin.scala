@@ -10,14 +10,30 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
   val triggers: List[String] = List(deriving)
 
-  override def updateCompanion(anns: List[Mod.Annot], c: Defn.Class, companion: Defn.Object): Reader[LocalScope, Defn.Object] =
-    if (c.mods.has[Mod.Sealed]) CopTree(c, companion).map(f => regenObject(companion, mkStats(f, anns)))
-    else if (c.mods.has[Mod.Case]) Reader(_ => regenObject(companion, mkStats(ProdTree(c, _), anns)))
-    else Reader(_ => companion)
+  override def update(
+    anns: List[Mod.Annot],
+    c: Defn.Class,
+    companionO: Option[Defn.Object]
+  ): Reader[LocalScope, (Option[(Defn.Class, Option[Defn.Object])], Vector[Stat])] =
+    for {
+      companion <- Reader((_: LocalScope) => companionO.getOrElse(genCompanion(c)))
+      updatedCompanion <-
+        if (c.mods.has[Mod.Sealed]) CopTree(c, companion).map(f => regenObject(companion, mkStats(f, anns)))
+        else if (c.mods.has[Mod.Case]) Reader((_: LocalScope) => regenObject(companion, mkStats(ProdTree(c, _), anns)))
+        else Reader((_: LocalScope) => companion)
+    } yield (Some((c, Some(updatedCompanion))), Vector())
 
-  override def updateCompanion(anns: List[Mod.Annot], t: Defn.Trait, companion: Defn.Object): Reader[LocalScope, Defn.Object] =
-    if (t.mods.has[Mod.Sealed]) CopTree(t, companion).map(f => regenObject(companion, mkStats(f, anns)))
-    else Reader(_ => companion)
+  override def update(
+    anns: List[Mod.Annot],
+    t: Defn.Trait,
+    companionO: Option[Defn.Object]
+  ): Reader[LocalScope, (Option[(Defn.Trait, Option[Defn.Object])], Vector[Stat])] =
+    for {
+      companion <- Reader((_: LocalScope) => companionO.getOrElse(genCompanion(t)))
+      updatedCompanion <-
+        if (t.mods.has[Mod.Sealed]) CopTree(t, companion).map(f => regenObject(companion, mkStats(f, anns)))
+        else Reader((_: LocalScope) => companion)
+    } yield (Some((t, Some(updatedCompanion))), Vector())
 
   // Andxor types
   private lazy val andxorPkg = q"_root_.andxor"

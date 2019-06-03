@@ -7,6 +7,7 @@ import scala.meta.contrib.equality.Structurally
 import scala.meta.quasiquotes._
 import scala.meta.internal.semanticdb.scalac.SemanticdbOps
 import scala.meta.internal.tokenizers.PlatformTokenizerCache
+import scala.reflect.internal.{util => r}
 import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.transform.TypingTransformers
@@ -28,34 +29,44 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
   def triggers: List[String]
 
   case class LocalScope(
+    self: m.Tree,
     classes: Map[String, m.Defn.Class],
     objects: Map[String, m.Defn.Object],
     traits: Map[String, m.Defn.Trait],
     types: Map[String, m.Defn.Type]
   )
 
-  def updateClass(@u anns: List[m.Mod.Annot], klass: m.Defn.Class): Reader[LocalScope, m.Defn.Class] = Reader(_ => klass)
-  def updateObject(@u anns: List[m.Mod.Annot], obj: m.Defn.Object): Reader[LocalScope, m.Defn.Object] = Reader(_ => obj)
-  def updateTrait(@u anns: List[m.Mod.Annot], tr: m.Defn.Trait): Reader[LocalScope, m.Defn.Trait] = Reader(_ => tr)
-  def updateType(@u anns: List[m.Mod.Annot], tpe: m.Defn.Type): Reader[LocalScope, m.Defn.Type] = Reader(_ => tpe)
+  def error(pos: m.inputs.Position, msg: String): Unit = pos.input match {
+    case m.Input.File(path, _) => g.globalError(r.Position.range(g.getSourceFile(path.toString), pos.start, pos.start, pos.end), msg)
+    case _ => g.error(msg)
+  }
 
-  def updateCompanion(
+  def update(
     @u anns: List[m.Mod.Annot],
-    @u klass: m.Defn.Class,
-    companion: m.Defn.Object
-  ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
+    klass: m.Defn.Class,
+    companion: Option[m.Defn.Object]
+  ): Reader[LocalScope, (Option[(m.Defn.Class, Option[m.Defn.Object])], Vector[m.Stat])] =
+    Reader(_ => (Some((klass, companion)), Vector()))
 
-  def updateCompanion(
+  def update(
     @u anns: List[m.Mod.Annot],
-    @u tr: m.Defn.Trait,
-    companion: m.Defn.Object
-  ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
+    obj: m.Defn.Object
+  ): Reader[LocalScope, (Option[m.Defn.Object], Vector[m.Stat])] =
+    Reader(_ => (Some(obj), Vector()))
 
-  def updateCompanion(
+  def update(
     @u anns: List[m.Mod.Annot],
-    @u tpe: m.Defn.Type,
-    companion: m.Defn.Object
-  ): Reader[LocalScope, m.Defn.Object] = Reader(_ => companion)
+    tr: m.Defn.Trait,
+    companion: Option[m.Defn.Object]
+  ): Reader[LocalScope, (Option[(m.Defn.Trait, Option[m.Defn.Object])], Vector[m.Stat])] =
+    Reader(_ => (Some((tr, companion)), Vector()))
+
+  def update(
+    @u anns: List[m.Mod.Annot],
+    tpe: m.Defn.Type,
+    companion: Option[m.Defn.Object]
+  ): Reader[LocalScope, (Option[(m.Defn.Type, Option[m.Defn.Object])], Vector[m.Stat])] =
+    Reader(_ => (Some((tpe, companion)), Vector()))
 
   trait Named[A] { def name(a: A): m.Name }
   object Named {
@@ -66,6 +77,22 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     implicit val namedType: Named[m.Defn.Type] = _.name
   }
   implicit class NamedOps[A](a: A)(implicit n: Named[A]) { def name: m.Name = n.name(a) }
+
+  def genCompanion[A <: m.Tree: Extract[?, m.Mod]: Named](tree: A): m.Defn.Object = {
+    val (name, mods) = (tree.name, tree.extract[m.Mod])
+    val objMods = mods.collectFirst { case p: m.Mod.Private => p }
+      .orElse(mods.collectFirst { case p: m.Mod.Protected => p })
+      .toList
+
+    val isCase = mods.collectFirst { case _: m.Mod.Case => () }.nonEmpty
+
+    def toString_ =
+      q"override def toString: _root_.java.lang.String = ${m.Lit.String(name.value)}"
+
+    q"""..$objMods object ${m.Term.Name(name.value)} extends _root_.scala.AnyRef {
+      ..${if (isCase) List(toString_) else Nil}
+    }"""
+  }
 
   def regenObject(obj: m.Defn.Object, extras: List[m.Stat]): m.Defn.Object =
     extras match {
@@ -139,7 +166,9 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     ann.init.tpe match {
       case m.Type.Name(name) => name
       case m.Type.Select(_, m.Type.Name(name)) => name
-      case _ => g.abort(s"no name for $ann")
+      case _ =>
+        error(ann.pos, s"no name for $ann")
+        ""
     }
 
   def structurallyEqual(t1: m.Tree, t2: m.Tree): Boolean = t1.isEqual[Structurally](t2)
@@ -174,6 +203,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     private def hasTrigger(t: m.Tree): Boolean = t.collectFirst {
       case c: m.Defn.Class if hasTrigger(c.mods)  => ()
       case o: m.Defn.Object if hasTrigger(o.mods) => ()
+      case t: m.Defn.Type if hasTrigger(t.mods) => ()
+      case t: m.Defn.Trait if hasTrigger(t.mods) => ()
       case o: m.Pkg.Object if hasTrigger(o.mods) => ()
     }.nonEmpty
 
@@ -190,34 +221,17 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         case a: m.Mod.Annot if triggers.contains(annotationName(a)) => a
       }
 
-    /** generates a zero-functionality companion */
-    private def genCompanion[A <: m.Tree: Extract[?, m.Mod]: Named](tree: A): m.Defn.Object = {
-      val (name, mods) = (tree.name, tree.extract[m.Mod])
-      val objMods = mods.collectFirst { case p: m.Mod.Private => p }
-        .orElse(mods.collectFirst { case p: m.Mod.Protected => p })
-        .toList
-
-      val isCase = mods.collectFirst { case _: m.Mod.Case => () }.nonEmpty
-
-      def toString_ =
-        q"override def toString: _root_.java.lang.String = ${m.Lit.String(name.value)}"
-
-      q"""..$objMods object ${m.Term.Name(name.value)} extends _root_.scala.AnyRef {
-        ..${if (isCase) List(toString_) else Nil}
-      }"""
-    }
-
     private def updateTreeAndCompanion[A <: m.Stat: Extract[?, m.Mod]: Replace[?, m.Mod]: Named](
       tree: A,
-      update: (List[m.Mod.Annot], A) => Reader[LocalScope, A],
-      updCompanion: (List[m.Mod.Annot], A, m.Defn.Object) => Reader[LocalScope, m.Defn.Object],
-    ): Reader[LocalScope, List[m.Stat]] =
+      upd: (List[m.Mod.Annot], A, Option[m.Defn.Object]) => Reader[LocalScope, (Option[(A, Option[m.Defn.Object])], Vector[m.Stat])]
+    ): Reader[LocalScope, Vector[m.Stat]] =
       for {
-        companion <- Reader((_: LocalScope).objects.getOrElse(tree.name.value, genCompanion(tree)))
+        companion <- Reader((_: LocalScope).objects.get(tree.name.value))
         (ann, cleaned) = extractTrigger(tree)
-        upd <- update(ann, cleaned)
-        updComp <- updCompanion(ann, cleaned, companion)
-      } yield List(upd, updComp)
+        updated <- upd(ann, cleaned, companion)
+      } yield updated._1.map(_._1).toVector ++
+              updated._1.flatMap(_._2).toVector ++
+              updated._2
 
     // responds to visiting all the parts of the tree and passes to decepticons
     // to do the rewrites
@@ -250,6 +264,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     // does not recurse, let the autobots handle that
     def decepticons[A <: m.Tree: Extract[?, m.Stat]: Replace[?, m.Stat]: Named](tree: A): A = {
       val scope = LocalScope(
+        tree,
         getLocals(tree) { case c: m.Defn.Class => c },
         getLocals(tree) { case o: m.Defn.Object => o },
         getLocals(tree) { case t: m.Defn.Trait => t },
@@ -261,16 +276,18 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
           case Vector() => out
 
           case (c: m.Defn.Class) +: tail if hasTrigger(c.mods) =>
-            go(withoutCompanion(c, tail), out ++ updateTreeAndCompanion[m.Defn.Class](c, updateClass, updateCompanion).run(scope))
+            go(withoutCompanion(c, tail), out ++ updateTreeAndCompanion[m.Defn.Class](c, update).run(scope))
 
           case (o: m.Defn.Object) +: tail if hasTrigger(o.mods) =>
-            go(tail, out :+ (updateObject _).tupled(extractTrigger(o)).run(scope))
+            val (ann, cleaned) = extractTrigger(o)
+            val (upd, extra) = update(ann, cleaned).run(scope)
+            go(tail, out ++ upd.toVector ++ extra)
 
           case (t: m.Defn.Trait) +: tail if hasTrigger(t.mods) =>
-            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Trait](t, updateTrait, updateCompanion).run(scope))
+            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Trait](t, update).run(scope))
 
           case (t: m.Defn.Type) +: tail if hasTrigger(t.mods) =>
-            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Type](t, updateType, updateCompanion).run(scope))
+            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Type](t, update).run(scope))
 
           case t +: tail => go(tail, out :+ t)
         }
