@@ -1,7 +1,6 @@
 package andxor
 
 import andxor.tuple._
-import io.estatico.newtype.macros.newtype
 import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
 import scalaz.Id.Id
 
@@ -50,14 +49,12 @@ object types {
     }
 
     implicit def lifta0FInverse[F[_], A1]: Inj[F[A1], Prod1[F, A1]] = Inj.instance(_.run)
-
   }
 
   object Prod1 extends Prod1LP {
     implicit def lifta0Id[A1]: Inj[Prod1[Id, A1], A1] = lifta0F[Id, A1]
 
     implicit def lifta0IdInverse[A1]: Inj[A1, Prod1[Id, A1]] = lifta0FInverse[Id, A1]
-
   }
 
   @newtype case class Cop1[F[_], A1](run: F[A1])
@@ -71,7 +68,6 @@ object types {
     implicit def inja0F[F[_], A1]: Inj[Cop1[F, A1], F[A1]] = Inj.instance(prisma0F.reverseGet(_))
 
     implicit def inja0FInverse[F[_], A1]: Inj[Option[F[A1]], Cop1[F, A1]] = Inj.instance(prisma0F.getOption(_))
-
   }
 
   object Cop1 extends Cop1LP {
@@ -80,7 +76,6 @@ object types {
     implicit def inja0Id[A1]: Inj[Cop1[Id, A1], A1] = inja0F[Id, A1]
 
     implicit def inja0IdInverse[F[_], A1]: Inj[Option[A1], Cop1[Id, A1]] = inja0FInverse[Id, A1]
-
   }
 
   @newtype case class Prod2[F[_], A1, A2](run: (F[A1], F[A2])) {
@@ -120,7 +115,6 @@ object types {
     }
 
     implicit def lifta1FInverse[F[_], A1, A2]: Inj[F[A2], Prod2[F, A1, A2]] = Inj.instance(_.run.t2)
-
   }
 
   object Prod2 extends Prod2LP {
@@ -131,7 +125,6 @@ object types {
     implicit def lifta1Id[A1, A2](implicit M: Monoid[Prod2[Id, A1, A2]]): Inj[Prod2[Id, A1, A2], A2] = lifta1F[Id, A1, A2]
 
     implicit def lifta1IdInverse[A1, A2]: Inj[A2, Prod2[Id, A1, A2]] = lifta1FInverse[Id, A1, A2]
-
   }
 
   @newtype case class Cop2[F[_], A1, A2](run: (F[A1] \/ F[A2])) {
@@ -175,7 +168,6 @@ object types {
     implicit def inja1F[F[_], A1, A2]: Inj[Cop2[F, A1, A2], F[A2]] = Inj.instance(prisma1F.reverseGet(_))
 
     implicit def inja1FInverse[F[_], A1, A2]: Inj[Option[F[A2]], Cop2[F, A1, A2]] = Inj.instance(prisma1F.getOption(_))
-
   }
 
   object Cop2 extends Cop2LP {
@@ -190,7 +182,6 @@ object types {
     implicit def inja1Id[A1, A2]: Inj[Cop2[Id, A1, A2], A2] = inja1F[Id, A1, A2]
 
     implicit def inja1IdInverse[F[_], A1, A2]: Inj[Option[A2], Cop2[Id, A1, A2]] = inja1FInverse[Id, A1, A2]
-
   }
 
   @newtype case class Prod3[F[_], A1, A2, A3](run: (F[A1], F[A2], F[A3])) {
@@ -244,7 +235,6 @@ object types {
     }
 
     implicit def lifta2FInverse[F[_], A1, A2, A3]: Inj[F[A3], Prod3[F, A1, A2, A3]] = Inj.instance(_.run.t3)
-
   }
 
   object Prod3 extends Prod3LP {
@@ -259,7 +249,6 @@ object types {
     implicit def lifta2Id[A1, A2, A3](implicit M: Monoid[Prod3[Id, A1, A2, A3]]): Inj[Prod3[Id, A1, A2, A3], A3] = lifta2F[Id, A1, A2, A3]
 
     implicit def lifta2IdInverse[A1, A2, A3]: Inj[A3, Prod3[Id, A1, A2, A3]] = lifta2FInverse[Id, A1, A2, A3]
-
   }
 
   @newtype case class Cop3[F[_], A1, A2, A3](run: (F[A1] \/ (F[A2] \/ F[A3]))) {
@@ -321,7 +310,6 @@ object types {
     implicit def inja2F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A3]] = Inj.instance(prisma2F.reverseGet(_))
 
     implicit def inja2FInverse[F[_], A1, A2, A3]: Inj[Option[F[A3]], Cop3[F, A1, A2, A3]] = Inj.instance(prisma2F.getOption(_))
-
   }
 
   object Cop3 extends Cop3LP {
@@ -342,7 +330,6 @@ object types {
     implicit def inja2Id[A1, A2, A3]: Inj[Cop3[Id, A1, A2, A3], A3] = inja2F[Id, A1, A2, A3]
 
     implicit def inja2IdInverse[F[_], A1, A2, A3]: Inj[Option[A3], Cop3[Id, A1, A2, A3]] = inja2FInverse[Id, A1, A2, A3]
-
   }
 
   @newtype case class Prod4[F[_], A1, A2, A3, A4](run: (F[A1], F[A2], F[A3], F[A4])) {
@@ -410,7 +397,6 @@ object types {
     }
 
     implicit def lifta3FInverse[F[_], A1, A2, A3, A4]: Inj[F[A4], Prod4[F, A1, A2, A3, A4]] = Inj.instance(_.run.t4)
-
   }
 
   object Prod4 extends Prod4LP {
@@ -429,7 +415,6 @@ object types {
     implicit def lifta3Id[A1, A2, A3, A4](implicit M: Monoid[Prod4[Id, A1, A2, A3, A4]]): Inj[Prod4[Id, A1, A2, A3, A4], A4] = lifta3F[Id, A1, A2, A3, A4]
 
     implicit def lifta3IdInverse[A1, A2, A3, A4]: Inj[A4, Prod4[Id, A1, A2, A3, A4]] = lifta3FInverse[Id, A1, A2, A3, A4]
-
   }
 
   @newtype case class Cop4[F[_], A1, A2, A3, A4](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ F[A4])))) {
@@ -509,7 +494,6 @@ object types {
     implicit def inja3F[F[_], A1, A2, A3, A4]: Inj[Cop4[F, A1, A2, A3, A4], F[A4]] = Inj.instance(prisma3F.reverseGet(_))
 
     implicit def inja3FInverse[F[_], A1, A2, A3, A4]: Inj[Option[F[A4]], Cop4[F, A1, A2, A3, A4]] = Inj.instance(prisma3F.getOption(_))
-
   }
 
   object Cop4 extends Cop4LP {
@@ -536,7 +520,6 @@ object types {
     implicit def inja3Id[A1, A2, A3, A4]: Inj[Cop4[Id, A1, A2, A3, A4], A4] = inja3F[Id, A1, A2, A3, A4]
 
     implicit def inja3IdInverse[F[_], A1, A2, A3, A4]: Inj[Option[A4], Cop4[Id, A1, A2, A3, A4]] = inja3FInverse[Id, A1, A2, A3, A4]
-
   }
 
   @newtype case class Prod5[F[_], A1, A2, A3, A4, A5](run: (F[A1], F[A2], F[A3], F[A4], F[A5])) {
@@ -618,7 +601,6 @@ object types {
     }
 
     implicit def lifta4FInverse[F[_], A1, A2, A3, A4, A5]: Inj[F[A5], Prod5[F, A1, A2, A3, A4, A5]] = Inj.instance(_.run.t5)
-
   }
 
   object Prod5 extends Prod5LP {
@@ -641,7 +623,6 @@ object types {
     implicit def lifta4Id[A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[Id, A1, A2, A3, A4, A5]]): Inj[Prod5[Id, A1, A2, A3, A4, A5], A5] = lifta4F[Id, A1, A2, A3, A4, A5]
 
     implicit def lifta4IdInverse[A1, A2, A3, A4, A5]: Inj[A5, Prod5[Id, A1, A2, A3, A4, A5]] = lifta4FInverse[Id, A1, A2, A3, A4, A5]
-
   }
 
   @newtype case class Cop5[F[_], A1, A2, A3, A4, A5](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5]))))) {
@@ -739,7 +720,6 @@ object types {
     implicit def inja4F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A5]] = Inj.instance(prisma4F.reverseGet(_))
 
     implicit def inja4FInverse[F[_], A1, A2, A3, A4, A5]: Inj[Option[F[A5]], Cop5[F, A1, A2, A3, A4, A5]] = Inj.instance(prisma4F.getOption(_))
-
   }
 
   object Cop5 extends Cop5LP {
@@ -772,7 +752,6 @@ object types {
     implicit def inja4Id[A1, A2, A3, A4, A5]: Inj[Cop5[Id, A1, A2, A3, A4, A5], A5] = inja4F[Id, A1, A2, A3, A4, A5]
 
     implicit def inja4IdInverse[F[_], A1, A2, A3, A4, A5]: Inj[Option[A5], Cop5[Id, A1, A2, A3, A4, A5]] = inja4FInverse[Id, A1, A2, A3, A4, A5]
-
   }
 
   @newtype case class Prod6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])) {
@@ -868,7 +847,6 @@ object types {
     }
 
     implicit def lifta5FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[F[A6], Prod6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(_.run.t6)
-
   }
 
   object Prod6 extends Prod6LP {
@@ -895,7 +873,6 @@ object types {
     implicit def lifta5Id[A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[Id, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[Id, A1, A2, A3, A4, A5, A6], A6] = lifta5F[Id, A1, A2, A3, A4, A5, A6]
 
     implicit def lifta5IdInverse[A1, A2, A3, A4, A5, A6]: Inj[A6, Prod6[Id, A1, A2, A3, A4, A5, A6]] = lifta5FInverse[Id, A1, A2, A3, A4, A5, A6]
-
   }
 
   @newtype case class Cop6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6])))))) {
@@ -1011,7 +988,6 @@ object types {
     implicit def inja5F[F[_], A1, A2, A3, A4, A5, A6]: Inj[Cop6[F, A1, A2, A3, A4, A5, A6], F[A6]] = Inj.instance(prisma5F.reverseGet(_))
 
     implicit def inja5FInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[Option[F[A6]], Cop6[F, A1, A2, A3, A4, A5, A6]] = Inj.instance(prisma5F.getOption(_))
-
   }
 
   object Cop6 extends Cop6LP {
@@ -1050,7 +1026,6 @@ object types {
     implicit def inja5Id[A1, A2, A3, A4, A5, A6]: Inj[Cop6[Id, A1, A2, A3, A4, A5, A6], A6] = inja5F[Id, A1, A2, A3, A4, A5, A6]
 
     implicit def inja5IdInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[Option[A6], Cop6[Id, A1, A2, A3, A4, A5, A6]] = inja5FInverse[Id, A1, A2, A3, A4, A5, A6]
-
   }
 
   @newtype case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])) {
@@ -1160,7 +1135,6 @@ object types {
     }
 
     implicit def lifta6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[F[A7], Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(_.run.t7)
-
   }
 
   object Prod7 extends Prod7LP {
@@ -1198,7 +1172,6 @@ object types {
       lifta6F[Id, A1, A2, A3, A4, A5, A6, A7]
 
     implicit def lifta6IdInverse[A1, A2, A3, A4, A5, A6, A7]: Inj[A7, Prod7[Id, A1, A2, A3, A4, A5, A6, A7]] = lifta6FInverse[Id, A1, A2, A3, A4, A5, A6, A7]
-
   }
 
   @newtype case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ F[A7]))))))) {
@@ -1332,7 +1305,6 @@ object types {
     implicit def inja6F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] = Inj.instance(prisma6F.reverseGet(_))
 
     implicit def inja6FInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Option[F[A7]], Cop7[F, A1, A2, A3, A4, A5, A6, A7]] = Inj.instance(prisma6F.getOption(_))
-
   }
 
   object Cop7 extends Cop7LP {
@@ -1377,7 +1349,6 @@ object types {
     implicit def inja6Id[A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A7] = inja6F[Id, A1, A2, A3, A4, A5, A6, A7]
 
     implicit def inja6IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Option[A7], Cop7[Id, A1, A2, A3, A4, A5, A6, A7]] = inja6FInverse[Id, A1, A2, A3, A4, A5, A6, A7]
-
   }
 
   @newtype case class Prod8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])) {
@@ -1501,7 +1472,6 @@ object types {
     }
 
     implicit def lifta7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[F[A8], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(_.run.t8)
-
   }
 
   object Prod8 extends Prod8LP {
@@ -1544,7 +1514,6 @@ object types {
       lifta7F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
 
     implicit def lifta7IdInverse[A1, A2, A3, A4, A5, A6, A7, A8]: Inj[A8, Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] = lifta7FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8]
-
   }
 
   @newtype case class Cop8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ F[A8])))))))) {
@@ -1696,7 +1665,6 @@ object types {
     implicit def inja7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A8]] = Inj.instance(prisma7F.reverseGet(_))
 
     implicit def inja7FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Option[F[A8]], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Inj.instance(prisma7F.getOption(_))
-
   }
 
   object Cop8 extends Cop8LP {
@@ -1747,7 +1715,6 @@ object types {
     implicit def inja7Id[A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A8] = inja7F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
 
     implicit def inja7IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Option[A8], Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] = inja7FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8]
-
   }
 
   @newtype case class Prod9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9])) {
@@ -1887,7 +1854,6 @@ object types {
     }
 
     implicit def lifta8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[F[A9], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(_.run.t9)
-
   }
 
   object Prod9 extends Prod9LP {
@@ -1935,7 +1901,6 @@ object types {
       lifta8F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
     implicit def lifta8IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[A9, Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = lifta8FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
-
   }
 
   @newtype case class Cop9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ F[A9]))))))))) {
@@ -2105,7 +2070,6 @@ object types {
     implicit def inja8F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], F[A9]] = Inj.instance(prisma8F.reverseGet(_))
 
     implicit def inja8FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Option[F[A9]], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Inj.instance(prisma8F.getOption(_))
-
   }
 
   object Cop9 extends Cop9LP {
@@ -2162,7 +2126,6 @@ object types {
     implicit def inja8Id[A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A9] = inja8F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
     implicit def inja8IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Option[A9], Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = inja8FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
-
   }
 
   @newtype case class Prod10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10])) {
@@ -2336,7 +2299,6 @@ object types {
     }
 
     implicit def lifta9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[F[A10], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(_.run.t10)
-
   }
 
   object Prod10 extends Prod10LP {
@@ -2399,7 +2361,6 @@ object types {
     ): Inj[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10] = lifta9F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
 
     implicit def lifta9IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[A10, Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = lifta9FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
-
   }
 
   @newtype case class Cop10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ (F[A9] \/ F[A10])))))))))) {
@@ -2597,7 +2558,6 @@ object types {
     implicit def inja9F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], F[A10]] = Inj.instance(prisma9F.reverseGet(_))
 
     implicit def inja9FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Option[F[A10]], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Inj.instance(prisma9F.getOption(_))
-
   }
 
   object Cop10 extends Cop10LP {
@@ -2670,7 +2630,6 @@ object types {
 
     implicit def inja9IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Option[A10], Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       inja9FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
-
   }
 
   @newtype case class Prod11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])) {
@@ -2860,7 +2819,6 @@ object types {
     }
 
     implicit def lifta10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[F[A11], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(_.run.t11)
-
   }
 
   object Prod11 extends Prod11LP {
@@ -2940,7 +2898,6 @@ object types {
 
     implicit def lifta10IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[A11, Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       lifta10FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
-
   }
 
   @newtype case class Cop11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
@@ -3159,7 +3116,6 @@ object types {
     implicit def inja10F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A11]] = Inj.instance(prisma10F.reverseGet(_))
 
     implicit def inja10FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Option[F[A11]], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Inj.instance(prisma10F.getOption(_))
-
   }
 
   object Cop11 extends Cop11LP {
@@ -3250,7 +3206,6 @@ object types {
 
     implicit def inja10IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Option[A11], Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       inja10FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
-
   }
 
   @newtype case class Prod12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12])) {
@@ -3456,7 +3411,6 @@ object types {
     }
 
     implicit def lifta11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[F[A12], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Inj.instance(_.run.t12)
-
   }
 
   object Prod12 extends Prod12LP {
@@ -3543,7 +3497,6 @@ object types {
 
     implicit def lifta11IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[A12, Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       lifta11FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
-
   }
 
   @newtype case class Cop12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
@@ -3797,7 +3750,6 @@ object types {
 
     implicit def inja11FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[Option[F[A12]], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       Inj.instance(prisma11F.getOption(_))
-
   }
 
   object Cop12 extends Cop12LP {
@@ -3908,7 +3860,6 @@ object types {
 
     implicit def inja11IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[Option[A12], Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       inja11FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
-
   }
 
   @newtype case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13])) {
@@ -4130,7 +4081,6 @@ object types {
     }
 
     implicit def lifta12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[F[A13], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Inj.instance(_.run.t13)
-
   }
 
   object Prod13 extends Prod13LP {
@@ -4224,7 +4174,6 @@ object types {
 
     implicit def lifta12IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[A13, Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       lifta12FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
-
   }
 
   @newtype case class Cop13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
@@ -4514,7 +4463,6 @@ object types {
 
     implicit def inja12FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[Option[F[A13]], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       Inj.instance(prisma12F.getOption(_))
-
   }
 
   object Cop13 extends Cop13LP {
@@ -4634,7 +4582,6 @@ object types {
 
     implicit def inja12IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[Option[A13], Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       inja12FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
-
   }
 
   @newtype case class Prod14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
@@ -4888,7 +4835,6 @@ object types {
 
     implicit def lifta13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[F[A14], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       Inj.instance(_.run.t14)
-
   }
 
   object Prod14 extends Prod14LP {
@@ -4989,7 +4935,6 @@ object types {
 
     implicit def lifta13IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[A14, Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       lifta13FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
-
   }
 
   @newtype case class Cop14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
@@ -5303,7 +5248,6 @@ object types {
 
     implicit def inja13FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[Option[F[A14]], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       Inj.instance(prisma13F.getOption(_))
-
   }
 
   object Cop14 extends Cop14LP {
@@ -5432,7 +5376,6 @@ object types {
 
     implicit def inja13IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[Option[A14], Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       inja13FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
-
   }
 
   @newtype case class Prod15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
@@ -5703,7 +5646,6 @@ object types {
 
     implicit def lifta14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[F[A15], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       Inj.instance(_.run.t15)
-
   }
 
   object Prod15 extends Prod15LP {
@@ -5811,7 +5753,6 @@ object types {
 
     implicit def lifta14IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: Inj[A15, Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       lifta14FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
-
   }
 
   @newtype case class Cop15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
@@ -6149,7 +6090,6 @@ object types {
 
     implicit def inja14FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
         : Inj[Option[F[A15]], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = Inj.instance(prisma14F.getOption(_))
-
   }
 
   object Cop15 extends Cop15LP {
@@ -6287,7 +6227,6 @@ object types {
 
     implicit def inja14IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
         : Inj[Option[A15], Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = inja14FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
-
   }
 
   @newtype case class Prod16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
@@ -6607,7 +6546,6 @@ object types {
 
     implicit def lifta15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[F[A16], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(_.run.t16)
-
   }
 
   object Prod16 extends Prod16LP {
@@ -6722,7 +6660,6 @@ object types {
 
     implicit def lifta15IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: Inj[A16, Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       lifta15FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-
   }
 
   @newtype case class Cop16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
@@ -7090,7 +7027,6 @@ object types {
 
     implicit def inja15FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[Option[F[A16]], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Inj.instance(prisma15F.getOption(_))
-
   }
 
   object Cop16 extends Cop16LP {
@@ -7237,7 +7173,6 @@ object types {
 
     implicit def inja15IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[Option[A16], Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = inja15FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-
   }
 
   @newtype case class Prod17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
@@ -7631,7 +7566,6 @@ object types {
 
     implicit def lifta16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[F[A17], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(_.run.t17)
-
   }
 
   object Prod17 extends Prod17LP {
@@ -7770,7 +7704,6 @@ object types {
     implicit def lifta16IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[A17, Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       lifta16FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-
   }
 
   @newtype case class Cop17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
@@ -8171,7 +8104,6 @@ object types {
 
     implicit def inja16FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[Option[F[A17]], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Inj.instance(prisma16F.getOption(_))
-
   }
 
   object Cop17 extends Cop17LP {
@@ -8344,7 +8276,6 @@ object types {
     implicit def inja16IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[Option[A17], Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       inja16FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-
   }
 
   @newtype case class Prod18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
@@ -8760,7 +8691,6 @@ object types {
 
     implicit def lifta17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[F[A18], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(_.run.t18)
-
   }
 
   object Prod18 extends Prod18LP {
@@ -8925,7 +8855,6 @@ object types {
     implicit def lifta17IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[A18, Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       lifta17FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-
   }
 
   @newtype case class Cop18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
@@ -9351,7 +9280,6 @@ object types {
 
     implicit def inja17FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[Option[F[A18]], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Inj.instance(prisma17F.getOption(_))
-
   }
 
   object Cop18 extends Cop18LP {
@@ -9570,7 +9498,6 @@ object types {
     implicit def inja17IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[Option[A18], Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       inja17FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-
   }
 
   @newtype case class Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
@@ -10008,7 +9935,6 @@ object types {
 
     implicit def lifta18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[F[A19], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(_.run.t19)
-
   }
 
   object Prod19 extends Prod19LP {
@@ -10182,7 +10108,6 @@ object types {
     implicit def lifta18IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[A19, Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       lifta18FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-
   }
 
   @newtype case class Cop19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
@@ -10631,7 +10556,6 @@ object types {
 
     implicit def inja18FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[Option[F[A19]], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Inj.instance(prisma18F.getOption(_))
-
   }
 
   object Cop19 extends Cop19LP {
@@ -10862,7 +10786,6 @@ object types {
     implicit def inja18IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[Option[A19], Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       inja18FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-
   }
 
   @newtype case class Prod20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
@@ -11322,7 +11245,6 @@ object types {
 
     implicit def lifta19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[F[A20], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(_.run.t20)
-
   }
 
   object Prod20 extends Prod20LP {
@@ -11505,7 +11427,6 @@ object types {
     implicit def lifta19IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[A20, Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       lifta19FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-
   }
 
   @newtype case class Cop20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
@@ -11983,7 +11904,6 @@ object types {
 
     implicit def inja19FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[Option[F[A20]], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Inj.instance(prisma19F.getOption(_))
-
   }
 
   object Cop20 extends Cop20LP {
@@ -12226,7 +12146,6 @@ object types {
     implicit def inja19IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[Option[A20], Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       inja19FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-
   }
 
   @newtype case class Prod21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
@@ -12708,7 +12627,6 @@ object types {
 
     implicit def lifta20FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[F[A21], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(_.run.t21)
-
   }
 
   object Prod21 extends Prod21LP {
@@ -12900,7 +12818,6 @@ object types {
     implicit def lifta20IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[A21, Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       lifta20FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-
   }
 
   @newtype case class Cop21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
@@ -13405,7 +13322,6 @@ object types {
 
     implicit def inja20FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[Option[F[A21]], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] = Inj.instance(prisma20F.getOption(_))
-
   }
 
   object Cop21 extends Cop21LP {
@@ -13660,7 +13576,6 @@ object types {
     implicit def inja20IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[Option[A21], Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       inja20FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-
   }
 
   @newtype case class Prod22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
@@ -14165,7 +14080,6 @@ object types {
 
     implicit def lifta21FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[F[A22], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(_.run.t22)
-
   }
 
   object Prod22 extends Prod22LP {
@@ -14366,7 +14280,6 @@ object types {
     implicit def lifta21IdInverse[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[A22, Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       lifta21FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-
   }
 
   @newtype case class Cop22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
@@ -14899,7 +14812,6 @@ object types {
 
     implicit def inja21FInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[Option[F[A22]], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] = Inj.instance(prisma21F.getOption(_))
-
   }
 
   object Cop22 extends Cop22LP {
@@ -15166,7 +15078,6 @@ object types {
     implicit def inja21IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[Option[A22], Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       inja21FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-
   }
 
 }

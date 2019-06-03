@@ -4,7 +4,6 @@
 @(tpeLists: List[List[String]])
 
 import andxor.tuple._
-import io.estatico.newtype.macros.newtype
 import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
 import scalaz.Id.Id
 

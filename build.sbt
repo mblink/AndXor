@@ -1,7 +1,7 @@
 lazy val baseSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.5-LOCAL-16",
+  version := "0.2.5-LOCAL-17",
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
@@ -90,7 +90,7 @@ lazy val core = project.in(file("core"))
   .settings(publishSettings)
   .settings(Seq(
     name := "andxor-core",
-    libraryDependencies += "io.estatico" %% "newtype" % "0.4.2",
+    scalacOptions ++= enablePlugin((assembly in newtype).value),
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
   ))
 
@@ -127,15 +127,11 @@ lazy val basePluginOptions = Seq(
   )
 )
 
+def enablePlugin(jar: File): Seq[String] = Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+
 lazy val pluginOptions = basePluginOptions ++ Seq(
-  scalacOptions in (Compile, console) ++= {
-    val jar = assembly.value
-    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-  },
-  scalacOptions in Test ++= {
-    val jar = assembly.value
-    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-  },
+  scalacOptions in (Compile, console) ++= enablePlugin(assembly.value),
+  scalacOptions in Test ++= enablePlugin(assembly.value),
   test.in(assembly) := {},
   assemblyJarName.in(assembly) :=
     name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
@@ -184,7 +180,7 @@ def compilerPlugin(proj: Project, nme: String) =
     .settings(publishSettings)
     .settings(pluginOptions)
     .settings(name := nme)
-    .dependsOn(core % "compile->compile;test->test", annotationPlugin)
+    .dependsOn(annotationPlugin)
 
 lazy val deriving =
   compilerPlugin(project.in(file("deriving")), "andxor-deriving")

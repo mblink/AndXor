@@ -1,9 +1,5 @@
 package andxor.test
 
-import scala.annotation.Annotation
-
-final class newtype extends Annotation
-
 trait Show[A] { def apply(a: A): String }
 object Show {
   def apply[A](a: A)(implicit s: Show[A]): String = s(a)
