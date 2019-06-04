@@ -1,7 +1,7 @@
 lazy val baseSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.5-LOCAL-17",
+  version := "0.2.5-LOCAL-18",
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
@@ -160,27 +160,19 @@ lazy val pluginOptions = basePluginOptions ++ Seq(
   }
 )
 
-lazy val annotationPlugin = project.in(file("annotation-plugin"))
-  .settings(baseSettings)
-  .settings(publishSettings)
-  .settings(basePluginOptions)
-  .settings(Seq(
-    name := "andxor-annotation-plugin",
-    scalacOptions -= "-Ywarn-unused:patvars",
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-      "org.scalameta" %% "scalameta" % scalametaV,
-      "org.scalameta" %% "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-    )
-  ))
-
 def compilerPlugin(proj: Project, nme: String) =
   proj
     .settings(baseSettings)
     .settings(publishSettings)
     .settings(pluginOptions)
-    .settings(name := nme)
-    .dependsOn(annotationPlugin)
+    .settings(
+      name := nme,
+      libraryDependencies ++= Seq(
+        "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+        "org.scalameta" %% "scalameta" % scalametaV,
+        "org.scalameta" %% "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
+      )
+    )
 
 lazy val deriving =
   compilerPlugin(project.in(file("deriving")), "andxor-deriving")
