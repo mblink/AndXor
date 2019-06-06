@@ -4,7 +4,6 @@
 @(z: Zipper[String])
             case dj @@ @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
                   """_""")(_ => """-\/(_)"""))((_, a) => s"""\\/-(${a})""")} =>
-              val pr = prod.run
-              val (h, t) = U(pr@{z.toList.tupleAccess(z.index + 1)})
-              go(TG.Prod(@{(1 to z.length).toList.map(i => s"pr${z.toList.tupleAccess(i)}").updated(z.index, "t").mkTuple}),
+              val (h, t) = U(prod@{z.toList.prodAccess(z.index + 1)})
+              go(TG.Prod(@{(1 to z.length).toList.map(i => s"prod${z.toList.prodAccess(i)}").updated(z.index, "t").mkTuple}),
                 q ++= h.map(TI.inj(_: Id[A@{z.index + 1}])), M.append(out, map(TI.Cop(dj))))

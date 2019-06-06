@@ -42,10 +42,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
   }
 
   def transformP[G[_]](nt: (F ~> G)): AndXorK1[F, A1]#Prod => AndXorK1[G, A1]#Prod =
-    (p: AndXorK1[F, A1]#Prod) => {
-      val pr = p.run
-      Prod1[G, A1](nt(pr))
-    }
+    (p: AndXorK1[F, A1]#Prod) => Prod1[G, A1](nt(p.run))
 
   def transformC[G[_]](nt: (F ~> G)): AndXorK1[F, A1]#Cop => AndXorK1[G, A1]#Cop =
     (p: AndXorK1[F, A1]#Cop) => Cop1[G, A1](nt(p.run))
@@ -53,10 +50,9 @@ trait AndXorK1[F[_], A1] extends AndXor {
   def subst1[G[_]]: AndXor1[G[A1]] = AndXor1[G[A1]]
 
   // format: off
-  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[Prod1[Id, A1]] = {
-    val p = prod.run
+  def sequenceP(p: Prod)(implicit A: Apply[F]): F[Prod1[Id, A1]] = {
     A.map(
-    A.map(p)((i0: A1) =>
+    A.map(p.run)((i0: A1) =>
       i0))(Prod1[Id, A1](_))
   }
 
@@ -77,8 +73,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
     val TI = AndXorF[Id]
 
     def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
-      val pr = p.run
-      val ht1 = U(pr)
+      val ht1 = U(p.run)
       (List(ht1._1.map(TI.inj(_: Id[A1]))).flatten,
         TG.Prod(ht1._2))
     }
@@ -104,8 +99,7 @@ trait AndXorK1[F[_], A1] extends AndXor {
           }
           case false => q.dequeue.run match {
             case dj @ _ =>
-              val pr = prod.run
-              val (h, t) = U(pr)
+              val (h, t) = U(prod.run)
               go(TG.Prod(t),
                 q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.Cop(dj))))
 

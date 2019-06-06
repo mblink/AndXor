@@ -1,6 +1,5 @@
 package andxor
 
-import andxor.tuple._
 import andxor.types.{Cop2, Prod2}
 import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
@@ -47,10 +46,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   }
 
   def transformP[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Prod => AndXorK2[G, A1, A2]#Prod =
-    (p: AndXorK2[F, A1, A2]#Prod) => {
-      val pr = p.run
-      Prod2[G, A1, A2]((nt(pr.t1), nt(pr.t2)))
-    }
+    (p: AndXorK2[F, A1, A2]#Prod) => Prod2[G, A1, A2]((nt(p.t1), nt(p.t2)))
 
   def transformC[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Cop => AndXorK2[G, A1, A2]#Cop =
     (p: AndXorK2[F, A1, A2]#Cop) =>
@@ -63,8 +59,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
   def subst2[G[_]]: AndXor2[F[A1], G[A2]] = AndXor2[F[A1], G[A2]]
 
   // format: off
-  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[Prod2[Id, A1, A2]] = {
-    val p = prod.run
+  def sequenceP(p: Prod)(implicit A: Apply[F]): F[Prod2[Id, A1, A2]] = {
     A.map(
     A.ap(p.t2)(
     A.map(p.t1)((i0: A1) => (i1: A2) =>
@@ -89,9 +84,8 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
     val TI = AndXorF[Id]
 
     def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
-      val pr = p.run
-      val ht1 = U(pr.t1)
-      val ht2 = U(pr.t2)
+      val ht1 = U(p.t1)
+      val ht2 = U(p.t2)
       (List(ht1._1.map(TI.inj(_: Id[A1])), ht2._1.map(TI.inj(_: Id[A2]))).flatten,
         TG.Prod((ht1._2, ht2._2)))
     }
@@ -117,14 +111,12 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
           }
           case false => q.dequeue.run match {
             case dj @ -\/(_) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t1)
-              go(TG.Prod((t, pr.t2)),
+              val (h, t) = U(prod.t1)
+              go(TG.Prod((t, prod.t2)),
                 q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(_) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t2)
-              go(TG.Prod((pr.t1, t)),
+              val (h, t) = U(prod.t2)
+              go(TG.Prod((prod.t1, t)),
                 q ++= h.map(TI.inj(_: Id[A2])), M.append(out, map(TI.Cop(dj))))
 
           }

@@ -2,7 +2,6 @@
 
 @(tpes: List[String])
 
-@if(tpes.length > 1){import andxor.tuple._}
 import andxor.types.{@{tpes.copName}, @{tpes.prodName}}
 import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid@{tpes.foldLen01("")(", \\/, -\\/, \\/-")}, ~>}
@@ -51,10 +50,8 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
 
   def transformP[G[_]](nt: (F ~> G)):
   AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Prod => AndXorK@{tpes.length}[G, @{tpes.tpeParams}]#Prod =
-    (p: AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Prod) => {
-      val pr = p.run
-      @{tpes.prodTpeF("G")}(@{tpes.zipWithIndex.map(x => s"nt(pr${tpes.tupleAccess(x._2 + 1)})").mkTuple})
-    }
+    (p: AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Prod) =>
+      @{tpes.prodTpeF("G")}(@{tpes.zipWithIndex.map(x => s"nt(p${tpes.prodAccess(x._2 + 1)})").mkTuple})
 
   def transformC[G[_]](nt: (F ~> G)):
   AndXorK@{tpes.length}[F, @{tpes.tpeParams}]#Cop => AndXorK@{tpes.length}[G, @{tpes.tpeParams}]#Cop =
@@ -66,10 +63,9 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
   @{tpes.zipper(template.txt.Subst(_)).mkString("\n")}
 
   // format: off
-  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[@{tpes.prodTpeF("Id")}] = {
-    val p = prod.run
-    A.map(@{tpes.paramListF(i => s"p${tpes.tupleAccess(i)}", 1).tail.foldLeft(
-      s"""\n    A.map(${tpes.foldLen01("p")(s"p${tpes.tupleAccess(1)}")})(${tpes.paramList("i").zip(tpes).map(t => s"(${t._1}: ${t._2})").mkString(" => ")} =>\n      ${tpes.paramList("i").mkTuple})""")(
+  def sequenceP(p: Prod)(implicit A: Apply[F]): F[@{tpes.prodTpeF("Id")}] = {
+    A.map(@{tpes.paramListF(i => s"p${tpes.prodAccess(i)}", 1).tail.foldLeft(
+      s"""\n    A.map(p${tpes.prodAccess(1)})(${tpes.paramList("i").zip(tpes).map(t => s"(${t._1}: ${t._2})").mkString(" => ")} =>\n      ${tpes.paramList("i").mkTuple})""")(
         (a, e) => s"\n    A.ap($e)($a)")})(@{tpes.prodTpeF("Id")}(_))
   }
 
@@ -90,8 +86,7 @@ trait AndXorK@{tpes.length}[F[_], @{tpes.tpeParams}] extends AndXor {
     val TI = AndXorF[Id]
 
     def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
-      val pr = p.run
-      @{1.to(tpes.length).toList.map(i => s"val ht$i = U(pr${tpes.tupleAccess(i)})").mkString("\n      ")}
+      @{1.to(tpes.length).toList.map(i => s"val ht$i = U(p${tpes.prodAccess(i)})").mkString("\n      ")}
       (List(@{tpes.zip(Stream.from(1)).map(t => s"ht${t._2}._1.map(TI.inj(_: Id[${t._1}]))").mkString(", ")}).flatten,
         TG.Prod(@{1.to(tpes.length).toList.map(i => s"ht$i._2").mkTuple}))
     }

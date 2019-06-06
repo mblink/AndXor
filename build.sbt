@@ -1,7 +1,7 @@
 lazy val baseSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.5-LOCAL-18",
+  version := "0.2.5-LOCAL-19",
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
@@ -62,7 +62,7 @@ lazy val baseSettings = Seq(
   sources in (Compile, doc) := Seq()
 )
 
-lazy val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.26")
+lazy val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.27")
 
 lazy val publishSettings = Seq(
   skip in publish := false,
@@ -90,8 +90,7 @@ lazy val core = project.in(file("core"))
   .settings(publishSettings)
   .settings(Seq(
     name := "andxor-core",
-    scalacOptions ++= enablePlugin((assembly in newtype).value),
-    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+    scalacOptions ++= enablePlugin((assembly in newtype).value)
   ))
 
 lazy val argonaut = project.in(file("argonaut"))
@@ -165,14 +164,7 @@ def compilerPlugin(proj: Project, nme: String) =
     .settings(baseSettings)
     .settings(publishSettings)
     .settings(pluginOptions)
-    .settings(
-      name := nme,
-      libraryDependencies ++= Seq(
-        "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-        "org.scalameta" %% "scalameta" % scalametaV,
-        "org.scalameta" %% "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-      )
-    )
+    .settings(name := nme)
 
 lazy val deriving =
   compilerPlugin(project.in(file("deriving")), "andxor-deriving")

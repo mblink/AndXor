@@ -1,6 +1,5 @@
 package andxor
 
-import andxor.tuple._
 import andxor.types.{Cop9, Prod9}
 import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
@@ -48,10 +47,8 @@ trait AndXorK9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9] extends AndXor {
   }
 
   def transformP[G[_]](nt: (F ~> G)): AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Prod => AndXorK9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Prod =
-    (p: AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Prod) => {
-      val pr = p.run
-      Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]((nt(pr.t1), nt(pr.t2), nt(pr.t3), nt(pr.t4), nt(pr.t5), nt(pr.t6), nt(pr.t7), nt(pr.t8), nt(pr.t9)))
-    }
+    (p: AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Prod) =>
+      Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]((nt(p.t1), nt(p.t2), nt(p.t3), nt(p.t4), nt(p.t5), nt(p.t6), nt(p.t7), nt(p.t8), nt(p.t9)))
 
   def transformC[G[_]](nt: (F ~> G)): AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Cop => AndXorK9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Cop =
     (p: AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]#Cop) =>
@@ -78,8 +75,7 @@ trait AndXorK9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9] extends AndXor {
   def subst9[G[_]]: AndXor9[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], G[A9]] = AndXor9[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], G[A9]]
 
   // format: off
-  def sequenceP(prod: Prod)(implicit A: Apply[F]): F[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = {
-    val p = prod.run
+  def sequenceP(p: Prod)(implicit A: Apply[F]): F[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = {
     A.map(
     A.ap(p.t9)(
     A.ap(p.t8)(
@@ -118,16 +114,15 @@ trait AndXorK9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9] extends AndXor {
     val TI = AndXorF[Id]
 
     def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
-      val pr = p.run
-      val ht1 = U(pr.t1)
-      val ht2 = U(pr.t2)
-      val ht3 = U(pr.t3)
-      val ht4 = U(pr.t4)
-      val ht5 = U(pr.t5)
-      val ht6 = U(pr.t6)
-      val ht7 = U(pr.t7)
-      val ht8 = U(pr.t8)
-      val ht9 = U(pr.t9)
+      val ht1 = U(p.t1)
+      val ht2 = U(p.t2)
+      val ht3 = U(p.t3)
+      val ht4 = U(p.t4)
+      val ht5 = U(p.t5)
+      val ht6 = U(p.t6)
+      val ht7 = U(p.t7)
+      val ht8 = U(p.t8)
+      val ht9 = U(p.t9)
       (List(ht1._1.map(TI.inj(_: Id[A1])), ht2._1.map(TI.inj(_: Id[A2])), ht3._1.map(TI.inj(_: Id[A3])), ht4._1.map(TI.inj(_: Id[A4])), ht5._1.map(TI.inj(_: Id[A5])), ht6._1.map(TI.inj(_: Id[A6])), ht7._1.map(TI.inj(_: Id[A7])), ht8._1.map(TI.inj(_: Id[A8])), ht9._1.map(TI.inj(_: Id[A9]))).flatten,
         TG.Prod((ht1._2, ht2._2, ht3._2, ht4._2, ht5._2, ht6._2, ht7._2, ht8._2, ht9._2)))
     }
@@ -153,49 +148,40 @@ trait AndXorK9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9] extends AndXor {
           }
           case false => q.dequeue.run match {
             case dj @ -\/(_) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t1)
-              go(TG.Prod((t, pr.t2, pr.t3, pr.t4, pr.t5, pr.t6, pr.t7, pr.t8, pr.t9)),
+              val (h, t) = U(prod.t1)
+              go(TG.Prod((t, prod.t2, prod.t3, prod.t4, prod.t5, prod.t6, prod.t7, prod.t8, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(-\/(_)) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t2)
-              go(TG.Prod((pr.t1, t, pr.t3, pr.t4, pr.t5, pr.t6, pr.t7, pr.t8, pr.t9)),
+              val (h, t) = U(prod.t2)
+              go(TG.Prod((prod.t1, t, prod.t3, prod.t4, prod.t5, prod.t6, prod.t7, prod.t8, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A2])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(\/-(-\/(_))) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t3)
-              go(TG.Prod((pr.t1, pr.t2, t, pr.t4, pr.t5, pr.t6, pr.t7, pr.t8, pr.t9)),
+              val (h, t) = U(prod.t3)
+              go(TG.Prod((prod.t1, prod.t2, t, prod.t4, prod.t5, prod.t6, prod.t7, prod.t8, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A3])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(\/-(\/-(-\/(_)))) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t4)
-              go(TG.Prod((pr.t1, pr.t2, pr.t3, t, pr.t5, pr.t6, pr.t7, pr.t8, pr.t9)),
+              val (h, t) = U(prod.t4)
+              go(TG.Prod((prod.t1, prod.t2, prod.t3, t, prod.t5, prod.t6, prod.t7, prod.t8, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A4])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(\/-(\/-(\/-(-\/(_))))) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t5)
-              go(TG.Prod((pr.t1, pr.t2, pr.t3, pr.t4, t, pr.t6, pr.t7, pr.t8, pr.t9)),
+              val (h, t) = U(prod.t5)
+              go(TG.Prod((prod.t1, prod.t2, prod.t3, prod.t4, t, prod.t6, prod.t7, prod.t8, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A5])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t6)
-              go(TG.Prod((pr.t1, pr.t2, pr.t3, pr.t4, pr.t5, t, pr.t7, pr.t8, pr.t9)),
+              val (h, t) = U(prod.t6)
+              go(TG.Prod((prod.t1, prod.t2, prod.t3, prod.t4, prod.t5, t, prod.t7, prod.t8, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A6])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t7)
-              go(TG.Prod((pr.t1, pr.t2, pr.t3, pr.t4, pr.t5, pr.t6, t, pr.t8, pr.t9)),
+              val (h, t) = U(prod.t7)
+              go(TG.Prod((prod.t1, prod.t2, prod.t3, prod.t4, prod.t5, prod.t6, t, prod.t8, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A7])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t8)
-              go(TG.Prod((pr.t1, pr.t2, pr.t3, pr.t4, pr.t5, pr.t6, pr.t7, t, pr.t9)),
+              val (h, t) = U(prod.t8)
+              go(TG.Prod((prod.t1, prod.t2, prod.t3, prod.t4, prod.t5, prod.t6, prod.t7, t, prod.t9)),
                 q ++= h.map(TI.inj(_: Id[A8])), M.append(out, map(TI.Cop(dj))))
             case dj @ \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))) =>
-              val pr = prod.run
-              val (h, t) = U(pr.t9)
-              go(TG.Prod((pr.t1, pr.t2, pr.t3, pr.t4, pr.t5, pr.t6, pr.t7, pr.t8, t)),
+              val (h, t) = U(prod.t9)
+              go(TG.Prod((prod.t1, prod.t2, prod.t3, prod.t4, prod.t5, prod.t6, prod.t7, prod.t8, t)),
                 q ++= h.map(TI.inj(_: Id[A9])), M.append(out, map(TI.Cop(dj))))
 
           }

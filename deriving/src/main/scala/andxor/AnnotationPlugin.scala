@@ -116,10 +116,6 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       }
   }
 
-  /** Use to create code that shortcuts in ENSIME and ScalaIDE */
-  def isIde: Boolean      = global.isInstanceOf[tools.nsc.interactive.Global]
-  def isScaladoc: Boolean = global.isInstanceOf[tools.nsc.doc.ScaladocGlobal]
-
   implicit val replacePkgObjectStats: Replace[m.Pkg, m.Stat] =
     Replace((a, bs) => a.copy(stats = bs))
 
