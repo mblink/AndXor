@@ -182,9 +182,9 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
     lazy val andxorTpes: List[Type] = id :: tpes
 
-    private lazy val andxorNName = s"AndXorK$arity"
+    private lazy val andxorNName = s"AndXor$arity"
     lazy val andxorObj: Term = q"$andxorPkg.${Term.Name(andxorNName)}"
-    lazy val andxorTpe: Type = t"$andxorPkg.${Type.Name(andxorNName)}[..$andxorTpes]"
+    lazy val andxorTpe: Type = t"$andxorPkg.${Type.Name(andxorNName)}[..$tpes]"
 
     private lazy val reprName = s"${copOrProd}${arity}"
     lazy val reprObj: Term = q"$andxorTpesPkg.${Term.Name(reprName)}"
@@ -287,7 +287,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   def labels[P <: Param](tree: GenTree[P]): List[Defn.Val] =
     tree.params.flatMap(_.label.defns)
 
-  def mkAndxor[P <: Param](tree: GenTree[P]): Term = q"${tree.andxorObj}[..${tree.andxorTpes}]"
+  def mkAndxor[P <: Param](tree: GenTree[P]): Term = q"${tree.andxorObj}[..${tree.tpes}]"
 
   def andxor[P <: Param](tree: GenTree[P]): Defn =
     valOrDef(Nil, tree.andxorName, tree.tparams, Nil, tree.andxorTpe, mkAndxor(tree))
@@ -341,7 +341,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]]
       .${tc.variance.mapFunction}(
         ${maybeTpeParams(tc.tree.tparams)(tc.tree.andxorName, ts => q"${tc.tree.andxorName}[..$ts]")}
-          .combineId[${tc.typeclass}].${tc.variance.derivationFunction}
+          .${tc.variance.derivationFunction}[${tc.typeclass}]
       )(${tc.tree.isoName}.${tc.variance.isoFunction})
     """
 

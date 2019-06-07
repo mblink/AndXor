@@ -5,5 +5,5 @@
             case dj @@ @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
                   """_""")(_ => """-\/(_)"""))((_, a) => s"""\\/-(${a})""")} =>
               val (h, t) = U(prod@{z.toList.prodAccess(z.index + 1)})
-              go(TG.Prod(@{(1 to z.length).toList.map(i => s"prod${z.toList.prodAccess(i)}").updated(z.index, "t").mkTuple}),
-                q ++= h.map(TI.inj(_: Id[A@{z.index + 1}])), M.append(out, map(TI.Cop(dj))))
+              go(Prod[G](@{(1 to z.length).toList.map(i => s"prod${z.toList.prodAccess(i)}").updated(z.index, "t").mkTuple}),
+                q ++= h.map(injId(_: A@{z.index + 1})), M.append(out, map(Cop[Id](dj))))

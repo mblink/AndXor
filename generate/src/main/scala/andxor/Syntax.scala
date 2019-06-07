@@ -24,6 +24,10 @@ object syntax {
     def prodTpeF(F: String) = s"$prodName[$F, $tpeParams]"
     def prodTpe = prodTpeF("F")
 
+    def tcDepsName = s"TCDeps${tpes.length}"
+    def tcDepsDef = s"$tcDepsName[TC[_], F[_], $tpeParams]"
+    def tcDepsTpe(TC: String = "TC", F: String = "F") = s"$tcDepsName[$TC, $F, $tpeParams]"
+
     def djBase(wrapTpe: String => String): String =
       tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
 

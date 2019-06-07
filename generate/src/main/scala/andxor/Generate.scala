@@ -6,7 +6,7 @@ import play.twirl.api.Txt
 import scalaz.syntax.std.boolean._
 
 object Generate extends App {
-  val maxN = 22
+  val maxN = 3
 
   val conf = Scalafmt.parseHoconConfig(
     """align.openParenCallSite=false

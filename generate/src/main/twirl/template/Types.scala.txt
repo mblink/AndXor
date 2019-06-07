@@ -48,5 +48,17 @@ object types {
   object @{tpes.copName} extends @{tpes.copName}LP {
     @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
   }
+
+  case class @{tpes.tcDepsDef}()(implicit @tpes.paramSig(List("TC", "F"), "val a"))
+
+  trait @{tpes.tcDepsName}LP {
+    implicit def mk@{tpes.tcDepsName}[TC[_], F[_], @{tpes.tpeParams}](implicit @tpes.paramSig(List("TC", "F"), "a")): @tpes.tcDepsTpe() =
+      @{tpes.tcDepsName}()
+  }
+
+  object @{tpes.tcDepsName} extends @{tpes.tcDepsName}LP {
+    implicit def mk@{tpes.tcDepsName}Id[TC[_], @{tpes.tpeParams}](implicit @tpes.paramSig("TC", "a")): @tpes.tcDepsTpe(F = "Id") =
+      @{tpes.tcDepsName}()
+  }
   }
 }

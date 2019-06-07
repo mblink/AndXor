@@ -78,6 +78,51 @@ object types {
     implicit def inja0IdInverse[F[_], A1]: Inj[Option[A1], Cop1[Id, A1]] = inja0FInverse[Id, A1]
   }
 
+  case class TCDeps1[TC[_], F[_], A1]()(implicit val a0: TC[F[A1]])
+
+  trait TCDeps1LP {
+    implicit def mkTCDeps1[TC[_], F[_], A1](implicit a0: TC[F[A1]]): TCDeps1[TC, F, A1] =
+      TCDeps1()
+  }
+
+  object TCDeps1 extends TCDeps1LP {
+    implicit def mkTCDeps1Id[TC[_], A1](implicit a0: TC[A1]): TCDeps1[TC, Id, A1] =
+      TCDeps1()
+  }
+
+  @newtype case class Prod25[F[_], A1 <: AndXor, A2 <: AndXor](run: (A1#Prod[F], A2#Prod[F])) {
+    def t1: A1#Prod[F] = run._1
+    def t2: A2#Prod[F] = run._2
+  }
+  trait Prod25LP {
+    implicit def Prod25Monoid[F[_], A1 <: AndXor, A2 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F])]): Monoid[Prod25[F, A1, A2]] =
+      MF.xmap(M, Prod25[F, A1, A2](_), (_: Prod25[F, A1, A2]).run)
+
+    implicit def lifta0F[F[_], A1 <: AndXor, A2 <: AndXor](implicit M: Monoid[Prod25[F, A1, A2]]): Inj[Prod25[F, A1, A2], A1#Prod[F]] = {
+      val t = M.zero
+      Inj.instance(x => Prod25[F, A1, A2]((x, t.t2)))
+    }
+
+    implicit def lifta0FInverse[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[A1#Prod[F], Prod25[F, A1, A2]] = Inj.instance(_.t1)
+
+    implicit def lifta1F[F[_], A1 <: AndXor, A2 <: AndXor](implicit M: Monoid[Prod25[F, A1, A2]]): Inj[Prod25[F, A1, A2], A2#Prod[F]] = {
+      val t = M.zero
+      Inj.instance(x => Prod25[F, A1, A2]((t.t1, x)))
+    }
+
+    implicit def lifta1FInverse[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[A2#Prod[F], Prod25[F, A1, A2]] = Inj.instance(_.t2)
+  }
+
+  object Prod25 extends Prod25LP {
+    implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor](implicit M: Monoid[Prod25[Id, A1, A2]]): Inj[Prod25[Id, A1, A2], A1#Prod[Id]] = lifta0F[Id, A1, A2]
+
+    implicit def lifta0IdInverse[A1 <: AndXor, A2 <: AndXor]: Inj[A1#Prod[Id], Prod25[Id, A1, A2]] = lifta0FInverse[Id, A1, A2]
+
+    implicit def lifta1Id[A1 <: AndXor, A2 <: AndXor](implicit M: Monoid[Prod25[Id, A1, A2]]): Inj[Prod25[Id, A1, A2], A2#Prod[Id]] = lifta1F[Id, A1, A2]
+
+    implicit def lifta1IdInverse[A1 <: AndXor, A2 <: AndXor]: Inj[A2#Prod[Id], Prod25[Id, A1, A2]] = lifta1FInverse[Id, A1, A2]
+  }
+
   @newtype case class Prod2[F[_], A1, A2](run: (F[A1], F[A2])) {
     def t1: F[A1] = run._1
     def t2: F[A2] = run._2
@@ -125,6 +170,62 @@ object types {
     implicit def lifta1Id[A1, A2](implicit M: Monoid[Prod2[Id, A1, A2]]): Inj[Prod2[Id, A1, A2], A2] = lifta1F[Id, A1, A2]
 
     implicit def lifta1IdInverse[A1, A2]: Inj[A2, Prod2[Id, A1, A2]] = lifta1FInverse[Id, A1, A2]
+  }
+
+  @newtype case class Cop2New[F[_], A1 <: AndXor, A2 <: AndXor](run: (A1#Cop[F] \/ A2#Cop[F])) {
+    // private def mapN = new Map2C[F[A1], F[A2]] {}
+
+    // def map1[B](f: F[A1] => F[B]): Cop2[F, B, A2] =
+    //   Cop2[F, B, A2](mapN.map1(run)(f))
+
+    // def mapAt[B](f: F[A1] => F[B]): Cop2[F, B, A2] =
+    //   Cop2[F, B, A2](mapN.mapAt(f)(run))
+
+    // def map2[B](f: F[A2] => F[B]): Cop2[F, A1, B] =
+    //   Cop2[F, A1, B](mapN.map2(run)(f))
+
+    // def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Cop2[F, A1, B] =
+    //   Cop2[F, A1, B](mapN.mapAt(f)(run))
+
+  }
+  trait Cop2NewLP {
+    implicit def prisma0F[F[_], A1 <: AndXor, A2 <: AndXor]: Prism[Cop2New[F, A1, A2], A1#Cop[F]] = new Prism[Cop2New[F, A1, A2], A1#Cop[F]] {
+      def getOption(c: Cop2New[F, A1, A2]): Option[A1#Cop[F]] = c.run match {
+        case -\/(x) => Some(x)
+        case _      => None
+      }
+      def reverseGet(x: A1#Cop[F]): Cop2New[F, A1, A2] = Cop2New[F, A1, A2](-\/(x))
+    }
+
+    implicit def inja0F[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[Cop2New[F, A1, A2], A1#Cop[F]] = Inj.instance(prisma0F.reverseGet(_))
+
+    implicit def inja0FInverse[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[Option[A1#Cop[F]], Cop2New[F, A1, A2]] = Inj.instance(prisma0F.getOption(_))
+
+    implicit def prisma1F[F[_], A1 <: AndXor, A2 <: AndXor]: Prism[Cop2New[F, A1, A2], A2#Cop[F]] = new Prism[Cop2New[F, A1, A2], A2#Cop[F]] {
+      def getOption(c: Cop2New[F, A1, A2]): Option[A2#Cop[F]] = c.run match {
+        case \/-(x) => Some(x)
+        case _      => None
+      }
+      def reverseGet(x: A2#Cop[F]): Cop2New[F, A1, A2] = Cop2New[F, A1, A2](\/-(x))
+    }
+
+    implicit def inja1F[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[Cop2New[F, A1, A2], A2#Cop[F]] = Inj.instance(prisma1F.reverseGet(_))
+
+    implicit def inja1FInverse[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[Option[A2#Cop[F]], Cop2New[F, A1, A2]] = Inj.instance(prisma1F.getOption(_))
+  }
+
+  object Cop2New extends Cop2NewLP {
+    implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor]: Prism[Cop2New[Id, A1, A2], A1#Cop[Id]] = prisma0F[Id, A1, A2]
+
+    implicit def inja0Id[A1 <: AndXor, A2 <: AndXor]: Inj[Cop2New[Id, A1, A2], A1#Cop[Id]] = inja0F[Id, A1, A2]
+
+    implicit def inja0IdInverse[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[Option[A1#Cop[Id]], Cop2New[Id, A1, A2]] = inja0FInverse[Id, A1, A2]
+
+    implicit def prisma1Id[A1 <: AndXor, A2 <: AndXor]: Prism[Cop2New[Id, A1, A2], A2#Cop[Id]] = prisma1F[Id, A1, A2]
+
+    implicit def inja1Id[A1 <: AndXor, A2 <: AndXor]: Inj[Cop2New[Id, A1, A2], A2#Cop[Id]] = inja1F[Id, A1, A2]
+
+    implicit def inja1IdInverse[F[_], A1 <: AndXor, A2 <: AndXor]: Inj[Option[A2#Cop[Id]], Cop2New[Id, A1, A2]] = inja1FInverse[Id, A1, A2]
   }
 
   @newtype case class Cop2[F[_], A1, A2](run: (F[A1] \/ F[A2])) {
@@ -182,6 +283,40 @@ object types {
     implicit def inja1Id[A1, A2]: Inj[Cop2[Id, A1, A2], A2] = inja1F[Id, A1, A2]
 
     implicit def inja1IdInverse[F[_], A1, A2]: Inj[Option[A2], Cop2[Id, A1, A2]] = inja1FInverse[Id, A1, A2]
+  }
+
+  case class ProdTCDeps2[TC[_], F[_], A1 <: AndXor, A2 <: AndXor]()(implicit val a0: TC[A1#Prod[F]], val a1: TC[A2#Prod[F]])
+  trait ProdTCDeps2LP {
+    implicit def mkProdTCDeps2[TC[_], F[_], A1 <: AndXor, A2 <: AndXor](implicit a0: TC[A1#Prod[F]], a1: TC[A2#Prod[F]]): ProdTCDeps2[TC, F, A1, A2] =
+      ProdTCDeps2()
+  }
+
+  object ProdTCDeps2 extends ProdTCDeps2LP {
+    implicit def mkProdTCDeps2Id[TC[_], A1 <: AndXor, A2 <: AndXor](implicit a0: TC[A1#Prod[Id]], a1: TC[A2#Prod[Id]]): ProdTCDeps2[TC, Id, A1, A2] =
+      ProdTCDeps2()
+  }
+
+  case class CopTCDeps2[TC[_], F[_], A1 <: AndXor, A2 <: AndXor]()(implicit val a0: TC[A1#Cop[F]], val a1: TC[A2#Cop[F]])
+  trait CopTCDeps2LP {
+    implicit def mkCopTCDeps2[TC[_], F[_], A1 <: AndXor, A2 <: AndXor](implicit a0: TC[A1#Cop[F]], a1: TC[A2#Cop[F]]): CopTCDeps2[TC, F, A1, A2] =
+      CopTCDeps2()
+  }
+
+  object CopTCDeps2 extends CopTCDeps2LP {
+    implicit def mkCopTCDeps2Id[TC[_], A1 <: AndXor, A2 <: AndXor](implicit a0: TC[A1#Cop[Id]], a1: TC[A2#Cop[Id]]): CopTCDeps2[TC, Id, A1, A2] =
+      CopTCDeps2()
+  }
+
+  case class TCDeps2[TC[_], F[_], A1, A2]()(implicit val a0: TC[F[A1]], val a1: TC[F[A2]])
+
+  trait TCDeps2LP {
+    implicit def mkTCDeps2[TC[_], F[_], A1, A2](implicit a0: TC[F[A1]], a1: TC[F[A2]]): TCDeps2[TC, F, A1, A2] =
+      TCDeps2()
+  }
+
+  object TCDeps2 extends TCDeps2LP {
+    implicit def mkTCDeps2Id[TC[_], A1, A2](implicit a0: TC[A1], a1: TC[A2]): TCDeps2[TC, Id, A1, A2] =
+      TCDeps2()
   }
 
   @newtype case class Prod3[F[_], A1, A2, A3](run: (F[A1], F[A2], F[A3])) {
@@ -330,6 +465,18 @@ object types {
     implicit def inja2Id[A1, A2, A3]: Inj[Cop3[Id, A1, A2, A3], A3] = inja2F[Id, A1, A2, A3]
 
     implicit def inja2IdInverse[F[_], A1, A2, A3]: Inj[Option[A3], Cop3[Id, A1, A2, A3]] = inja2FInverse[Id, A1, A2, A3]
+  }
+
+  case class TCDeps3[TC[_], F[_], A1, A2, A3]()(implicit val a0: TC[F[A1]], val a1: TC[F[A2]], val a2: TC[F[A3]])
+
+  trait TCDeps3LP {
+    implicit def mkTCDeps3[TC[_], F[_], A1, A2, A3](implicit a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]]): TCDeps3[TC, F, A1, A2, A3] =
+      TCDeps3()
+  }
+
+  object TCDeps3 extends TCDeps3LP {
+    implicit def mkTCDeps3Id[TC[_], A1, A2, A3](implicit a0: TC[A1], a1: TC[A2], a2: TC[A3]): TCDeps3[TC, Id, A1, A2, A3] =
+      TCDeps3()
   }
 
   @newtype case class Prod4[F[_], A1, A2, A3, A4](run: (F[A1], F[A2], F[A3], F[A4])) {
@@ -520,6 +667,18 @@ object types {
     implicit def inja3Id[A1, A2, A3, A4]: Inj[Cop4[Id, A1, A2, A3, A4], A4] = inja3F[Id, A1, A2, A3, A4]
 
     implicit def inja3IdInverse[F[_], A1, A2, A3, A4]: Inj[Option[A4], Cop4[Id, A1, A2, A3, A4]] = inja3FInverse[Id, A1, A2, A3, A4]
+  }
+
+  case class TCDeps4[TC[_], F[_], A1, A2, A3, A4]()(implicit val a0: TC[F[A1]], val a1: TC[F[A2]], val a2: TC[F[A3]], val a3: TC[F[A4]])
+
+  trait TCDeps4LP {
+    implicit def mkTCDeps4[TC[_], F[_], A1, A2, A3, A4](implicit a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]]): TCDeps4[TC, F, A1, A2, A3, A4] =
+      TCDeps4()
+  }
+
+  object TCDeps4 extends TCDeps4LP {
+    implicit def mkTCDeps4Id[TC[_], A1, A2, A3, A4](implicit a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4]): TCDeps4[TC, Id, A1, A2, A3, A4] =
+      TCDeps4()
   }
 
   @newtype case class Prod5[F[_], A1, A2, A3, A4, A5](run: (F[A1], F[A2], F[A3], F[A4], F[A5])) {
@@ -752,6 +911,18 @@ object types {
     implicit def inja4Id[A1, A2, A3, A4, A5]: Inj[Cop5[Id, A1, A2, A3, A4, A5], A5] = inja4F[Id, A1, A2, A3, A4, A5]
 
     implicit def inja4IdInverse[F[_], A1, A2, A3, A4, A5]: Inj[Option[A5], Cop5[Id, A1, A2, A3, A4, A5]] = inja4FInverse[Id, A1, A2, A3, A4, A5]
+  }
+
+  case class TCDeps5[TC[_], F[_], A1, A2, A3, A4, A5]()(implicit val a0: TC[F[A1]], val a1: TC[F[A2]], val a2: TC[F[A3]], val a3: TC[F[A4]], val a4: TC[F[A5]])
+
+  trait TCDeps5LP {
+    implicit def mkTCDeps5[TC[_], F[_], A1, A2, A3, A4, A5](implicit a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]], a4: TC[F[A5]]): TCDeps5[TC, F, A1, A2, A3, A4, A5] =
+      TCDeps5()
+  }
+
+  object TCDeps5 extends TCDeps5LP {
+    implicit def mkTCDeps5Id[TC[_], A1, A2, A3, A4, A5](implicit a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5]): TCDeps5[TC, Id, A1, A2, A3, A4, A5] =
+      TCDeps5()
   }
 
   @newtype case class Prod6[F[_], A1, A2, A3, A4, A5, A6](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])) {
@@ -1026,6 +1197,25 @@ object types {
     implicit def inja5Id[A1, A2, A3, A4, A5, A6]: Inj[Cop6[Id, A1, A2, A3, A4, A5, A6], A6] = inja5F[Id, A1, A2, A3, A4, A5, A6]
 
     implicit def inja5IdInverse[F[_], A1, A2, A3, A4, A5, A6]: Inj[Option[A6], Cop6[Id, A1, A2, A3, A4, A5, A6]] = inja5FInverse[Id, A1, A2, A3, A4, A5, A6]
+  }
+
+  case class TCDeps6[TC[_], F[_], A1, A2, A3, A4, A5, A6]()(implicit val a0: TC[F[A1]], val a1: TC[F[A2]], val a2: TC[F[A3]], val a3: TC[F[A4]], val a4: TC[F[A5]], val a5: TC[F[A6]])
+
+  trait TCDeps6LP {
+    implicit def mkTCDeps6[TC[_], F[_], A1, A2, A3, A4, A5, A6](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]]
+    ): TCDeps6[TC, F, A1, A2, A3, A4, A5, A6] =
+      TCDeps6()
+  }
+
+  object TCDeps6 extends TCDeps6LP {
+    implicit def mkTCDeps6Id[TC[_], A1, A2, A3, A4, A5, A6](implicit a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6]): TCDeps6[TC, Id, A1, A2, A3, A4, A5, A6] =
+      TCDeps6()
   }
 
   @newtype case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])) {
@@ -1349,6 +1539,42 @@ object types {
     implicit def inja6Id[A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A7] = inja6F[Id, A1, A2, A3, A4, A5, A6, A7]
 
     implicit def inja6IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Option[A7], Cop7[Id, A1, A2, A3, A4, A5, A6, A7]] = inja6FInverse[Id, A1, A2, A3, A4, A5, A6, A7]
+  }
+
+  case class TCDeps7[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]]
+  )
+
+  trait TCDeps7LP {
+    implicit def mkTCDeps7[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]]
+    ): TCDeps7[TC, F, A1, A2, A3, A4, A5, A6, A7] =
+      TCDeps7()
+  }
+
+  object TCDeps7 extends TCDeps7LP {
+    implicit def mkTCDeps7Id[TC[_], A1, A2, A3, A4, A5, A6, A7](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7]
+    ): TCDeps7[TC, Id, A1, A2, A3, A4, A5, A6, A7] =
+      TCDeps7()
   }
 
   @newtype case class Prod8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])) {
@@ -1715,6 +1941,29 @@ object types {
     implicit def inja7Id[A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A8] = inja7F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
 
     implicit def inja7IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Option[A8], Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] = inja7FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8]
+  }
+
+  case class TCDeps8[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]]
+  )
+
+  trait TCDeps8LP {
+    implicit def mkTCDeps8[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit a0: TC[F[A1]], a1: TC[F[A2]], a2: TC[F[A3]], a3: TC[F[A4]], a4: TC[F[A5]], a5: TC[F[A6]], a6: TC[F[A7]], a7: TC[F[A8]])
+        : TCDeps8[TC, F, A1, A2, A3, A4, A5, A6, A7, A8] =
+      TCDeps8()
+  }
+
+  object TCDeps8 extends TCDeps8LP {
+    implicit def mkTCDeps8Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7], a7: TC[A8])
+        : TCDeps8[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8] =
+      TCDeps8()
   }
 
   @newtype case class Prod9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9])) {
@@ -2126,6 +2375,39 @@ object types {
     implicit def inja8Id[A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A9] = inja8F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
     implicit def inja8IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: Inj[Option[A9], Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = inja8FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
+  }
+
+  case class TCDeps9[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]]
+  )
+
+  trait TCDeps9LP {
+    implicit def mkTCDeps9[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]]
+    ): TCDeps9[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
+      TCDeps9()
+  }
+
+  object TCDeps9 extends TCDeps9LP {
+    implicit def mkTCDeps9Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](implicit a0: TC[A1], a1: TC[A2], a2: TC[A3], a3: TC[A4], a4: TC[A5], a5: TC[A6], a6: TC[A7], a7: TC[A8], a8: TC[A9])
+        : TCDeps9[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
+      TCDeps9()
   }
 
   @newtype case class Prod10[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10])) {
@@ -2630,6 +2912,51 @@ object types {
 
     implicit def inja9IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: Inj[Option[A10], Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       inja9FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
+  }
+
+  case class TCDeps10[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]]
+  )
+
+  trait TCDeps10LP {
+    implicit def mkTCDeps10[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]]
+    ): TCDeps10[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+      TCDeps10()
+  }
+
+  object TCDeps10 extends TCDeps10LP {
+    implicit def mkTCDeps10Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10]
+    ): TCDeps10[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+      TCDeps10()
   }
 
   @newtype case class Prod11[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])) {
@@ -3206,6 +3533,54 @@ object types {
 
     implicit def inja10IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Inj[Option[A11], Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       inja10FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+  }
+
+  case class TCDeps11[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]]
+  )
+
+  trait TCDeps11LP {
+    implicit def mkTCDeps11[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]]
+    ): TCDeps11[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+      TCDeps11()
+  }
+
+  object TCDeps11 extends TCDeps11LP {
+    implicit def mkTCDeps11Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11]
+    ): TCDeps11[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+      TCDeps11()
   }
 
   @newtype case class Prod12[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12])) {
@@ -3860,6 +4235,57 @@ object types {
 
     implicit def inja11IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: Inj[Option[A12], Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       inja11FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
+  }
+
+  case class TCDeps12[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]]
+  )
+
+  trait TCDeps12LP {
+    implicit def mkTCDeps12[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]]
+    ): TCDeps12[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      TCDeps12()
+  }
+
+  object TCDeps12 extends TCDeps12LP {
+    implicit def mkTCDeps12Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12]
+    ): TCDeps12[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      TCDeps12()
   }
 
   @newtype case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13])) {
@@ -4582,6 +5008,60 @@ object types {
 
     implicit def inja12IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: Inj[Option[A13], Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       inja12FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+  }
+
+  case class TCDeps13[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]]
+  )
+
+  trait TCDeps13LP {
+    implicit def mkTCDeps13[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]]
+    ): TCDeps13[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      TCDeps13()
+  }
+
+  object TCDeps13 extends TCDeps13LP {
+    implicit def mkTCDeps13Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13]
+    ): TCDeps13[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      TCDeps13()
   }
 
   @newtype case class Prod14[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
@@ -5376,6 +5856,63 @@ object types {
 
     implicit def inja13IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: Inj[Option[A14], Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       inja13FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
+  }
+
+  case class TCDeps14[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]]
+  )
+
+  trait TCDeps14LP {
+    implicit def mkTCDeps14[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]]
+    ): TCDeps14[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      TCDeps14()
+  }
+
+  object TCDeps14 extends TCDeps14LP {
+    implicit def mkTCDeps14Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14]
+    ): TCDeps14[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      TCDeps14()
   }
 
   @newtype case class Prod15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
@@ -6227,6 +6764,66 @@ object types {
 
     implicit def inja14IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
         : Inj[Option[A15], Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = inja14FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
+  }
+
+  case class TCDeps15[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]]
+  )
+
+  trait TCDeps15LP {
+    implicit def mkTCDeps15[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]]
+    ): TCDeps15[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      TCDeps15()
+  }
+
+  object TCDeps15 extends TCDeps15LP {
+    implicit def mkTCDeps15Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15]
+    ): TCDeps15[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      TCDeps15()
   }
 
   @newtype case class Prod16[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
@@ -7173,6 +7770,69 @@ object types {
 
     implicit def inja15IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
         : Inj[Option[A16], Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = inja15FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
+  }
+
+  case class TCDeps16[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]],
+      val a15: TC[F[A16]]
+  )
+
+  trait TCDeps16LP {
+    implicit def mkTCDeps16[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]]
+    ): TCDeps16[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      TCDeps16()
+  }
+
+  object TCDeps16 extends TCDeps16LP {
+    implicit def mkTCDeps16Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16]
+    ): TCDeps16[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      TCDeps16()
   }
 
   @newtype case class Prod17[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
@@ -8276,6 +8936,72 @@ object types {
     implicit def inja16IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
         : Inj[Option[A17], Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       inja16FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
+  }
+
+  case class TCDeps17[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]],
+      val a15: TC[F[A16]],
+      val a16: TC[F[A17]]
+  )
+
+  trait TCDeps17LP {
+    implicit def mkTCDeps17[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]]
+    ): TCDeps17[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      TCDeps17()
+  }
+
+  object TCDeps17 extends TCDeps17LP {
+    implicit def mkTCDeps17Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17]
+    ): TCDeps17[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      TCDeps17()
   }
 
   @newtype case class Prod18[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
@@ -9498,6 +10224,75 @@ object types {
     implicit def inja17IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
         : Inj[Option[A18], Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       inja17FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
+  }
+
+  case class TCDeps18[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]],
+      val a15: TC[F[A16]],
+      val a16: TC[F[A17]],
+      val a17: TC[F[A18]]
+  )
+
+  trait TCDeps18LP {
+    implicit def mkTCDeps18[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]]
+    ): TCDeps18[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      TCDeps18()
+  }
+
+  object TCDeps18 extends TCDeps18LP {
+    implicit def mkTCDeps18Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18]
+    ): TCDeps18[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      TCDeps18()
   }
 
   @newtype case class Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
@@ -10786,6 +11581,78 @@ object types {
     implicit def inja18IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
         : Inj[Option[A19], Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       inja18FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+  }
+
+  case class TCDeps19[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]],
+      val a15: TC[F[A16]],
+      val a16: TC[F[A17]],
+      val a17: TC[F[A18]],
+      val a18: TC[F[A19]]
+  )
+
+  trait TCDeps19LP {
+    implicit def mkTCDeps19[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]]
+    ): TCDeps19[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      TCDeps19()
+  }
+
+  object TCDeps19 extends TCDeps19LP {
+    implicit def mkTCDeps19Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19]
+    ): TCDeps19[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      TCDeps19()
   }
 
   @newtype case class Prod20[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
@@ -12146,6 +13013,81 @@ object types {
     implicit def inja19IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
         : Inj[Option[A20], Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       inja19FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
+  }
+
+  case class TCDeps20[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]],
+      val a15: TC[F[A16]],
+      val a16: TC[F[A17]],
+      val a17: TC[F[A18]],
+      val a18: TC[F[A19]],
+      val a19: TC[F[A20]]
+  )
+
+  trait TCDeps20LP {
+    implicit def mkTCDeps20[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]]
+    ): TCDeps20[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      TCDeps20()
+  }
+
+  object TCDeps20 extends TCDeps20LP {
+    implicit def mkTCDeps20Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20]
+    ): TCDeps20[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      TCDeps20()
   }
 
   @newtype case class Prod21[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
@@ -13576,6 +14518,84 @@ object types {
     implicit def inja20IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
         : Inj[Option[A21], Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       inja20FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
+  }
+
+  case class TCDeps21[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]],
+      val a15: TC[F[A16]],
+      val a16: TC[F[A17]],
+      val a17: TC[F[A18]],
+      val a18: TC[F[A19]],
+      val a19: TC[F[A20]],
+      val a20: TC[F[A21]]
+  )
+
+  trait TCDeps21LP {
+    implicit def mkTCDeps21[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]]
+    ): TCDeps21[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      TCDeps21()
+  }
+
+  object TCDeps21 extends TCDeps21LP {
+    implicit def mkTCDeps21Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21]
+    ): TCDeps21[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      TCDeps21()
   }
 
   @newtype case class Prod22[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
@@ -15078,6 +16098,87 @@ object types {
     implicit def inja21IdInverse[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
         : Inj[Option[A22], Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       inja21FInverse[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
+  }
+
+  case class TCDeps22[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]()(
+      implicit val a0: TC[F[A1]],
+      val a1: TC[F[A2]],
+      val a2: TC[F[A3]],
+      val a3: TC[F[A4]],
+      val a4: TC[F[A5]],
+      val a5: TC[F[A6]],
+      val a6: TC[F[A7]],
+      val a7: TC[F[A8]],
+      val a8: TC[F[A9]],
+      val a9: TC[F[A10]],
+      val a10: TC[F[A11]],
+      val a11: TC[F[A12]],
+      val a12: TC[F[A13]],
+      val a13: TC[F[A14]],
+      val a14: TC[F[A15]],
+      val a15: TC[F[A16]],
+      val a16: TC[F[A17]],
+      val a17: TC[F[A18]],
+      val a18: TC[F[A19]],
+      val a19: TC[F[A20]],
+      val a20: TC[F[A21]],
+      val a21: TC[F[A22]]
+  )
+
+  trait TCDeps22LP {
+    implicit def mkTCDeps22[TC[_], F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit a0: TC[F[A1]],
+        a1: TC[F[A2]],
+        a2: TC[F[A3]],
+        a3: TC[F[A4]],
+        a4: TC[F[A5]],
+        a5: TC[F[A6]],
+        a6: TC[F[A7]],
+        a7: TC[F[A8]],
+        a8: TC[F[A9]],
+        a9: TC[F[A10]],
+        a10: TC[F[A11]],
+        a11: TC[F[A12]],
+        a12: TC[F[A13]],
+        a13: TC[F[A14]],
+        a14: TC[F[A15]],
+        a15: TC[F[A16]],
+        a16: TC[F[A17]],
+        a17: TC[F[A18]],
+        a18: TC[F[A19]],
+        a19: TC[F[A20]],
+        a20: TC[F[A21]],
+        a21: TC[F[A22]]
+    ): TCDeps22[TC, F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      TCDeps22()
+  }
+
+  object TCDeps22 extends TCDeps22LP {
+    implicit def mkTCDeps22Id[TC[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
+        implicit a0: TC[A1],
+        a1: TC[A2],
+        a2: TC[A3],
+        a3: TC[A4],
+        a4: TC[A5],
+        a5: TC[A6],
+        a6: TC[A7],
+        a7: TC[A8],
+        a8: TC[A9],
+        a9: TC[A10],
+        a10: TC[A11],
+        a11: TC[A12],
+        a12: TC[A13],
+        a13: TC[A14],
+        a14: TC[A15],
+        a15: TC[A16],
+        a16: TC[A17],
+        a17: TC[A18],
+        a18: TC[A19],
+        a19: TC[A20],
+        a20: TC[A21],
+        a21: TC[A22]
+    ): TCDeps22[TC, Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      TCDeps22()
   }
 
 }

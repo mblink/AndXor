@@ -1,162 +1,140 @@
 package andxor
 
 import scalaz.{Apply, Monoid}
+import scalaz.Id.Id
 
-abstract class ComposeAndXor[F[_], Cop, Prod] {
-  def mkChoose[B](f: B => Cop)(implicit d: Decidable[F]): F[B]
-  def mkAlt[B](f: Cop => B)(implicit a: Alt[F]): F[B]
-  def mkDivide[B](f: B => Prod)(implicit a: Divide[F]): F[B]
-  def mkApply[B](f: Prod => B)(implicit a: Apply[F]): F[B]
+trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
+  implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]]
+  implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]]
+  implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]]
 
-  def choose(implicit d: Decidable[F]): F[Cop] = mkChoose(identity _)
-  def alt(implicit a: Alt[F]): F[Cop] = mkAlt(identity _)
-  def divide(implicit d: Divide[F]): F[Prod] = mkDivide(identity _)
-  def apply(implicit a: Apply[F]): F[Prod] = mkApply(identity _)
+  implicit def injProdToVecCopEvHelper[F[_], A](implicit i: Inj[Cop[F], A]): Inj[Vector[Cop[F]], A] = Inj.instance(a => Vector(i(a)))
+  implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]]
 }
 
-trait AndXorEvidence[Cop, Prod] {
-  implicit val injEv: Inj[Cop, Cop]
-  implicit def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod]
-  implicit def injCopToProdEv(implicit M: Monoid[Prod]): Inj[Prod, Cop]
+trait AndXorNew {
+  type Cop[F[_]]
+  type CopTCDeps[TC[_], F[_]]
 
-  implicit def injProdToVecCopEvHelper[A](implicit i: Inj[Cop, A]): Inj[Vector[Cop], A] = Inj.instance(a => Vector(i(a)))
-  implicit val injProdToVecCopEv: Inj[Vector[Cop], Prod]
+  type Prod[F[_]]
+  type ProdTCDeps[TC[_], F[_]]
+
+  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], tcs: CopTCDeps[TC, F]): TC[B]
+  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], tcs: CopTCDeps[TC, F]): TC[B]
+  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], tcs: ProdTCDeps[TC, F]): TC[B]
+  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], tcs: ProdTCDeps[TC, F]): TC[B]
+
+  def mkChoose[TC[_], B](f: B => Cop[Id])(implicit d: Decidable[TC], tcs: CopTCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkChoose[TC, Id, B](f)
+  def mkAlt[TC[_], B](f: Cop[Id] => B)(implicit a: Alt[TC], tcs: CopTCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkAlt[TC, Id, B](f)
+  def mkDivide[TC[_], B](f: B => Prod[Id])(implicit d: Divide[TC], tcs: ProdTCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkDivide[TC, Id, B](f)
+  def mkApply[TC[_], B](f: Prod[Id] => B)(implicit a: Apply[TC], tcs: ProdTCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkApply[TC, Id, B](f)
+
+  def choose[TC[_], F[_]](implicit d: Decidable[TC], tcs: CopTCDeps[TC, F]): TC[Cop[F]] = mkChoose[TC, F, Cop[F]](identity)
+  def alt[TC[_], F[_]](implicit a: Alt[TC], tcs: CopTCDeps[TC, F]): TC[Cop[F]] = mkAlt[TC, F, Cop[F]](identity)
+  def divide[TC[_], F[_]](implicit d: Divide[TC], tcs: ProdTCDeps[TC, F]): TC[Prod[F]] = mkDivide[TC, F, Prod[F]](identity)
+  def apply[TC[_], F[_]](implicit a: Apply[TC], tcs: ProdTCDeps[TC, F]): TC[Prod[F]] = mkApply[TC, F, Prod[F]](identity)
+
+  def choose[TC[_]](implicit d: Decidable[TC], tcs: CopTCDeps[TC, Id], dummy: DummyImplicit): TC[Cop[Id]] = mkChoose[TC, Cop[Id]](identity)
+  def alt[TC[_]](implicit a: Alt[TC], tcs: CopTCDeps[TC, Id], dummy: DummyImplicit): TC[Cop[Id]] = mkAlt[TC, Cop[Id]](identity)
+  def divide[TC[_]](implicit d: Divide[TC], tcs: ProdTCDeps[TC, Id], dummy: DummyImplicit): TC[Prod[Id]] = mkDivide[TC, Prod[Id]](identity)
+  def apply[TC[_]](implicit a: Apply[TC], tcs: ProdTCDeps[TC, Id], dummy: DummyImplicit): TC[Prod[Id]] = mkApply[TC, Prod[Id]](identity)
+
+  def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
+  def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
+  def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
+  def liftId[A](a: A)(implicit inj: Inj[Prod[Id], Id[A]]): Prod[Id] = inj(a)
+
+  val evidence: AndXorEvidence[Cop, Prod]
 }
 
 trait AndXor {
-  type Cop
-  type Prod
-  def inj[A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
-  def lift[A](a: A)(implicit inj: Inj[Prod, A]): Prod = inj(a)
+  type Cop[F[_]]
+  type Prod[F[_]]
+  type TCDeps[TC[_], F[_]]
+
+  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], tcs: TCDeps[TC, F]): TC[B]
+  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], tcs: TCDeps[TC, F]): TC[B]
+  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], tcs: TCDeps[TC, F]): TC[B]
+  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], tcs: TCDeps[TC, F]): TC[B]
+
+  def mkChoose[TC[_], B](f: B => Cop[Id])(implicit d: Decidable[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkChoose[TC, Id, B](f)
+  def mkAlt[TC[_], B](f: Cop[Id] => B)(implicit a: Alt[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkAlt[TC, Id, B](f)
+  def mkDivide[TC[_], B](f: B => Prod[Id])(implicit d: Divide[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkDivide[TC, Id, B](f)
+  def mkApply[TC[_], B](f: Prod[Id] => B)(implicit a: Apply[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkApply[TC, Id, B](f)
+
+  def choose[TC[_], F[_]](implicit d: Decidable[TC], tcs: TCDeps[TC, F]): TC[Cop[F]] = mkChoose[TC, F, Cop[F]](identity)
+  def alt[TC[_], F[_]](implicit a: Alt[TC], tcs: TCDeps[TC, F]): TC[Cop[F]] = mkAlt[TC, F, Cop[F]](identity)
+  def divide[TC[_], F[_]](implicit d: Divide[TC], tcs: TCDeps[TC, F]): TC[Prod[F]] = mkDivide[TC, F, Prod[F]](identity)
+  def apply[TC[_], F[_]](implicit a: Apply[TC], tcs: TCDeps[TC, F]): TC[Prod[F]] = mkApply[TC, F, Prod[F]](identity)
+
+  def choose[TC[_]](implicit d: Decidable[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Cop[Id]] = mkChoose[TC, Cop[Id]](identity)
+  def alt[TC[_]](implicit a: Alt[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Cop[Id]] = mkAlt[TC, Cop[Id]](identity)
+  def divide[TC[_]](implicit d: Divide[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Prod[Id]] = mkDivide[TC, Prod[Id]](identity)
+  def apply[TC[_]](implicit a: Apply[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Prod[Id]] = mkApply[TC, Prod[Id]](identity)
+
+  def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
+  def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
+  def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
+  def liftId[A](a: A)(implicit inj: Inj[Prod[Id], Id[A]]): Prod[Id] = inj(a)
+
   val evidence: AndXorEvidence[Cop, Prod]
 }
 
 object AndXor {
   def build[A1]: AndXor1[A1] = AndXor1[A1]
-  def buildF[A1]: AndXorF1[A1] = AndXorF1[A1]
-  def buildK[F[_], A1]: AndXorK1[F, A1] = AndXorK1[F, A1]
 
   def build[A1, A2]: AndXor2[A1, A2] = AndXor2[A1, A2]
-  def buildF[A1, A2]: AndXorF2[A1, A2] = AndXorF2[A1, A2]
-  def buildK[F[_], A1, A2]: AndXorK2[F, A1, A2] = AndXorK2[F, A1, A2]
 
   def build[A1, A2, A3]: AndXor3[A1, A2, A3] = AndXor3[A1, A2, A3]
-  def buildF[A1, A2, A3]: AndXorF3[A1, A2, A3] = AndXorF3[A1, A2, A3]
-  def buildK[F[_], A1, A2, A3]: AndXorK3[F, A1, A2, A3] = AndXorK3[F, A1, A2, A3]
 
   def build[A1, A2, A3, A4]: AndXor4[A1, A2, A3, A4] = AndXor4[A1, A2, A3, A4]
-  def buildF[A1, A2, A3, A4]: AndXorF4[A1, A2, A3, A4] = AndXorF4[A1, A2, A3, A4]
-  def buildK[F[_], A1, A2, A3, A4]: AndXorK4[F, A1, A2, A3, A4] = AndXorK4[F, A1, A2, A3, A4]
 
   def build[A1, A2, A3, A4, A5]: AndXor5[A1, A2, A3, A4, A5] = AndXor5[A1, A2, A3, A4, A5]
-  def buildF[A1, A2, A3, A4, A5]: AndXorF5[A1, A2, A3, A4, A5] = AndXorF5[A1, A2, A3, A4, A5]
-  def buildK[F[_], A1, A2, A3, A4, A5]: AndXorK5[F, A1, A2, A3, A4, A5] = AndXorK5[F, A1, A2, A3, A4, A5]
 
   def build[A1, A2, A3, A4, A5, A6]: AndXor6[A1, A2, A3, A4, A5, A6] = AndXor6[A1, A2, A3, A4, A5, A6]
-  def buildF[A1, A2, A3, A4, A5, A6]: AndXorF6[A1, A2, A3, A4, A5, A6] = AndXorF6[A1, A2, A3, A4, A5, A6]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6]: AndXorK6[F, A1, A2, A3, A4, A5, A6] = AndXorK6[F, A1, A2, A3, A4, A5, A6]
 
   def build[A1, A2, A3, A4, A5, A6, A7]: AndXor7[A1, A2, A3, A4, A5, A6, A7] = AndXor7[A1, A2, A3, A4, A5, A6, A7]
-  def buildF[A1, A2, A3, A4, A5, A6, A7]: AndXorF7[A1, A2, A3, A4, A5, A6, A7] = AndXorF7[A1, A2, A3, A4, A5, A6, A7]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7]: AndXorK7[F, A1, A2, A3, A4, A5, A6, A7] = AndXorK7[F, A1, A2, A3, A4, A5, A6, A7]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8]: AndXor8[A1, A2, A3, A4, A5, A6, A7, A8] = AndXor8[A1, A2, A3, A4, A5, A6, A7, A8]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8]: AndXorF8[A1, A2, A3, A4, A5, A6, A7, A8] = AndXorF8[A1, A2, A3, A4, A5, A6, A7, A8]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: AndXorK8[F, A1, A2, A3, A4, A5, A6, A7, A8] = AndXorK8[F, A1, A2, A3, A4, A5, A6, A7, A8]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9]: AndXor9[A1, A2, A3, A4, A5, A6, A7, A8, A9] = AndXor9[A1, A2, A3, A4, A5, A6, A7, A8, A9]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9]: AndXorF9[A1, A2, A3, A4, A5, A6, A7, A8, A9] = AndXorF9[A1, A2, A3, A4, A5, A6, A7, A8, A9]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]: AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9] = AndXorK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: AndXor10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] = AndXor10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: AndXorF10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] = AndXorF10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: AndXorK10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] = AndXorK10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] = AndXor11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] = AndXorF11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] = AndXorK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: AndXor12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] = AndXor12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: AndXorF12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] = AndXorF12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: AndXorK12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] = AndXorK12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: AndXor13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] = AndXor13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: AndXorF13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
-    AndXorF13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: AndXorK13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
-    AndXorK13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: AndXor14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
     AndXor14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: AndXorF14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
-    AndXorF14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: AndXorK14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
-    AndXorK14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: AndXor15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
     AndXor15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: AndXorF15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-    AndXorF15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: AndXorK15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-    AndXorK15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: AndXor16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
     AndXor16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: AndXorF16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
-    AndXorF16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: AndXorK16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
-    AndXorK16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]: AndXor17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
     AndXor17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]: AndXorF17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
-    AndXorF17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]: AndXorK17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
-    AndXorK17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]: AndXor18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
     AndXor18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]: AndXorF18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
-    AndXorF18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]: AndXorK18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
-    AndXorK18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]: AndXor19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
     AndXor19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]: AndXorF19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
-    AndXorF19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
-      : AndXorK19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
-    AndXorK19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
       : AndXor20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
     AndXor20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-      : AndXorF20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
-    AndXorF20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
-      : AndXorK20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
-    AndXorK20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
       : AndXor21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
     AndXor21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-      : AndXorF21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
-    AndXorF21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
-      : AndXorK21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
-    AndXorK21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
 
   def build[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
       : AndXor22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
     AndXor22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-  def buildF[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-      : AndXorF22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
-    AndXorF22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-  def buildK[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
-      : AndXorK22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
-    AndXorK22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
 
 }

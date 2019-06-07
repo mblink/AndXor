@@ -1,97 +1,110 @@
 package andxor
 
-import andxor.types.{Cop2, Prod2}
+import andxor.types.{Cop2, Cop2New, CopTCDeps2, Prod2, Prod25, TCDeps2, ProdTCDeps2}
 import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, \/, -\/, \/-, ~>}
 import scalaz.Id.Id
 import scalaz.std.vector._
 
-trait AndXorK2[F[_], A1, A2] extends AndXor {
-  type Prod = Prod2[F, A1, A2]
-  object Prod { def apply(p: (F[A1], F[A2])): Prod = Prod2[F, A1, A2](p) }
+trait AndXor2New[A1 <: AndXor, A2 <: AndXor] extends AndXorNew {
+  type Prod[F[_]] = Prod25[F, A1, A2]
+  object Prod { def apply[F[_]](p: (A1#Prod[F], A2#Prod[F])): Prod[F] = Prod25[F, A1, A2](p) }
 
-  type Cop = Cop2[F, A1, A2]
-  object Cop { def apply(c: (F[A1] \/ F[A2])): Cop = Cop2[F, A1, A2](c) }
+  type Cop[F[_]] = Cop2New[F, A1, A2]
+  object Cop { def apply[F[_]](c: (A1#Cop[F] \/ A2#Cop[F])): Cop[F] = Cop2New[F, A1, A2](c) }
 
-  val AndXorF = AndXorF2[A1, A2]
-  type AndXor[G[_]] = AndXorF.Repr[G]
+  type ProdTCDeps[TC[_], F[_]] = ProdTCDeps2[TC, F, A1, A2]
+  type CopTCDeps[TC[_], F[_]] = CopTCDeps2[TC, F, A1, A2]
 
-  def combineId[G[_]](implicit @scalaz.unused ev: F[_] =:= Id[_], a0: G[A1], a1: G[A2]): ComposeAndXor[G, Cop2[Id, A1, A2], Prod2[Id, A1, A2]] =
-    AndXor2[A1, A2].combine[G]
+  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], tcs: CopTCDeps[TC, F]): TC[B] =
+    Combine.choose2(tcs.a0, tcs.a1)(f(_).run)
 
-  def combine[G[_]](implicit a0: G[F[A1]], a1: G[F[A2]]): ComposeAndXor[G, Cop, Prod] =
-    new ComposeAndXor[G, Cop, Prod] {
-      def mkChoose[B](f: B => Cop)(implicit d: Decidable[G]): G[B] =
-        Combine.choose2(a0, a1)(f(_).run)
+  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], tcs: CopTCDeps[TC, F]): TC[B] =
+    Combine.altly2(tcs.a0, tcs.a1)(x => f(Cop(x)))
 
-      def mkAlt[B](f: Cop => B)(implicit a: Alt[G]): G[B] =
-        Combine.altly2(a0, a1)(x => f(Cop(x)))
+  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], tcs: ProdTCDeps[TC, F]): TC[B] =
+    Combine.divide2(tcs.a0, tcs.a1)(f(_).run)
 
-      def mkDivide[B](f: B => Prod)(implicit d: Divide[G]): G[B] =
-        Combine.divide2(a0, a1)(f(_).run)
-
-      def mkApply[B](f: Prod => B)(implicit a: Apply[G]): G[B] =
-        Combine.apply2(a0, a1) {
-          case (i0, i1) =>
-            f(Prod((i0, i1)))
-        }
-
+  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], tcs: ProdTCDeps[TC, F]): TC[B] =
+    Combine.apply2(tcs.a0, tcs.a1) {
+      case (i0, i1) =>
+        f(Prod((i0, i1)))
     }
 
   object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit val injEv: Inj[Cop, Cop] = combine[Inj[Cop, ?]].choose
-    implicit def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod] = combine[Inj[Prod, ?]].divide
-    implicit def injCopToProdEv(implicit M: Monoid[Prod]): Inj[Prod, Cop] = combine[Inj[Prod, ?]].choose
-    implicit val injProdToVecCopEv: Inj[Vector[Cop], Prod] = combine[Inj[Vector[Cop], ?]].divide
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
+    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = choose[Inj[Prod[F], ?], F]
+    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = divide[Inj[Vector[Cop[F]], ?], F]
+  }
+}
+
+trait AndXor2[A1, A2] extends AndXor {
+  type Prod[F[_]] = Prod2[F, A1, A2]
+  object Prod { def apply[F[_]](p: (F[A1], F[A2])): Prod[F] = Prod2[F, A1, A2](p) }
+
+  type Cop[F[_]] = Cop2[F, A1, A2]
+  object Cop { def apply[F[_]](c: (F[A1] \/ F[A2])): Cop[F] = Cop2[F, A1, A2](c) }
+
+  type TCDeps[TC[_], F[_]] = TCDeps2[TC, F, A1, A2]
+
+  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], tcs: TCDeps[TC, F]): TC[B] =
+    Combine.choose2(tcs.a0, tcs.a1)(f(_).run)
+
+  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], tcs: TCDeps[TC, F]): TC[B] =
+    Combine.altly2(tcs.a0, tcs.a1)(x => f(Cop(x)))
+
+  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], tcs: TCDeps[TC, F]): TC[B] =
+    Combine.divide2(tcs.a0, tcs.a1)(f(_).run)
+
+  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], tcs: TCDeps[TC, F]): TC[B] =
+    Combine.apply2(tcs.a0, tcs.a1) {
+      case (i0, i1) =>
+        f(Prod((i0, i1)))
+    }
+
+  object evidence extends AndXorEvidence[Cop, Prod] {
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
+    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = choose[Inj[Prod[F], ?], F]
+    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = divide[Inj[Vector[Cop[F]], ?], F]
   }
 
-  def transformP[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Prod => AndXorK2[G, A1, A2]#Prod =
-    (p: AndXorK2[F, A1, A2]#Prod) => Prod2[G, A1, A2]((nt(p.t1), nt(p.t2)))
+  def transformP[F[_], G[_]](nt: (F ~> G)): Prod[F] => Prod[G] =
+    (p: Prod[F]) => Prod[G]((nt(p.t1), nt(p.t2)))
 
-  def transformC[G[_]](nt: (F ~> G)): AndXorK2[F, A1, A2]#Cop => AndXorK2[G, A1, A2]#Cop =
-    (p: AndXorK2[F, A1, A2]#Cop) =>
-      Cop2[G, A1, A2](
-        p.run.bimap(nt(_), nt(_))
-      )
-
-  def subst1[G[_]]: AndXor2[G[A1], F[A2]] = AndXor2[G[A1], F[A2]]
-
-  def subst2[G[_]]: AndXor2[F[A1], G[A2]] = AndXor2[F[A1], G[A2]]
+  def transformC[F[_], G[_]](nt: (F ~> G)): Cop[F] => Cop[G] =
+    (c: Cop[F]) => Cop[G](c.run.bimap(nt(_), nt(_)))
 
   // format: off
-  def sequenceP(p: Prod)(implicit A: Apply[F]): F[Prod2[Id, A1, A2]] = {
+  def sequenceP[F[_]](p: Prod[F])(implicit A: Apply[F]): F[Prod[Id]] =
     A.map(
     A.ap(p.t2)(
     A.map(p.t1)((i0: A1) => (i1: A2) =>
-      (i0, i1))))(Prod2[Id, A1, A2](_))
-  }
+      (i0, i1))))(Prod[Id](_))
 
-  def sequenceC(cop: Cop)(implicit FF: Functor[F]): F[Cop2[Id, A1, A2]] =
+  def sequenceC[F[_]](cop: Cop[F])(implicit FF: Functor[F]): F[Cop[Id]] =
     cop.run match {
-      case -\/(x) => FF.map(x)(y => Cop2[Id, A1, A2](-\/(y)))
-      case \/-(x) => FF.map(x)(y => Cop2[Id, A1, A2](\/-(y)))
+      case -\/(x) => FF.map(x)(y => Cop[Id](-\/(y)))
+      case \/-(x) => FF.map(x)(y => Cop[Id](\/-(y)))
     }
 
-  def extractC[B](c: Cop)(implicit inj: Inj[Option[B], Cop]): Option[B] = inj(c)
+  def extractC[F[_], B](c: Cop[F])(implicit inj: Inj[Option[B], Cop[F]]): Option[B] = inj(c)
 
-  def extractP[B](p: Prod)(implicit inj: Inj[B, Prod]): B = inj(p)
+  def extractP[F[_], B](p: Prod[F])(implicit inj: Inj[B, Prod[F]]): B = inj(p)
 
-  def foldMap[G[_], C](p: AndXor[G]#Prod)(map: AndXor[Id]#Cop => C)(
-      implicit O: Ordering[Cop2[Id, A1, A2]], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
+  def foldMap[G[_], C](p: Prod[G])(map: Cop[Id] => C)(implicit O: Ordering[Cop[Id]], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
     import scala.collection.mutable.{PriorityQueue => PQ}
 
-    val TG = AndXorF[G]
-    val TI = AndXorF[Id]
-
-    def uncons(p: TG.Prod): (List[TI.Cop], TG.Prod) = {
+    def uncons(p: Prod[G]): (List[Cop[Id]], Prod[G]) = {
       val ht1 = U(p.t1)
       val ht2 = U(p.t2)
-      (List(ht1._1.map(TI.inj(_: Id[A1])), ht2._1.map(TI.inj(_: Id[A2]))).flatten,
-        TG.Prod((ht1._2, ht2._2)))
+      (List(ht1._1.map(injId(_: A1)), ht2._1.map(injId(_: A2))).flatten,
+        Prod[G]((ht1._2, ht2._2)))
     }
 
     @tailrec
-    def appendAll(out: C, q: PQ[TI.Cop]): C =
+    def appendAll(out: C, q: PQ[Cop[Id]]): C =
       q.isEmpty match {
         case true => out
         case false =>
@@ -100,7 +113,7 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
       }
 
     @tailrec
-    def go(prod: TG.Prod, q: PQ[TI.Cop], out: C): C =
+    def go(prod: Prod[G], q: PQ[Cop[Id]], out: C): C =
       (prod.run.==((PE.empty[A1], PE.empty[A2]))) match {
         case true => appendAll(out, q)
         case false => q.isEmpty match {
@@ -112,42 +125,23 @@ trait AndXorK2[F[_], A1, A2] extends AndXor {
           case false => q.dequeue.run match {
             case dj @ -\/(_) =>
               val (h, t) = U(prod.t1)
-              go(TG.Prod((t, prod.t2)),
-                q ++= h.map(TI.inj(_: Id[A1])), M.append(out, map(TI.Cop(dj))))
+              go(Prod[G]((t, prod.t2)),
+                q ++= h.map(injId(_: A1)), M.append(out, map(Cop[Id](dj))))
             case dj @ \/-(_) =>
               val (h, t) = U(prod.t2)
-              go(TG.Prod((prod.t1, t)),
-                q ++= h.map(TI.inj(_: Id[A2])), M.append(out, map(TI.Cop(dj))))
+              go(Prod[G]((prod.t1, t)),
+                q ++= h.map(injId(_: A2)), M.append(out, map(Cop[Id](dj))))
 
           }
         }
       }
-    val Q = new PQ[TI.Cop]()(O)
+    val Q = new PQ[Cop[Id]]()(O)
     val (hs, ts) = uncons(p)
     Q ++= hs
     go(ts, Q, M.zero)
   }
   // format: on
 }
-
-object AndXorK2 {
-
-  def apply[F[_], A1, A2]: AndXorK2[F, A1, A2] =
-    new AndXorK2[F, A1, A2] {}
-}
-
-trait AndXorF2[A1, A2] {
-  type Repr[F[_]] = AndXorK2[F, A1, A2]
-  def apply[F[_]]: Repr[F] =
-    new AndXorK2[F, A1, A2] {}
-}
-
-object AndXorF2 {
-  def apply[A1, A2]: AndXorF2[A1, A2] =
-    new AndXorF2[A1, A2] {}
-}
-
-trait AndXor2[A1, A2] extends AndXorK2[Id, A1, A2]
 
 object AndXor2 {
   def apply[A1, A2]: AndXor2[A1, A2] =
