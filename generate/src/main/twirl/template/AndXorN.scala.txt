@@ -2,79 +2,93 @@
 
 @(tpes: List[String])
 
-import andxor.types.{@{tpes.copName}, @{tpes.prodName}, @{tpes.tcDepsName}}
+import andxor.types.{@{tpes.copName}, @{tpes.prodName}}
 import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid@{tpes.foldLen01("")(", \\/, -\\/, \\/-")}, ~>}
 import scalaz.Id.Id
-import scalaz.std.vector._
 
-trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
+trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends AndXor {
   type Prod[F[_]] = @{tpes.prodTpe}
-  object Prod { def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] = @{tpes.prodTpe}(p) }
+  object Prod {
+    def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] = @{tpes.prodTpe}(p)
+  }
 
   type Cop[F[_]] = @{tpes.copTpe}
-  object Cop { def apply[F[_]](c: @{tpes.djK("F")}): Cop[F] = @{tpes.copTpe}(c) }
-
-  type TCDeps[TC[_], F[_]] = @{tpes.tcDepsTpe()}
+  object Cop {
+    def apply[F[_]](c: @{tpes.djK("F")}): Cop[F] = @{tpes.copTpe}(c)
+  }
 
   @*
   def combineId[G[_]](implicit @@scalaz.unused ev: F[_] =:= Id[_], @{tpes.foldLen0("a0: G[Unit]")(tpes.paramSig("G", "a"))}): ComposeAndXor[G, @{tpes.copTpeF("Id")}, @{tpes.prodTpeF("Id")}] =
     AndXor@{tpes.length}[@{tpes.tpeParams}].combine[G]
   *@
 
-  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], tcs: TCDeps[TC, F]): TC[B] =
-    @tpes.foldLen01("d.contramap(tcs.a0)(f(_).run)")(s"Combine.choose${tpes.length}(${tpes.params("tcs.a")})(f(_).run)")
+  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], @{tpes.tcDeps("Cop")}): TC[B] =
+    @tpes.foldLen01("d.contramap(a0)(f(_).run)")(s"Combine.choose${tpes.length}(${tpes.params("a")})(f(_).run)")
 
-  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], tcs: TCDeps[TC, F]): TC[B] =
-    @tpes.foldLen01("a.map(tcs.a0)(x => f(Cop(x)))")(s"Combine.altly${tpes.length}(${tpes.params("tcs.a")})(x => f(Cop(x)))")
+  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], @{tpes.tcDeps("Cop")}): TC[B] =
+    @tpes.foldLen01("a.map(a0)(x => f(Cop(x)))")(s"Combine.altly${tpes.length}(${tpes.params("a")})(x => f(Cop(x)))")
 
-  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], tcs: TCDeps[TC, F]): TC[B] =
-    @tpes.foldLen01("d.contramap(tcs.a0)(f(_).run)")(s"Combine.divide${tpes.length}(${tpes.params("tcs.a")})(f(_).run)")
+  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], @{tpes.tcDeps("Prod")}): TC[B] =
+    @tpes.foldLen01("d.contramap(a0)(f(_).run)")(s"Combine.divide${tpes.length}(${tpes.params("a")})(f(_).run)")
 
-  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], tcs: TCDeps[TC, F]): TC[B] =
-    @tpes.foldLen01[Any]("a.map(tcs.a0)(x => f(Prod(x)))") {
-    Combine.apply@{tpes.length}(@{tpes.params("tcs.a")}) {
+  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], @{tpes.tcDeps("Prod")}): TC[B] =
+    @tpes.foldLen01[Any]("a.map(a0)(x => f(Prod(x)))") {
+    Combine.apply@{tpes.length}(@{tpes.params("a")}) {
       case @{tpes.paramList("i").mkTuple} =>
         f(Prod(@{tpes.paramList("i").mkTuple}))
     }
     }
 
+  def mkChoose[TC[_], B](f: B => Cop[Id])(implicit d: Decidable[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[B] = mkChoose[TC, Id, B](f)
+  def mkAlt[TC[_], B](f: Cop[Id] => B)(implicit a: Alt[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[B] = mkAlt[TC, Id, B](f)
+  def mkDivide[TC[_], B](f: B => Prod[Id])(implicit d: Divide[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[B] = mkDivide[TC, Id, B](f)
+  def mkApply[TC[_], B](f: Prod[Id] => B)(implicit a: Apply[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[B] = mkApply[TC, Id, B](f)
+
+  def choose[TC[_], F[_]](implicit d: Decidable[TC], @{tpes.tcDeps("Cop")}): TC[Cop[F]] = mkChoose[TC, F, Cop[F]](identity)
+  def alt[TC[_], F[_]](implicit a: Alt[TC], @{tpes.tcDeps("Cop")}): TC[Cop[F]] = mkAlt[TC, F, Cop[F]](identity)
+  def divide[TC[_], F[_]](implicit d: Divide[TC], @{tpes.tcDeps("Prod")}): TC[Prod[F]] = mkDivide[TC, F, Prod[F]](identity)
+  def apply[TC[_], F[_]](implicit a: Apply[TC], @{tpes.tcDeps("Prod")}): TC[Prod[F]] = mkApply[TC, F, Prod[F]](identity)
+
+  def choose[TC[_]](implicit d: Decidable[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[Cop[Id]] = mkChoose[TC, Cop[Id]](identity)
+  def alt[TC[_]](implicit a: Alt[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[Cop[Id]] = mkAlt[TC, Cop[Id]](identity)
+  def divide[TC[_]](implicit d: Divide[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[Prod[Id]] = mkDivide[TC, Prod[Id]](identity)
+  def apply[TC[_]](implicit a: Apply[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[Prod[Id]] = mkApply[TC, Prod[Id]](identity)
+
   object evidence extends AndXorEvidence[Cop, Prod] {
     implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
-    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = choose[Inj[Prod[F], ?], F]
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = divide[Inj[Vector[Cop[F]], ?], F]
   }
 
-  def transformP[F[_], G[_]](nt: (F ~> G)): Prod[F] => Prod[G] =
-    (p: Prod[F]) => Prod[G](@{tpes.zipWithIndex.map(x => s"nt(p${tpes.prodAccess(x._2 + 1)})").mkTuple})
+  def transformP[F[_], G[_]](nt: (F ~> G))@{tpes.transformParams("Prod").asImpls(false)}: Prod[F] => Prod[G] =
+    Transform[Prod].transform(nt)
 
-  def transformC[F[_], G[_]](nt: (F ~> G)): Cop[F] => Cop[G] =
-    (c: Cop[F]) => Cop[G](@{tpes.foldLen01("nt(c.run)")(
-      s"c.run${tpes.drop(1).foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), $a)").tail}")})
+  def transformC[F[_], G[_]](nt: (F ~> G))@{tpes.transformParams("Cop").asImpls(false)}: Cop[F] => Cop[G] =
+    Transform[Cop].transform(nt)
 
-  // format: off
-  def sequenceP[F[_]](p: Prod[F])(implicit A: Apply[F]): F[Prod[Id]] =
-    A.map(@{tpes.paramListF(i => s"p${tpes.prodAccess(i)}", 1).tail.foldLeft(
-      s"""\n    A.map(p${tpes.prodAccess(1)})(${tpes.paramList("i").zip(tpes).map(t => s"(${t._1}: ${t._2})").mkString(" => ")} =>\n      ${tpes.paramList("i").mkTuple})""")(
-        (a, e) => s"\n    A.ap($e)($a)")})(Prod[Id](_))
+  def sequenceP[F[_]](p: Prod[F])(implicit F: Apply[F]@{tpes.sequenceParams("Prod").asImpls(true)}): F[Prod[Id]] =
+    Sequence[Prod, Apply].sequence(p)
 
-  def sequenceC[F[_]](cop: Cop[F])(implicit FF: Functor[F]): F[Cop[Id]] =
-    cop.run match {
-      @{tpes.zipper(SequenceC(_)).mkString("      ").trim}
-    }
+  def sequenceC[F[_]](c: Cop[F])(implicit F: Functor[F]@{tpes.sequenceParams("Cop").asImpls(true)}): F[Cop[Id]] =
+    Sequence[Cop, Functor].sequence(c)
 
   def extractC[F[_], B](c: Cop[F])(implicit inj: Inj[Option[B], Cop[F]]): Option[B] = inj(c)
 
   def extractP[F[_], B](p: Prod[F])(implicit inj: Inj[B, Prod[F]]): B = inj(p)
 
-  def foldMap[G[_], C](p: Prod[G])(map: Cop[Id] => C)(implicit O: Ordering[Cop[Id]], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
+  // format: off
+  def foldMap[F[_], C](p: Prod[F])(map: Cop[Id] => C)(
+    implicit O: Ordering[Cop[Id]],
+    M: Monoid[C],
+    PE: PlusEmpty[F],
+    U: Uncons[F]@{tpes.foldLen01("")(",\n    " ++ tpes.map(t => s"Uncons0[$t#Prod, $t#Cop]").paramSig("U"))}
+  ): C = {
     import scala.collection.mutable.{PriorityQueue => PQ}
 
-    def uncons(p: Prod[G]): (List[Cop[Id]], Prod[G]) = {
-      @{1.to(tpes.length).toList.map(i => s"val ht$i = U(p${tpes.prodAccess(i)})").mkString("\n      ")}
-      (List(@{tpes.zip(Stream.from(1)).map(t => s"ht${t._2}._1.map(injId(_: ${t._1}))").mkString(", ")}).flatten,
-        Prod[G](@{1.to(tpes.length).toList.map(i => s"ht$i._2").mkTuple}))
+    def uncons(p: Prod[F]): (List[Cop[Id]], Prod[F]) = {
+      @{1.to(tpes.length).toList.map(i => s"val (h$i, t$i) = ${tpes.unconsName(i - 1)}(p${tpes.prodAccess(i)})").mkString("\n      ")}
+      (List(@{1.to(tpes.length).toList.map(i => s"h$i.map(inj(_: ${tpes.selCop(Some("Id"))(i - 1)}))").mkString(", ")}).flatten,
+        Prod[F](@{1.to(tpes.length).toList.map(i => s"t$i").mkTuple}))
     }
 
     @@tailrec
@@ -87,7 +101,7 @@ trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
       }
 
     @@tailrec
-    def go(prod: Prod[G], q: PQ[Cop[Id]], out: C): C =
+    def go(prod: Prod[F], q: PQ[Cop[Id]], out: C): C =
       (prod.run.==(@{tpes.map(t => s"PE.empty[${t}]").mkTuple})) match {
         case true => appendAll(out, q)
         case false => q.isEmpty match @{s"""{
@@ -110,6 +124,6 @@ trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
 }
 
 object AndXor@{tpes.length} {
-  def apply[@{tpes.tpeParams}]: AndXor@{tpes.length}[@{tpes.tpeParams}] =
+  def apply[@{tpes.axoTpeParams}]: AndXor@{tpes.length}[@{tpes.tpeParams}] =
     new AndXor@{tpes.length}[@{tpes.tpeParams}] {}
 }

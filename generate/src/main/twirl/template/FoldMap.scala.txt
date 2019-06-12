@@ -4,6 +4,6 @@
 @(z: Zipper[String])
             case dj @@ @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
                   """_""")(_ => """-\/(_)"""))((_, a) => s"""\\/-(${a})""")} =>
-              val (h, t) = U(prod@{z.toList.prodAccess(z.index + 1)})
-              go(Prod[G](@{(1 to z.length).toList.map(i => s"prod${z.toList.prodAccess(i)}").updated(z.index, "t").mkTuple}),
-                q ++= h.map(injId(_: A@{z.index + 1})), M.append(out, map(Cop[Id](dj))))
+              val (h, t) = @{z.toList.unconsName(z.index)}(prod@{z.toList.prodAccess(z.index + 1)})
+              go(Prod[F](@{(1 to z.length).toList.map(i => s"prod${z.toList.prodAccess(i)}").updated(z.index, "t").mkTuple}),
+                q ++= h.map(inj(_: @{z.toList.selCop(Some("Id"))(z.index)})), M.append(out, map(Cop[Id](dj))))

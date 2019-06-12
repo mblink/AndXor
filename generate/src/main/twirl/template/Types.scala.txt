@@ -1,10 +1,11 @@
 @import andxor.syntax._
-@import scalaz.syntax.std.boolean._
 
 @(tpeLists: List[List[String]])
 
+import andxor.Sequence.ops._
 import andxor.tuple._
-import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
+import andxor.Transform.ops._
+import scalaz.{\/, -\/, \/-, ~>, Apply, Functor, InvariantFunctor, Monoid}
 import scalaz.Id.Id
 
 object types {
@@ -13,21 +14,42 @@ object types {
     sealed trait Dummy@{i}; object Dummy@{i} { implicit val inst: Dummy@{i} = new Dummy@{i} {} }}
   }
 
-  import dummy._
+  // import dummy._
 
   private val MF = InvariantFunctor[Monoid]
   @tpeLists.map { tpes =>
   @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) {
-    @template.txt.TupleAccess("run", tpes.map(t => s"F[$t]"))
+    @template.txt.TupleAccess("run", tpes.prodTpes())
+
+    @*
     @if(tpes.length > 1) {
     private def mapN = new Map@{tpes.length}P[@{tpes.tpeParamsF("F")}] {}
     @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
     }
+    *@
   }
 
   trait @{tpes.prodName}LP {
-    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
-      MF.xmap(M, @{tpes.prodTpe}(_), (_: @{tpes.prodTpe}).run)
+    // format: off
+    implicit def @{tpes.prodName}Transform[@{tpes.axoTpeParams}]@{tpes.transformParams("Prod").asImpls(false)}: Transform[@{tpes.prodTpeF("?[_]")}] =
+      new Transform[@{tpes.prodTpeF("?[_]")}] {
+        def transform[F[_], G[_]](nt: F ~> G): @tpes.prodTpeF("F") => @tpes.prodTpeF("G") =
+          p => @{tpes.prodTpeF("G")}(@{tpes.paramListF(i =>
+            tpes.foldLen01("nt")(s"trans$i.transform(nt)") ++ s"(p${tpes.prodAccess(i + 1)})").mkTuple})
+      }
+
+    implicit def @{tpes.prodName}Sequence[@{tpes.axoTpeParams}]@{tpes.sequenceParams("Prod").asImpls(false)}: Sequence[@{tpes.prodTpeF("?[_]")}, Apply] =
+      new Sequence[@{tpes.prodTpeF("?[_]")}, Apply] {
+        def sequence[F[_]](p: @{tpes.prodTpeF("F")})(implicit F: Apply[F]): F[@{tpes.prodTpeF("Id")}] =
+          @tpes.paramListF(i => s"seq$i.sequence(p${tpes.prodAccess(i + 1)})").tail.foldLeft(
+            s"F.map(${tpes.foldLen01(s"p${tpes.prodAccess(1)}")(s"seq0.sequence[F](p${tpes.prodAccess(1)})")})(${tpes.prodTpes("Id").paramSigArgs("i")
+              .map(parens).mkString(" => ")} => ${tpes.prodTpeF("Id")}(${tpes.paramList("i").mkTuple}))")(
+                (a, e) => s"F.ap($e)($a)")
+      }
+    // format: on
+
+    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.axoTpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
+      MF.xmap(M, @{tpes.prodTpe}(_: @{tpes.prodK("F")}), (_: @{tpes.prodTpe}).run)
 
     @tpes.zipper(template.txt.Lift(_, false).toString.trim).mkString("\n\n    ")
   }
@@ -36,29 +58,34 @@ object types {
     @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
   }
 
-  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{(tpes.length <= 1).fold("", s""" {
+  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})
+
+  @*@{(tpes.length <= 1).fold("", s""" {
     private def mapN = new Map${tpes.length}C[${tpes.tpeParamsF("F")}] {}
     ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
-  }""")}
+  }""")}*@
 
   trait @{tpes.copName}LP {
+    implicit def @{tpes.copName}Transform[@{tpes.axoTpeParams}]@{tpes.transformParams("Cop").asImpls(false)}: Transform[@{tpes.copTpeF("?[_]")}] =
+      new Transform[@{tpes.copTpeF("?[_]")}] {
+        def transform[F[_], G[_]](nt: F ~> G): @tpes.copTpeF("F") => @tpes.copTpeF("G") =
+          c => @{tpes.copTpeF("G")}(@{tpes.foldLen01("nt(c.run)")(
+            s"c.run${tpes.tail.foldRight("_.transform(nt)")((_, a) => s"_.bimap(_.transform(nt), $a)").tail}")})
+      }
+
+    implicit def @{tpes.copName}Sequence[@{tpes.axoTpeParams}]@{tpes.sequenceParams("Cop").asImpls(false)}: Sequence[@{tpes.copTpeF("?[_]")}, Functor] =
+      new Sequence[@{tpes.copTpeF("?[_]")}, Functor] {
+        def sequence[F[_]](c: @{tpes.copTpeF("F")})(implicit F: Functor[F]): F[@{tpes.copTpeF("Id")}] =
+          c.run match {
+            @{tpes.zipper(SequenceC(_)).mkString("        ").trim}
+          }
+      }
+
     @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
   }
 
   object @{tpes.copName} extends @{tpes.copName}LP {
     @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
-  }
-
-  case class @{tpes.tcDepsDef}()(implicit @tpes.paramSig(List("TC", "F"), "val a"))
-
-  trait @{tpes.tcDepsName}LP {
-    implicit def mk@{tpes.tcDepsName}[TC[_], F[_], @{tpes.tpeParams}](implicit @tpes.paramSig(List("TC", "F"), "a")): @tpes.tcDepsTpe() =
-      @{tpes.tcDepsName}()
-  }
-
-  object @{tpes.tcDepsName} extends @{tpes.tcDepsName}LP {
-    implicit def mk@{tpes.tcDepsName}Id[TC[_], @{tpes.tpeParams}](implicit @tpes.paramSig("TC", "a")): @tpes.tcDepsTpe(F = "Id") =
-      @{tpes.tcDepsName}()
   }
   }
 }

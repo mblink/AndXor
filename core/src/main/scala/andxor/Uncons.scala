@@ -1,9 +1,13 @@
 package andxor
 
-import scala.language.higherKinds
+import scalaz.Id.Id
 
 trait Uncons[F[_]] {
   def apply[A](fa: F[A]): (Option[A], F[A])
+}
+
+trait Uncons0[Prod[_[_]], Cop[_[_]]] {
+  def apply[F[_]](p: Prod[F])(implicit U: Uncons[F]): (Option[Cop[Id]], Prod[F])
 }
 
 object Uncons {

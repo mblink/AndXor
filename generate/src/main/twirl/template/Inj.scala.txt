@@ -7,16 +7,16 @@
 @tpes = @{ z.toList }
 @F = @{ isId.fold("Id", "F") }
 @tp = @{ isId.fold("", s"F[_], ") }
-@wrapTpe(s: String) = @{ isId.fold(s, s"F[$s]") }
+@wrappedTpe = @{ z.toList.copTpes(F)(z.index) }
 
-    implicit def prisma@{z.index}@{F}[@{tp}@{tpes.tpeParams}]: Prism[@{tpes.copTpeF(F)}, @{wrapTpe(z.focus)}] =@if(isId) { prisma@{z.index}F[Id, @{tpes.tpeParams}] } else { new Prism[@{tpes.copTpeF(F)}, @{wrapTpe(z.focus)}] {
-        def getOption(c: @{tpes.copTpeF(F)}): Option[@{wrapTpe(z.focus)}] = @{tpes.foldLen01("Some(c.run)")(s"""c.run match {
+    implicit def prisma@{z.index}@{F}[@{tp}@{tpes.axoTpeParams}]: Prism[@{tpes.copTpeF(F)}, @{wrappedTpe}] =@if(isId) { prisma@{z.index}F[Id, @{tpes.tpeParams}] } else { new Prism[@{tpes.copTpeF(F)}, @{wrappedTpe}] {
+        def getOption(c: @{tpes.copTpeF(F)}): Option[@{wrappedTpe}] = @{tpes.foldLen01("Some(c.run)")(s"""c.run match {
           case ${z.djVal("x")} => Some(x)
           case _ => None
         }""")}
-        def reverseGet(x: @{wrapTpe(z.focus)}): @{tpes.copTpeF(F)} = @{tpes.copTpeF(F)}(@z.djVal("x"))
+        def reverseGet(x: @{wrappedTpe}): @{tpes.copTpeF(F)} = @{tpes.copTpeF(F)}(@z.djVal("x"))
       } }
 
-    implicit def inja@{z.index}@{F}[@{tp}@{tpes.tpeParams}]: Inj[@{tpes.copTpeF(F)}, @{wrapTpe(z.focus)}] =@if(isId) { inja@{z.index}F[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.reverseGet(_)) }
+    implicit def inja@{z.index}@{F}[@{tp}@{tpes.axoTpeParams}]: Inj[@{tpes.copTpeF(F)}, @{wrappedTpe}] =@if(isId) { inja@{z.index}F[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.reverseGet(_)) }
 
-    implicit def inja@{z.index}@{F}Inverse[F[_], @{tpes.tpeParams}]: Inj[Option[@{wrapTpe(z.focus)}], @{tpes.copTpeF(F)}] =@if(isId) { inja@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.getOption(_)) }
+    implicit def inja@{z.index}@{F}Inverse[F[_], @{tpes.axoTpeParams}]: Inj[Option[@{wrappedTpe}], @{tpes.copTpeF(F)}] =@if(isId) { inja@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.getOption(_)) }

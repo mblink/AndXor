@@ -1,50 +1,25 @@
 @(tpes: List[List[String]])
 
-import scalaz.{Apply, Monoid}
 import scalaz.Id.Id
+import scalaz.Monoid
 
 trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
   implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]]
   implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]]
-  implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]]
-
-  implicit def injProdToVecCopEvHelper[F[_], A](implicit i: Inj[Cop[F], A]): Inj[Vector[Cop[F]], A] = Inj.instance(a => Vector(i(a)))
-  implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]]
 }
 
 trait AndXor {
   type Cop[F[_]]
   type Prod[F[_]]
-  type TCDeps[TC[_], F[_]]
 
-  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], tcs: TCDeps[TC, F]): TC[B]
-  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], tcs: TCDeps[TC, F]): TC[B]
-  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], tcs: TCDeps[TC, F]): TC[B]
-  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], tcs: TCDeps[TC, F]): TC[B]
-
-  def mkChoose[TC[_], B](f: B => Cop[Id])(implicit d: Decidable[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkChoose[TC, Id, B](f)
-  def mkAlt[TC[_], B](f: Cop[Id] => B)(implicit a: Alt[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkAlt[TC, Id, B](f)
-  def mkDivide[TC[_], B](f: B => Prod[Id])(implicit d: Divide[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkDivide[TC, Id, B](f)
-  def mkApply[TC[_], B](f: Prod[Id] => B)(implicit a: Apply[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[B] = mkApply[TC, Id, B](f)
-
-  def choose[TC[_], F[_]](implicit d: Decidable[TC], tcs: TCDeps[TC, F]): TC[Cop[F]] = mkChoose[TC, F, Cop[F]](identity)
-  def alt[TC[_], F[_]](implicit a: Alt[TC], tcs: TCDeps[TC, F]): TC[Cop[F]] = mkAlt[TC, F, Cop[F]](identity)
-  def divide[TC[_], F[_]](implicit d: Divide[TC], tcs: TCDeps[TC, F]): TC[Prod[F]] = mkDivide[TC, F, Prod[F]](identity)
-  def apply[TC[_], F[_]](implicit a: Apply[TC], tcs: TCDeps[TC, F]): TC[Prod[F]] = mkApply[TC, F, Prod[F]](identity)
-
-  def choose[TC[_]](implicit d: Decidable[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Cop[Id]] = mkChoose[TC, Cop[Id]](identity)
-  def alt[TC[_]](implicit a: Alt[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Cop[Id]] = mkAlt[TC, Cop[Id]](identity)
-  def divide[TC[_]](implicit d: Divide[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Prod[Id]] = mkDivide[TC, Prod[Id]](identity)
-  def apply[TC[_]](implicit a: Apply[TC], tcs: TCDeps[TC, Id], dummy: DummyImplicit): TC[Prod[Id]] = mkApply[TC, Prod[Id]](identity)
+  val evidence: AndXorEvidence[Cop, Prod]
 
   def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
   def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
   def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
   def liftId[A](a: A)(implicit inj: Inj[Prod[Id], Id[A]]): Prod[Id] = inj(a)
-
-  val evidence: AndXorEvidence[Cop, Prod]
 }
 
 object AndXor {
-  @tpes.map(template.txt.Build(_)).mkString("\n")
+  /*@tpes.map(template.txt.Build(_)).mkString("\n")*/
 }

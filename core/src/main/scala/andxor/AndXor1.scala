@@ -1,67 +1,82 @@
 package andxor
 
-import andxor.types.{Cop1, Prod1, TCDeps1}
+import andxor.types.{Cop1, Prod1}
 import scala.annotation.tailrec
 import scalaz.{Apply, Functor, PlusEmpty, Monoid, ~>}
 import scalaz.Id.Id
-import scalaz.std.vector._
 
 trait AndXor1[A1] extends AndXor {
   type Prod[F[_]] = Prod1[F, A1]
-  object Prod { def apply[F[_]](p: F[A1]): Prod[F] = Prod1[F, A1](p) }
+  object Prod {
+    def apply[F[_]](p: F[A1]): Prod[F] = Prod1[F, A1](p)
+  }
 
   type Cop[F[_]] = Cop1[F, A1]
-  object Cop { def apply[F[_]](c: F[A1]): Cop[F] = Cop1[F, A1](c) }
+  object Cop {
+    def apply[F[_]](c: F[A1]): Cop[F] = Cop1[F, A1](c)
+  }
 
-  type TCDeps[TC[_], F[_]] = TCDeps1[TC, F, A1]
+  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], a0: TC[F[A1]]): TC[B] =
+    d.contramap(a0)(f(_).run)
 
-  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], tcs: TCDeps[TC, F]): TC[B] =
-    d.contramap(tcs.a0)(f(_).run)
+  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], a0: TC[F[A1]]): TC[B] =
+    a.map(a0)(x => f(Cop(x)))
 
-  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], tcs: TCDeps[TC, F]): TC[B] =
-    a.map(tcs.a0)(x => f(Cop(x)))
+  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], a0: TC[F[A1]]): TC[B] =
+    d.contramap(a0)(f(_).run)
 
-  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], tcs: TCDeps[TC, F]): TC[B] =
-    d.contramap(tcs.a0)(f(_).run)
+  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], a0: TC[F[A1]]): TC[B] =
+    a.map(a0)(x => f(Prod(x)))
 
-  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], tcs: TCDeps[TC, F]): TC[B] =
-    a.map(tcs.a0)(x => f(Prod(x)))
+  def mkChoose[TC[_], B](f: B => Cop[Id])(implicit d: Decidable[TC], a0: TC[A1], dummy: DummyImplicit): TC[B] = mkChoose[TC, Id, B](f)
+  def mkAlt[TC[_], B](f: Cop[Id] => B)(implicit a: Alt[TC], a0: TC[A1], dummy: DummyImplicit): TC[B] = mkAlt[TC, Id, B](f)
+  def mkDivide[TC[_], B](f: B => Prod[Id])(implicit d: Divide[TC], a0: TC[A1], dummy: DummyImplicit): TC[B] = mkDivide[TC, Id, B](f)
+  def mkApply[TC[_], B](f: Prod[Id] => B)(implicit a: Apply[TC], a0: TC[A1], dummy: DummyImplicit): TC[B] = mkApply[TC, Id, B](f)
+
+  def choose[TC[_], F[_]](implicit d: Decidable[TC], a0: TC[F[A1]]): TC[Cop[F]] = mkChoose[TC, F, Cop[F]](identity)
+  def alt[TC[_], F[_]](implicit a: Alt[TC], a0: TC[F[A1]]): TC[Cop[F]] = mkAlt[TC, F, Cop[F]](identity)
+  def divide[TC[_], F[_]](implicit d: Divide[TC], a0: TC[F[A1]]): TC[Prod[F]] = mkDivide[TC, F, Prod[F]](identity)
+  def apply[TC[_], F[_]](implicit a: Apply[TC], a0: TC[F[A1]]): TC[Prod[F]] = mkApply[TC, F, Prod[F]](identity)
+
+  def choose[TC[_]](implicit d: Decidable[TC], a0: TC[A1], dummy: DummyImplicit): TC[Cop[Id]] = mkChoose[TC, Cop[Id]](identity)
+  def alt[TC[_]](implicit a: Alt[TC], a0: TC[A1], dummy: DummyImplicit): TC[Cop[Id]] = mkAlt[TC, Cop[Id]](identity)
+  def divide[TC[_]](implicit d: Divide[TC], a0: TC[A1], dummy: DummyImplicit): TC[Prod[Id]] = mkDivide[TC, Prod[Id]](identity)
+  def apply[TC[_]](implicit a: Apply[TC], a0: TC[A1], dummy: DummyImplicit): TC[Prod[Id]] = mkApply[TC, Prod[Id]](identity)
 
   object evidence extends AndXorEvidence[Cop, Prod] {
     implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
-    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = choose[Inj[Prod[F], ?], F]
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = divide[Inj[Vector[Cop[F]], ?], F]
   }
 
   def transformP[F[_], G[_]](nt: (F ~> G)): Prod[F] => Prod[G] =
-    (p: Prod[F]) => Prod[G](nt(p.run))
+    Transform[Prod].transform(nt)
 
   def transformC[F[_], G[_]](nt: (F ~> G)): Cop[F] => Cop[G] =
-    (c: Cop[F]) => Cop[G](nt(c.run))
+    Transform[Cop].transform(nt)
 
-  // format: off
-  def sequenceP[F[_]](p: Prod[F])(implicit A: Apply[F]): F[Prod[Id]] =
-    A.map(
-    A.map(p.run)((i0: A1) =>
-      i0))(Prod[Id](_))
+  def sequenceP[F[_]](p: Prod[F])(implicit F: Apply[F]): F[Prod[Id]] =
+    Sequence[Prod, Apply].sequence(p)
 
-  def sequenceC[F[_]](cop: Cop[F])(implicit FF: Functor[F]): F[Cop[Id]] =
-    cop.run match {
-      case x => FF.map(x)(y => Cop[Id](y))
-    }
+  def sequenceC[F[_]](c: Cop[F])(implicit F: Functor[F]): F[Cop[Id]] =
+    Sequence[Cop, Functor].sequence(c)
 
   def extractC[F[_], B](c: Cop[F])(implicit inj: Inj[Option[B], Cop[F]]): Option[B] = inj(c)
 
   def extractP[F[_], B](p: Prod[F])(implicit inj: Inj[B, Prod[F]]): B = inj(p)
 
-  def foldMap[G[_], C](p: Prod[G])(map: Cop[Id] => C)(implicit O: Ordering[Cop[Id]], M: Monoid[C], PE: PlusEmpty[G], U: Uncons[G]): C = {
+  // format: off
+  def foldMap[F[_], C](p: Prod[F])(map: Cop[Id] => C)(
+    implicit O: Ordering[Cop[Id]],
+    M: Monoid[C],
+    PE: PlusEmpty[F],
+    U: Uncons[F]
+  ): C = {
     import scala.collection.mutable.{PriorityQueue => PQ}
 
-    def uncons(p: Prod[G]): (List[Cop[Id]], Prod[G]) = {
-      val ht1 = U(p.run)
-      (List(ht1._1.map(injId(_: A1))).flatten,
-        Prod[G](ht1._2))
+    def uncons(p: Prod[F]): (List[Cop[Id]], Prod[F]) = {
+      val (h1, t1) = U(p.run)
+      (List(h1.map(inj(_: Id[A1]))).flatten,
+        Prod[F](t1))
     }
 
     @tailrec
@@ -74,7 +89,7 @@ trait AndXor1[A1] extends AndXor {
       }
 
     @tailrec
-    def go(prod: Prod[G], q: PQ[Cop[Id]], out: C): C =
+    def go(prod: Prod[F], q: PQ[Cop[Id]], out: C): C =
       (prod.run.==(PE.empty[A1])) match {
         case true => appendAll(out, q)
         case false => q.isEmpty match {
@@ -86,8 +101,8 @@ trait AndXor1[A1] extends AndXor {
           case false => q.dequeue.run match {
             case dj @ _ =>
               val (h, t) = U(prod.run)
-              go(Prod[G](t),
-                q ++= h.map(injId(_: A1)), M.append(out, map(Cop[Id](dj))))
+              go(Prod[F](t),
+                q ++= h.map(inj(_: Id[A1])), M.append(out, map(Cop[Id](dj))))
 
           }
         }

@@ -8,12 +8,12 @@
 @tpes = @{ z.toList }
 @F = @{ isId.fold("Id", "F") }
 @tp = @{ isId.fold("", s"F[_], ") }
-@wrapTpe(s: String) = @{ isId.fold(s, s"F[$s]") }
+@wrappedTpe = @{ z.toList.prodTpes(F)(z.index) }
 
-    implicit def lifta@{z.index}@{F}[@{tp}@{tpes.tpeParams}]@{tpes.foldLen01("")(s"(implicit M: Monoid[${tpes.prodTpeF(F)}])")}: Inj[@tpes.prodTpeF(F), @{wrapTpe(z.focus)}] =@if(isId) { lifta@{z.index}F[Id, @{tpes.tpeParams}] } else { {
+    implicit def lifta@{z.index}@{F}[@{tp}@{tpes.axoTpeParams}]@{tpes.foldLen01("")(s"(implicit M: Monoid[${tpes.prodTpeF(F)}])")}: Inj[@tpes.prodTpeF(F), @{wrappedTpe}] =@if(isId) { lifta@{z.index}F[Id, @{tpes.tpeParams}] } else { {
       @tpes.foldLen01("")("val t = M.zero\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
         prodAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
     }
     }
 
-    implicit def lifta@{z.index}@{F}Inverse[@{tp}@{tpes.tpeParams}]: Inj[@{wrapTpe(z.focus)}, @tpes.prodTpeF(F)] =@if(isId) { lifta@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(_@{z.toList.prodAccess(z.index + 1)}) }
+    implicit def lifta@{z.index}@{F}Inverse[@{tp}@{tpes.axoTpeParams}]: Inj[@{wrappedTpe}, @tpes.prodTpeF(F)] =@if(isId) { lifta@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(_@{z.toList.prodAccess(z.index + 1)}) }
