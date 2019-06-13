@@ -30,10 +30,9 @@ object types {
   }
 
   trait @{tpes.prodName}LP {
-    // format: off
     implicit def @{tpes.prodName}Transform[@{tpes.axoTpeParams}]@{tpes.transformParams("Prod").asImpls(false)}: Transform[@{tpes.prodTpeF("?[_]")}] =
       new Transform[@{tpes.prodTpeF("?[_]")}] {
-        def transform[F[_], G[_]](nt: F ~> G): @tpes.prodTpeF("F") => @tpes.prodTpeF("G") =
+        def transform[F[_], G[_]](nt: F ~> G): @tpes.prodTpe => @tpes.prodTpeF("G") =
           p => @{tpes.prodTpeF("G")}(@{tpes.paramListF(i =>
             tpes.foldLen01("nt")(s"trans$i.transform(nt)") ++ s"(p${tpes.prodAccess(i + 1)})").mkTuple})
       }
@@ -46,7 +45,20 @@ object types {
               .map(parens).mkString(" => ")} => ${tpes.prodTpeF("Id")}(${tpes.paramList("i").mkTuple}))")(
                 (a, e) => s"F.ap($e)($a)")
       }
-    // format: on
+
+    implicit def @{tpes.prodName}FoldMap[@{tpes.axoTpeParams}]@{tpes.foldMapParams.asImpls(false)}: FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] =
+      new FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] {
+        def unconsAll[F[_]](p: @{tpes.prodTpe})(implicit U: Uncons[F]): (List[@{tpes.copTpeF("Id")}], @{tpes.prodTpe}) = {
+          @{1.to(tpes.length).toList.map(i => s"val (h$i, t$i) = ${tpes.foldLen01("U")(s"${tpes.foldMapName(i - 1)}.unconsAll")}(p${tpes.prodAccess(i)})").mkString("\n      ")}
+          (List(@{1.to(tpes.length).toList.map(i => s"h$i.map(Inj[${tpes.copTpeF("Id")}, ${tpes.selCop(Some("Id"))(i - 1)}].apply(_))").mkString(", ")}).flatten,
+            @{tpes.prodTpe}(@{1.to(tpes.length).toList.map(i => s"t$i").mkTuple}))
+        }
+
+        def unconsOne[F[_]](p: @{tpes.prodTpe}, c: @{tpes.copTpeF("Id")})(implicit U: Uncons[F]): (Option[@{tpes.copTpeF("Id")}], @{tpes.prodTpe}) =
+          c.run match {
+            @{tpes.zipper(FoldMap(_)).mkString("").dropWhile(_ == ' ')}
+          }
+      }
 
     implicit def @{tpes.prodName}Monoid[F[_], @{tpes.axoTpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
       MF.xmap(M, @{tpes.prodTpe}(_: @{tpes.prodK("F")}), (_: @{tpes.prodTpe}).run)

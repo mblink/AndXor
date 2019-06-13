@@ -3,8 +3,7 @@
 @(tpes: List[String])
 
 import andxor.types.{@{tpes.copName}, @{tpes.prodName}}
-import scala.annotation.tailrec
-import scalaz.{Apply, Functor, PlusEmpty, Monoid@{tpes.foldLen01("")(", \\/, -\\/, \\/-")}, ~>}
+import scalaz.{Apply, Monoid@{tpes.foldLen01("")(", \\/")}}
 import scalaz.Id.Id
 
 trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends AndXor {
@@ -59,68 +58,6 @@ trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends AndXor {
     implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
   }
-
-  def transformP[F[_], G[_]](nt: (F ~> G))@{tpes.transformParams("Prod").asImpls(false)}: Prod[F] => Prod[G] =
-    Transform[Prod].transform(nt)
-
-  def transformC[F[_], G[_]](nt: (F ~> G))@{tpes.transformParams("Cop").asImpls(false)}: Cop[F] => Cop[G] =
-    Transform[Cop].transform(nt)
-
-  def sequenceP[F[_]](p: Prod[F])(implicit F: Apply[F]@{tpes.sequenceParams("Prod").asImpls(true)}): F[Prod[Id]] =
-    Sequence[Prod, Apply].sequence(p)
-
-  def sequenceC[F[_]](c: Cop[F])(implicit F: Functor[F]@{tpes.sequenceParams("Cop").asImpls(true)}): F[Cop[Id]] =
-    Sequence[Cop, Functor].sequence(c)
-
-  def extractC[F[_], B](c: Cop[F])(implicit inj: Inj[Option[B], Cop[F]]): Option[B] = inj(c)
-
-  def extractP[F[_], B](p: Prod[F])(implicit inj: Inj[B, Prod[F]]): B = inj(p)
-
-  // format: off
-  def foldMap[F[_], C](p: Prod[F])(map: Cop[Id] => C)(
-    implicit O: Ordering[Cop[Id]],
-    M: Monoid[C],
-    PE: PlusEmpty[F],
-    U: Uncons[F]@{tpes.foldLen01("")(",\n    " ++ tpes.map(t => s"Uncons0[$t#Prod, $t#Cop]").paramSig("U"))}
-  ): C = {
-    import scala.collection.mutable.{PriorityQueue => PQ}
-
-    def uncons(p: Prod[F]): (List[Cop[Id]], Prod[F]) = {
-      @{1.to(tpes.length).toList.map(i => s"val (h$i, t$i) = ${tpes.unconsName(i - 1)}(p${tpes.prodAccess(i)})").mkString("\n      ")}
-      (List(@{1.to(tpes.length).toList.map(i => s"h$i.map(inj(_: ${tpes.selCop(Some("Id"))(i - 1)}))").mkString(", ")}).flatten,
-        Prod[F](@{1.to(tpes.length).toList.map(i => s"t$i").mkTuple}))
-    }
-
-    @@tailrec
-    def appendAll(out: C, q: PQ[Cop[Id]]): C =
-      q.isEmpty match {
-        case true => out
-        case false =>
-          val newOut = M.append(out, map(q.dequeue))
-          appendAll(newOut, q)
-      }
-
-    @@tailrec
-    def go(prod: Prod[F], q: PQ[Cop[Id]], out: C): C =
-      (prod.run.==(@{tpes.map(t => s"PE.empty[${t}]").mkTuple})) match {
-        case true => appendAll(out, q)
-        case false => q.isEmpty match @{s"""{
-          case true => {
-            val (hs, ts) = uncons(prod)
-            q ++= hs
-            go(ts, q, out)
-          }
-          case false => q.dequeue.run match {
-            ${tpes.zipper(FoldMap(_)).mkString("").dropWhile(_ == ' ')}
-          }
-        }"""}
-      }
-    val Q = new PQ[Cop[Id]]()(O)
-    val (hs, ts) = uncons(p)
-    Q ++= hs
-    go(ts, Q, M.zero)
-  }
-  // format: on
 }
 
 object AndXor@{tpes.length} {

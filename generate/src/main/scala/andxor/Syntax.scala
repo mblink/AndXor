@@ -90,6 +90,9 @@ object syntax {
       foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).map(t =>
         s"$t, ${if (copOrProd == "Prod") "Apply" else "Functor"}").paramSigArgs("Sequence", "seq"))
 
+    def foldMapParams: LS =
+      foldLen01[LS](Nil)(selProd(None).zip(selCop(None)).map(t => s"${t._1}, ${t._2}").paramSigArgs("FoldMap", "fm"))
+
     def asImpls(otherImpls: Boolean): String =
       tpes.isEmpty.fold("", otherImpls.fold(s", ${tpes.mkString(", ")}", s"(implicit ${tpes.mkString(", ")})"))
 
@@ -109,7 +112,7 @@ object syntax {
     def foldLen01[A](lteq1: => A)(gt1: => A): A = (tpes.length <= 1).fold(lteq1, gt1)
     def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)((tpes.length == 1).fold(eq1, gt1))
 
-    def unconsName(idx: Int): String = "U" ++ foldLen01("")(idx.toString)
+    def foldMapName(idx: Int): String = "fm" ++ foldLen01("")(idx.toString)
   }
 
   implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {

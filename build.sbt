@@ -79,7 +79,7 @@ lazy val generate = project.in(file("generate"))
     resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies ++= Seq(
       "com.github.pathikrit" %% "better-files" % "3.5.0",
-      "org.scalameta" %% "scalafmt-core" % "2.0.0-RC6",
+      "org.scalariform" %% "scalariform" % "0.2.10",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     ),
     TwirlKeys.templateImports := Seq()

@@ -7,6 +7,8 @@ trait Inj[Cop, A] {
 }
 
 object Inj {
+  def apply[Cop, A](implicit ev: Inj[Cop, A]): Inj[Cop, A] = ev
+
   def instance[A, B](ab: A => B): Inj[B, A] = new Inj[B, A] {
     def apply(a: A): B = ab(a)
   }
@@ -30,19 +32,5 @@ object Inj {
           val (i1, i2) = f(z)
           S.append(a1(i1), a2(i2))
         }
-    }
-}
-
-trait JoinInj[Cop, Cop0, A] extends Inj[Cop, A] {
-  def i1: Inj[Cop0, A]
-  def i2: Inj[Cop, Cop0]
-  def apply(a: A): Cop = i2(i1(a))
-}
-
-object JoinInj {
-  implicit def joinInj[Cop, Cop0, A](implicit i10: Inj[Cop0, A], i20: Inj[Cop, Cop0]): JoinInj[Cop, Cop0, A] =
-    new JoinInj[Cop, Cop0, A] {
-      lazy val i1 = i10
-      lazy val i2 = i20
     }
 }

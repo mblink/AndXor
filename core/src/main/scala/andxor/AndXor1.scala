@@ -1,8 +1,7 @@
 package andxor
 
 import andxor.types.{Cop1, Prod1}
-import scala.annotation.tailrec
-import scalaz.{Apply, Functor, PlusEmpty, Monoid, ~>}
+import scalaz.{Apply, Monoid}
 import scalaz.Id.Id
 
 trait AndXor1[A1] extends AndXor {
@@ -47,72 +46,6 @@ trait AndXor1[A1] extends AndXor {
     implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
   }
-
-  def transformP[F[_], G[_]](nt: (F ~> G)): Prod[F] => Prod[G] =
-    Transform[Prod].transform(nt)
-
-  def transformC[F[_], G[_]](nt: (F ~> G)): Cop[F] => Cop[G] =
-    Transform[Cop].transform(nt)
-
-  def sequenceP[F[_]](p: Prod[F])(implicit F: Apply[F]): F[Prod[Id]] =
-    Sequence[Prod, Apply].sequence(p)
-
-  def sequenceC[F[_]](c: Cop[F])(implicit F: Functor[F]): F[Cop[Id]] =
-    Sequence[Cop, Functor].sequence(c)
-
-  def extractC[F[_], B](c: Cop[F])(implicit inj: Inj[Option[B], Cop[F]]): Option[B] = inj(c)
-
-  def extractP[F[_], B](p: Prod[F])(implicit inj: Inj[B, Prod[F]]): B = inj(p)
-
-  // format: off
-  def foldMap[F[_], C](p: Prod[F])(map: Cop[Id] => C)(
-    implicit O: Ordering[Cop[Id]],
-    M: Monoid[C],
-    PE: PlusEmpty[F],
-    U: Uncons[F]
-  ): C = {
-    import scala.collection.mutable.{PriorityQueue => PQ}
-
-    def uncons(p: Prod[F]): (List[Cop[Id]], Prod[F]) = {
-      val (h1, t1) = U(p.run)
-      (List(h1.map(inj(_: Id[A1]))).flatten,
-        Prod[F](t1))
-    }
-
-    @tailrec
-    def appendAll(out: C, q: PQ[Cop[Id]]): C =
-      q.isEmpty match {
-        case true => out
-        case false =>
-          val newOut = M.append(out, map(q.dequeue))
-          appendAll(newOut, q)
-      }
-
-    @tailrec
-    def go(prod: Prod[F], q: PQ[Cop[Id]], out: C): C =
-      (prod.run.==(PE.empty[A1])) match {
-        case true => appendAll(out, q)
-        case false => q.isEmpty match {
-          case true => {
-            val (hs, ts) = uncons(prod)
-            q ++= hs
-            go(ts, q, out)
-          }
-          case false => q.dequeue.run match {
-            case dj @ _ =>
-              val (h, t) = U(prod.run)
-              go(Prod[F](t),
-                q ++= h.map(inj(_: Id[A1])), M.append(out, map(Cop[Id](dj))))
-
-          }
-        }
-      }
-    val Q = new PQ[Cop[Id]]()(O)
-    val (hs, ts) = uncons(p)
-    Q ++= hs
-    go(ts, Q, M.zero)
-  }
-  // format: on
 }
 
 object AndXor1 {

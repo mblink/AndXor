@@ -1,20 +1,17 @@
 package andxor
 
 import better.files.Dsl._
-import org.scalafmt.Scalafmt
 import play.twirl.api.Txt
+import scalariform.formatter.ScalaFormatter
+import scalariform.formatter.preferences._
 import scalaz.syntax.std.boolean._
 
 object Generate extends App {
   val maxN = 22
 
-  val conf = Scalafmt.parseHoconConfig(
-    """align.openParenCallSite=false
-       binPack.literalArgumentLists=true
-       maxColumn=200
-       newlines.penalizeSingleSelectMultiArgList=false
-       verticalMultiline.atDefnSite=false
-       verticalMultiline.newlineAfterOpenParen=false""").get
+  val conf = FormattingPreferences()
+    .setPreference(NewlineAtEndOfFile, true)
+    .setPreference(SpacesAroundMultiImports, false)
 
   def mkTpeList(start: Int, end: Int): List[List[String]] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
 
@@ -29,7 +26,7 @@ object Generate extends App {
       println(s"Generating $f...")
       val toWrite = format.fold({
         println("    formatting...")
-        Scalafmt.format(code, conf).get.toString
+        ScalaFormatter.format(code, conf)
       }, code)
       println("    writing...")
       f.overwrite(toWrite)
