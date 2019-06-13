@@ -19,4 +19,12 @@
 
     implicit def inja@{z.index}@{F}[@{tp}@{tpes.axoTpeParams}]: Inj[@{tpes.copTpeF(F)}, @{wrappedTpe}] =@if(isId) { inja@{z.index}F[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.reverseGet(_)) }
 
-    implicit def inja@{z.index}@{F}Inverse[F[_], @{tpes.axoTpeParams}]: Inj[Option[@{wrappedTpe}], @{tpes.copTpeF(F)}] =@if(isId) { inja@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.getOption(_)) }
+    implicit def inja@{z.index}@{F}Inverse[@{tp}@{tpes.axoTpeParams}]: Inj[Option[@{wrappedTpe}], @{tpes.copTpeF(F)}] =@if(isId) { inja@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.getOption(_)) }
+
+    @if(z.toList.length > 1) {
+    implicit def injViaA@{z.index}@{F}[@{tp}@{tpes.axoTpeParams}, A](implicit i: Inj[@{wrappedTpe}, A]): Inj[@{tpes.copTpeF(F)}, A] =
+      @if(isId) { injViaA@{z.index}F[Id, @{tpes.tpeParams}, A] } else { Inj.instance((i.apply _).andThen(inja@{z.index}@{F}[@{F}, @{tpes.tpeParams}].apply _)) }
+
+    implicit def injViaA@{z.index}@{F}Inverse[@{tp}@{tpes.axoTpeParams}, A](implicit i: Inj[Option[A], @{wrappedTpe}]): Inj[Option[A], @{tpes.copTpeF(F)}] =
+      @if(isId) { injViaA@{z.index}FInverse[Id, @{tpes.tpeParams}, A] } else { Inj.instance(inja@{z.index}@{F}Inverse[@{F}, @{tpes.tpeParams}](_).flatMap(i(_))) }
+    }

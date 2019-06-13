@@ -1,4 +1,5 @@
 @import andxor.syntax._
 
 @(tpes: List[String])
-  def build[@{tpes.tpeParams}]: AndXor@{tpes.length}[@{tpes.tpeParams}] = AndXor@{tpes.length}[@{tpes.tpeParams}]
+
+  def build[@{tpes.tpeParams}](implicit @{tpes.paramSig("AndXorLift", "l")}): @{tpes.builtAndXor} = @{tpes.builtAndXor}

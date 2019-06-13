@@ -1,8 +1,9 @@
 @import andxor.syntax._
+@import scalaz.syntax.std.boolean._
 
 @(tpeLists: List[List[String]])
 
-import scalaz.{Monoid, Need}
+@tpeLists.filter(_.length > 8).nonEmpty.fold("import scalaz.{Monoid, Need}", "")
 
 package object tuple {
   @tpeLists.filter(_.length > 8).map { tpes =>

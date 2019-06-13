@@ -1,6 +1,5 @@
 @(tpes: List[List[String]])
 
-import andxor.tuple._
 import scalaz.{Apply, \/}
 
 object Combine {

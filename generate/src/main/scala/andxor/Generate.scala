@@ -1,5 +1,6 @@
 package andxor
 
+import andxor.syntax._
 import better.files.Dsl._
 import play.twirl.api.Txt
 import scalariform.formatter.ScalaFormatter
@@ -7,13 +8,11 @@ import scalariform.formatter.preferences._
 import scalaz.syntax.std.boolean._
 
 object Generate extends App {
-  val maxN = 22
+  val maxN = 2
 
   val conf = FormattingPreferences()
     .setPreference(NewlineAtEndOfFile, true)
     .setPreference(SpacesAroundMultiImports, false)
-
-  def mkTpeList(start: Int, end: Int): List[List[String]] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
 
   val tpeLists = mkTpeList(1, maxN)
 
@@ -21,9 +20,10 @@ object Generate extends App {
 
   def maybeWrite(name: String, txt: Txt, format: Boolean = true): Unit = {
     val f = cwd/"core"/"src"/"main"/"scala"/"andxor"/name
+    println(s"Generating $f...")
+    println("    generating...")
     val code = "package andxor\n\n" ++ txt.toString
     if (f.notExists || noWs(f.contentAsString) != noWs(code)) {
-      println(s"Generating $f...")
       val toWrite = format.fold({
         println("    formatting...")
         ScalaFormatter.format(code, conf)
@@ -36,7 +36,7 @@ object Generate extends App {
     }
   }
 
-  maybeWrite("AndXor.scala", template.txt.AndXor(tpeLists))
+  maybeWrite("AndXor.scala", template.txt.AndXor(), false)
   maybeWrite("Derivation.scala", template.txt.Derivation(tpeLists))
   maybeWrite("Types.scala", template.txt.Types(tpeLists))
   tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))

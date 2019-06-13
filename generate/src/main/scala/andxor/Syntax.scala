@@ -1,7 +1,9 @@
 package andxor
 
-import scalaz.Zipper
+import scala.collection.immutable.SortedSet
+import scalaz.{\/, Zipper}
 import scalaz.syntax.comonad._
+import scalaz.syntax.either._
 import scalaz.syntax.std.boolean._
 
 object syntax {
@@ -12,6 +14,30 @@ object syntax {
   val parens = (s: String) => s"($s)"
 
   type LS = List[String]
+
+  def mkTpeList(start: Int, end: Int): List[LS] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
+
+  case class BoundedType(tpe: String, bound: String) { def tp: String = s"${tpe}${bound}" }
+  implicit class BoundedTypeOps(tpes: List[BoundedType]) {
+    def tpeParams: String = tpes.map(_.tp).mkString(", ")
+  }
+
+  implicit class TpeOps(s: String) {
+    def bounded(bound: String): BoundedType = BoundedType(s, bound)
+  }
+
+  implicit class TpeDjOps(tpes: List[String \/ BoundedType]) {
+    def tpeParams: String = tpes.map(_.map(_.tp).merge).mkString(", ")
+  }
+
+  implicit class TpesTpesOps(tpess: List[List[String]]) {
+    def boundedPermutations(bound: String): Iterator[SortedSet[String \/ BoundedType]] =
+      tpess.toIterator.flatMap { ts =>
+        val tpes = ts.toSet
+        tpes.subsets.map(bounded => SortedSet((tpes.diff(bounded).map(_.left[BoundedType]) ++
+          bounded.map(BoundedType(_, bound).right[String])).toSeq:_*)(Ordering.by(_.map(_.tp).merge[String])))
+      }
+  }
 
   implicit class TpesOps(tpes: LS) {
     def selCopOrProd(copOrProd: String, F: Option[String]): LS =
@@ -57,7 +83,10 @@ object syntax {
 
     def hkTpeParams: String = tpes.map(t => s"$t[_[_]]").mkString(", ")
 
-    def axoTpeParams: String = foldLen01(tpes)(tpes.map(s => s"$s <: AndXor")).mkString(", ")
+    def bounded(bound: String): List[BoundedType] = tpes.map(_.bounded(bound))
+
+    def axoTpeParamsList: List[BoundedType] = bounded(foldLen01("")(" <: AndXor"))
+    def axoTpeParams: String = axoTpeParamsList.tpeParams
 
     def paramSig(FG: LS, a: String): String =
       tpes.zipWithIndex.map(s => s"${a}${s._2}: ${FG.foldRight(s._1)((e, a) => s"${e}[${a}]")}").mkString(", ")
@@ -82,6 +111,10 @@ object syntax {
 
     def params(a: String, sIx: Int = 0): String =
       paramList(a, sIx).mkString(", ")
+
+    def derivingParams(copOrProd: String, TC: String, F: String): LS =
+      foldLen[LS](Nil)(List(s"tc: $TC[$F[${tpes.head}]]"))(selCopOrProd(copOrProd, None)
+        .map(t => s"Deriving$copOrProd[$t, $F, $TC]").paramSigArgs("deriving"))
 
     def transformParams(copOrProd: String): LS =
       foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("Transform", "trans"))
@@ -113,6 +146,8 @@ object syntax {
     def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)((tpes.length == 1).fold(eq1, gt1))
 
     def foldMapName(idx: Int): String = "fm" ++ foldLen01("")(idx.toString)
+
+    def builtAndXor: String = tpes.zipWithIndex.map(t => s"l${t._2}.AXO").reduceRight((t, a) => s"AndXor2[$t, $a]")
   }
 
   implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {

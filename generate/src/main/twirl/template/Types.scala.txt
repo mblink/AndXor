@@ -3,7 +3,6 @@
 @(tpeLists: List[List[String]])
 
 import andxor.Sequence.ops._
-import andxor.tuple._
 import andxor.Transform.ops._
 import scalaz.{\/, -\/, \/-, ~>, Apply, Functor, InvariantFunctor, Monoid}
 import scalaz.Id.Id
@@ -14,19 +13,17 @@ object types {
     sealed trait Dummy@{i}; object Dummy@{i} { implicit val inst: Dummy@{i} = new Dummy@{i} {} }}
   }
 
-  // import dummy._
+  import dummy._
 
   private val MF = InvariantFunctor[Monoid]
   @tpeLists.map { tpes =>
   @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) {
     @template.txt.TupleAccess("run", tpes.prodTpes())
 
-    @*
     @if(tpes.length > 1) {
-    private def mapN = new Map@{tpes.length}P[@{tpes.tpeParamsF("F")}] {}
+    private def mapN = new Map@{tpes.length}P[@{tpes.selCopOrProd("Prod", Some("F")).tpeParams}] {}
     @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
     }
-    *@
   }
 
   trait @{tpes.prodName}LP {
@@ -57,6 +54,22 @@ object types {
         def unconsOne[F[_]](p: @{tpes.prodTpe}, c: @{tpes.copTpeF("Id")})(implicit U: Uncons[F]): (Option[@{tpes.copTpeF("Id")}], @{tpes.prodTpe}) =
           c.run match {
             @{tpes.zipper(FoldMap(_)).mkString("").dropWhile(_ == ' ')}
+          }
+      }
+
+    implicit def @{tpes.prodName}DerivingProd[TC[_], F[_], @{tpes.axoTpeParams}]@{tpes.derivingParams("Prod", "TC", "F").asImpls(false)}: DerivingProd[@{tpes.prodTpeF("?[_]")}, F, TC] =
+      new DerivingProd[@{tpes.prodTpeF("?[_]")}, F, TC] {
+        def mkDivide[A](f: A => @{tpes.prodTpe})(implicit D: Divide[TC]): TC[A] =
+          @tpes.foldLen01("D.contramap(tc)(f(_).run)")(s"Combine.divide${tpes.length}(${
+            tpes.paramListF(i => s"deriving$i.divide").mkString(", ")})(f(_).run)")
+
+
+        def mkApply[A](f: @{tpes.prodTpe} => A)(implicit A: Apply[TC]): TC[A] =
+          @tpes.foldLen01[Any](s"A.map(tc)(x => f(${tpes.prodTpe}(x)))") {
+          Combine.apply@{tpes.length}(@{tpes.paramListF(i => s"deriving$i.apply").mkString(", ")}) {
+            case @{tpes.paramList("i").mkTuple} =>
+              f(@{tpes.prodTpe}(@{tpes.paramList("i").mkTuple}))
+          }
           }
       }
 
@@ -91,6 +104,17 @@ object types {
           c.run match {
             @{tpes.zipper(SequenceC(_)).mkString("        ").trim}
           }
+      }
+
+    implicit def @{tpes.prodName}DerivingCop[TC[_], F[_], @{tpes.axoTpeParams}]@{tpes.derivingParams("Cop", "TC", "F").asImpls(false)}: DerivingCop[@{tpes.copTpeF("?[_]")}, F, TC] =
+      new DerivingCop[@{tpes.copTpeF("?[_]")}, F, TC] {
+        def mkAlt[A](f: @{tpes.copTpe} => A)(implicit A: Alt[TC]): TC[A] =
+          @tpes.foldLen01(s"A.map(tc)(x => f(${tpes.copTpe}(x)))")(s"Combine.altly${tpes.length}(${
+            tpes.paramListF(i => s"deriving$i.alt").mkString(", ")})(x => f(${tpes.copTpe}(x)))")
+
+        def mkChoose[A](f: A => @{tpes.copTpe})(implicit D: Decidable[TC]): TC[A] =
+          @tpes.foldLen01("D.contramap(tc)(f(_).run)")(s"Combine.choose${tpes.length}(${
+            tpes.paramListF(i => s"deriving$i.choose").mkString(", ")})(f(_).run)")
       }
 
     @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")

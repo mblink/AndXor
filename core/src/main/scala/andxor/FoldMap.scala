@@ -48,12 +48,17 @@ trait FoldMap[Prod[_[_]], Cop[_[_]]] {
   }
 }
 
-// object Transform {
-//   def apply[F[_[_]]](implicit ev: Transform[F]): Transform[F] = ev
+object FoldMap {
+  def apply[Prod[_[_]], Cop[_[_]]](implicit ev: FoldMap[Prod, Cop]): FoldMap[Prod, Cop] = ev
 
-//   object ops {
-//     implicit class TransformOps[F[_[_]], G[_]](fg: F[G])(implicit T: Transform[F]) {
-//       def transform[H[_]](nt: G ~> H): F[H] = T.transform(nt)(fg)
-//     }
-//   }
-// }
+  object ops {
+    implicit class FoldMapOps[Prod[_[_]], Cop[_[_]], F[_]](prod: Prod[F])(
+      implicit F: FoldMap[Prod, Cop],
+      O: Ordering[Cop[Id]],
+      MP: Monoid[Prod[F]],
+      U: Uncons[F]
+    ) {
+      def foldMap[C](map: Cop[Id] => C)(implicit M: Monoid[C]): C = F.foldMap(prod)(map)
+    }
+  }
+}
