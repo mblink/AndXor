@@ -1,7 +1,7 @@
 package andxor
 
-import andxor.Sequence.ops._
-import andxor.Transform.ops._
+import andxor.Sequence.syntax._
+import andxor.Transform.syntax._
 import scalaz.{\/, -\/, \/-, ~>, Apply, Functor, InvariantFunctor, Monoid}
 import scalaz.Id.Id
 
@@ -11,8 +11,6 @@ object types {
     sealed trait Dummy1; object Dummy1 { implicit val inst: Dummy1 = new Dummy1 {} }
     sealed trait Dummy2; object Dummy2 { implicit val inst: Dummy2 = new Dummy2 {} }
   }
-
-  import dummy._
 
   private val MF = InvariantFunctor[Monoid]
 
@@ -36,28 +34,28 @@ object types {
 
     implicit def Prod1FoldMap[A1]: FoldMap[Prod1[?[_], A1], Cop1[?[_], A1]] =
       new FoldMap[Prod1[?[_], A1], Cop1[?[_], A1]] {
-        def unconsAll[F[_]](p: Prod1[F, A1])(implicit U: Uncons[F]): (List[Cop1[Id, A1]], Prod1[F, A1]) = {
+        def unconsAll[F[_], G[_]](p: Prod1[F, A1])(implicit U: Uncons[F, G]): (List[Cop1[G, A1]], Prod1[F, A1]) = {
           val (h1, t1) = U(p.run)
           (
-            List(h1.map(Inj[Cop1[Id, A1], Id[A1]].apply(_))).flatten,
+            List(h1.map(Inj[Cop1[G, A1], G[A1]].apply(_))).flatten,
             Prod1[F, A1](t1))
         }
 
-        def unconsOne[F[_]](p: Prod1[F, A1], c: Cop1[Id, A1])(implicit U: Uncons[F]): (Option[Cop1[Id, A1]], Prod1[F, A1]) =
+        def unconsOne[F[_], G[_]](p: Prod1[F, A1], c: Cop1[G, A1])(implicit U: Uncons[F, G]): (Option[Cop1[G, A1]], Prod1[F, A1]) =
           c.run match {
             case _ =>
               val (h, t) = U(p.run)
-              (h.map(v => Cop1[Id, A1](v)), Prod1[F, A1](t))
+              (h.map(v => Cop1[G, A1](v)), Prod1[F, A1](t))
 
           }
       }
 
     implicit def Prod1DerivingProd[TC[_], F[_], A1](implicit tc: TC[F[A1]]): DerivingProd[Prod1[?[_], A1], F, TC] =
       new DerivingProd[Prod1[?[_], A1], F, TC] {
-        def mkDivide[A](f: A => Prod1[F, A1])(implicit D: Divide[TC]): TC[A] =
+        def mkContravariant[A](f: A => Prod1[F, A1])(implicit D: Divide[TC]): TC[A] =
           D.contramap(tc)(f(_).run)
 
-        def mkApply[A](f: Prod1[F, A1] => A)(implicit A: Apply[TC]): TC[A] =
+        def mkCovariant[A](f: Prod1[F, A1] => A)(implicit A: Apply[TC]): TC[A] =
           A.map(tc)(x => f(Prod1[F, A1](x)))
       }
 
@@ -101,10 +99,10 @@ object types {
 
     implicit def Prod1DerivingCop[TC[_], F[_], A1](implicit tc: TC[F[A1]]): DerivingCop[Cop1[?[_], A1], F, TC] =
       new DerivingCop[Cop1[?[_], A1], F, TC] {
-        def mkAlt[A](f: Cop1[F, A1] => A)(implicit A: Alt[TC]): TC[A] =
+        def mkCovariant[A](f: Cop1[F, A1] => A)(implicit A: Alt[TC]): TC[A] =
           A.map(tc)(x => f(Cop1[F, A1](x)))
 
-        def mkChoose[A](f: A => Cop1[F, A1])(implicit D: Decidable[TC]): TC[A] =
+        def mkContravariant[A](f: A => Cop1[F, A1])(implicit D: Decidable[TC]): TC[A] =
           D.contramap(tc)(f(_).run)
       }
 
@@ -130,20 +128,6 @@ object types {
     def t1: A1#Prod[F] = run._1
     def t2: A2#Prod[F] = run._2
 
-    private def mapN = new Map2P[A1#Prod[F], A2#Prod[F]] {}
-
-    def map1[B <: AndXor](f: A1#Prod[F] => B#Prod[F]): Prod2[F, B, A2] =
-      Prod2[F, B, A2](mapN.map1(run)(f))
-
-    def mapAt[B <: AndXor](f: A1#Prod[F] => B#Prod[F]): Prod2[F, B, A2] =
-      Prod2[F, B, A2](mapN.mapAt(f)(run))
-
-    def map2[B <: AndXor](f: A2#Prod[F] => B#Prod[F]): Prod2[F, A1, B] =
-      Prod2[F, A1, B](mapN.map2(run)(f))
-
-    def mapAt[B <: AndXor](f: A2#Prod[F] => B#Prod[F])(implicit d: Dummy2): Prod2[F, A1, B] =
-      Prod2[F, A1, B](mapN.mapAt(f)(run))
-
   }
 
   trait Prod2LP {
@@ -161,32 +145,32 @@ object types {
 
     implicit def Prod2FoldMap[A1 <: AndXor, A2 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop]): FoldMap[Prod2[?[_], A1, A2], Cop2[?[_], A1, A2]] =
       new FoldMap[Prod2[?[_], A1, A2], Cop2[?[_], A1, A2]] {
-        def unconsAll[F[_]](p: Prod2[F, A1, A2])(implicit U: Uncons[F]): (List[Cop2[Id, A1, A2]], Prod2[F, A1, A2]) = {
+        def unconsAll[F[_], G[_]](p: Prod2[F, A1, A2])(implicit U: Uncons[F, G]): (List[Cop2[G, A1, A2]], Prod2[F, A1, A2]) = {
           val (h1, t1) = fm0.unconsAll(p.t1)
           val (h2, t2) = fm1.unconsAll(p.t2)
           (
-            List(h1.map(Inj[Cop2[Id, A1, A2], A1#Cop[Id]].apply(_)), h2.map(Inj[Cop2[Id, A1, A2], A2#Cop[Id]].apply(_))).flatten,
+            List(h1.map(Inj[Cop2[G, A1, A2], A1#Cop[G]].apply(_)), h2.map(Inj[Cop2[G, A1, A2], A2#Cop[G]].apply(_))).flatten,
             Prod2[F, A1, A2]((t1, t2)))
         }
 
-        def unconsOne[F[_]](p: Prod2[F, A1, A2], c: Cop2[Id, A1, A2])(implicit U: Uncons[F]): (Option[Cop2[Id, A1, A2]], Prod2[F, A1, A2]) =
+        def unconsOne[F[_], G[_]](p: Prod2[F, A1, A2], c: Cop2[G, A1, A2])(implicit U: Uncons[F, G]): (Option[Cop2[G, A1, A2]], Prod2[F, A1, A2]) =
           c.run match {
             case -\/(x) =>
               val (h, t) = fm0.unconsOne(p.t1, x)
-              (h.map(v => Cop2[Id, A1, A2](-\/(v))), Prod2[F, A1, A2]((t, p.t2)))
+              (h.map(v => Cop2[G, A1, A2](-\/(v))), Prod2[F, A1, A2]((t, p.t2)))
             case \/-(x) =>
               val (h, t) = fm1.unconsOne(p.t2, x)
-              (h.map(v => Cop2[Id, A1, A2](\/-(v))), Prod2[F, A1, A2]((p.t1, t)))
+              (h.map(v => Cop2[G, A1, A2](\/-(v))), Prod2[F, A1, A2]((p.t1, t)))
 
           }
       }
 
     implicit def Prod2DerivingProd[TC[_], F[_], A1 <: AndXor, A2 <: AndXor](implicit deriving0: DerivingProd[A1#Prod, F, TC], deriving1: DerivingProd[A2#Prod, F, TC]): DerivingProd[Prod2[?[_], A1, A2], F, TC] =
       new DerivingProd[Prod2[?[_], A1, A2], F, TC] {
-        def mkDivide[A](f: A => Prod2[F, A1, A2])(implicit D: Divide[TC]): TC[A] =
+        def mkContravariant[A](f: A => Prod2[F, A1, A2])(implicit D: Divide[TC]): TC[A] =
           Combine.divide2(deriving0.divide, deriving1.divide)(f(_).run)
 
-        def mkApply[A](f: Prod2[F, A1, A2] => A)(implicit A: Apply[TC]): TC[A] =
+        def mkCovariant[A](f: Prod2[F, A1, A2] => A)(implicit A: Apply[TC]): TC[A] =
 
           Combine.apply2(deriving0.apply, deriving1.apply) {
             case (i0, i1) =>
@@ -277,10 +261,10 @@ object types {
 
     implicit def Prod2DerivingCop[TC[_], F[_], A1 <: AndXor, A2 <: AndXor](implicit deriving0: DerivingCop[A1#Cop, F, TC], deriving1: DerivingCop[A2#Cop, F, TC]): DerivingCop[Cop2[?[_], A1, A2], F, TC] =
       new DerivingCop[Cop2[?[_], A1, A2], F, TC] {
-        def mkAlt[A](f: Cop2[F, A1, A2] => A)(implicit A: Alt[TC]): TC[A] =
+        def mkCovariant[A](f: Cop2[F, A1, A2] => A)(implicit A: Alt[TC]): TC[A] =
           Combine.altly2(deriving0.alt, deriving1.alt)(x => f(Cop2[F, A1, A2](x)))
 
-        def mkChoose[A](f: A => Cop2[F, A1, A2])(implicit D: Decidable[TC]): TC[A] =
+        def mkContravariant[A](f: A => Cop2[F, A1, A2])(implicit D: Decidable[TC]): TC[A] =
           Combine.choose2(deriving0.choose, deriving1.choose)(f(_).run)
       }
 

@@ -1,6 +1,7 @@
 package andxor
 
 import andxor.tuple._
+import andxor.types._
 import andxor.types.dummy._
 import scalaz.\/
 
@@ -67,6 +68,23 @@ object MapN {
 
       def mapAt[B](f: A2 => B)(implicit @scalaz.unused d: Dummy2): (A1, B) =
         mapN.map2(p)(f)
+
+    }
+
+    implicit class MapProd2Ops[F[_], A1 <: AndXor, A2 <: AndXor](p: Prod2[F, A1, A2]) {
+      private def mapN = new Map2P[A1#Prod[F], A2#Prod[F]] {}
+
+      def map1[B <: AndXor](f: A1#Prod[F] => B#Prod[F]): Prod2[F, B, A2] =
+        Prod2[F, B, A2](mapN.map1(p.run)(f))
+
+      def mapAt[B <: AndXor](f: A1#Prod[F] => B#Prod[F]): Prod2[F, B, A2] =
+        Prod2[F, B, A2](mapN.mapAt(f)(p.run))
+
+      def map2[B <: AndXor](f: A2#Prod[F] => B#Prod[F]): Prod2[F, A1, B] =
+        Prod2[F, A1, B](mapN.map2(p.run)(f))
+
+      def mapAt[B <: AndXor](f: A2#Prod[F] => B#Prod[F])(implicit d: Dummy2): Prod2[F, A1, B] =
+        Prod2[F, A1, B](mapN.mapAt(f)(p.run))
 
     }
 

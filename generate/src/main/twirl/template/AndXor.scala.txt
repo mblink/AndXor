@@ -2,12 +2,12 @@
 
 @()
 
+import scalaz.{Apply, Monoid}
 import scalaz.Id.Id
-import scalaz.Monoid
 
 trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
-  implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]]
-  implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]]
+  implicit def injEv[F[_]](implicit d: DerivingCop[Cop, F, Inj[Cop[F], ?]]): Inj[Cop[F], Cop[F]]
+  implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]], d: DerivingProd[Prod, F, Inj[Prod[F], ?]]): Inj[Prod[F], Prod[F]]
 }
 
 trait AndXor {
@@ -22,6 +22,16 @@ trait AndXor {
   def liftId[A](a: A)(implicit inj: Inj[Prod[Id], Id[A]]): Prod[Id] = inj(a)
   def extractC[F[_], B](c: Cop[F])(implicit inj: Inj[Option[F[B]], Cop[F]]): Option[F[B]] = inj(c)
   def extractP[F[_], B](p: Prod[F])(implicit inj: Inj[F[B], Prod[F]]): F[B] = inj(p)
+
+  def choose[TC[_], F[_]](implicit x: Decidable[TC], d: DerivingCop[Cop, F, TC]): TC[Cop[F]] = d.choose
+  def alt[TC[_], F[_]](implicit x: Alt[TC], d: DerivingCop[Cop, F, TC]): TC[Cop[F]] = d.alt
+  def divide[TC[_], F[_]](implicit x: Divide[TC], d: DerivingProd[Prod, F, TC]): TC[Prod[F]] = d.divide
+  def apply[TC[_], F[_]](implicit x: Apply[TC], d: DerivingProd[Prod, F, TC]): TC[Prod[F]] = d.apply
+
+  def choose[TC[_]](implicit x: Decidable[TC], d: DerivingCop[Cop, Id, TC], _d: DummyImplicit): TC[Cop[Id]] = d.choose
+  def alt[TC[_]](implicit x: Alt[TC], d: DerivingCop[Cop, Id, TC], _d: DummyImplicit): TC[Cop[Id]] = d.alt
+  def divide[TC[_]](implicit x: Divide[TC], d: DerivingProd[Prod, Id, TC], _d: DummyImplicit): TC[Prod[Id]] = d.divide
+  def apply[TC[_]](implicit x: Apply[TC], d: DerivingProd[Prod, Id, TC], _d: DummyImplicit): TC[Prod[Id]] = d.apply
 }
 
 trait AndXorLift[A] { type AXO <: AndXor }

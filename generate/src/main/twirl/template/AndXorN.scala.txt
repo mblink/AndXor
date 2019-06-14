@@ -2,61 +2,26 @@
 
 @(tpes: List[String])
 
-import andxor.types.{@{tpes.copName}, @{tpes.prodName}}
-import scalaz.{Apply, Monoid@{tpes.foldLen01("")(", \\/")}}
-import scalaz.Id.Id
+import andxor.types._
+import scalaz.{Monoid@{tpes.foldLen01("")(", \\/")}}
 
-trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends AndXor {
+trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends @{tpes.andxorParent} {
   type Prod[F[_]] = @{tpes.prodTpe}
   object Prod {
-    def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] = @{tpes.prodTpe}(p)
+    def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] =
+      @{tpes.foldLen01(s"${tpes.prodTpe}(p)")(tpes.flatToNestedTuple(i => s"p._${i + 1}", (ts, s) => s"${ts.prodTpe}($s)"))}
   }
 
   type Cop[F[_]] = @{tpes.copTpe}
   object Cop {
-    def apply[F[_]](c: @{tpes.djK("F")}): Cop[F] = @{tpes.copTpe}(c)
+    def apply[F[_]](c: @{tpes.djK("F")}): Cop[F] =
+      @{tpes.foldLen01(s"${tpes.copTpe}(p)")(tpes.flatToNestedDj(i => ""))}
+      @{tpes.copTpe}(c)
   }
 
-  @*
-  def combineId[G[_]](implicit @@scalaz.unused ev: F[_] =:= Id[_], @{tpes.foldLen0("a0: G[Unit]")(tpes.paramSig("G", "a"))}): ComposeAndXor[G, @{tpes.copTpeF("Id")}, @{tpes.prodTpeF("Id")}] =
-    AndXor@{tpes.length}[@{tpes.tpeParams}].combine[G]
-  *@
-
-  def mkChoose[TC[_], F[_], B](f: B => Cop[F])(implicit d: Decidable[TC], @{tpes.tcDeps("Cop")}): TC[B] =
-    @tpes.foldLen01("d.contramap(a0)(f(_).run)")(s"Combine.choose${tpes.length}(${tpes.params("a")})(f(_).run)")
-
-  def mkAlt[TC[_], F[_], B](f: Cop[F] => B)(implicit a: Alt[TC], @{tpes.tcDeps("Cop")}): TC[B] =
-    @tpes.foldLen01("a.map(a0)(x => f(Cop(x)))")(s"Combine.altly${tpes.length}(${tpes.params("a")})(x => f(Cop(x)))")
-
-  def mkDivide[TC[_], F[_], B](f: B => Prod[F])(implicit d: Divide[TC], @{tpes.tcDeps("Prod")}): TC[B] =
-    @tpes.foldLen01("d.contramap(a0)(f(_).run)")(s"Combine.divide${tpes.length}(${tpes.params("a")})(f(_).run)")
-
-  def mkApply[TC[_], F[_], B](f: Prod[F] => B)(implicit a: Apply[TC], @{tpes.tcDeps("Prod")}): TC[B] =
-    @tpes.foldLen01[Any]("a.map(a0)(x => f(Prod(x)))") {
-    Combine.apply@{tpes.length}(@{tpes.params("a")}) {
-      case @{tpes.paramList("i").mkTuple} =>
-        f(Prod(@{tpes.paramList("i").mkTuple}))
-    }
-    }
-
-  def mkChoose[TC[_], B](f: B => Cop[Id])(implicit d: Decidable[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[B] = mkChoose[TC, Id, B](f)
-  def mkAlt[TC[_], B](f: Cop[Id] => B)(implicit a: Alt[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[B] = mkAlt[TC, Id, B](f)
-  def mkDivide[TC[_], B](f: B => Prod[Id])(implicit d: Divide[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[B] = mkDivide[TC, Id, B](f)
-  def mkApply[TC[_], B](f: Prod[Id] => B)(implicit a: Apply[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[B] = mkApply[TC, Id, B](f)
-
-  def choose[TC[_], F[_]](implicit d: Decidable[TC], @{tpes.tcDeps("Cop")}): TC[Cop[F]] = mkChoose[TC, F, Cop[F]](identity)
-  def alt[TC[_], F[_]](implicit a: Alt[TC], @{tpes.tcDeps("Cop")}): TC[Cop[F]] = mkAlt[TC, F, Cop[F]](identity)
-  def divide[TC[_], F[_]](implicit d: Divide[TC], @{tpes.tcDeps("Prod")}): TC[Prod[F]] = mkDivide[TC, F, Prod[F]](identity)
-  def apply[TC[_], F[_]](implicit a: Apply[TC], @{tpes.tcDeps("Prod")}): TC[Prod[F]] = mkApply[TC, F, Prod[F]](identity)
-
-  def choose[TC[_]](implicit d: Decidable[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[Cop[Id]] = mkChoose[TC, Cop[Id]](identity)
-  def alt[TC[_]](implicit a: Alt[TC], @{tpes.tcDeps("Cop", F = "Id")}, dummy: DummyImplicit): TC[Cop[Id]] = mkAlt[TC, Cop[Id]](identity)
-  def divide[TC[_]](implicit d: Divide[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[Prod[Id]] = mkDivide[TC, Prod[Id]](identity)
-  def apply[TC[_]](implicit a: Apply[TC], @{tpes.tcDeps("Prod", F = "Id")}, dummy: DummyImplicit): TC[Prod[Id]] = mkApply[TC, Prod[Id]](identity)
-
   object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
+    implicit def injEv[F[_]](implicit d: DerivingCop[Cop, F, Inj[Cop[F], ?]]): Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]], d: DerivingProd[Prod, F, Inj[Prod[F], ?]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
   }
 }
 
