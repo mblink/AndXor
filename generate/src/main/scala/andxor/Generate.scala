@@ -15,26 +15,19 @@ object Generate extends App {
     .setPreference(SpacesAroundMultiImports, false)
 
   val tpeLists = mkTpeList(1, maxN)
-  val tpeLists22 = mkTpeList(1, 3)
-
-  def noWs(s: String): String = s.filterNot(_.isWhitespace)
+  val tpeLists22 = mkTpeList(1, 22)
 
   def maybeWrite(name: String, txt: Txt, format: Boolean = true): Unit = {
     val f = cwd/"core"/"src"/"main"/"scala"/"andxor"/name
     println(s"Generating $f...")
-    println("    generating...")
     val code = "package andxor\n\n" ++ txt.toString
-    if (f.notExists || noWs(f.contentAsString) != noWs(code)) {
-      val toWrite = format.fold({
-        println("    formatting...")
-        ScalaFormatter.format(code, conf)
-      }, code)
-      println("    writing...")
-      f.overwrite(toWrite)
-      ()
-    } else {
-      println(s"Skipping $f -- content is unchanged")
-    }
+    val toWrite = format.fold({
+      println("    formatting...")
+      ScalaFormatter.format(code, conf)
+    }, code)
+    println("    writing...")
+    f.overwrite(toWrite)
+    ()
   }
 
   maybeWrite("AndXor.scala", template.txt.AndXor())

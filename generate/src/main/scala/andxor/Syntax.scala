@@ -152,17 +152,18 @@ object syntax {
 
     def foldMapName(idx: Int): String = "fm" ++ foldLen01("")(idx.toString)
 
-    def builtAndXor: String = tpes.zipWithIndex.map(t => s"l${t._2}.AXO").reduceRight((t, a) => s"AndXor2[$t, $a]")
+    def builtAndXor: String = s"AndXor${tpes.length}[${tpes.zipWithIndex.map(t => s"l${t._2}.AXO").tpeParams}]"
 
     def andxorParent: String = (tpes.length <= 2).fold("AndXor", tpes.reduceRight((t, a) => s"AndXor2[$t, $a]"))
 
-    def flatToNestedTuple(mkVal: Int => String, wrap: (List[String], String) => String): String =
-      foldLen01("")(tpes.init.zipWithIndex.foldRight(mkVal(tpes.length - 1))(
-        (t, a) => wrap(tpes.takeRight(tpes.length - t._2), s"(${mkVal(t._2)}, $a)")))
+    def flatToNestedProd: String =
+      tpes.init.zipWithIndex.foldRight(s"p._${tpes.length}")((t, a) =>
+        s"${tpes.takeRight(tpes.length - t._2).prodTpe}((p._${t._2 + 1}, $a))")
 
-    // def flatToNestedDj(mkVal: Int => String, wrap: (List[String], String) => String): String =
-    //   foldLen01("")(tpes.init.zipWithIndex.foldRight(mkVal(tpes.length - 1))(
-    //     (t, a) => wrap()))
+    def flatToNestedCop: String =
+      tpes.init.zipWithIndex.foldRight(s"x${tpes.length - 1}")((t, a) =>
+        s"${tpes.takeRight(tpes.length - t._2).copTpe}(${(t._2 == 0).fold("c", s"x${t._2}")}${
+          (t._2 == tpes.length - 2).fold("", s".map(x${t._2 + 1} => $a)")})")
   }
 
   implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {
