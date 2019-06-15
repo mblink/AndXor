@@ -27,6 +27,8 @@ object types {
   }
 
   trait @{tpes.prodName}LP {
+    @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Prod1[F, A] = Prod1[F, A](a) }
+
     implicit def @{tpes.prodName}Transform[@{tpes.axoTpeParams}]@{tpes.transformParams("Prod").asImpls(false)}: Transform[@{tpes.prodTpeF("?[_]")}] =
       new Transform[@{tpes.prodTpeF("?[_]")}] {
         def transform[F[_], G[_]](nt: F ~> G): @tpes.prodTpe => @tpes.prodTpeF("G") =
@@ -80,6 +82,8 @@ object types {
   }
 
   object @{tpes.prodName} extends @{tpes.prodName}LP {
+    @if(tpes.length == 1) { implicit def convId[A](a: A): Prod1[Id, A] = Prod1[Id, A](a) }
+
     @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
   }
 
@@ -91,6 +95,8 @@ object types {
   }""")}*@
 
   trait @{tpes.copName}LP {
+    @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Cop1[F, A] = Cop1[F, A](a) }
+
     implicit def @{tpes.copName}Transform[@{tpes.axoTpeParams}]@{tpes.transformParams("Cop").asImpls(false)}: Transform[@{tpes.copTpeF("?[_]")}] =
       new Transform[@{tpes.copTpeF("?[_]")}] {
         def transform[F[_], G[_]](nt: F ~> G): @tpes.copTpeF("F") => @tpes.copTpeF("G") =
@@ -121,6 +127,8 @@ object types {
   }
 
   object @{tpes.copName} extends @{tpes.copName}LP {
+    @if(tpes.length == 1) { implicit def convId[A](a: A): Cop1[Id, A] = Cop1[Id, A](a) }
+
     @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
   }
   }

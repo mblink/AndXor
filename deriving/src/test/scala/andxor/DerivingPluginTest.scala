@@ -91,18 +91,18 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  // @annotations.deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson, Decoder),
-  //   labelledContravariant = Vector(Csv, Show, EncodeJson, Encoder)
-  // )
-  // sealed trait Foo
-  // case object Bar extends Foo
-  // @annotations.deriving(
-  //   labelledCovariant = Vector(Read, DecodeJson, Decoder),
-  //   contravariant = Vector(Csv),
-  //   labelledContravariant = Vector(Show, EncodeJson, Encoder)
-  // )
-  // case class Baz(s: String) extends Foo
+  @annotations.deriving(
+    labelledCovariant = Vector(Read, DecodeJson, Decoder),
+    labelledContravariant = Vector(Csv, Show, EncodeJson, Encoder)
+  )
+  sealed trait Foo
+  case object Bar extends Foo
+  @annotations.deriving(
+    labelledCovariant = Vector(Read, DecodeJson, Decoder),
+    contravariant = Vector(Csv),
+    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+  )
+  case class Baz(s: String) extends Foo
 
   @annotations.deriving case class NoInstances(s: String)
 

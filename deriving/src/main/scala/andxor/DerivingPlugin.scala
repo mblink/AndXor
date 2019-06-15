@@ -176,10 +176,8 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     val labelled: Boolean
 
     lazy val tpe: Type = maybeTpeParams(tparams)(t"$name", ts => t"$name[..$ts]")
-    lazy val tpes: List[Type] = {
-      val ts = if (labelled) params.map(_.labelledTpe) else params.map(_.tpe)
-      if (ts.length <= 1) ts else ts.map(t => t"_root_.andxor.AndXor1[$t]")
-    }
+    lazy val origTpes: List[Type] = if (labelled) params.map(_.labelledTpe) else params.map(_.tpe)
+    lazy val tpes: List[Type] = if (origTpes.length <= 1) origTpes else origTpes.map(t => t"_root_.andxor.AndXor1[$t]")
 
     lazy val andxorTpes: List[Type] = id :: tpes
 
@@ -245,7 +243,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
       val v =
         if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
         else          q"$inst.${param.termName}"
-      if (tpes.length <= 1) v else q"_root_.andxor.types.Prod1[$id, ${if (labelled) param.labelledTpe else param.tpe}]($v)"
+      if (tpes.length <= 1) v else q"$andxorTpesPkg.Prod1[$id, ${if (labelled) param.labelledTpe else param.tpe}]($v)"
     }
   }
 
@@ -306,7 +304,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     tree match {
       case c: CopTree => c.children.zipWithIndex.flatMap { case (x, i) => x.fold(_ => Nil, o =>
         List(valOrDef(List(Mod.Implicit()), Term.Name(s"andxor_${o.name.value}${if (c.labelled) "_labelled" else ""}_inst"),
-          Nil, Nil, c.tpes(i), c.mkValue(o.name, c.params(i)))))
+          Nil, Nil, c.origTpes(i), c.mkValue(o.name, c.params(i)))))
       }
       case p: ProdTree => Nil
     }

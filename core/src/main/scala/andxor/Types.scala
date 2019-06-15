@@ -42,6 +42,8 @@ object types {
   }
 
   trait Prod1LP {
+    implicit def conv[F[_], A](a: F[A]): Prod1[F, A] = Prod1[F, A](a)
+
     implicit def Prod1Transform[A1]: Transform[Prod1[?[_], A1]] =
       new Transform[Prod1[?[_], A1]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod1[F, A1] => Prod1[G, A1] =
@@ -94,6 +96,8 @@ object types {
   }
 
   object Prod1 extends Prod1LP {
+    implicit def convId[A](a: A): Prod1[Id, A] = Prod1[Id, A](a)
+
     implicit def lifta0Id[A1]: Inj[Prod1[Id, A1], Id[A1]] =
 
       lifta0F[Id, A1]
@@ -105,6 +109,8 @@ object types {
   @newtype case class Cop1[F[_], A1](run: F[A1])
 
   trait Cop1LP {
+    implicit def conv[F[_], A](a: F[A]): Cop1[F, A] = Cop1[F, A](a)
+
     implicit def Cop1Transform[A1]: Transform[Cop1[?[_], A1]] =
       new Transform[Cop1[?[_], A1]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop1[F, A1] => Cop1[G, A1] =
@@ -139,6 +145,8 @@ object types {
   }
 
   object Cop1 extends Cop1LP {
+    implicit def convId[A](a: A): Cop1[Id, A] = Cop1[Id, A](a)
+
     implicit def prisma0Id[A1]: Prism[Cop1[Id, A1], Id[A1]] = prisma0F[Id, A1]
 
     implicit def inja0Id[A1]: Inj[Cop1[Id, A1], Id[A1]] = inja0F[Id, A1]
@@ -167,6 +175,7 @@ object types {
   }
 
   trait Prod2LP {
+
     implicit def Prod2Transform[A1 <: AndXor, A2 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod]): Transform[Prod2[?[_], A1, A2]] =
       new Transform[Prod2[?[_], A1, A2]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod2[F, A1, A2] => Prod2[G, A1, A2] =
@@ -250,6 +259,7 @@ object types {
   }
 
   object Prod2 extends Prod2LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor](implicit M: Monoid[Prod2[Id, A1, A2]]): Inj[Prod2[Id, A1, A2], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2]
@@ -280,6 +290,7 @@ object types {
   @newtype case class Cop2[F[_], A1 <: AndXor, A2 <: AndXor](run: (A1#Cop[F] \/ A2#Cop[F]))
 
   trait Cop2LP {
+
     implicit def Cop2Transform[A1 <: AndXor, A2 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop]): Transform[Cop2[?[_], A1, A2]] =
       new Transform[Cop2[?[_], A1, A2]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop2[F, A1, A2] => Cop2[G, A1, A2] =
@@ -342,6 +353,7 @@ object types {
   }
 
   object Cop2 extends Cop2LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor]: Prism[Cop2[Id, A1, A2], A1#Cop[Id]] = prisma0F[Id, A1, A2]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor]: Inj[Cop2[Id, A1, A2], A1#Cop[Id]] = inja0F[Id, A1, A2]
@@ -395,6 +407,7 @@ object types {
   }
 
   trait Prod3LP {
+
     implicit def Prod3Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod]): Transform[Prod3[?[_], A1, A2, A3]] =
       new Transform[Prod3[?[_], A1, A2, A3]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod3[F, A1, A2, A3] => Prod3[G, A1, A2, A3] =
@@ -497,6 +510,7 @@ object types {
   }
 
   object Prod3 extends Prod3LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit M: Monoid[Prod3[Id, A1, A2, A3]]): Inj[Prod3[Id, A1, A2, A3], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3]
@@ -540,6 +554,7 @@ object types {
   @newtype case class Cop3[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ A3#Cop[F])))
 
   trait Cop3LP {
+
     implicit def Cop3Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop]): Transform[Cop3[?[_], A1, A2, A3]] =
       new Transform[Cop3[?[_], A1, A2, A3]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop3[F, A1, A2, A3] => Cop3[G, A1, A2, A3] =
@@ -621,6 +636,7 @@ object types {
   }
 
   object Cop3 extends Cop3LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: Prism[Cop3[Id, A1, A2, A3], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: Inj[Cop3[Id, A1, A2, A3], A1#Cop[Id]] = inja0F[Id, A1, A2, A3]
@@ -693,6 +709,7 @@ object types {
   }
 
   trait Prod4LP {
+
     implicit def Prod4Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod]): Transform[Prod4[?[_], A1, A2, A3, A4]] =
       new Transform[Prod4[?[_], A1, A2, A3, A4]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod4[F, A1, A2, A3, A4] => Prod4[G, A1, A2, A3, A4] =
@@ -814,6 +831,7 @@ object types {
   }
 
   object Prod4 extends Prod4LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit M: Monoid[Prod4[Id, A1, A2, A3, A4]]): Inj[Prod4[Id, A1, A2, A3, A4], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4]
@@ -870,6 +888,7 @@ object types {
   @newtype case class Cop4[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ A4#Cop[F]))))
 
   trait Cop4LP {
+
     implicit def Cop4Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop]): Transform[Cop4[?[_], A1, A2, A3, A4]] =
       new Transform[Cop4[?[_], A1, A2, A3, A4]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop4[F, A1, A2, A3, A4] => Cop4[G, A1, A2, A3, A4] =
@@ -970,6 +989,7 @@ object types {
   }
 
   object Cop4 extends Cop4LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: Prism[Cop4[Id, A1, A2, A3, A4], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: Inj[Cop4[Id, A1, A2, A3, A4], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4]
@@ -1061,6 +1081,7 @@ object types {
   }
 
   trait Prod5LP {
+
     implicit def Prod5Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod]): Transform[Prod5[?[_], A1, A2, A3, A4, A5]] =
       new Transform[Prod5[?[_], A1, A2, A3, A4, A5]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod5[F, A1, A2, A3, A4, A5] => Prod5[G, A1, A2, A3, A4, A5] =
@@ -1201,6 +1222,7 @@ object types {
   }
 
   object Prod5 extends Prod5LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit M: Monoid[Prod5[Id, A1, A2, A3, A4, A5]]): Inj[Prod5[Id, A1, A2, A3, A4, A5], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5]
@@ -1270,6 +1292,7 @@ object types {
   @newtype case class Cop5[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ A5#Cop[F])))))
 
   trait Cop5LP {
+
     implicit def Cop5Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop]): Transform[Cop5[?[_], A1, A2, A3, A4, A5]] =
       new Transform[Cop5[?[_], A1, A2, A3, A4, A5]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop5[F, A1, A2, A3, A4, A5] => Cop5[G, A1, A2, A3, A4, A5] =
@@ -1389,6 +1412,7 @@ object types {
   }
 
   object Cop5 extends Cop5LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: Prism[Cop5[Id, A1, A2, A3, A4, A5], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: Inj[Cop5[Id, A1, A2, A3, A4, A5], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5]
@@ -1499,6 +1523,7 @@ object types {
   }
 
   trait Prod6LP {
+
     implicit def Prod6Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod]): Transform[Prod6[?[_], A1, A2, A3, A4, A5, A6]] =
       new Transform[Prod6[?[_], A1, A2, A3, A4, A5, A6]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod6[F, A1, A2, A3, A4, A5, A6] => Prod6[G, A1, A2, A3, A4, A5, A6] =
@@ -1658,6 +1683,7 @@ object types {
   }
 
   object Prod6 extends Prod6LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit M: Monoid[Prod6[Id, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[Id, A1, A2, A3, A4, A5, A6], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6]
@@ -1740,6 +1766,7 @@ object types {
   @newtype case class Cop6[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ A6#Cop[F]))))))
 
   trait Cop6LP {
+
     implicit def Cop6Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop]): Transform[Cop6[?[_], A1, A2, A3, A4, A5, A6]] =
       new Transform[Cop6[?[_], A1, A2, A3, A4, A5, A6]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop6[F, A1, A2, A3, A4, A5, A6] => Cop6[G, A1, A2, A3, A4, A5, A6] =
@@ -1878,6 +1905,7 @@ object types {
   }
 
   object Cop6 extends Cop6LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: Prism[Cop6[Id, A1, A2, A3, A4, A5, A6], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: Inj[Cop6[Id, A1, A2, A3, A4, A5, A6], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6]
@@ -2007,6 +2035,7 @@ object types {
   }
 
   trait Prod7LP {
+
     implicit def Prod7Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod]): Transform[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
       new Transform[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod7[F, A1, A2, A3, A4, A5, A6, A7] => Prod7[G, A1, A2, A3, A4, A5, A6, A7] =
@@ -2185,6 +2214,7 @@ object types {
   }
 
   object Prod7 extends Prod7LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit M: Monoid[Prod7[Id, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[Id, A1, A2, A3, A4, A5, A6, A7], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7]
@@ -2280,6 +2310,7 @@ object types {
   @newtype case class Cop7[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ A7#Cop[F])))))))
 
   trait Cop7LP {
+
     implicit def Cop7Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop]): Transform[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
       new Transform[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop7[F, A1, A2, A3, A4, A5, A6, A7] => Cop7[G, A1, A2, A3, A4, A5, A6, A7] =
@@ -2437,6 +2468,7 @@ object types {
   }
 
   object Cop7 extends Cop7LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: Prism[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: Inj[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7]
@@ -2585,6 +2617,7 @@ object types {
   }
 
   trait Prod8LP {
+
     implicit def Prod8Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod]): Transform[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
       new Transform[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8] => Prod8[G, A1, A2, A3, A4, A5, A6, A7, A8] =
@@ -2782,6 +2815,7 @@ object types {
   }
 
   object Prod8 extends Prod8LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit M: Monoid[Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
@@ -2890,6 +2924,7 @@ object types {
   @newtype case class Cop8[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ A8#Cop[F]))))))))
 
   trait Cop8LP {
+
     implicit def Cop8Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop]): Transform[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
       new Transform[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8] => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8] =
@@ -3066,6 +3101,7 @@ object types {
   }
 
   object Cop8 extends Cop8LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: Prism[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: Inj[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8]
@@ -3233,6 +3269,7 @@ object types {
   }
 
   trait Prod9LP {
+
     implicit def Prod9Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod]): Transform[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
       new Transform[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9] => Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
@@ -3449,6 +3486,7 @@ object types {
   }
 
   object Prod9 extends Prod9LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit M: Monoid[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Inj[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
@@ -3570,6 +3608,7 @@ object types {
   @newtype case class Cop9[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ A9#Cop[F])))))))))
 
   trait Cop9LP {
+
     implicit def Cop9Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop]): Transform[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
       new Transform[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9] => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
@@ -3765,6 +3804,7 @@ object types {
   }
 
   object Cop9 extends Cop9LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: Prism[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: Inj[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]
@@ -3951,6 +3991,7 @@ object types {
   }
 
   trait Prod10LP {
+
     implicit def Prod10Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod]): Transform[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       new Transform[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] => Prod10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
@@ -4186,6 +4227,7 @@ object types {
   }
 
   object Prod10 extends Prod10LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit M: Monoid[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]): Inj[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
@@ -4320,6 +4362,7 @@ object types {
   @newtype case class Cop10[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ A10#Cop[F]))))))))))
 
   trait Cop10LP {
+
     implicit def Cop10Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop]): Transform[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       new Transform[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
@@ -4534,6 +4577,7 @@ object types {
   }
 
   object Cop10 extends Cop10LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: Prism[Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: Inj[Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
@@ -4739,6 +4783,7 @@ object types {
   }
 
   trait Prod11LP {
+
     implicit def Prod11Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod]): Transform[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       new Transform[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] => Prod11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
@@ -4993,6 +5038,7 @@ object types {
   }
 
   object Prod11 extends Prod11LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit M: Monoid[Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]): Inj[Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
@@ -5140,6 +5186,7 @@ object types {
   @newtype case class Cop11[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ A11#Cop[F])))))))))))
 
   trait Cop11LP {
+
     implicit def Cop11Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop]): Transform[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       new Transform[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
@@ -5373,6 +5420,7 @@ object types {
   }
 
   object Cop11 extends Cop11LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: Prism[Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: Inj[Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
@@ -5597,6 +5645,7 @@ object types {
   }
 
   trait Prod12LP {
+
     implicit def Prod12Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod]): Transform[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       new Transform[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] => Prod12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
@@ -5870,6 +5919,7 @@ object types {
   }
 
   object Prod12 extends Prod12LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit M: Monoid[Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]): Inj[Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
@@ -6030,6 +6080,7 @@ object types {
   @newtype case class Cop12[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ A12#Cop[F]))))))))))))
 
   trait Cop12LP {
+
     implicit def Cop12Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop]): Transform[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       new Transform[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
@@ -6282,6 +6333,7 @@ object types {
   }
 
   object Cop12 extends Cop12LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: Prism[Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: Inj[Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
@@ -6525,6 +6577,7 @@ object types {
   }
 
   trait Prod13LP {
+
     implicit def Prod13Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod]): Transform[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       new Transform[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] => Prod13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
@@ -6817,6 +6870,7 @@ object types {
   }
 
   object Prod13 extends Prod13LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit M: Monoid[Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]): Inj[Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
@@ -6990,6 +7044,7 @@ object types {
   @newtype case class Cop13[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ A13#Cop[F])))))))))))))
 
   trait Cop13LP {
+
     implicit def Cop13Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop]): Transform[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       new Transform[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
@@ -7261,6 +7316,7 @@ object types {
   }
 
   object Cop13 extends Cop13LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: Prism[Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: Inj[Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
@@ -7523,6 +7579,7 @@ object types {
   }
 
   trait Prod14LP {
+
     implicit def Prod14Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod]): Transform[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       new Transform[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] => Prod14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
@@ -7834,6 +7891,7 @@ object types {
   }
 
   object Prod14 extends Prod14LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit M: Monoid[Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]): Inj[Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
@@ -8020,6 +8078,7 @@ object types {
   @newtype case class Cop14[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ A14#Cop[F]))))))))))))))
 
   trait Cop14LP {
+
     implicit def Cop14Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop]): Transform[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       new Transform[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
@@ -8310,6 +8369,7 @@ object types {
   }
 
   object Cop14 extends Cop14LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: Prism[Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: Inj[Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
@@ -8591,6 +8651,7 @@ object types {
   }
 
   trait Prod15LP {
+
     implicit def Prod15Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod]): Transform[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       new Transform[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] => Prod15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
@@ -8921,6 +8982,7 @@ object types {
   }
 
   object Prod15 extends Prod15LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit M: Monoid[Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]): Inj[Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
@@ -9120,6 +9182,7 @@ object types {
   @newtype case class Cop15[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ A15#Cop[F])))))))))))))))
 
   trait Cop15LP {
+
     implicit def Cop15Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop]): Transform[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       new Transform[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
@@ -9429,6 +9492,7 @@ object types {
   }
 
   object Cop15 extends Cop15LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: Prism[Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: Inj[Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
@@ -9729,6 +9793,7 @@ object types {
   }
 
   trait Prod16LP {
+
     implicit def Prod16Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod]): Transform[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       new Transform[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] => Prod16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
@@ -10078,6 +10143,7 @@ object types {
   }
 
   object Prod16 extends Prod16LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit M: Monoid[Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]): Inj[Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
@@ -10290,6 +10356,7 @@ object types {
   @newtype case class Cop16[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ (A15#Cop[F] \/ A16#Cop[F]))))))))))))))))
 
   trait Cop16LP {
+
     implicit def Cop16Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop]): Transform[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       new Transform[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
@@ -10618,6 +10685,7 @@ object types {
   }
 
   object Cop16 extends Cop16LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: Prism[Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: Inj[Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
@@ -10937,6 +11005,7 @@ object types {
   }
 
   trait Prod17LP {
+
     implicit def Prod17Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod]): Transform[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       new Transform[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] => Prod17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
@@ -11305,6 +11374,7 @@ object types {
   }
 
   object Prod17 extends Prod17LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit M: Monoid[Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]): Inj[Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
@@ -11530,6 +11600,7 @@ object types {
   @newtype case class Cop17[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ (A15#Cop[F] \/ (A16#Cop[F] \/ A17#Cop[F])))))))))))))))))
 
   trait Cop17LP {
+
     implicit def Cop17Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop]): Transform[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       new Transform[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
@@ -11877,6 +11948,7 @@ object types {
   }
 
   object Cop17 extends Cop17LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: Prism[Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: Inj[Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
@@ -12215,6 +12287,7 @@ object types {
   }
 
   trait Prod18LP {
+
     implicit def Prod18Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod]): Transform[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       new Transform[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] => Prod18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
@@ -12602,6 +12675,7 @@ object types {
   }
 
   object Prod18 extends Prod18LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit M: Monoid[Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]): Inj[Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
@@ -12840,6 +12914,7 @@ object types {
   @newtype case class Cop18[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ (A15#Cop[F] \/ (A16#Cop[F] \/ (A17#Cop[F] \/ A18#Cop[F]))))))))))))))))))
 
   trait Cop18LP {
+
     implicit def Cop18Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop]): Transform[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       new Transform[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
@@ -13206,6 +13281,7 @@ object types {
   }
 
   object Cop18 extends Cop18LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: Prism[Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: Inj[Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
@@ -13563,6 +13639,7 @@ object types {
   }
 
   trait Prod19LP {
+
     implicit def Prod19Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod]): Transform[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       new Transform[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] => Prod19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
@@ -13969,6 +14046,7 @@ object types {
   }
 
   object Prod19 extends Prod19LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit M: Monoid[Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]): Inj[Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
@@ -14220,6 +14298,7 @@ object types {
   @newtype case class Cop19[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ (A15#Cop[F] \/ (A16#Cop[F] \/ (A17#Cop[F] \/ (A18#Cop[F] \/ A19#Cop[F])))))))))))))))))))
 
   trait Cop19LP {
+
     implicit def Cop19Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop]): Transform[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       new Transform[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
@@ -14605,6 +14684,7 @@ object types {
   }
 
   object Cop19 extends Cop19LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: Prism[Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: Inj[Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
@@ -14981,6 +15061,7 @@ object types {
   }
 
   trait Prod20LP {
+
     implicit def Prod20Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod], trans19: Transform[A20#Prod]): Transform[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       new Transform[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] => Prod20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
@@ -15406,6 +15487,7 @@ object types {
   }
 
   object Prod20 extends Prod20LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit M: Monoid[Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]): Inj[Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
@@ -15670,6 +15752,7 @@ object types {
   @newtype case class Cop20[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ (A15#Cop[F] \/ (A16#Cop[F] \/ (A17#Cop[F] \/ (A18#Cop[F] \/ (A19#Cop[F] \/ A20#Cop[F]))))))))))))))))))))
 
   trait Cop20LP {
+
     implicit def Cop20Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop], trans19: Transform[A20#Cop]): Transform[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       new Transform[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
@@ -16074,6 +16157,7 @@ object types {
   }
 
   object Cop20 extends Cop20LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: Prism[Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: Inj[Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
@@ -16469,6 +16553,7 @@ object types {
   }
 
   trait Prod21LP {
+
     implicit def Prod21Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod], trans19: Transform[A20#Prod], trans20: Transform[A21#Prod]): Transform[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       new Transform[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] => Prod21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
@@ -16913,6 +16998,7 @@ object types {
   }
 
   object Prod21 extends Prod21LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit M: Monoid[Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]]): Inj[Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
@@ -17190,6 +17276,7 @@ object types {
   @newtype case class Cop21[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ (A15#Cop[F] \/ (A16#Cop[F] \/ (A17#Cop[F] \/ (A18#Cop[F] \/ (A19#Cop[F] \/ (A20#Cop[F] \/ A21#Cop[F])))))))))))))))))))))
 
   trait Cop21LP {
+
     implicit def Cop21Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop], trans19: Transform[A20#Cop], trans20: Transform[A21#Cop]): Transform[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       new Transform[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
@@ -17613,6 +17700,7 @@ object types {
   }
 
   object Cop21 extends Cop21LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: Prism[Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: Inj[Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
@@ -18027,6 +18115,7 @@ object types {
   }
 
   trait Prod22LP {
+
     implicit def Prod22Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod], trans19: Transform[A20#Prod], trans20: Transform[A21#Prod], trans21: Transform[A22#Prod]): Transform[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       new Transform[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] {
         def transform[F[_], G[_]](nt: F ~> G): Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] => Prod22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
@@ -18490,6 +18579,7 @@ object types {
   }
 
   object Prod22 extends Prod22LP {
+
     implicit def lifta0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit M: Monoid[Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]]): Inj[Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Prod[Id]] =
 
       lifta0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
@@ -18780,6 +18870,7 @@ object types {
   @newtype case class Cop22[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](run: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ (A6#Cop[F] \/ (A7#Cop[F] \/ (A8#Cop[F] \/ (A9#Cop[F] \/ (A10#Cop[F] \/ (A11#Cop[F] \/ (A12#Cop[F] \/ (A13#Cop[F] \/ (A14#Cop[F] \/ (A15#Cop[F] \/ (A16#Cop[F] \/ (A17#Cop[F] \/ (A18#Cop[F] \/ (A19#Cop[F] \/ (A20#Cop[F] \/ (A21#Cop[F] \/ A22#Cop[F]))))))))))))))))))))))
 
   trait Cop22LP {
+
     implicit def Cop22Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop], trans19: Transform[A20#Cop], trans20: Transform[A21#Cop], trans21: Transform[A22#Cop]): Transform[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       new Transform[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] {
         def transform[F[_], G[_]](nt: F ~> G): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
@@ -19222,6 +19313,7 @@ object types {
   }
 
   object Cop22 extends Cop22LP {
+
     implicit def prisma0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: Prism[Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Cop[Id]] = prisma0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
 
     implicit def inja0Id[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: Inj[Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Cop[Id]] = inja0F[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
