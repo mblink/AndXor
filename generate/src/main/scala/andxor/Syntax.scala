@@ -43,24 +43,19 @@ object syntax {
     def selCopOrProd(copOrProd: String, F: Option[String]): LS =
       foldLen01(tpes.map(t => F.fold(t)(f => s"$f[$t]")))(tpes.map(t => s"$t#${copOrProd}${F.fold("")(f => s"[$f]")}"))
 
-    def nestedCopOrProd(copOrProd: String, F: String): String =
-      (tpes.length <= 2).fold(
-        (copOrProd == "Prod").fold(prodTpeF(F), copTpeF(F)),
-        s"${copOrProd}2[$F, ${tpes.head}, ${tpes.tail.reduceRight((t, a) => s"AndXor2[$t, $a]")}]")
-
     def selCop(F: Option[String]): LS = selCopOrProd("Cop", F)
     def selProd(F: Option[String]): LS = selCopOrProd("Prod", F)
 
     def copName = s"Cop${tpes.length}"
     def copTpeDef = s"$copName[F[_], $axoTpeParams]"
     def copTpeF(F: String) = s"$copName[$F, $tpeParams]"
-    def copTpe = nestedCopOrProd("Cop", "F")
+    def copTpe = copTpeF("F")
     def copTpes(F: String = "F"): LS = foldLen01(tpes.map(t => s"$F[$t]"))(tpes.map(t => s"$t#Cop[$F]"))
 
     def prodName = s"Prod${tpes.length}"
     def prodTpeDef = s"$prodName[F[_], $axoTpeParams]"
     def prodTpeF(F: String) = s"$prodName[$F, $tpeParams]"
-    def prodTpe = nestedCopOrProd("Prod", "F")
+    def prodTpe = prodTpeF("F")
     def prodTpes(F: String = "F"): LS = foldLen01(tpes.map(t => s"$F[$t]"))(tpes.map(t => s"$t#Prod[$F]"))
 
     def tcDeps(copOrProd: String, TC: String = "TC", F: String = "F"): String =
@@ -154,7 +149,7 @@ object syntax {
 
     def builtAndXor: String = s"AndXor${tpes.length}[${tpes.zipWithIndex.map(t => s"l${t._2}.AXO").tpeParams}]"
 
-    def andxorParent: String = (tpes.length <= 2).fold("AndXor", tpes.reduceRight((t, a) => s"AndXor2[$t, $a]"))
+    def andxorParent: String = "AndXor"
 
     def flatToNestedProd: String =
       tpes.init.zipWithIndex.foldRight(s"p._${tpes.length}")((t, a) =>

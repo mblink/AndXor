@@ -4,6 +4,8 @@ trait Labelled[A] {
   type L <: Singleton with String
   val label: L
   val value: A
+
+  override def toString: String = s"Labelled($label, $value)"
 }
 
 object Labelled {

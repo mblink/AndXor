@@ -176,9 +176,10 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     val labelled: Boolean
 
     lazy val tpe: Type = maybeTpeParams(tparams)(t"$name", ts => t"$name[..$ts]")
-    lazy val tpes: List[Type] =
-      if (labelled) params.map(_.labelledTpe)
-      else params.map(_.tpe)
+    lazy val tpes: List[Type] = {
+      val ts = if (labelled) params.map(_.labelledTpe) else params.map(_.tpe)
+      if (ts.length <= 1) ts else ts.map(t => t"_root_.andxor.AndXor1[$t]")
+    }
 
     lazy val andxorTpes: List[Type] = id :: tpes
 
@@ -206,7 +207,10 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
     def mkValue(inst: Term, param: Param): Term
 
-    def normalizeValue(v: Term): Term = if (labelled) q"$v.value" else v
+    def normalizeValue(v0: Term): Term = {
+      val v = if (tpes.length <= 1) v0 else q"$v0.run"
+      if (labelled) q"$v.value" else v
+    }
   }
 
   case class ProdTree(klass: Defn.Class, labelled: Boolean) extends GenTree[ProdParam](
@@ -237,9 +241,12 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
         (x: $reprTpe) => new $tpe(...$constructorArgs))
       """
 
-    def mkValue(inst: Term, param: Param): Term =
-      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
-      else          q"$inst.${param.termName}"
+    def mkValue(inst: Term, param: Param): Term = {
+      val v =
+        if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
+        else          q"$inst.${param.termName}"
+      if (tpes.length <= 1) v else q"_root_.andxor.types.Prod1[$id, ${if (labelled) param.labelledTpe else param.tpe}]($v)"
+    }
   }
 
   case class CopTree(
@@ -341,7 +348,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]]
       .${tc.variance.mapFunction}(
         ${maybeTpeParams(tc.tree.tparams)(tc.tree.andxorName, ts => q"${tc.tree.andxorName}[..$ts]")}
-          .${tc.variance.derivationFunction}[${tc.typeclass}]
+          .${tc.variance.derivationFunction}[${tc.typeclass}, _root_.scalaz.Id.Id]
       )(${tc.tree.isoName}.${tc.variance.isoFunction})
     """
 

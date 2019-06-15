@@ -1,13 +1,11 @@
 @import andxor.syntax._
-@import scalaz.syntax.std.boolean._
 
 @(tpes: List[String])
 
 import andxor.types._
-import scalaz.{@{((tpes.length <= 2).fold(List("Monoid"), Nil) ::: tpes.foldLen01(List[String]())(List("\\/"))).mkString(", ")}}
+import scalaz.{@{(List("Monoid") ::: tpes.foldLen01(List[String]())(List("\\/"))).mkString(", ")}}
 
 trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends @{tpes.andxorParent} {
-  @if(tpes.length <= 2) {
   type Prod[F[_]] = @{tpes.prodTpe}
   object Prod {
     def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] = @{tpes.prodTpe}(p)
@@ -21,13 +19,6 @@ trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends @{tpes.andxorParent} {
   object evidence extends AndXorEvidence[Cop, Prod] {
     implicit def injEv[F[_]](implicit d: DerivingCop[Cop, F, Inj[Cop[F], ?]]): Inj[Cop[F], Cop[F]] = choose[Inj[Cop[F], ?], F]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]], d: DerivingProd[Prod, F, Inj[Prod[F], ?]]): Inj[Prod[F], Prod[F]] = divide[Inj[Prod[F], ?], F]
-  }
-  } else {
-  def Prod[F[_]](p: @{tpes.prodK("F")}): Prod[F] =
-    @{tpes.flatToNestedProd}
-
-  def Cop[F[_]](c: @{tpes.djK("F")}): Cop[F] =
-    @{tpes.flatToNestedCop}
   }
 }
 

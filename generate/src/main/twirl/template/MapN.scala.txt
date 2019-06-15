@@ -3,7 +3,6 @@
 @(tpes: List[String])
 
 import andxor.tuple._
-import andxor.types._
 import andxor.types.dummy._
 import scalaz.\/
 
@@ -25,11 +24,6 @@ object MapN {
     implicit class Map@{n}POps[@{tpes.take(n).tpeParams}](p: @{tpes.take(n).prod}) {
       val mapN = new Map@{n}P[@{tpes.take(n).tpeParams}] {}
       @{tpes.take(n).zipper(template.txt.MapNPOp(_, false)).mkString("\n")}
-    }
-
-    implicit class MapProd@{n}Ops[F[_], @{tpes.take(n).axoTpeParams}](p: @{tpes.take(n).prodTpe}) {
-      private def mapN = new Map@{n}P[@{tpes.selCopOrProd("Prod", Some("F")).tpeParams}] {}
-      @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
     }
 
     implicit class Map@{n}COps[@{tpes.take(n).tpeParams}](c: @{tpes.take(n).dj}) {

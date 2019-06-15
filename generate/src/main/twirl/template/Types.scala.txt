@@ -13,10 +13,17 @@ object types {
     sealed trait Dummy@{i}; object Dummy@{i} { implicit val inst: Dummy@{i} = new Dummy@{i} {} }}
   }
 
+  import dummy._
+
   private val MF = InvariantFunctor[Monoid]
   @tpeLists.map { tpes =>
-  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) {
+  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) { self =>
     @template.txt.TupleAccess("run", tpes.prodTpes())
+
+    @if(tpes.length > 1) {
+    private def mapN = new Map@{tpes.length}P[@{tpes.selCopOrProd("Prod", Some("F")).tpeParams}] {}
+    @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
+    }
   }
 
   trait @{tpes.prodName}LP {
