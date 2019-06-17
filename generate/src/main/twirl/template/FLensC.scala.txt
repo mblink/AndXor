@@ -1,0 +1,18 @@
+@import andxor.syntax._
+@import scalaz.Zipper
+
+@(z: Zipper[String])
+@tpes = @{ z.toList }
+@aT(F: Option[String]) = @{ tpes.selCop(F)(z.index) }
+@hkat = @{ tpes.foldLen01(s"Lambda[f[_] => f[${tpes.head}]]")(aT(None)) }
+
+
+    implicit def @{tpes.copName}PFLens@{z.index}[@{tpes.axoTpeParams}]: PFLens[@{tpes.copTpeF("?[_]")}, @{hkat}] =
+      PFLens[@{tpes.copTpeF("?[_]")}, @{hkat}](
+        new ForallF[Lambda[f[_] => PLens[@{tpes.copTpeF("f")}, @{aT(Some("f"))}]]] {
+          def apply[F[_]]: PLens[@{tpes.copTpe}, @{aT(Some("F"))}] =
+            PLens(c => @tpes.foldLen01 { () => Some(StoreT.store[@{aT(Some("F"))}, @{tpes.copTpe}](c.run)(y => @{tpes.copTpe}(@z.djVal("y")))) } { () => c.run match {
+              case @z.djVal("x") => Some(StoreT.store[@{aT(Some("F"))}, @{tpes.copTpe}](x)(y => @{tpes.copTpe}(@z.djVal("y"))))
+              case _ => None
+            } }())
+        })

@@ -4,7 +4,7 @@
 
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, InvariantFunctor, Lens, Monoid, StoreT}
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, InvariantFunctor, Lens, Monoid, PLens, StoreT}
 import scalaz.Id.Id
 
 object types {
@@ -120,6 +120,8 @@ object types {
       }
 
     @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
+
+    @tpes.zipper(template.txt.FLensC(_))
   }
 
   object @{tpes.copName} extends @{tpes.copName}LP {

@@ -5,6 +5,7 @@
 @tpes = @{ z.toList }
 @aT(F: Option[String]) = @{ tpes.selProd(F)(z.index) }
 @hkat = @{ tpes.foldLen01(s"Lambda[f[_] => f[${tpes.head}]]")(aT(None)) }
+
     implicit def @{tpes.prodName}FLens@{z.index}[@{tpes.axoTpeParams}]: FLens[@{tpes.prodTpeF("?[_]")}, @{hkat}] =
       FLens[@{tpes.prodTpeF("?[_]")}, @{hkat}](
         new ForallF[Lambda[f[_] => Lens[@{tpes.prodTpeF("f")}, @{aT(Some("f"))}]]] {

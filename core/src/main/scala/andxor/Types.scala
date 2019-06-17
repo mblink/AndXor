@@ -2,7 +2,7 @@ package andxor
 
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, InvariantFunctor, Lens, Monoid, StoreT}
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, InvariantFunctor, Lens, Monoid, PLens, StoreT}
 import scalaz.Id.Id
 
 object types {
@@ -144,6 +144,14 @@ object types {
     implicit def inja0F[F[_], A1]: Inj[Cop1[F, A1], F[A1]] = Inj.instance(prisma0F.reverseGet(_))
 
     implicit def inja0FInverse[F[_], A1]: Inj[Option[F[A1]], Cop1[F, A1]] = Inj.instance(prisma0F.getOption(_))
+
+    implicit def Cop1PFLens0[A1]: PFLens[Cop1[?[_], A1], Lambda[f[_] => f[A1]]] =
+      PFLens[Cop1[?[_], A1], Lambda[f[_] => f[A1]]](
+        new ForallF[Lambda[f[_] => PLens[Cop1[f, A1], f[A1]]]] {
+          def apply[F[_]]: PLens[Cop1[F, A1], F[A1]] =
+            PLens(c => Some(StoreT.store[F[A1], Cop1[F, A1]](c.run)(y => Cop1[F, A1](y))))
+        })
+
   }
 
   object Cop1 extends Cop1LP {
@@ -362,6 +370,27 @@ object types {
 
     implicit def injViaA1FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A](implicit i: Inj[Option[A], A2#Cop[F]]): Inj[Option[A], Cop2[F, A1, A2]] =
       Inj.instance(inja1FInverse[F, A1, A2](_).flatMap(i(_)))
+
+    implicit def Cop2PFLens0[A1 <: AndXor, A2 <: AndXor]: PFLens[Cop2[?[_], A1, A2], A1#Cop] =
+      PFLens[Cop2[?[_], A1, A2], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop2[f, A1, A2], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop2[F, A1, A2], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop2[F, A1, A2]](x)(y => Cop2[F, A1, A2](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop2PFLens1[A1 <: AndXor, A2 <: AndXor]: PFLens[Cop2[?[_], A1, A2], A2#Cop] =
+      PFLens[Cop2[?[_], A1, A2], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop2[f, A1, A2], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop2[F, A1, A2], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(x) => Some(StoreT.store[A2#Cop[F], Cop2[F, A1, A2]](x)(y => Cop2[F, A1, A2](\/-(y))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop2 extends Cop2LP {
@@ -663,6 +692,37 @@ object types {
 
     implicit def injViaA2FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A](implicit i: Inj[Option[A], A3#Cop[F]]): Inj[Option[A], Cop3[F, A1, A2, A3]] =
       Inj.instance(inja2FInverse[F, A1, A2, A3](_).flatMap(i(_)))
+
+    implicit def Cop3PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: PFLens[Cop3[?[_], A1, A2, A3], A1#Cop] =
+      PFLens[Cop3[?[_], A1, A2, A3], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop3[f, A1, A2, A3], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop3[F, A1, A2, A3], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop3PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: PFLens[Cop3[?[_], A1, A2, A3], A2#Cop] =
+      PFLens[Cop3[?[_], A1, A2, A3], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop3[f, A1, A2, A3], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop3[F, A1, A2, A3], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop3PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: PFLens[Cop3[?[_], A1, A2, A3], A3#Cop] =
+      PFLens[Cop3[?[_], A1, A2, A3], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop3[f, A1, A2, A3], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop3[F, A1, A2, A3], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(x)) => Some(StoreT.store[A3#Cop[F], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](\/-(\/-(y)))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop3 extends Cop3LP {
@@ -1042,6 +1102,47 @@ object types {
 
     implicit def injViaA3FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A](implicit i: Inj[Option[A], A4#Cop[F]]): Inj[Option[A], Cop4[F, A1, A2, A3, A4]] =
       Inj.instance(inja3FInverse[F, A1, A2, A3, A4](_).flatMap(i(_)))
+
+    implicit def Cop4PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: PFLens[Cop4[?[_], A1, A2, A3, A4], A1#Cop] =
+      PFLens[Cop4[?[_], A1, A2, A3, A4], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop4[f, A1, A2, A3, A4], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop4[F, A1, A2, A3, A4], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop4PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: PFLens[Cop4[?[_], A1, A2, A3, A4], A2#Cop] =
+      PFLens[Cop4[?[_], A1, A2, A3, A4], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop4[f, A1, A2, A3, A4], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop4[F, A1, A2, A3, A4], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop4PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: PFLens[Cop4[?[_], A1, A2, A3, A4], A3#Cop] =
+      PFLens[Cop4[?[_], A1, A2, A3, A4], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop4[f, A1, A2, A3, A4], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop4[F, A1, A2, A3, A4], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop4PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: PFLens[Cop4[?[_], A1, A2, A3, A4], A4#Cop] =
+      PFLens[Cop4[?[_], A1, A2, A3, A4], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop4[f, A1, A2, A3, A4], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop4[F, A1, A2, A3, A4], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(x))) => Some(StoreT.store[A4#Cop[F], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](\/-(\/-(\/-(y))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop4 extends Cop4LP {
@@ -1499,6 +1600,57 @@ object types {
 
     implicit def injViaA4FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A](implicit i: Inj[Option[A], A5#Cop[F]]): Inj[Option[A], Cop5[F, A1, A2, A3, A4, A5]] =
       Inj.instance(inja4FInverse[F, A1, A2, A3, A4, A5](_).flatMap(i(_)))
+
+    implicit def Cop5PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A1#Cop] =
+      PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop5[f, A1, A2, A3, A4, A5], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop5[F, A1, A2, A3, A4, A5], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop5PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A2#Cop] =
+      PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop5[f, A1, A2, A3, A4, A5], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop5[F, A1, A2, A3, A4, A5], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop5PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A3#Cop] =
+      PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop5[f, A1, A2, A3, A4, A5], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop5[F, A1, A2, A3, A4, A5], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop5PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A4#Cop] =
+      PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop5[f, A1, A2, A3, A4, A5], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop5[F, A1, A2, A3, A4, A5], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop5PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A5#Cop] =
+      PFLens[Cop5[?[_], A1, A2, A3, A4, A5], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop5[f, A1, A2, A3, A4, A5], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop5[F, A1, A2, A3, A4, A5], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(x)))) => Some(StoreT.store[A5#Cop[F], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(y)))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop5 extends Cop5LP {
@@ -2034,6 +2186,67 @@ object types {
 
     implicit def injViaA5FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A](implicit i: Inj[Option[A], A6#Cop[F]]): Inj[Option[A], Cop6[F, A1, A2, A3, A4, A5, A6]] =
       Inj.instance(inja5FInverse[F, A1, A2, A3, A4, A5, A6](_).flatMap(i(_)))
+
+    implicit def Cop6PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A1#Cop] =
+      PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop6[f, A1, A2, A3, A4, A5, A6], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop6[F, A1, A2, A3, A4, A5, A6], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop6[F, A1, A2, A3, A4, A5, A6]](x)(y => Cop6[F, A1, A2, A3, A4, A5, A6](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop6PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A2#Cop] =
+      PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop6[f, A1, A2, A3, A4, A5, A6], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop6[F, A1, A2, A3, A4, A5, A6], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop6[F, A1, A2, A3, A4, A5, A6]](x)(y => Cop6[F, A1, A2, A3, A4, A5, A6](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop6PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A3#Cop] =
+      PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop6[f, A1, A2, A3, A4, A5, A6], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop6[F, A1, A2, A3, A4, A5, A6], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop6[F, A1, A2, A3, A4, A5, A6]](x)(y => Cop6[F, A1, A2, A3, A4, A5, A6](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop6PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A4#Cop] =
+      PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop6[f, A1, A2, A3, A4, A5, A6], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop6[F, A1, A2, A3, A4, A5, A6], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop6[F, A1, A2, A3, A4, A5, A6]](x)(y => Cop6[F, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop6PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A5#Cop] =
+      PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop6[f, A1, A2, A3, A4, A5, A6], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop6[F, A1, A2, A3, A4, A5, A6], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop6[F, A1, A2, A3, A4, A5, A6]](x)(y => Cop6[F, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop6PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A6#Cop] =
+      PFLens[Cop6[?[_], A1, A2, A3, A4, A5, A6], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop6[f, A1, A2, A3, A4, A5, A6], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop6[F, A1, A2, A3, A4, A5, A6], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(x))))) => Some(StoreT.store[A6#Cop[F], Cop6[F, A1, A2, A3, A4, A5, A6]](x)(y => Cop6[F, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(\/-(y))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop6 extends Cop6LP {
@@ -2647,6 +2860,77 @@ object types {
 
     implicit def injViaA6FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A](implicit i: Inj[Option[A], A7#Cop[F]]): Inj[Option[A], Cop7[F, A1, A2, A3, A4, A5, A6, A7]] =
       Inj.instance(inja6FInverse[F, A1, A2, A3, A4, A5, A6, A7](_).flatMap(i(_)))
+
+    implicit def Cop7PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A1#Cop] =
+      PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop7[f, A1, A2, A3, A4, A5, A6, A7], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop7PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A2#Cop] =
+      PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop7[f, A1, A2, A3, A4, A5, A6, A7], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop7PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A3#Cop] =
+      PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop7[f, A1, A2, A3, A4, A5, A6, A7], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop7PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A4#Cop] =
+      PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop7[f, A1, A2, A3, A4, A5, A6, A7], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop7PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A5#Cop] =
+      PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop7[f, A1, A2, A3, A4, A5, A6, A7], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop7PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A6#Cop] =
+      PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop7[f, A1, A2, A3, A4, A5, A6, A7], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop7PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A7#Cop] =
+      PFLens[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop7[f, A1, A2, A3, A4, A5, A6, A7], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(x)))))) => Some(StoreT.store[A7#Cop[F], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop7 extends Cop7LP {
@@ -3338,6 +3622,87 @@ object types {
 
     implicit def injViaA7FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A](implicit i: Inj[Option[A], A8#Cop[F]]): Inj[Option[A], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
       Inj.instance(inja7FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8](_).flatMap(i(_)))
+
+    implicit def Cop8PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A1#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop8PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A2#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop8PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A3#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop8PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A4#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop8PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A5#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop8PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A6#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop8PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A7#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop8PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A8#Cop] =
+      PFLens[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop8[f, A1, A2, A3, A4, A5, A6, A7, A8], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))) => Some(StoreT.store[A8#Cop[F], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]](x)(y => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop8 extends Cop8LP {
@@ -4107,6 +4472,97 @@ object types {
 
     implicit def injViaA8FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A](implicit i: Inj[Option[A], A9#Cop[F]]): Inj[Option[A], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
       Inj.instance(inja8FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](_).flatMap(i(_)))
+
+    implicit def Cop9PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop9PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Cop] =
+      PFLens[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))) => Some(StoreT.store[A9#Cop[F], Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](x)(y => Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop9 extends Cop9LP {
@@ -4954,6 +5410,107 @@ object types {
 
     implicit def injViaA9FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A](implicit i: Inj[Option[A], A10#Cop[F]]): Inj[Option[A], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       Inj.instance(inja9FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](_).flatMap(i(_)))
+
+    implicit def Cop10PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop10PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Cop] =
+      PFLens[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))) => Some(StoreT.store[A10#Cop[F], Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](x)(y => Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop10 extends Cop10LP {
@@ -5879,6 +6436,117 @@ object types {
 
     implicit def injViaA10FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A](implicit i: Inj[Option[A], A11#Cop[F]]): Inj[Option[A], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       Inj.instance(inja10FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](_).flatMap(i(_)))
+
+    implicit def Cop11PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop11PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Cop] =
+      PFLens[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))) => Some(StoreT.store[A11#Cop[F], Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](x)(y => Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop11 extends Cop11LP {
@@ -6882,6 +7550,127 @@ object types {
 
     implicit def injViaA11FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A](implicit i: Inj[Option[A], A12#Cop[F]]): Inj[Option[A], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       Inj.instance(inja11FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](_).flatMap(i(_)))
+
+    implicit def Cop12PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop12PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Cop] =
+      PFLens[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))) => Some(StoreT.store[A12#Cop[F], Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](x)(y => Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop12 extends Cop12LP {
@@ -7963,6 +8752,137 @@ object types {
 
     implicit def injViaA12FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A](implicit i: Inj[Option[A], A13#Cop[F]]): Inj[Option[A], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       Inj.instance(inja12FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](_).flatMap(i(_)))
+
+    implicit def Cop13PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop13PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Cop] =
+      PFLens[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))) => Some(StoreT.store[A13#Cop[F], Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](x)(y => Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop13 extends Cop13LP {
@@ -9122,6 +10042,147 @@ object types {
 
     implicit def injViaA13FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A](implicit i: Inj[Option[A], A14#Cop[F]]): Inj[Option[A], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       Inj.instance(inja13FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](_).flatMap(i(_)))
+
+    implicit def Cop14PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop14PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Cop] =
+      PFLens[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](x)(y => Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop14 extends Cop14LP {
@@ -10359,6 +11420,157 @@ object types {
 
     implicit def injViaA14FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A](implicit i: Inj[Option[A], A15#Cop[F]]): Inj[Option[A], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       Inj.instance(inja14FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](_).flatMap(i(_)))
+
+    implicit def Cop15PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop15PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Cop] =
+      PFLens[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](x)(y => Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop15 extends Cop15LP {
@@ -11674,6 +12886,167 @@ object types {
 
     implicit def injViaA15FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A](implicit i: Inj[Option[A], A16#Cop[F]]): Inj[Option[A], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       Inj.instance(inja15FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](_).flatMap(i(_)))
+
+    implicit def Cop16PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop16PFLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Cop] =
+      PFLens[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))) => Some(StoreT.store[A16#Cop[F], Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](x)(y => Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop16 extends Cop16LP {
@@ -13067,6 +14440,177 @@ object types {
 
     implicit def injViaA16FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A](implicit i: Inj[Option[A], A17#Cop[F]]): Inj[Option[A], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       Inj.instance(inja16FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](_).flatMap(i(_)))
+
+    implicit def Cop17PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Some(StoreT.store[A16#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop17PFLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Cop] =
+      PFLens[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))) => Some(StoreT.store[A17#Cop[F], Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](x)(y => Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop17 extends Cop17LP {
@@ -14538,6 +16082,187 @@ object types {
 
     implicit def injViaA17FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A](implicit i: Inj[Option[A], A18#Cop[F]]): Inj[Option[A], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       Inj.instance(inja17FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](_).flatMap(i(_)))
+
+    implicit def Cop18PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Some(StoreT.store[A16#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Some(StoreT.store[A17#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop18PFLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Cop] =
+      PFLens[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))) => Some(StoreT.store[A18#Cop[F], Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](x)(y => Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop18 extends Cop18LP {
@@ -16087,6 +17812,197 @@ object types {
 
     implicit def injViaA18FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A](implicit i: Inj[Option[A], A19#Cop[F]]): Inj[Option[A], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       Inj.instance(inja18FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](_).flatMap(i(_)))
+
+    implicit def Cop19PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Some(StoreT.store[A16#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Some(StoreT.store[A17#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Some(StoreT.store[A18#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop19PFLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Cop] =
+      PFLens[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))) => Some(StoreT.store[A19#Cop[F], Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](x)(y => Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop19 extends Cop19LP {
@@ -17714,6 +19630,207 @@ object types {
 
     implicit def injViaA19FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A](implicit i: Inj[Option[A], A20#Cop[F]]): Inj[Option[A], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       Inj.instance(inja19FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](_).flatMap(i(_)))
+
+    implicit def Cop20PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Some(StoreT.store[A16#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Some(StoreT.store[A17#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Some(StoreT.store[A18#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Some(StoreT.store[A19#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop20PFLens19[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Cop] =
+      PFLens[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))) => Some(StoreT.store[A20#Cop[F], Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](x)(y => Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop20 extends Cop20LP {
@@ -19419,6 +21536,217 @@ object types {
 
     implicit def injViaA20FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A](implicit i: Inj[Option[A], A21#Cop[F]]): Inj[Option[A], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       Inj.instance(inja20FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](_).flatMap(i(_)))
+
+    implicit def Cop21PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Some(StoreT.store[A16#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Some(StoreT.store[A17#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Some(StoreT.store[A18#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Some(StoreT.store[A19#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens19[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => Some(StoreT.store[A20#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop21PFLens20[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Cop] =
+      PFLens[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))))) => Some(StoreT.store[A21#Cop[F], Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](x)(y => Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop21 extends Cop21LP {
@@ -21202,6 +23530,227 @@ object types {
 
     implicit def injViaA21FInverse[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor, A](implicit i: Inj[Option[A], A22#Cop[F]]): Inj[Option[A], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       Inj.instance(inja21FInverse[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](_).flatMap(i(_)))
+
+    implicit def Cop22PFLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Cop[F]] =
+            PLens(c => c.run match {
+              case -\/(x) => Some(StoreT.store[A1#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](-\/(y))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(-\/(x)) => Some(StoreT.store[A2#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(-\/(y)))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(-\/(x))) => Some(StoreT.store[A3#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(-\/(y))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[A4#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(-\/(y)))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[A5#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(-\/(y))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[A6#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Some(StoreT.store[A7#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Some(StoreT.store[A8#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Some(StoreT.store[A9#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Some(StoreT.store[A10#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Some(StoreT.store[A11#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Some(StoreT.store[A12#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Some(StoreT.store[A13#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Some(StoreT.store[A14#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Some(StoreT.store[A15#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Some(StoreT.store[A16#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Some(StoreT.store[A17#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Some(StoreT.store[A18#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Some(StoreT.store[A19#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens19[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => Some(StoreT.store[A20#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens20[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))))) => Some(StoreT.store[A21#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
+    implicit def Cop22PFLens21[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Cop] =
+      PFLens[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Cop](
+        new ForallF[Lambda[f[_] => PLens[Cop22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Cop[f]]]] {
+          def apply[F[_]]: PLens[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Cop[F]] =
+            PLens(c => c.run match {
+              case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))))) => Some(StoreT.store[A22#Cop[F], Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](x)(y => Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))))))
+              case _ => None
+            })
+        })
+
   }
 
   object Cop22 extends Cop22LP {
