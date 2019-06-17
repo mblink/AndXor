@@ -112,7 +112,7 @@ object types {
           }
       }
 
-    implicit def @{tpes.prodName}DerivingCop[TC[_], F[_], @{tpes.axoTpeParams}]@{tpes.derivingParams("Cop", "TC", "F").asImpls(false)}: DerivingCop[@{tpes.copTpeF("?[_]")}, F, TC] =
+    implicit def @{tpes.copName}DerivingCop[TC[_], F[_], @{tpes.axoTpeParams}]@{tpes.derivingParams("Cop", "TC", "F").asImpls(false)}: DerivingCop[@{tpes.copTpeF("?[_]")}, F, TC] =
       new DerivingCop[@{tpes.copTpeF("?[_]")}, F, TC] {
         def mkCovariant[A](f: @{tpes.copTpe} => A)(implicit A: Alt[TC]): TC[A] =
           @tpes.foldLen01(s"A.map(tc)(x => f(${tpes.copTpe}(x)))")(s"Combine.altly${tpes.length}(${

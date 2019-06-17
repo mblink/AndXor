@@ -116,6 +116,10 @@ object syntax {
       foldLen[LS](Nil)(List(s"tc: $TC[$F[${tpes.head}]]"))(selCopOrProd(copOrProd, None)
         .map(t => s"Deriving$copOrProd[$t, $F, $TC]").paramSigArgs("deriving"))
 
+    def derivingIsoParams(copOrProd: String, TC: String, F: String): LS =
+      foldLen[LS](Nil)(List(s"TC: $TC[$F[${tpes.head}]]"))(selCopOrProd(copOrProd, None)
+        .map(t => s"DerivingIso[$t, $F, $TC]").paramSigArgs("deriving"))
+
     def transformParams(copOrProd: String): LS =
       foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("Transform", "trans"))
 

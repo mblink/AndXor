@@ -8,11 +8,17 @@ trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
   implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]], d: DerivingProd[Prod, F, Inj[Prod[F], ?]]): Inj[Prod[F], Prod[F]]
 }
 
-trait AndXor {
+trait AndXor { self =>
   type Cop[F[_]]
   type Prod[F[_]]
 
   val evidence: AndXorEvidence[Cop, Prod]
+
+  def fix[F[_]]: AndXorFixed[F] = new AndXorFixed[F] {
+    type AXO = self.type
+    val axo: self.type = self
+    val evidence: AndXorEvidence[self.Cop, self.Prod] = self.evidence
+  }
 
   def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
   def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
@@ -30,6 +36,26 @@ trait AndXor {
   def alt[TC[_]](implicit x: Alt[TC], d: DerivingCop[Cop, Id, TC], _d: DummyImplicit): TC[Cop[Id]] = d.alt
   def divide[TC[_]](implicit x: Divide[TC], d: DerivingProd[Prod, Id, TC], _d: DummyImplicit): TC[Prod[Id]] = d.divide
   def apply[TC[_]](implicit x: Apply[TC], d: DerivingProd[Prod, Id, TC], _d: DummyImplicit): TC[Prod[Id]] = d.apply
+}
+
+trait AndXorFixed[F[_]] {
+  type AXO <: AndXor
+  val axo: AXO
+
+  type Cop = axo.Cop[F]
+  type Prod = axo.Prod[F]
+
+  val evidence: AndXorEvidence[axo.Cop, axo.Prod]
+
+  def inj[A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
+  def lift[A](a: A)(implicit inj: Inj[Prod, A]): Prod = inj(a)
+  def extractC[B](c: Cop)(implicit inj: Inj[Option[F[B]], Cop]): Option[F[B]] = inj(c)
+  def extractP[B](p: Prod)(implicit inj: Inj[F[B], Prod]): F[B] = inj(p)
+
+  def choose[TC[_]](implicit x: Decidable[TC], d: DerivingCop[axo.Cop, F, TC]): TC[Cop] = d.choose
+  def alt[TC[_]](implicit x: Alt[TC], d: DerivingCop[axo.Cop, F, TC]): TC[Cop] = d.alt
+  def divide[TC[_]](implicit x: Divide[TC], d: DerivingProd[axo.Prod, F, TC]): TC[Prod] = d.divide
+  def apply[TC[_]](implicit x: Apply[TC], d: DerivingProd[axo.Prod, F, TC]): TC[Prod] = d.apply
 }
 
 trait AndXorLift[A] { type AXO <: AndXor }

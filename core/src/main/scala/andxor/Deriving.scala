@@ -1,6 +1,11 @@
 package andxor
 
-import scalaz.Apply
+import scalaz.{Apply, InvariantFunctor}
+
+sealed trait DerivingIso[T[_[_]], F[_], TC[_]] {
+  def derive[A](to: A => T[F], from: T[F] => A)(implicit F: InvariantFunctor[TC], TC: TC[A]): TC[T[F]] =
+    F.xmap(TC, to, from)
+}
 
 sealed trait Deriving[T[_[_]], F[_], TC[_], Co[_[_]], Contra[_[_]]] {
   def mkCovariant[A](f: T[F] => A)(implicit F: Co[TC]): TC[A]

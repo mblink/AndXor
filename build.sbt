@@ -1,7 +1,7 @@
 lazy val baseSettings = Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.5-LOCAL-19",
+  version := "0.2.5-LOCAL-21",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
     "-deprecation",
