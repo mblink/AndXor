@@ -1,8 +1,8 @@
 package andxor
 
-import andxor.Sequence.syntax._
-import andxor.Transform.syntax._
-import scalaz.{\/, -\/, \/-, ~>, Apply, Functor, InvariantFunctor, Monoid}
+import andxor.syntax.ffunctor._
+import andxor.syntax.ftraverse._
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, InvariantFunctor, Lens, Monoid, StoreT}
 import scalaz.Id.Id
 
 object types {
@@ -44,16 +44,13 @@ object types {
   trait Prod1LP {
     implicit def conv[F[_], A](a: F[A]): Prod1[F, A] = Prod1[F, A](a)
 
-    implicit def Prod1Transform[A1]: Transform[Prod1[?[_], A1]] =
-      new Transform[Prod1[?[_], A1]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod1[F, A1] => Prod1[G, A1] =
-          p => Prod1[G, A1](nt(p.run))
-      }
+    implicit def Prod1Instance[A1]: FFunctor[Prod1[?[_], A1]] with FTraverse[Prod1[?[_], A1]] =
+      new FFunctor[Prod1[?[_], A1]] with FTraverse[Prod1[?[_], A1]] {
+        def map[F[_], G[_]](p: Prod1[F, A1])(nt: F ~> G): Prod1[G, A1] =
+          Prod1[G, A1](nt(p.run))
 
-    implicit def Prod1Sequence[A1]: Sequence[Prod1[?[_], A1], Apply] =
-      new Sequence[Prod1[?[_], A1], Apply] {
-        def sequence[F[_]](p: Prod1[F, A1])(implicit F: Apply[F]): F[Prod1[Id, A1]] =
-          F.map(p.run)((i0: Id[A1]) => Prod1[Id, A1](i0))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod1[F, A1])(f: F ~> Lambda[a => A[G[a]]]): A[Prod1[G, A1]] =
+          Applicative[A].map(f(p.run))((i0: G[A1]) => Prod1[G, A1](i0))
       }
 
     implicit def Prod1FoldMap[A1]: FoldMap[Prod1[?[_], A1], Cop1[?[_], A1]] =
@@ -83,6 +80,14 @@ object types {
           A.map(tc)(x => f(Prod1[F, A1](x)))
       }
 
+    implicit def Prod1FLens0[A1]: FLens[Prod1[?[_], A1], Lambda[f[_] => f[A1]]] =
+      FLens[Prod1[?[_], A1], Lambda[f[_] => f[A1]]](
+        new ForallF[Lambda[f[_] => Lens[Prod1[f, A1], f[A1]]]] {
+          def apply[F[_]]: Lens[Prod1[F, A1], F[A1]] =
+            Lens(p => StoreT.store[F[A1], Prod1[F, A1]](p.run)(x =>
+              Prod1[F, A1](x)))
+        })
+
     implicit def Prod1Monoid[F[_], A1](implicit M: Monoid[F[A1]]): Monoid[Prod1[F, A1]] =
       MF.xmap(M, Prod1[F, A1](_: F[A1]), (_: Prod1[F, A1]).run)
 
@@ -111,17 +116,14 @@ object types {
   trait Cop1LP {
     implicit def conv[F[_], A](a: F[A]): Cop1[F, A] = Cop1[F, A](a)
 
-    implicit def Cop1Transform[A1]: Transform[Cop1[?[_], A1]] =
-      new Transform[Cop1[?[_], A1]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop1[F, A1] => Cop1[G, A1] =
-          c => Cop1[G, A1](nt(c.run))
-      }
+    implicit def Cop1Instance[A1]: FFunctor[Cop1[?[_], A1]] with FTraverse[Cop1[?[_], A1]] =
+      new FFunctor[Cop1[?[_], A1]] with FTraverse[Cop1[?[_], A1]] {
+        def map[F[_], G[_]](c: Cop1[F, A1])(nt: F ~> G): Cop1[G, A1] =
+          Cop1[G, A1](nt(c.run))
 
-    implicit def Cop1Sequence[A1]: Sequence[Cop1[?[_], A1], Functor] =
-      new Sequence[Cop1[?[_], A1], Functor] {
-        def sequence[F[_]](c: Cop1[F, A1])(implicit F: Functor[F]): F[Cop1[Id, A1]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop1[F, A1])(f: F ~> Lambda[a => A[G[a]]]): A[Cop1[G, A1]] =
           c.run match {
-            case x => F.map(x)(y => Cop1[Id, A1](y))
+            case x => Functor[A].map(f(x))(y => Cop1[G, A1](y))
           }
       }
 
@@ -176,16 +178,13 @@ object types {
 
   trait Prod2LP {
 
-    implicit def Prod2Transform[A1 <: AndXor, A2 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod]): Transform[Prod2[?[_], A1, A2]] =
-      new Transform[Prod2[?[_], A1, A2]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod2[F, A1, A2] => Prod2[G, A1, A2] =
-          p => Prod2[G, A1, A2]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2)))
-      }
+    implicit def Prod2Instance[A1 <: AndXor, A2 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod]): FFunctor[Prod2[?[_], A1, A2]] with FTraverse[Prod2[?[_], A1, A2]] =
+      new FFunctor[Prod2[?[_], A1, A2]] with FTraverse[Prod2[?[_], A1, A2]] {
+        def map[F[_], G[_]](p: Prod2[F, A1, A2])(nt: F ~> G): Prod2[G, A1, A2] =
+          Prod2[G, A1, A2]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt)))
 
-    implicit def Prod2Sequence[A1 <: AndXor, A2 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply]): Sequence[Prod2[?[_], A1, A2], Apply] =
-      new Sequence[Prod2[?[_], A1, A2], Apply] {
-        def sequence[F[_]](p: Prod2[F, A1, A2])(implicit F: Apply[F]): F[Prod2[Id, A1, A2]] =
-          F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => Prod2[Id, A1, A2]((i0, i1))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod2[F, A1, A2])(f: F ~> Lambda[a => A[G[a]]]): A[Prod2[G, A1, A2]] =
+          Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => Prod2[G, A1, A2]((i0, i1))))
       }
 
     implicit def Prod2FoldMap[A1 <: AndXor, A2 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop]): FoldMap[Prod2[?[_], A1, A2], Cop2[?[_], A1, A2]] =
@@ -223,6 +222,22 @@ object types {
           }
 
       }
+
+    implicit def Prod2FLens0[A1 <: AndXor, A2 <: AndXor]: FLens[Prod2[?[_], A1, A2], A1#Prod] =
+      FLens[Prod2[?[_], A1, A2], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod2[f, A1, A2], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod2[F, A1, A2], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod2[F, A1, A2]](p.t1)(x =>
+              Prod2[F, A1, A2]((x, p.t2))))
+        })
+
+    implicit def Prod2FLens1[A1 <: AndXor, A2 <: AndXor]: FLens[Prod2[?[_], A1, A2], A2#Prod] =
+      FLens[Prod2[?[_], A1, A2], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod2[f, A1, A2], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod2[F, A1, A2], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod2[F, A1, A2]](p.t2)(x =>
+              Prod2[F, A1, A2]((p.t1, x))))
+        })
 
     implicit def Prod2Monoid[F[_], A1 <: AndXor, A2 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F])]): Monoid[Prod2[F, A1, A2]] =
       MF.xmap(M, Prod2[F, A1, A2](_: (A1#Prod[F], A2#Prod[F])), (_: Prod2[F, A1, A2]).run)
@@ -291,18 +306,15 @@ object types {
 
   trait Cop2LP {
 
-    implicit def Cop2Transform[A1 <: AndXor, A2 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop]): Transform[Cop2[?[_], A1, A2]] =
-      new Transform[Cop2[?[_], A1, A2]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop2[F, A1, A2] => Cop2[G, A1, A2] =
-          c => Cop2[G, A1, A2](c.run.bimap(_.transform(nt), _.transform(nt)))
-      }
+    implicit def Cop2Instance[A1 <: AndXor, A2 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop]): FFunctor[Cop2[?[_], A1, A2]] with FTraverse[Cop2[?[_], A1, A2]] =
+      new FFunctor[Cop2[?[_], A1, A2]] with FTraverse[Cop2[?[_], A1, A2]] {
+        def map[F[_], G[_]](c: Cop2[F, A1, A2])(nt: F ~> G): Cop2[G, A1, A2] =
+          Cop2[G, A1, A2](c.run.bimap(_.map(nt), _.map(nt)))
 
-    implicit def Cop2Sequence[A1 <: AndXor, A2 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor]): Sequence[Cop2[?[_], A1, A2], Functor] =
-      new Sequence[Cop2[?[_], A1, A2], Functor] {
-        def sequence[F[_]](c: Cop2[F, A1, A2])(implicit F: Functor[F]): F[Cop2[Id, A1, A2]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop2[F, A1, A2])(f: F ~> Lambda[a => A[G[a]]]): A[Cop2[G, A1, A2]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop2[Id, A1, A2](-\/(y)))
-            case \/-(x) => F.map(x.sequence)(y => Cop2[Id, A1, A2](\/-(y)))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop2[G, A1, A2](-\/(y)))
+            case \/-(x) => Functor[A].map(x.traverse(f))(y => Cop2[G, A1, A2](\/-(y)))
           }
       }
 
@@ -408,16 +420,13 @@ object types {
 
   trait Prod3LP {
 
-    implicit def Prod3Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod]): Transform[Prod3[?[_], A1, A2, A3]] =
-      new Transform[Prod3[?[_], A1, A2, A3]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod3[F, A1, A2, A3] => Prod3[G, A1, A2, A3] =
-          p => Prod3[G, A1, A2, A3]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3)))
-      }
+    implicit def Prod3Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod]): FFunctor[Prod3[?[_], A1, A2, A3]] with FTraverse[Prod3[?[_], A1, A2, A3]] =
+      new FFunctor[Prod3[?[_], A1, A2, A3]] with FTraverse[Prod3[?[_], A1, A2, A3]] {
+        def map[F[_], G[_]](p: Prod3[F, A1, A2, A3])(nt: F ~> G): Prod3[G, A1, A2, A3] =
+          Prod3[G, A1, A2, A3]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt)))
 
-    implicit def Prod3Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply]): Sequence[Prod3[?[_], A1, A2, A3], Apply] =
-      new Sequence[Prod3[?[_], A1, A2, A3], Apply] {
-        def sequence[F[_]](p: Prod3[F, A1, A2, A3])(implicit F: Apply[F]): F[Prod3[Id, A1, A2, A3]] =
-          F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => Prod3[Id, A1, A2, A3]((i0, i1, i2)))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod3[F, A1, A2, A3])(f: F ~> Lambda[a => A[G[a]]]): A[Prod3[G, A1, A2, A3]] =
+          Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => Prod3[G, A1, A2, A3]((i0, i1, i2)))))
       }
 
     implicit def Prod3FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop]): FoldMap[Prod3[?[_], A1, A2, A3], Cop3[?[_], A1, A2, A3]] =
@@ -459,6 +468,30 @@ object types {
           }
 
       }
+
+    implicit def Prod3FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: FLens[Prod3[?[_], A1, A2, A3], A1#Prod] =
+      FLens[Prod3[?[_], A1, A2, A3], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod3[f, A1, A2, A3], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod3[F, A1, A2, A3], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod3[F, A1, A2, A3]](p.t1)(x =>
+              Prod3[F, A1, A2, A3]((x, p.t2, p.t3))))
+        })
+
+    implicit def Prod3FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: FLens[Prod3[?[_], A1, A2, A3], A2#Prod] =
+      FLens[Prod3[?[_], A1, A2, A3], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod3[f, A1, A2, A3], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod3[F, A1, A2, A3], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod3[F, A1, A2, A3]](p.t2)(x =>
+              Prod3[F, A1, A2, A3]((p.t1, x, p.t3))))
+        })
+
+    implicit def Prod3FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor]: FLens[Prod3[?[_], A1, A2, A3], A3#Prod] =
+      FLens[Prod3[?[_], A1, A2, A3], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod3[f, A1, A2, A3], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod3[F, A1, A2, A3], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod3[F, A1, A2, A3]](p.t3)(x =>
+              Prod3[F, A1, A2, A3]((p.t1, p.t2, x))))
+        })
 
     implicit def Prod3Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F])]): Monoid[Prod3[F, A1, A2, A3]] =
       MF.xmap(M, Prod3[F, A1, A2, A3](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F])), (_: Prod3[F, A1, A2, A3]).run)
@@ -555,19 +588,16 @@ object types {
 
   trait Cop3LP {
 
-    implicit def Cop3Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop]): Transform[Cop3[?[_], A1, A2, A3]] =
-      new Transform[Cop3[?[_], A1, A2, A3]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop3[F, A1, A2, A3] => Cop3[G, A1, A2, A3] =
-          c => Cop3[G, A1, A2, A3](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))
-      }
+    implicit def Cop3Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop]): FFunctor[Cop3[?[_], A1, A2, A3]] with FTraverse[Cop3[?[_], A1, A2, A3]] =
+      new FFunctor[Cop3[?[_], A1, A2, A3]] with FTraverse[Cop3[?[_], A1, A2, A3]] {
+        def map[F[_], G[_]](c: Cop3[F, A1, A2, A3])(nt: F ~> G): Cop3[G, A1, A2, A3] =
+          Cop3[G, A1, A2, A3](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))
 
-    implicit def Cop3Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor]): Sequence[Cop3[?[_], A1, A2, A3], Functor] =
-      new Sequence[Cop3[?[_], A1, A2, A3], Functor] {
-        def sequence[F[_]](c: Cop3[F, A1, A2, A3])(implicit F: Functor[F]): F[Cop3[Id, A1, A2, A3]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop3[F, A1, A2, A3])(f: F ~> Lambda[a => A[G[a]]]): A[Cop3[G, A1, A2, A3]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop3[Id, A1, A2, A3](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop3[Id, A1, A2, A3](\/-(-\/(y))))
-            case \/-(\/-(x)) => F.map(x.sequence)(y => Cop3[Id, A1, A2, A3](\/-(\/-(y))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop3[G, A1, A2, A3](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop3[G, A1, A2, A3](\/-(-\/(y))))
+            case \/-(\/-(x)) => Functor[A].map(x.traverse(f))(y => Cop3[G, A1, A2, A3](\/-(\/-(y))))
           }
       }
 
@@ -710,16 +740,13 @@ object types {
 
   trait Prod4LP {
 
-    implicit def Prod4Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod]): Transform[Prod4[?[_], A1, A2, A3, A4]] =
-      new Transform[Prod4[?[_], A1, A2, A3, A4]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod4[F, A1, A2, A3, A4] => Prod4[G, A1, A2, A3, A4] =
-          p => Prod4[G, A1, A2, A3, A4]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4)))
-      }
+    implicit def Prod4Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod]): FFunctor[Prod4[?[_], A1, A2, A3, A4]] with FTraverse[Prod4[?[_], A1, A2, A3, A4]] =
+      new FFunctor[Prod4[?[_], A1, A2, A3, A4]] with FTraverse[Prod4[?[_], A1, A2, A3, A4]] {
+        def map[F[_], G[_]](p: Prod4[F, A1, A2, A3, A4])(nt: F ~> G): Prod4[G, A1, A2, A3, A4] =
+          Prod4[G, A1, A2, A3, A4]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt)))
 
-    implicit def Prod4Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply]): Sequence[Prod4[?[_], A1, A2, A3, A4], Apply] =
-      new Sequence[Prod4[?[_], A1, A2, A3, A4], Apply] {
-        def sequence[F[_]](p: Prod4[F, A1, A2, A3, A4])(implicit F: Apply[F]): F[Prod4[Id, A1, A2, A3, A4]] =
-          F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => Prod4[Id, A1, A2, A3, A4]((i0, i1, i2, i3))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod4[F, A1, A2, A3, A4])(f: F ~> Lambda[a => A[G[a]]]): A[Prod4[G, A1, A2, A3, A4]] =
+          Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => Prod4[G, A1, A2, A3, A4]((i0, i1, i2, i3))))))
       }
 
     implicit def Prod4FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop]): FoldMap[Prod4[?[_], A1, A2, A3, A4], Cop4[?[_], A1, A2, A3, A4]] =
@@ -765,6 +792,38 @@ object types {
           }
 
       }
+
+    implicit def Prod4FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: FLens[Prod4[?[_], A1, A2, A3, A4], A1#Prod] =
+      FLens[Prod4[?[_], A1, A2, A3, A4], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod4[f, A1, A2, A3, A4], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod4[F, A1, A2, A3, A4], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod4[F, A1, A2, A3, A4]](p.t1)(x =>
+              Prod4[F, A1, A2, A3, A4]((x, p.t2, p.t3, p.t4))))
+        })
+
+    implicit def Prod4FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: FLens[Prod4[?[_], A1, A2, A3, A4], A2#Prod] =
+      FLens[Prod4[?[_], A1, A2, A3, A4], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod4[f, A1, A2, A3, A4], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod4[F, A1, A2, A3, A4], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod4[F, A1, A2, A3, A4]](p.t2)(x =>
+              Prod4[F, A1, A2, A3, A4]((p.t1, x, p.t3, p.t4))))
+        })
+
+    implicit def Prod4FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: FLens[Prod4[?[_], A1, A2, A3, A4], A3#Prod] =
+      FLens[Prod4[?[_], A1, A2, A3, A4], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod4[f, A1, A2, A3, A4], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod4[F, A1, A2, A3, A4], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod4[F, A1, A2, A3, A4]](p.t3)(x =>
+              Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, x, p.t4))))
+        })
+
+    implicit def Prod4FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor]: FLens[Prod4[?[_], A1, A2, A3, A4], A4#Prod] =
+      FLens[Prod4[?[_], A1, A2, A3, A4], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod4[f, A1, A2, A3, A4], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod4[F, A1, A2, A3, A4], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod4[F, A1, A2, A3, A4]](p.t4)(x =>
+              Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, p.t3, x))))
+        })
 
     implicit def Prod4Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F])]): Monoid[Prod4[F, A1, A2, A3, A4]] =
       MF.xmap(M, Prod4[F, A1, A2, A3, A4](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F])), (_: Prod4[F, A1, A2, A3, A4]).run)
@@ -889,20 +948,17 @@ object types {
 
   trait Cop4LP {
 
-    implicit def Cop4Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop]): Transform[Cop4[?[_], A1, A2, A3, A4]] =
-      new Transform[Cop4[?[_], A1, A2, A3, A4]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop4[F, A1, A2, A3, A4] => Cop4[G, A1, A2, A3, A4] =
-          c => Cop4[G, A1, A2, A3, A4](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))
-      }
+    implicit def Cop4Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop]): FFunctor[Cop4[?[_], A1, A2, A3, A4]] with FTraverse[Cop4[?[_], A1, A2, A3, A4]] =
+      new FFunctor[Cop4[?[_], A1, A2, A3, A4]] with FTraverse[Cop4[?[_], A1, A2, A3, A4]] {
+        def map[F[_], G[_]](c: Cop4[F, A1, A2, A3, A4])(nt: F ~> G): Cop4[G, A1, A2, A3, A4] =
+          Cop4[G, A1, A2, A3, A4](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))
 
-    implicit def Cop4Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor]): Sequence[Cop4[?[_], A1, A2, A3, A4], Functor] =
-      new Sequence[Cop4[?[_], A1, A2, A3, A4], Functor] {
-        def sequence[F[_]](c: Cop4[F, A1, A2, A3, A4])(implicit F: Functor[F]): F[Cop4[Id, A1, A2, A3, A4]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop4[F, A1, A2, A3, A4])(f: F ~> Lambda[a => A[G[a]]]): A[Cop4[G, A1, A2, A3, A4]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop4[Id, A1, A2, A3, A4](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop4[Id, A1, A2, A3, A4](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop4[Id, A1, A2, A3, A4](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(x))) => F.map(x.sequence)(y => Cop4[Id, A1, A2, A3, A4](\/-(\/-(\/-(y)))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop4[G, A1, A2, A3, A4](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop4[G, A1, A2, A3, A4](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop4[G, A1, A2, A3, A4](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(x))) => Functor[A].map(x.traverse(f))(y => Cop4[G, A1, A2, A3, A4](\/-(\/-(\/-(y)))))
           }
       }
 
@@ -1082,16 +1138,13 @@ object types {
 
   trait Prod5LP {
 
-    implicit def Prod5Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod]): Transform[Prod5[?[_], A1, A2, A3, A4, A5]] =
-      new Transform[Prod5[?[_], A1, A2, A3, A4, A5]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod5[F, A1, A2, A3, A4, A5] => Prod5[G, A1, A2, A3, A4, A5] =
-          p => Prod5[G, A1, A2, A3, A4, A5]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5)))
-      }
+    implicit def Prod5Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod]): FFunctor[Prod5[?[_], A1, A2, A3, A4, A5]] with FTraverse[Prod5[?[_], A1, A2, A3, A4, A5]] =
+      new FFunctor[Prod5[?[_], A1, A2, A3, A4, A5]] with FTraverse[Prod5[?[_], A1, A2, A3, A4, A5]] {
+        def map[F[_], G[_]](p: Prod5[F, A1, A2, A3, A4, A5])(nt: F ~> G): Prod5[G, A1, A2, A3, A4, A5] =
+          Prod5[G, A1, A2, A3, A4, A5]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt)))
 
-    implicit def Prod5Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply]): Sequence[Prod5[?[_], A1, A2, A3, A4, A5], Apply] =
-      new Sequence[Prod5[?[_], A1, A2, A3, A4, A5], Apply] {
-        def sequence[F[_]](p: Prod5[F, A1, A2, A3, A4, A5])(implicit F: Apply[F]): F[Prod5[Id, A1, A2, A3, A4, A5]] =
-          F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => Prod5[Id, A1, A2, A3, A4, A5]((i0, i1, i2, i3, i4)))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod5[F, A1, A2, A3, A4, A5])(f: F ~> Lambda[a => A[G[a]]]): A[Prod5[G, A1, A2, A3, A4, A5]] =
+          Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => Prod5[G, A1, A2, A3, A4, A5]((i0, i1, i2, i3, i4)))))))
       }
 
     implicit def Prod5FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop]): FoldMap[Prod5[?[_], A1, A2, A3, A4, A5], Cop5[?[_], A1, A2, A3, A4, A5]] =
@@ -1141,6 +1194,46 @@ object types {
           }
 
       }
+
+    implicit def Prod5FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: FLens[Prod5[?[_], A1, A2, A3, A4, A5], A1#Prod] =
+      FLens[Prod5[?[_], A1, A2, A3, A4, A5], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod5[f, A1, A2, A3, A4, A5], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod5[F, A1, A2, A3, A4, A5], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod5[F, A1, A2, A3, A4, A5]](p.t1)(x =>
+              Prod5[F, A1, A2, A3, A4, A5]((x, p.t2, p.t3, p.t4, p.t5))))
+        })
+
+    implicit def Prod5FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: FLens[Prod5[?[_], A1, A2, A3, A4, A5], A2#Prod] =
+      FLens[Prod5[?[_], A1, A2, A3, A4, A5], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod5[f, A1, A2, A3, A4, A5], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod5[F, A1, A2, A3, A4, A5], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod5[F, A1, A2, A3, A4, A5]](p.t2)(x =>
+              Prod5[F, A1, A2, A3, A4, A5]((p.t1, x, p.t3, p.t4, p.t5))))
+        })
+
+    implicit def Prod5FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: FLens[Prod5[?[_], A1, A2, A3, A4, A5], A3#Prod] =
+      FLens[Prod5[?[_], A1, A2, A3, A4, A5], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod5[f, A1, A2, A3, A4, A5], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod5[F, A1, A2, A3, A4, A5], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod5[F, A1, A2, A3, A4, A5]](p.t3)(x =>
+              Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, x, p.t4, p.t5))))
+        })
+
+    implicit def Prod5FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: FLens[Prod5[?[_], A1, A2, A3, A4, A5], A4#Prod] =
+      FLens[Prod5[?[_], A1, A2, A3, A4, A5], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod5[f, A1, A2, A3, A4, A5], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod5[F, A1, A2, A3, A4, A5], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod5[F, A1, A2, A3, A4, A5]](p.t4)(x =>
+              Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, x, p.t5))))
+        })
+
+    implicit def Prod5FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor]: FLens[Prod5[?[_], A1, A2, A3, A4, A5], A5#Prod] =
+      FLens[Prod5[?[_], A1, A2, A3, A4, A5], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod5[f, A1, A2, A3, A4, A5], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod5[F, A1, A2, A3, A4, A5], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod5[F, A1, A2, A3, A4, A5]](p.t5)(x =>
+              Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, p.t4, x))))
+        })
 
     implicit def Prod5Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F])]): Monoid[Prod5[F, A1, A2, A3, A4, A5]] =
       MF.xmap(M, Prod5[F, A1, A2, A3, A4, A5](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F])), (_: Prod5[F, A1, A2, A3, A4, A5]).run)
@@ -1293,21 +1386,18 @@ object types {
 
   trait Cop5LP {
 
-    implicit def Cop5Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop]): Transform[Cop5[?[_], A1, A2, A3, A4, A5]] =
-      new Transform[Cop5[?[_], A1, A2, A3, A4, A5]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop5[F, A1, A2, A3, A4, A5] => Cop5[G, A1, A2, A3, A4, A5] =
-          c => Cop5[G, A1, A2, A3, A4, A5](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))
-      }
+    implicit def Cop5Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop]): FFunctor[Cop5[?[_], A1, A2, A3, A4, A5]] with FTraverse[Cop5[?[_], A1, A2, A3, A4, A5]] =
+      new FFunctor[Cop5[?[_], A1, A2, A3, A4, A5]] with FTraverse[Cop5[?[_], A1, A2, A3, A4, A5]] {
+        def map[F[_], G[_]](c: Cop5[F, A1, A2, A3, A4, A5])(nt: F ~> G): Cop5[G, A1, A2, A3, A4, A5] =
+          Cop5[G, A1, A2, A3, A4, A5](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))
 
-    implicit def Cop5Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor]): Sequence[Cop5[?[_], A1, A2, A3, A4, A5], Functor] =
-      new Sequence[Cop5[?[_], A1, A2, A3, A4, A5], Functor] {
-        def sequence[F[_]](c: Cop5[F, A1, A2, A3, A4, A5])(implicit F: Functor[F]): F[Cop5[Id, A1, A2, A3, A4, A5]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop5[F, A1, A2, A3, A4, A5])(f: F ~> Lambda[a => A[G[a]]]): A[Cop5[G, A1, A2, A3, A4, A5]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop5[Id, A1, A2, A3, A4, A5](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop5[Id, A1, A2, A3, A4, A5](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop5[Id, A1, A2, A3, A4, A5](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop5[Id, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(x)))) => F.map(x.sequence)(y => Cop5[Id, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(y))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop5[G, A1, A2, A3, A4, A5](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(x)))) => Functor[A].map(x.traverse(f))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(y))))))
           }
       }
 
@@ -1524,16 +1614,13 @@ object types {
 
   trait Prod6LP {
 
-    implicit def Prod6Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod]): Transform[Prod6[?[_], A1, A2, A3, A4, A5, A6]] =
-      new Transform[Prod6[?[_], A1, A2, A3, A4, A5, A6]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod6[F, A1, A2, A3, A4, A5, A6] => Prod6[G, A1, A2, A3, A4, A5, A6] =
-          p => Prod6[G, A1, A2, A3, A4, A5, A6]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6)))
-      }
+    implicit def Prod6Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod]): FFunctor[Prod6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverse[Prod6[?[_], A1, A2, A3, A4, A5, A6]] =
+      new FFunctor[Prod6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverse[Prod6[?[_], A1, A2, A3, A4, A5, A6]] {
+        def map[F[_], G[_]](p: Prod6[F, A1, A2, A3, A4, A5, A6])(nt: F ~> G): Prod6[G, A1, A2, A3, A4, A5, A6] =
+          Prod6[G, A1, A2, A3, A4, A5, A6]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt)))
 
-    implicit def Prod6Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply]): Sequence[Prod6[?[_], A1, A2, A3, A4, A5, A6], Apply] =
-      new Sequence[Prod6[?[_], A1, A2, A3, A4, A5, A6], Apply] {
-        def sequence[F[_]](p: Prod6[F, A1, A2, A3, A4, A5, A6])(implicit F: Apply[F]): F[Prod6[Id, A1, A2, A3, A4, A5, A6]] =
-          F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => Prod6[Id, A1, A2, A3, A4, A5, A6]((i0, i1, i2, i3, i4, i5))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod6[F, A1, A2, A3, A4, A5, A6])(f: F ~> Lambda[a => A[G[a]]]): A[Prod6[G, A1, A2, A3, A4, A5, A6]] =
+          Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => Prod6[G, A1, A2, A3, A4, A5, A6]((i0, i1, i2, i3, i4, i5))))))))
       }
 
     implicit def Prod6FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop]): FoldMap[Prod6[?[_], A1, A2, A3, A4, A5, A6], Cop6[?[_], A1, A2, A3, A4, A5, A6]] =
@@ -1587,6 +1674,54 @@ object types {
           }
 
       }
+
+    implicit def Prod6FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A1#Prod] =
+      FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod6[f, A1, A2, A3, A4, A5, A6], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod6[F, A1, A2, A3, A4, A5, A6]](p.t1)(x =>
+              Prod6[F, A1, A2, A3, A4, A5, A6]((x, p.t2, p.t3, p.t4, p.t5, p.t6))))
+        })
+
+    implicit def Prod6FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A2#Prod] =
+      FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod6[f, A1, A2, A3, A4, A5, A6], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod6[F, A1, A2, A3, A4, A5, A6]](p.t2)(x =>
+              Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, x, p.t3, p.t4, p.t5, p.t6))))
+        })
+
+    implicit def Prod6FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A3#Prod] =
+      FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod6[f, A1, A2, A3, A4, A5, A6], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod6[F, A1, A2, A3, A4, A5, A6]](p.t3)(x =>
+              Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, x, p.t4, p.t5, p.t6))))
+        })
+
+    implicit def Prod6FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A4#Prod] =
+      FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod6[f, A1, A2, A3, A4, A5, A6], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod6[F, A1, A2, A3, A4, A5, A6]](p.t4)(x =>
+              Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, p.t3, x, p.t5, p.t6))))
+        })
+
+    implicit def Prod6FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A5#Prod] =
+      FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod6[f, A1, A2, A3, A4, A5, A6], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod6[F, A1, A2, A3, A4, A5, A6]](p.t5)(x =>
+              Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, p.t3, p.t4, x, p.t6))))
+        })
+
+    implicit def Prod6FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A6#Prod] =
+      FLens[Prod6[?[_], A1, A2, A3, A4, A5, A6], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod6[f, A1, A2, A3, A4, A5, A6], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod6[F, A1, A2, A3, A4, A5, A6]](p.t6)(x =>
+              Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, p.t3, p.t4, p.t5, x))))
+        })
 
     implicit def Prod6Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F])]): Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]] =
       MF.xmap(M, Prod6[F, A1, A2, A3, A4, A5, A6](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F])), (_: Prod6[F, A1, A2, A3, A4, A5, A6]).run)
@@ -1767,22 +1902,19 @@ object types {
 
   trait Cop6LP {
 
-    implicit def Cop6Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop]): Transform[Cop6[?[_], A1, A2, A3, A4, A5, A6]] =
-      new Transform[Cop6[?[_], A1, A2, A3, A4, A5, A6]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop6[F, A1, A2, A3, A4, A5, A6] => Cop6[G, A1, A2, A3, A4, A5, A6] =
-          c => Cop6[G, A1, A2, A3, A4, A5, A6](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))
-      }
+    implicit def Cop6Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop]): FFunctor[Cop6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverse[Cop6[?[_], A1, A2, A3, A4, A5, A6]] =
+      new FFunctor[Cop6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverse[Cop6[?[_], A1, A2, A3, A4, A5, A6]] {
+        def map[F[_], G[_]](c: Cop6[F, A1, A2, A3, A4, A5, A6])(nt: F ~> G): Cop6[G, A1, A2, A3, A4, A5, A6] =
+          Cop6[G, A1, A2, A3, A4, A5, A6](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))
 
-    implicit def Cop6Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor]): Sequence[Cop6[?[_], A1, A2, A3, A4, A5, A6], Functor] =
-      new Sequence[Cop6[?[_], A1, A2, A3, A4, A5, A6], Functor] {
-        def sequence[F[_]](c: Cop6[F, A1, A2, A3, A4, A5, A6])(implicit F: Functor[F]): F[Cop6[Id, A1, A2, A3, A4, A5, A6]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop6[F, A1, A2, A3, A4, A5, A6])(f: F ~> Lambda[a => A[G[a]]]): A[Cop6[G, A1, A2, A3, A4, A5, A6]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop6[Id, A1, A2, A3, A4, A5, A6](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop6[Id, A1, A2, A3, A4, A5, A6](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop6[Id, A1, A2, A3, A4, A5, A6](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop6[Id, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop6[Id, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(x))))) => F.map(x.sequence)(y => Cop6[Id, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(\/-(y)))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop6[G, A1, A2, A3, A4, A5, A6](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(x))))) => Functor[A].map(x.traverse(f))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(\/-(y)))))))
           }
       }
 
@@ -2036,16 +2168,13 @@ object types {
 
   trait Prod7LP {
 
-    implicit def Prod7Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod]): Transform[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
-      new Transform[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod7[F, A1, A2, A3, A4, A5, A6, A7] => Prod7[G, A1, A2, A3, A4, A5, A6, A7] =
-          p => Prod7[G, A1, A2, A3, A4, A5, A6, A7]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7)))
-      }
+    implicit def Prod7Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod]): FFunctor[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverse[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
+      new FFunctor[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverse[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
+        def map[F[_], G[_]](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7])(nt: F ~> G): Prod7[G, A1, A2, A3, A4, A5, A6, A7] =
+          Prod7[G, A1, A2, A3, A4, A5, A6, A7]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt)))
 
-    implicit def Prod7Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply]): Sequence[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Apply] =
-      new Sequence[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Apply] {
-        def sequence[F[_]](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7])(implicit F: Apply[F]): F[Prod7[Id, A1, A2, A3, A4, A5, A6, A7]] =
-          F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => Prod7[Id, A1, A2, A3, A4, A5, A6, A7]((i0, i1, i2, i3, i4, i5, i6)))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7])(f: F ~> Lambda[a => A[G[a]]]): A[Prod7[G, A1, A2, A3, A4, A5, A6, A7]] =
+          Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => Prod7[G, A1, A2, A3, A4, A5, A6, A7]((i0, i1, i2, i3, i4, i5, i6)))))))))
       }
 
     implicit def Prod7FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop]): FoldMap[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
@@ -2103,6 +2232,62 @@ object types {
           }
 
       }
+
+    implicit def Prod7FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A1#Prod] =
+      FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod7[f, A1, A2, A3, A4, A5, A6, A7], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t1)(x =>
+              Prod7[F, A1, A2, A3, A4, A5, A6, A7]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7))))
+        })
+
+    implicit def Prod7FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A2#Prod] =
+      FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod7[f, A1, A2, A3, A4, A5, A6, A7], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t2)(x =>
+              Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7))))
+        })
+
+    implicit def Prod7FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A3#Prod] =
+      FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod7[f, A1, A2, A3, A4, A5, A6, A7], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t3)(x =>
+              Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7))))
+        })
+
+    implicit def Prod7FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A4#Prod] =
+      FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod7[f, A1, A2, A3, A4, A5, A6, A7], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t4)(x =>
+              Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7))))
+        })
+
+    implicit def Prod7FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A5#Prod] =
+      FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod7[f, A1, A2, A3, A4, A5, A6, A7], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t5)(x =>
+              Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7))))
+        })
+
+    implicit def Prod7FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A6#Prod] =
+      FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod7[f, A1, A2, A3, A4, A5, A6, A7], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t6)(x =>
+              Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7))))
+        })
+
+    implicit def Prod7FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor]: FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A7#Prod] =
+      FLens[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod7[f, A1, A2, A3, A4, A5, A6, A7], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t7)(x =>
+              Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x))))
+        })
 
     implicit def Prod7Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F])]): Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
       MF.xmap(M, Prod7[F, A1, A2, A3, A4, A5, A6, A7](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F])), (_: Prod7[F, A1, A2, A3, A4, A5, A6, A7]).run)
@@ -2311,23 +2496,20 @@ object types {
 
   trait Cop7LP {
 
-    implicit def Cop7Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop]): Transform[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
-      new Transform[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop7[F, A1, A2, A3, A4, A5, A6, A7] => Cop7[G, A1, A2, A3, A4, A5, A6, A7] =
-          c => Cop7[G, A1, A2, A3, A4, A5, A6, A7](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))
-      }
+    implicit def Cop7Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop]): FFunctor[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverse[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
+      new FFunctor[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverse[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
+        def map[F[_], G[_]](c: Cop7[F, A1, A2, A3, A4, A5, A6, A7])(nt: F ~> G): Cop7[G, A1, A2, A3, A4, A5, A6, A7] =
+          Cop7[G, A1, A2, A3, A4, A5, A6, A7](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))
 
-    implicit def Cop7Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor]): Sequence[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], Functor] =
-      new Sequence[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7], Functor] {
-        def sequence[F[_]](c: Cop7[F, A1, A2, A3, A4, A5, A6, A7])(implicit F: Functor[F]): F[Cop7[Id, A1, A2, A3, A4, A5, A6, A7]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop7[F, A1, A2, A3, A4, A5, A6, A7])(f: F ~> Lambda[a => A[G[a]]]): A[Cop7[G, A1, A2, A3, A4, A5, A6, A7]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop7[Id, A1, A2, A3, A4, A5, A6, A7](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop7[Id, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop7[Id, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop7[Id, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop7[Id, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop7[Id, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(x)))))) => F.map(x.sequence)(y => Cop7[Id, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(y))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(x)))))) => Functor[A].map(x.traverse(f))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(y))))))))
           }
       }
 
@@ -2618,16 +2800,13 @@ object types {
 
   trait Prod8LP {
 
-    implicit def Prod8Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod]): Transform[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
-      new Transform[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8] => Prod8[G, A1, A2, A3, A4, A5, A6, A7, A8] =
-          p => Prod8[G, A1, A2, A3, A4, A5, A6, A7, A8]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8)))
-      }
+    implicit def Prod8Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod]): FFunctor[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] with FTraverse[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
+      new FFunctor[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] with FTraverse[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] {
+        def map[F[_], G[_]](p: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8])(nt: F ~> G): Prod8[G, A1, A2, A3, A4, A5, A6, A7, A8] =
+          Prod8[G, A1, A2, A3, A4, A5, A6, A7, A8]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt)))
 
-    implicit def Prod8Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply]): Sequence[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], Apply] =
-      new Sequence[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], Apply] {
-        def sequence[F[_]](p: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8])(implicit F: Apply[F]): F[Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] =
-          F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => Prod8[Id, A1, A2, A3, A4, A5, A6, A7, A8]((i0, i1, i2, i3, i4, i5, i6, i7))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8])(f: F ~> Lambda[a => A[G[a]]]): A[Prod8[G, A1, A2, A3, A4, A5, A6, A7, A8]] =
+          Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => Prod8[G, A1, A2, A3, A4, A5, A6, A7, A8]((i0, i1, i2, i3, i4, i5, i6, i7))))))))))
       }
 
     implicit def Prod8FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop]): FoldMap[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
@@ -2689,6 +2868,70 @@ object types {
           }
 
       }
+
+    implicit def Prod8FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A1#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t1)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8))))
+        })
+
+    implicit def Prod8FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A2#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t2)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8))))
+        })
+
+    implicit def Prod8FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A3#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t3)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8))))
+        })
+
+    implicit def Prod8FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A4#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t4)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8))))
+        })
+
+    implicit def Prod8FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A5#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t5)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8))))
+        })
+
+    implicit def Prod8FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A6#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t6)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8))))
+        })
+
+    implicit def Prod8FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A7#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t7)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8))))
+        })
+
+    implicit def Prod8FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor]: FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A8#Prod] =
+      FLens[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod8[f, A1, A2, A3, A4, A5, A6, A7, A8], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]](p.t8)(x =>
+              Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x))))
+        })
 
     implicit def Prod8Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F])]): Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
       MF.xmap(M, Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F])), (_: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]).run)
@@ -2925,24 +3168,21 @@ object types {
 
   trait Cop8LP {
 
-    implicit def Cop8Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop]): Transform[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
-      new Transform[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8] => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8] =
-          c => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))
-      }
+    implicit def Cop8Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop]): FFunctor[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] with FTraverse[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
+      new FFunctor[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] with FTraverse[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] {
+        def map[F[_], G[_]](c: Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8])(nt: F ~> G): Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8] =
+          Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))
 
-    implicit def Cop8Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor]): Sequence[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], Functor] =
-      new Sequence[Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], Functor] {
-        def sequence[F[_]](c: Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8])(implicit F: Functor[F]): F[Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8])(f: F ~> Lambda[a => A[G[a]]]): A[Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))) => F.map(x.sequence)(y => Cop8[Id, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))) => Functor[A].map(x.traverse(f))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))
           }
       }
 
@@ -3270,16 +3510,13 @@ object types {
 
   trait Prod9LP {
 
-    implicit def Prod9Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod]): Transform[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-      new Transform[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9] => Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
-          p => Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9)))
-      }
+    implicit def Prod9Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod]): FFunctor[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverse[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      new FFunctor[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverse[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
+        def map[F[_], G[_]](p: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(nt: F ~> G): Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
+          Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt)))
 
-    implicit def Prod9Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply]): Sequence[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Apply] =
-      new Sequence[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Apply] {
-        def sequence[F[_]](p: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(implicit F: Apply[F]): F[Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-          F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => Prod9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]((i0, i1, i2, i3, i4, i5, i6, i7, i8)))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(f: F ~> Lambda[a => A[G[a]]]): A[Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+          Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]((i0, i1, i2, i3, i4, i5, i6, i7, i8)))))))))))
       }
 
     implicit def Prod9FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop]): FoldMap[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
@@ -3345,6 +3582,78 @@ object types {
           }
 
       }
+
+    implicit def Prod9FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t1)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9))))
+        })
+
+    implicit def Prod9FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t2)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9))))
+        })
+
+    implicit def Prod9FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t3)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9))))
+        })
+
+    implicit def Prod9FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t4)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9))))
+        })
+
+    implicit def Prod9FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t5)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9))))
+        })
+
+    implicit def Prod9FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t6)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9))))
+        })
+
+    implicit def Prod9FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t7)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9))))
+        })
+
+    implicit def Prod9FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t8)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9))))
+        })
+
+    implicit def Prod9FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor]: FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Prod] =
+      FLens[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod9[f, A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]](p.t9)(x =>
+              Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x))))
+        })
 
     implicit def Prod9Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F])]): Monoid[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
       MF.xmap(M, Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F])), (_: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]).run)
@@ -3609,25 +3918,22 @@ object types {
 
   trait Cop9LP {
 
-    implicit def Cop9Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop]): Transform[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-      new Transform[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9] => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
-          c => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))))
-      }
+    implicit def Cop9Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop]): FFunctor[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverse[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      new FFunctor[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverse[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
+        def map[F[_], G[_]](c: Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(nt: F ~> G): Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
+          Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))))
 
-    implicit def Cop9Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor]): Sequence[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Functor] =
-      new Sequence[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Functor] {
-        def sequence[F[_]](c: Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(implicit F: Functor[F]): F[Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(f: F ~> Lambda[a => A[G[a]]]): A[Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))) => F.map(x.sequence)(y => Cop9[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))
           }
       }
 
@@ -3992,16 +4298,13 @@ object types {
 
   trait Prod10LP {
 
-    implicit def Prod10Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod]): Transform[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
-      new Transform[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] => Prod10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
-          p => Prod10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10)))
-      }
+    implicit def Prod10Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod]): FFunctor[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] with FTraverse[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      new FFunctor[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] with FTraverse[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
+        def map[F[_], G[_]](p: Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(nt: F ~> G): Prod10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+          Prod10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt)))
 
-    implicit def Prod10Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply]): Sequence[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], Apply] =
-      new Sequence[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], Apply] {
-        def sequence[F[_]](p: Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(implicit F: Apply[F]): F[Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
-          F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => Prod10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(f: F ~> Lambda[a => A[G[a]]]): A[Prod10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+          Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => Prod10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9))))))))))))
       }
 
     implicit def Prod10FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop]): FoldMap[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
@@ -4071,6 +4374,86 @@ object types {
           }
 
       }
+
+    implicit def Prod10FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t1)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t2)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t3)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t4)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t5)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t6)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t7)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t8)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10))))
+        })
+
+    implicit def Prod10FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t9)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10))))
+        })
+
+    implicit def Prod10FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor]: FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Prod] =
+      FLens[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod10[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](p.t10)(x =>
+              Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x))))
+        })
 
     implicit def Prod10Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F])]): Monoid[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       MF.xmap(M, Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F])), (_: Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]).run)
@@ -4363,26 +4746,23 @@ object types {
 
   trait Cop10LP {
 
-    implicit def Cop10Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop]): Transform[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
-      new Transform[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
-          c => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))))
-      }
+    implicit def Cop10Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop]): FFunctor[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] with FTraverse[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+      new FFunctor[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] with FTraverse[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
+        def map[F[_], G[_]](c: Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(nt: F ~> G): Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+          Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))
 
-    implicit def Cop10Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor]): Sequence[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], Functor] =
-      new Sequence[Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], Functor] {
-        def sequence[F[_]](c: Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(implicit F: Functor[F]): F[Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(f: F ~> Lambda[a => A[G[a]]]): A[Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))) => F.map(x.sequence)(y => Cop10[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))
           }
       }
 
@@ -4784,16 +5164,13 @@ object types {
 
   trait Prod11LP {
 
-    implicit def Prod11Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod]): Transform[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-      new Transform[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] => Prod11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
-          p => Prod11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11)))
-      }
+    implicit def Prod11Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod]): FFunctor[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] with FTraverse[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      new FFunctor[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] with FTraverse[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
+        def map[F[_], G[_]](p: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(nt: F ~> G): Prod11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+          Prod11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt)))
 
-    implicit def Prod11Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply]): Sequence[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], Apply] =
-      new Sequence[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], Apply] {
-        def sequence[F[_]](p: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(implicit F: Apply[F]): F[Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-          F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => Prod11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10)))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(f: F ~> Lambda[a => A[G[a]]]): A[Prod11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+          Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => Prod11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10)))))))))))))
       }
 
     implicit def Prod11FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop]): FoldMap[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
@@ -4867,6 +5244,94 @@ object types {
           }
 
       }
+
+    implicit def Prod11FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t1)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t2)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t3)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t4)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t5)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t6)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t7)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t8)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t9)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11))))
+        })
+
+    implicit def Prod11FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t10)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11))))
+        })
+
+    implicit def Prod11FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor]: FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Prod] =
+      FLens[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod11[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](p.t11)(x =>
+              Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x))))
+        })
 
     implicit def Prod11Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F])]): Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       MF.xmap(M, Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F])), (_: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]).run)
@@ -5187,27 +5652,24 @@ object types {
 
   trait Cop11LP {
 
-    implicit def Cop11Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop]): Transform[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-      new Transform[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
-          c => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))))))
-      }
+    implicit def Cop11Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop]): FFunctor[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] with FTraverse[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+      new FFunctor[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] with FTraverse[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
+        def map[F[_], G[_]](c: Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(nt: F ~> G): Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+          Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))))))
 
-    implicit def Cop11Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor]): Sequence[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], Functor] =
-      new Sequence[Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], Functor] {
-        def sequence[F[_]](c: Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(implicit F: Functor[F]): F[Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(f: F ~> Lambda[a => A[G[a]]]): A[Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))) => F.map(x.sequence)(y => Cop11[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))
           }
       }
 
@@ -5646,16 +6108,13 @@ object types {
 
   trait Prod12LP {
 
-    implicit def Prod12Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod]): Transform[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
-      new Transform[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] => Prod12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
-          p => Prod12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12)))
-      }
+    implicit def Prod12Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod]): FFunctor[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] with FTraverse[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      new FFunctor[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] with FTraverse[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
+        def map[F[_], G[_]](p: Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(nt: F ~> G): Prod12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+          Prod12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt)))
 
-    implicit def Prod12Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply]): Sequence[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], Apply] =
-      new Sequence[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], Apply] {
-        def sequence[F[_]](p: Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(implicit F: Apply[F]): F[Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
-          F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => Prod12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(f: F ~> Lambda[a => A[G[a]]]): A[Prod12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+          Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => Prod12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11))))))))))))))
       }
 
     implicit def Prod12FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop]): FoldMap[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
@@ -5733,6 +6192,102 @@ object types {
           }
 
       }
+
+    implicit def Prod12FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t1)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t2)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t3)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t4)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t5)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t6)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t7)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t8)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t9)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t10)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12))))
+        })
+
+    implicit def Prod12FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t11)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12))))
+        })
+
+    implicit def Prod12FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor]: FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Prod] =
+      FLens[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod12[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](p.t12)(x =>
+              Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x))))
+        })
 
     implicit def Prod12Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F])]): Monoid[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       MF.xmap(M, Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F])), (_: Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]).run)
@@ -6081,28 +6636,25 @@ object types {
 
   trait Cop12LP {
 
-    implicit def Cop12Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop]): Transform[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
-      new Transform[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
-          c => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))))))
-      }
+    implicit def Cop12Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop]): FFunctor[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] with FTraverse[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+      new FFunctor[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] with FTraverse[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
+        def map[F[_], G[_]](c: Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(nt: F ~> G): Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+          Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))))
 
-    implicit def Cop12Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor]): Sequence[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], Functor] =
-      new Sequence[Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], Functor] {
-        def sequence[F[_]](c: Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(implicit F: Functor[F]): F[Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(f: F ~> Lambda[a => A[G[a]]]): A[Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))) => F.map(x.sequence)(y => Cop12[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))
           }
       }
 
@@ -6578,16 +7130,13 @@ object types {
 
   trait Prod13LP {
 
-    implicit def Prod13Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod]): Transform[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
-      new Transform[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] => Prod13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
-          p => Prod13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13)))
-      }
+    implicit def Prod13Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod]): FFunctor[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] with FTraverse[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      new FFunctor[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] with FTraverse[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
+        def map[F[_], G[_]](p: Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(nt: F ~> G): Prod13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+          Prod13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt)))
 
-    implicit def Prod13Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply]): Sequence[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], Apply] =
-      new Sequence[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], Apply] {
-        def sequence[F[_]](p: Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(implicit F: Apply[F]): F[Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
-          F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => Prod13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12)))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(f: F ~> Lambda[a => A[G[a]]]): A[Prod13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+          Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => Prod13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12)))))))))))))))
       }
 
     implicit def Prod13FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop]): FoldMap[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
@@ -6669,6 +7218,110 @@ object types {
           }
 
       }
+
+    implicit def Prod13FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t1)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t2)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t3)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t4)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t5)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t6)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t7)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t8)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t9)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t10)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t11)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13))))
+        })
+
+    implicit def Prod13FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t12)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13))))
+        })
+
+    implicit def Prod13FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor]: FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Prod] =
+      FLens[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod13[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](p.t13)(x =>
+              Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x))))
+        })
 
     implicit def Prod13Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F])]): Monoid[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       MF.xmap(M, Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F])), (_: Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]).run)
@@ -7045,29 +7698,26 @@ object types {
 
   trait Cop13LP {
 
-    implicit def Cop13Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop]): Transform[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
-      new Transform[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
-          c => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))))))))
-      }
+    implicit def Cop13Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop]): FFunctor[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] with FTraverse[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+      new FFunctor[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] with FTraverse[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
+        def map[F[_], G[_]](c: Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(nt: F ~> G): Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+          Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))))))))
 
-    implicit def Cop13Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor]): Sequence[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], Functor] =
-      new Sequence[Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], Functor] {
-        def sequence[F[_]](c: Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(implicit F: Functor[F]): F[Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(f: F ~> Lambda[a => A[G[a]]]): A[Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))) => F.map(x.sequence)(y => Cop13[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))
           }
       }
 
@@ -7580,16 +8230,13 @@ object types {
 
   trait Prod14LP {
 
-    implicit def Prod14Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod]): Transform[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      new Transform[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] => Prod14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
-          p => Prod14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14)))
-      }
+    implicit def Prod14Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod]): FFunctor[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] with FTraverse[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      new FFunctor[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] with FTraverse[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
+        def map[F[_], G[_]](p: Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(nt: F ~> G): Prod14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+          Prod14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt)))
 
-    implicit def Prod14Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply]): Sequence[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], Apply] =
-      new Sequence[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], Apply] {
-        def sequence[F[_]](p: Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(implicit F: Apply[F]): F[Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-          F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => Prod14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(f: F ~> Lambda[a => A[G[a]]]): A[Prod14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+          Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => Prod14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13))))))))))))))))
       }
 
     implicit def Prod14FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop]): FoldMap[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
@@ -7675,6 +8322,118 @@ object types {
           }
 
       }
+
+    implicit def Prod14FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t1)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t2)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t3)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t4)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t5)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t6)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t7)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t8)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t9)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t10)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t11)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t12)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14))))
+        })
+
+    implicit def Prod14FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t13)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14))))
+        })
+
+    implicit def Prod14FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor]: FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Prod] =
+      FLens[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod14[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](p.t14)(x =>
+              Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x))))
+        })
 
     implicit def Prod14Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F])]): Monoid[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       MF.xmap(M, Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F])), (_: Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]).run)
@@ -8079,30 +8838,27 @@ object types {
 
   trait Cop14LP {
 
-    implicit def Cop14Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop]): Transform[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-      new Transform[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
-          c => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))))))))
-      }
+    implicit def Cop14Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop]): FFunctor[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] with FTraverse[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+      new FFunctor[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] with FTraverse[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
+        def map[F[_], G[_]](c: Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(nt: F ~> G): Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+          Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))))))
 
-    implicit def Cop14Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor]): Sequence[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], Functor] =
-      new Sequence[Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], Functor] {
-        def sequence[F[_]](c: Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(implicit F: Functor[F]): F[Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(f: F ~> Lambda[a => A[G[a]]]): A[Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))) => F.map(x.sequence)(y => Cop14[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))
           }
       }
 
@@ -8652,16 +9408,13 @@ object types {
 
   trait Prod15LP {
 
-    implicit def Prod15Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod]): Transform[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      new Transform[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] => Prod15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-          p => Prod15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15)))
-      }
+    implicit def Prod15Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod]): FFunctor[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] with FTraverse[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      new FFunctor[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] with FTraverse[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
+        def map[F[_], G[_]](p: Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(nt: F ~> G): Prod15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+          Prod15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt)))
 
-    implicit def Prod15Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply]): Sequence[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], Apply] =
-      new Sequence[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], Apply] {
-        def sequence[F[_]](p: Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(implicit F: Apply[F]): F[Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-          F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => Prod15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14)))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(f: F ~> Lambda[a => A[G[a]]]): A[Prod15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+          Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => Prod15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14)))))))))))))))))
       }
 
     implicit def Prod15FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop]): FoldMap[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
@@ -8751,6 +9504,126 @@ object types {
           }
 
       }
+
+    implicit def Prod15FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t1)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t2)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t3)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t4)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t5)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t6)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t7)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t8)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t9)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t10)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t11)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t12)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t13)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15))))
+        })
+
+    implicit def Prod15FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t14)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15))))
+        })
+
+    implicit def Prod15FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor]: FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Prod] =
+      FLens[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod15[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](p.t15)(x =>
+              Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x))))
+        })
 
     implicit def Prod15Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F])]): Monoid[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       MF.xmap(M, Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F])), (_: Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]).run)
@@ -9183,31 +10056,28 @@ object types {
 
   trait Cop15LP {
 
-    implicit def Cop15Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop]): Transform[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-      new Transform[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-          c => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))))))))))
-      }
+    implicit def Cop15Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop]): FFunctor[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] with FTraverse[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+      new FFunctor[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] with FTraverse[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
+        def map[F[_], G[_]](c: Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(nt: F ~> G): Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+          Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))))))))))
 
-    implicit def Cop15Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor]): Sequence[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], Functor] =
-      new Sequence[Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], Functor] {
-        def sequence[F[_]](c: Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(implicit F: Functor[F]): F[Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(f: F ~> Lambda[a => A[G[a]]]): A[Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))) => F.map(x.sequence)(y => Cop15[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))
           }
       }
 
@@ -9794,16 +10664,13 @@ object types {
 
   trait Prod16LP {
 
-    implicit def Prod16Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod]): Transform[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
-      new Transform[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] => Prod16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
-          p => Prod16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15), trans15.transform(nt)(p.t16)))
-      }
+    implicit def Prod16Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod], ft15: FTraverse[A16#Prod]): FFunctor[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] with FTraverse[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      new FFunctor[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] with FTraverse[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
+        def map[F[_], G[_]](p: Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(nt: F ~> G): Prod16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+          Prod16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt), ft15.map(p.t16)(nt)))
 
-    implicit def Prod16Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply], seq15: Sequence[A16#Prod, Apply]): Sequence[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], Apply] =
-      new Sequence[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], Apply] {
-        def sequence[F[_]](p: Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(implicit F: Apply[F]): F[Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
-          F.ap(seq15.sequence(p.t16))(F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => (i15: A16#Prod[Id]) => Prod16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15))))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(f: F ~> Lambda[a => A[G[a]]]): A[Prod16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+          Applicative[A].ap(ft15.traverse(p.t16)(f))(Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => (i15: A16#Prod[G]) => Prod16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15))))))))))))))))))
       }
 
     implicit def Prod16FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop], fm15: FoldMap[A16#Prod, A16#Cop]): FoldMap[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
@@ -9897,6 +10764,134 @@ object types {
           }
 
       }
+
+    implicit def Prod16FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t1)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t2)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t3)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t4)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t5)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t6)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t7)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t8)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t9)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t10)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t11)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t12)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t13)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t14)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15, p.t16))))
+        })
+
+    implicit def Prod16FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t15)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x, p.t16))))
+        })
+
+    implicit def Prod16FLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor]: FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Prod] =
+      FLens[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod16[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], A16#Prod[F]] =
+            Lens(p => StoreT.store[A16#Prod[F], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](p.t16)(x =>
+              Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, x))))
+        })
 
     implicit def Prod16Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F])]): Monoid[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       MF.xmap(M, Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F])), (_: Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]).run)
@@ -10357,32 +11352,29 @@ object types {
 
   trait Cop16LP {
 
-    implicit def Cop16Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop]): Transform[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
-      new Transform[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
-          c => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))))))))))
-      }
+    implicit def Cop16Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop], ft15: FTraverse[A16#Cop]): FFunctor[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] with FTraverse[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+      new FFunctor[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] with FTraverse[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
+        def map[F[_], G[_]](c: Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(nt: F ~> G): Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+          Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))))))))
 
-    implicit def Cop16Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor], seq15: Sequence[A16#Cop, Functor]): Sequence[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], Functor] =
-      new Sequence[Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], Functor] {
-        def sequence[F[_]](c: Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(implicit F: Functor[F]): F[Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(f: F ~> Lambda[a => A[G[a]]]): A[Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))) => F.map(x.sequence)(y => Cop16[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))
           }
       }
 
@@ -11006,16 +11998,13 @@ object types {
 
   trait Prod17LP {
 
-    implicit def Prod17Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod]): Transform[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
-      new Transform[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] => Prod17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
-          p => Prod17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15), trans15.transform(nt)(p.t16), trans16.transform(nt)(p.t17)))
-      }
+    implicit def Prod17Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod], ft15: FTraverse[A16#Prod], ft16: FTraverse[A17#Prod]): FFunctor[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] with FTraverse[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      new FFunctor[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] with FTraverse[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
+        def map[F[_], G[_]](p: Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(nt: F ~> G): Prod17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+          Prod17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt), ft15.map(p.t16)(nt), ft16.map(p.t17)(nt)))
 
-    implicit def Prod17Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply], seq15: Sequence[A16#Prod, Apply], seq16: Sequence[A17#Prod, Apply]): Sequence[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], Apply] =
-      new Sequence[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], Apply] {
-        def sequence[F[_]](p: Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(implicit F: Apply[F]): F[Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
-          F.ap(seq16.sequence(p.t17))(F.ap(seq15.sequence(p.t16))(F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => (i15: A16#Prod[Id]) => (i16: A17#Prod[Id]) => Prod17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16)))))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(f: F ~> Lambda[a => A[G[a]]]): A[Prod17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+          Applicative[A].ap(ft16.traverse(p.t17)(f))(Applicative[A].ap(ft15.traverse(p.t16)(f))(Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => (i15: A16#Prod[G]) => (i16: A17#Prod[G]) => Prod17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16)))))))))))))))))))
       }
 
     implicit def Prod17FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop], fm15: FoldMap[A16#Prod, A16#Cop], fm16: FoldMap[A17#Prod, A17#Cop]): FoldMap[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
@@ -11113,6 +12102,142 @@ object types {
           }
 
       }
+
+    implicit def Prod17FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t1)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t2)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t3)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t4)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t5)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t6)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t7)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t8)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t9)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t10)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t11)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t12)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t13)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t14)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t15)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x, p.t16, p.t17))))
+        })
+
+    implicit def Prod17FLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A16#Prod[F]] =
+            Lens(p => StoreT.store[A16#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t16)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, x, p.t17))))
+        })
+
+    implicit def Prod17FLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor]: FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Prod] =
+      FLens[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod17[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], A17#Prod[F]] =
+            Lens(p => StoreT.store[A17#Prod[F], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](p.t17)(x =>
+              Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, x))))
+        })
 
     implicit def Prod17Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F])]): Monoid[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       MF.xmap(M, Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F])), (_: Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]).run)
@@ -11601,33 +12726,30 @@ object types {
 
   trait Cop17LP {
 
-    implicit def Cop17Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop]): Transform[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
-      new Transform[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
-          c => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))))))))))))
-      }
+    implicit def Cop17Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop], ft15: FTraverse[A16#Cop], ft16: FTraverse[A17#Cop]): FFunctor[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] with FTraverse[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+      new FFunctor[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] with FTraverse[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
+        def map[F[_], G[_]](c: Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(nt: F ~> G): Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+          Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))))))))))))
 
-    implicit def Cop17Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor], seq15: Sequence[A16#Cop, Functor], seq16: Sequence[A17#Cop, Functor]): Sequence[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], Functor] =
-      new Sequence[Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], Functor] {
-        def sequence[F[_]](c: Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(implicit F: Functor[F]): F[Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(f: F ~> Lambda[a => A[G[a]]]): A[Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))) => F.map(x.sequence)(y => Cop17[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))
           }
       }
 
@@ -12288,16 +13410,13 @@ object types {
 
   trait Prod18LP {
 
-    implicit def Prod18Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod]): Transform[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
-      new Transform[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] => Prod18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
-          p => Prod18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15), trans15.transform(nt)(p.t16), trans16.transform(nt)(p.t17), trans17.transform(nt)(p.t18)))
-      }
+    implicit def Prod18Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod], ft15: FTraverse[A16#Prod], ft16: FTraverse[A17#Prod], ft17: FTraverse[A18#Prod]): FFunctor[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] with FTraverse[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      new FFunctor[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] with FTraverse[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
+        def map[F[_], G[_]](p: Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(nt: F ~> G): Prod18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+          Prod18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt), ft15.map(p.t16)(nt), ft16.map(p.t17)(nt), ft17.map(p.t18)(nt)))
 
-    implicit def Prod18Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply], seq15: Sequence[A16#Prod, Apply], seq16: Sequence[A17#Prod, Apply], seq17: Sequence[A18#Prod, Apply]): Sequence[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], Apply] =
-      new Sequence[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], Apply] {
-        def sequence[F[_]](p: Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(implicit F: Apply[F]): F[Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
-          F.ap(seq17.sequence(p.t18))(F.ap(seq16.sequence(p.t17))(F.ap(seq15.sequence(p.t16))(F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => (i15: A16#Prod[Id]) => (i16: A17#Prod[Id]) => (i17: A18#Prod[Id]) => Prod18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17))))))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(f: F ~> Lambda[a => A[G[a]]]): A[Prod18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+          Applicative[A].ap(ft17.traverse(p.t18)(f))(Applicative[A].ap(ft16.traverse(p.t17)(f))(Applicative[A].ap(ft15.traverse(p.t16)(f))(Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => (i15: A16#Prod[G]) => (i16: A17#Prod[G]) => (i17: A18#Prod[G]) => Prod18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17))))))))))))))))))))
       }
 
     implicit def Prod18FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop], fm15: FoldMap[A16#Prod, A16#Cop], fm16: FoldMap[A17#Prod, A17#Cop], fm17: FoldMap[A18#Prod, A18#Cop]): FoldMap[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
@@ -12399,6 +13518,150 @@ object types {
           }
 
       }
+
+    implicit def Prod18FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t1)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t2)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t3)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t4)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t5)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t6)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t7)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t8)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t9)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t10)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t11)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t12)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t13)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t14)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t15)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x, p.t16, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A16#Prod[F]] =
+            Lens(p => StoreT.store[A16#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t16)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, x, p.t17, p.t18))))
+        })
+
+    implicit def Prod18FLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A17#Prod[F]] =
+            Lens(p => StoreT.store[A17#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t17)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, x, p.t18))))
+        })
+
+    implicit def Prod18FLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor]: FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Prod] =
+      FLens[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod18[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], A18#Prod[F]] =
+            Lens(p => StoreT.store[A18#Prod[F], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](p.t18)(x =>
+              Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, x))))
+        })
 
     implicit def Prod18Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F])]): Monoid[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       MF.xmap(M, Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F])), (_: Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]).run)
@@ -12915,34 +14178,31 @@ object types {
 
   trait Cop18LP {
 
-    implicit def Cop18Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop]): Transform[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
-      new Transform[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
-          c => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))))))))))))
-      }
+    implicit def Cop18Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop], ft15: FTraverse[A16#Cop], ft16: FTraverse[A17#Cop], ft17: FTraverse[A18#Cop]): FFunctor[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] with FTraverse[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+      new FFunctor[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] with FTraverse[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
+        def map[F[_], G[_]](c: Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(nt: F ~> G): Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+          Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))))))))))
 
-    implicit def Cop18Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor], seq15: Sequence[A16#Cop, Functor], seq16: Sequence[A17#Cop, Functor], seq17: Sequence[A18#Cop, Functor]): Sequence[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], Functor] =
-      new Sequence[Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], Functor] {
-        def sequence[F[_]](c: Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(implicit F: Functor[F]): F[Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(f: F ~> Lambda[a => A[G[a]]]): A[Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))) => F.map(x.sequence)(y => Cop18[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))
           }
       }
 
@@ -13640,16 +14900,13 @@ object types {
 
   trait Prod19LP {
 
-    implicit def Prod19Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod]): Transform[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
-      new Transform[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] => Prod19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
-          p => Prod19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15), trans15.transform(nt)(p.t16), trans16.transform(nt)(p.t17), trans17.transform(nt)(p.t18), trans18.transform(nt)(p.t19)))
-      }
+    implicit def Prod19Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod], ft15: FTraverse[A16#Prod], ft16: FTraverse[A17#Prod], ft17: FTraverse[A18#Prod], ft18: FTraverse[A19#Prod]): FFunctor[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] with FTraverse[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      new FFunctor[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] with FTraverse[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
+        def map[F[_], G[_]](p: Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(nt: F ~> G): Prod19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+          Prod19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt), ft15.map(p.t16)(nt), ft16.map(p.t17)(nt), ft17.map(p.t18)(nt), ft18.map(p.t19)(nt)))
 
-    implicit def Prod19Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply], seq15: Sequence[A16#Prod, Apply], seq16: Sequence[A17#Prod, Apply], seq17: Sequence[A18#Prod, Apply], seq18: Sequence[A19#Prod, Apply]): Sequence[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Apply] =
-      new Sequence[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Apply] {
-        def sequence[F[_]](p: Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(implicit F: Apply[F]): F[Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
-          F.ap(seq18.sequence(p.t19))(F.ap(seq17.sequence(p.t18))(F.ap(seq16.sequence(p.t17))(F.ap(seq15.sequence(p.t16))(F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => (i15: A16#Prod[Id]) => (i16: A17#Prod[Id]) => (i17: A18#Prod[Id]) => (i18: A19#Prod[Id]) => Prod19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18)))))))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(f: F ~> Lambda[a => A[G[a]]]): A[Prod19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+          Applicative[A].ap(ft18.traverse(p.t19)(f))(Applicative[A].ap(ft17.traverse(p.t18)(f))(Applicative[A].ap(ft16.traverse(p.t17)(f))(Applicative[A].ap(ft15.traverse(p.t16)(f))(Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => (i15: A16#Prod[G]) => (i16: A17#Prod[G]) => (i17: A18#Prod[G]) => (i18: A19#Prod[G]) => Prod19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18)))))))))))))))))))))
       }
 
     implicit def Prod19FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop], fm15: FoldMap[A16#Prod, A16#Cop], fm16: FoldMap[A17#Prod, A17#Cop], fm17: FoldMap[A18#Prod, A18#Cop], fm18: FoldMap[A19#Prod, A19#Cop]): FoldMap[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
@@ -13755,6 +15012,158 @@ object types {
           }
 
       }
+
+    implicit def Prod19FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t1)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t2)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t3)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t4)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t5)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t6)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t7)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t8)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t9)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t10)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t11)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t12)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t13)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t14)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t15)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x, p.t16, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A16#Prod[F]] =
+            Lens(p => StoreT.store[A16#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t16)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, x, p.t17, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A17#Prod[F]] =
+            Lens(p => StoreT.store[A17#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t17)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, x, p.t18, p.t19))))
+        })
+
+    implicit def Prod19FLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A18#Prod[F]] =
+            Lens(p => StoreT.store[A18#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t18)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, x, p.t19))))
+        })
+
+    implicit def Prod19FLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor]: FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Prod] =
+      FLens[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod19[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], A19#Prod[F]] =
+            Lens(p => StoreT.store[A19#Prod[F], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](p.t19)(x =>
+              Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, x))))
+        })
 
     implicit def Prod19Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F])]): Monoid[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       MF.xmap(M, Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F])), (_: Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]).run)
@@ -14299,35 +15708,32 @@ object types {
 
   trait Cop19LP {
 
-    implicit def Cop19Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop]): Transform[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
-      new Transform[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
-          c => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))))))))))))))
-      }
+    implicit def Cop19Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop], ft15: FTraverse[A16#Cop], ft16: FTraverse[A17#Cop], ft17: FTraverse[A18#Cop], ft18: FTraverse[A19#Cop]): FFunctor[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] with FTraverse[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+      new FFunctor[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] with FTraverse[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
+        def map[F[_], G[_]](c: Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(nt: F ~> G): Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+          Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))))))))))))))
 
-    implicit def Cop19Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor], seq15: Sequence[A16#Cop, Functor], seq16: Sequence[A17#Cop, Functor], seq17: Sequence[A18#Cop, Functor], seq18: Sequence[A19#Cop, Functor]): Sequence[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Functor] =
-      new Sequence[Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Functor] {
-        def sequence[F[_]](c: Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(implicit F: Functor[F]): F[Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(f: F ~> Lambda[a => A[G[a]]]): A[Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))) => F.map(x.sequence)(y => Cop19[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))
           }
       }
 
@@ -15062,16 +16468,13 @@ object types {
 
   trait Prod20LP {
 
-    implicit def Prod20Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod], trans19: Transform[A20#Prod]): Transform[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
-      new Transform[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] => Prod20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
-          p => Prod20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15), trans15.transform(nt)(p.t16), trans16.transform(nt)(p.t17), trans17.transform(nt)(p.t18), trans18.transform(nt)(p.t19), trans19.transform(nt)(p.t20)))
-      }
+    implicit def Prod20Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod], ft15: FTraverse[A16#Prod], ft16: FTraverse[A17#Prod], ft17: FTraverse[A18#Prod], ft18: FTraverse[A19#Prod], ft19: FTraverse[A20#Prod]): FFunctor[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] with FTraverse[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      new FFunctor[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] with FTraverse[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
+        def map[F[_], G[_]](p: Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(nt: F ~> G): Prod20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+          Prod20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt), ft15.map(p.t16)(nt), ft16.map(p.t17)(nt), ft17.map(p.t18)(nt), ft18.map(p.t19)(nt), ft19.map(p.t20)(nt)))
 
-    implicit def Prod20Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply], seq15: Sequence[A16#Prod, Apply], seq16: Sequence[A17#Prod, Apply], seq17: Sequence[A18#Prod, Apply], seq18: Sequence[A19#Prod, Apply], seq19: Sequence[A20#Prod, Apply]): Sequence[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], Apply] =
-      new Sequence[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], Apply] {
-        def sequence[F[_]](p: Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(implicit F: Apply[F]): F[Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
-          F.ap(seq19.sequence(p.t20))(F.ap(seq18.sequence(p.t19))(F.ap(seq17.sequence(p.t18))(F.ap(seq16.sequence(p.t17))(F.ap(seq15.sequence(p.t16))(F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => (i15: A16#Prod[Id]) => (i16: A17#Prod[Id]) => (i17: A18#Prod[Id]) => (i18: A19#Prod[Id]) => (i19: A20#Prod[Id]) => Prod20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19))))))))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(f: F ~> Lambda[a => A[G[a]]]): A[Prod20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+          Applicative[A].ap(ft19.traverse(p.t20)(f))(Applicative[A].ap(ft18.traverse(p.t19)(f))(Applicative[A].ap(ft17.traverse(p.t18)(f))(Applicative[A].ap(ft16.traverse(p.t17)(f))(Applicative[A].ap(ft15.traverse(p.t16)(f))(Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => (i15: A16#Prod[G]) => (i16: A17#Prod[G]) => (i17: A18#Prod[G]) => (i18: A19#Prod[G]) => (i19: A20#Prod[G]) => Prod20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19))))))))))))))))))))))
       }
 
     implicit def Prod20FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop], fm15: FoldMap[A16#Prod, A16#Cop], fm16: FoldMap[A17#Prod, A17#Cop], fm17: FoldMap[A18#Prod, A18#Cop], fm18: FoldMap[A19#Prod, A19#Cop], fm19: FoldMap[A20#Prod, A20#Cop]): FoldMap[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
@@ -15181,6 +16584,166 @@ object types {
           }
 
       }
+
+    implicit def Prod20FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t1)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t2)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t3)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t4)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t5)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t6)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t7)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t8)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t9)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t10)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t11)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t12)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t13)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t14)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t15)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x, p.t16, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A16#Prod[F]] =
+            Lens(p => StoreT.store[A16#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t16)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, x, p.t17, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A17#Prod[F]] =
+            Lens(p => StoreT.store[A17#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t17)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, x, p.t18, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A18#Prod[F]] =
+            Lens(p => StoreT.store[A18#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t18)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, x, p.t19, p.t20))))
+        })
+
+    implicit def Prod20FLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A19#Prod[F]] =
+            Lens(p => StoreT.store[A19#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t19)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, x, p.t20))))
+        })
+
+    implicit def Prod20FLens19[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor]: FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Prod] =
+      FLens[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod20[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], A20#Prod[F]] =
+            Lens(p => StoreT.store[A20#Prod[F], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](p.t20)(x =>
+              Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, x))))
+        })
 
     implicit def Prod20Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F], A20#Prod[F])]): Monoid[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       MF.xmap(M, Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F], A20#Prod[F])), (_: Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]).run)
@@ -15753,36 +17316,33 @@ object types {
 
   trait Cop20LP {
 
-    implicit def Cop20Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop], trans19: Transform[A20#Cop]): Transform[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
-      new Transform[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
-          c => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))))))))))))))
-      }
+    implicit def Cop20Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop], ft15: FTraverse[A16#Cop], ft16: FTraverse[A17#Cop], ft17: FTraverse[A18#Cop], ft18: FTraverse[A19#Cop], ft19: FTraverse[A20#Cop]): FFunctor[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] with FTraverse[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+      new FFunctor[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] with FTraverse[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
+        def map[F[_], G[_]](c: Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(nt: F ~> G): Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+          Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))))))))))))
 
-    implicit def Cop20Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor], seq15: Sequence[A16#Cop, Functor], seq16: Sequence[A17#Cop, Functor], seq17: Sequence[A18#Cop, Functor], seq18: Sequence[A19#Cop, Functor], seq19: Sequence[A20#Cop, Functor]): Sequence[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], Functor] =
-      new Sequence[Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], Functor] {
-        def sequence[F[_]](c: Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(implicit F: Functor[F]): F[Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(f: F ~> Lambda[a => A[G[a]]]): A[Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))) => F.map(x.sequence)(y => Cop20[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))
           }
       }
 
@@ -16554,16 +18114,13 @@ object types {
 
   trait Prod21LP {
 
-    implicit def Prod21Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod], trans19: Transform[A20#Prod], trans20: Transform[A21#Prod]): Transform[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
-      new Transform[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] => Prod21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
-          p => Prod21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15), trans15.transform(nt)(p.t16), trans16.transform(nt)(p.t17), trans17.transform(nt)(p.t18), trans18.transform(nt)(p.t19), trans19.transform(nt)(p.t20), trans20.transform(nt)(p.t21)))
-      }
+    implicit def Prod21Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod], ft15: FTraverse[A16#Prod], ft16: FTraverse[A17#Prod], ft17: FTraverse[A18#Prod], ft18: FTraverse[A19#Prod], ft19: FTraverse[A20#Prod], ft20: FTraverse[A21#Prod]): FFunctor[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] with FTraverse[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      new FFunctor[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] with FTraverse[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
+        def map[F[_], G[_]](p: Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(nt: F ~> G): Prod21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+          Prod21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt), ft15.map(p.t16)(nt), ft16.map(p.t17)(nt), ft17.map(p.t18)(nt), ft18.map(p.t19)(nt), ft19.map(p.t20)(nt), ft20.map(p.t21)(nt)))
 
-    implicit def Prod21Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply], seq15: Sequence[A16#Prod, Apply], seq16: Sequence[A17#Prod, Apply], seq17: Sequence[A18#Prod, Apply], seq18: Sequence[A19#Prod, Apply], seq19: Sequence[A20#Prod, Apply], seq20: Sequence[A21#Prod, Apply]): Sequence[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], Apply] =
-      new Sequence[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], Apply] {
-        def sequence[F[_]](p: Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(implicit F: Apply[F]): F[Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
-          F.ap(seq20.sequence(p.t21))(F.ap(seq19.sequence(p.t20))(F.ap(seq18.sequence(p.t19))(F.ap(seq17.sequence(p.t18))(F.ap(seq16.sequence(p.t17))(F.ap(seq15.sequence(p.t16))(F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => (i15: A16#Prod[Id]) => (i16: A17#Prod[Id]) => (i17: A18#Prod[Id]) => (i18: A19#Prod[Id]) => (i19: A20#Prod[Id]) => (i20: A21#Prod[Id]) => Prod21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20)))))))))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(f: F ~> Lambda[a => A[G[a]]]): A[Prod21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+          Applicative[A].ap(ft20.traverse(p.t21)(f))(Applicative[A].ap(ft19.traverse(p.t20)(f))(Applicative[A].ap(ft18.traverse(p.t19)(f))(Applicative[A].ap(ft17.traverse(p.t18)(f))(Applicative[A].ap(ft16.traverse(p.t17)(f))(Applicative[A].ap(ft15.traverse(p.t16)(f))(Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => (i15: A16#Prod[G]) => (i16: A17#Prod[G]) => (i17: A18#Prod[G]) => (i18: A19#Prod[G]) => (i19: A20#Prod[G]) => (i20: A21#Prod[G]) => Prod21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20)))))))))))))))))))))))
       }
 
     implicit def Prod21FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop], fm15: FoldMap[A16#Prod, A16#Cop], fm16: FoldMap[A17#Prod, A17#Cop], fm17: FoldMap[A18#Prod, A18#Cop], fm18: FoldMap[A19#Prod, A19#Cop], fm19: FoldMap[A20#Prod, A20#Cop], fm20: FoldMap[A21#Prod, A21#Cop]): FoldMap[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
@@ -16677,6 +18234,174 @@ object types {
           }
 
       }
+
+    implicit def Prod21FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t1)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t2)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t3)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t4)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t5)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t6)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t7)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t8)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t9)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t10)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t11)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t12)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t13)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t14)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t15)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A16#Prod[F]] =
+            Lens(p => StoreT.store[A16#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t16)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, x, p.t17, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A17#Prod[F]] =
+            Lens(p => StoreT.store[A17#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t17)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, x, p.t18, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A18#Prod[F]] =
+            Lens(p => StoreT.store[A18#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t18)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, x, p.t19, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A19#Prod[F]] =
+            Lens(p => StoreT.store[A19#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t19)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, x, p.t20, p.t21))))
+        })
+
+    implicit def Prod21FLens19[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A20#Prod[F]] =
+            Lens(p => StoreT.store[A20#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t20)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, x, p.t21))))
+        })
+
+    implicit def Prod21FLens20[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor]: FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Prod] =
+      FLens[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod21[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], A21#Prod[F]] =
+            Lens(p => StoreT.store[A21#Prod[F], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](p.t21)(x =>
+              Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, x))))
+        })
 
     implicit def Prod21Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F], A20#Prod[F], A21#Prod[F])]): Monoid[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       MF.xmap(M, Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F], A20#Prod[F], A21#Prod[F])), (_: Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]).run)
@@ -17277,37 +19002,34 @@ object types {
 
   trait Cop21LP {
 
-    implicit def Cop21Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop], trans19: Transform[A20#Cop], trans20: Transform[A21#Cop]): Transform[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
-      new Transform[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
-          c => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt))))))))))))))))))))))
-      }
+    implicit def Cop21Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop], ft15: FTraverse[A16#Cop], ft16: FTraverse[A17#Cop], ft17: FTraverse[A18#Cop], ft18: FTraverse[A19#Cop], ft19: FTraverse[A20#Cop], ft20: FTraverse[A21#Cop]): FFunctor[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] with FTraverse[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+      new FFunctor[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] with FTraverse[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
+        def map[F[_], G[_]](c: Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(nt: F ~> G): Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+          Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))))))))))))))))))))
 
-    implicit def Cop21Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor], seq15: Sequence[A16#Cop, Functor], seq16: Sequence[A17#Cop, Functor], seq17: Sequence[A18#Cop, Functor], seq18: Sequence[A19#Cop, Functor], seq19: Sequence[A20#Cop, Functor], seq20: Sequence[A21#Cop, Functor]): Sequence[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], Functor] =
-      new Sequence[Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], Functor] {
-        def sequence[F[_]](c: Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(implicit F: Functor[F]): F[Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(f: F ~> Lambda[a => A[G[a]]]): A[Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))))) => F.map(x.sequence)(y => Cop21[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))))
           }
       }
 
@@ -18116,16 +19838,13 @@ object types {
 
   trait Prod22LP {
 
-    implicit def Prod22Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit trans0: Transform[A1#Prod], trans1: Transform[A2#Prod], trans2: Transform[A3#Prod], trans3: Transform[A4#Prod], trans4: Transform[A5#Prod], trans5: Transform[A6#Prod], trans6: Transform[A7#Prod], trans7: Transform[A8#Prod], trans8: Transform[A9#Prod], trans9: Transform[A10#Prod], trans10: Transform[A11#Prod], trans11: Transform[A12#Prod], trans12: Transform[A13#Prod], trans13: Transform[A14#Prod], trans14: Transform[A15#Prod], trans15: Transform[A16#Prod], trans16: Transform[A17#Prod], trans17: Transform[A18#Prod], trans18: Transform[A19#Prod], trans19: Transform[A20#Prod], trans20: Transform[A21#Prod], trans21: Transform[A22#Prod]): Transform[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
-      new Transform[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] {
-        def transform[F[_], G[_]](nt: F ~> G): Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] => Prod22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
-          p => Prod22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((trans0.transform(nt)(p.t1), trans1.transform(nt)(p.t2), trans2.transform(nt)(p.t3), trans3.transform(nt)(p.t4), trans4.transform(nt)(p.t5), trans5.transform(nt)(p.t6), trans6.transform(nt)(p.t7), trans7.transform(nt)(p.t8), trans8.transform(nt)(p.t9), trans9.transform(nt)(p.t10), trans10.transform(nt)(p.t11), trans11.transform(nt)(p.t12), trans12.transform(nt)(p.t13), trans13.transform(nt)(p.t14), trans14.transform(nt)(p.t15), trans15.transform(nt)(p.t16), trans16.transform(nt)(p.t17), trans17.transform(nt)(p.t18), trans18.transform(nt)(p.t19), trans19.transform(nt)(p.t20), trans20.transform(nt)(p.t21), trans21.transform(nt)(p.t22)))
-      }
+    implicit def Prod22Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit ft0: FTraverse[A1#Prod], ft1: FTraverse[A2#Prod], ft2: FTraverse[A3#Prod], ft3: FTraverse[A4#Prod], ft4: FTraverse[A5#Prod], ft5: FTraverse[A6#Prod], ft6: FTraverse[A7#Prod], ft7: FTraverse[A8#Prod], ft8: FTraverse[A9#Prod], ft9: FTraverse[A10#Prod], ft10: FTraverse[A11#Prod], ft11: FTraverse[A12#Prod], ft12: FTraverse[A13#Prod], ft13: FTraverse[A14#Prod], ft14: FTraverse[A15#Prod], ft15: FTraverse[A16#Prod], ft16: FTraverse[A17#Prod], ft17: FTraverse[A18#Prod], ft18: FTraverse[A19#Prod], ft19: FTraverse[A20#Prod], ft20: FTraverse[A21#Prod], ft21: FTraverse[A22#Prod]): FFunctor[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] with FTraverse[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      new FFunctor[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] with FTraverse[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] {
+        def map[F[_], G[_]](p: Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(nt: F ~> G): Prod22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+          Prod22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt), ft12.map(p.t13)(nt), ft13.map(p.t14)(nt), ft14.map(p.t15)(nt), ft15.map(p.t16)(nt), ft16.map(p.t17)(nt), ft17.map(p.t18)(nt), ft18.map(p.t19)(nt), ft19.map(p.t20)(nt), ft20.map(p.t21)(nt), ft21.map(p.t22)(nt)))
 
-    implicit def Prod22Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit seq0: Sequence[A1#Prod, Apply], seq1: Sequence[A2#Prod, Apply], seq2: Sequence[A3#Prod, Apply], seq3: Sequence[A4#Prod, Apply], seq4: Sequence[A5#Prod, Apply], seq5: Sequence[A6#Prod, Apply], seq6: Sequence[A7#Prod, Apply], seq7: Sequence[A8#Prod, Apply], seq8: Sequence[A9#Prod, Apply], seq9: Sequence[A10#Prod, Apply], seq10: Sequence[A11#Prod, Apply], seq11: Sequence[A12#Prod, Apply], seq12: Sequence[A13#Prod, Apply], seq13: Sequence[A14#Prod, Apply], seq14: Sequence[A15#Prod, Apply], seq15: Sequence[A16#Prod, Apply], seq16: Sequence[A17#Prod, Apply], seq17: Sequence[A18#Prod, Apply], seq18: Sequence[A19#Prod, Apply], seq19: Sequence[A20#Prod, Apply], seq20: Sequence[A21#Prod, Apply], seq21: Sequence[A22#Prod, Apply]): Sequence[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], Apply] =
-      new Sequence[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], Apply] {
-        def sequence[F[_]](p: Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(implicit F: Apply[F]): F[Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
-          F.ap(seq21.sequence(p.t22))(F.ap(seq20.sequence(p.t21))(F.ap(seq19.sequence(p.t20))(F.ap(seq18.sequence(p.t19))(F.ap(seq17.sequence(p.t18))(F.ap(seq16.sequence(p.t17))(F.ap(seq15.sequence(p.t16))(F.ap(seq14.sequence(p.t15))(F.ap(seq13.sequence(p.t14))(F.ap(seq12.sequence(p.t13))(F.ap(seq11.sequence(p.t12))(F.ap(seq10.sequence(p.t11))(F.ap(seq9.sequence(p.t10))(F.ap(seq8.sequence(p.t9))(F.ap(seq7.sequence(p.t8))(F.ap(seq6.sequence(p.t7))(F.ap(seq5.sequence(p.t6))(F.ap(seq4.sequence(p.t5))(F.ap(seq3.sequence(p.t4))(F.ap(seq2.sequence(p.t3))(F.ap(seq1.sequence(p.t2))(F.map(seq0.sequence[F](p.t1))((i0: A1#Prod[Id]) => (i1: A2#Prod[Id]) => (i2: A3#Prod[Id]) => (i3: A4#Prod[Id]) => (i4: A5#Prod[Id]) => (i5: A6#Prod[Id]) => (i6: A7#Prod[Id]) => (i7: A8#Prod[Id]) => (i8: A9#Prod[Id]) => (i9: A10#Prod[Id]) => (i10: A11#Prod[Id]) => (i11: A12#Prod[Id]) => (i12: A13#Prod[Id]) => (i13: A14#Prod[Id]) => (i14: A15#Prod[Id]) => (i15: A16#Prod[Id]) => (i16: A17#Prod[Id]) => (i17: A18#Prod[Id]) => (i18: A19#Prod[Id]) => (i19: A20#Prod[Id]) => (i20: A21#Prod[Id]) => (i21: A22#Prod[Id]) => Prod22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21))))))))))))))))))))))))
+        def traverse[F[_], G[_], A[_]: Applicative](p: Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(f: F ~> Lambda[a => A[G[a]]]): A[Prod22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+          Applicative[A].ap(ft21.traverse(p.t22)(f))(Applicative[A].ap(ft20.traverse(p.t21)(f))(Applicative[A].ap(ft19.traverse(p.t20)(f))(Applicative[A].ap(ft18.traverse(p.t19)(f))(Applicative[A].ap(ft17.traverse(p.t18)(f))(Applicative[A].ap(ft16.traverse(p.t17)(f))(Applicative[A].ap(ft15.traverse(p.t16)(f))(Applicative[A].ap(ft14.traverse(p.t15)(f))(Applicative[A].ap(ft13.traverse(p.t14)(f))(Applicative[A].ap(ft12.traverse(p.t13)(f))(Applicative[A].ap(ft11.traverse(p.t12)(f))(Applicative[A].ap(ft10.traverse(p.t11)(f))(Applicative[A].ap(ft9.traverse(p.t10)(f))(Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1#Prod[G]) => (i1: A2#Prod[G]) => (i2: A3#Prod[G]) => (i3: A4#Prod[G]) => (i4: A5#Prod[G]) => (i5: A6#Prod[G]) => (i6: A7#Prod[G]) => (i7: A8#Prod[G]) => (i8: A9#Prod[G]) => (i9: A10#Prod[G]) => (i10: A11#Prod[G]) => (i11: A12#Prod[G]) => (i12: A13#Prod[G]) => (i13: A14#Prod[G]) => (i14: A15#Prod[G]) => (i15: A16#Prod[G]) => (i16: A17#Prod[G]) => (i17: A18#Prod[G]) => (i18: A19#Prod[G]) => (i19: A20#Prod[G]) => (i20: A21#Prod[G]) => (i21: A22#Prod[G]) => Prod22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21))))))))))))))))))))))))
       }
 
     implicit def Prod22FoldMap[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit fm0: FoldMap[A1#Prod, A1#Cop], fm1: FoldMap[A2#Prod, A2#Cop], fm2: FoldMap[A3#Prod, A3#Cop], fm3: FoldMap[A4#Prod, A4#Cop], fm4: FoldMap[A5#Prod, A5#Cop], fm5: FoldMap[A6#Prod, A6#Cop], fm6: FoldMap[A7#Prod, A7#Cop], fm7: FoldMap[A8#Prod, A8#Cop], fm8: FoldMap[A9#Prod, A9#Cop], fm9: FoldMap[A10#Prod, A10#Cop], fm10: FoldMap[A11#Prod, A11#Cop], fm11: FoldMap[A12#Prod, A12#Cop], fm12: FoldMap[A13#Prod, A13#Cop], fm13: FoldMap[A14#Prod, A14#Cop], fm14: FoldMap[A15#Prod, A15#Cop], fm15: FoldMap[A16#Prod, A16#Cop], fm16: FoldMap[A17#Prod, A17#Cop], fm17: FoldMap[A18#Prod, A18#Cop], fm18: FoldMap[A19#Prod, A19#Cop], fm19: FoldMap[A20#Prod, A20#Cop], fm20: FoldMap[A21#Prod, A21#Cop], fm21: FoldMap[A22#Prod, A22#Cop]): FoldMap[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
@@ -18243,6 +19962,182 @@ object types {
           }
 
       }
+
+    implicit def Prod22FLens0[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A1#Prod[F]] =
+            Lens(p => StoreT.store[A1#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t1)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens1[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A2#Prod[F]] =
+            Lens(p => StoreT.store[A2#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t2)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens2[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A3#Prod[F]] =
+            Lens(p => StoreT.store[A3#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t3)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens3[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A4#Prod[F]] =
+            Lens(p => StoreT.store[A4#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t4)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens4[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A5#Prod[F]] =
+            Lens(p => StoreT.store[A5#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t5)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens5[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A6#Prod[F]] =
+            Lens(p => StoreT.store[A6#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t6)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A7#Prod[F]] =
+            Lens(p => StoreT.store[A7#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t7)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens7[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A8#Prod[F]] =
+            Lens(p => StoreT.store[A8#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t8)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, x, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens8[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A9#Prod[F]] =
+            Lens(p => StoreT.store[A9#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t9)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, x, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens9[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A10#Prod[F]] =
+            Lens(p => StoreT.store[A10#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t10)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, x, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens10[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A11#Prod[F]] =
+            Lens(p => StoreT.store[A11#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t11)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, x, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens11[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A12#Prod[F]] =
+            Lens(p => StoreT.store[A12#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t12)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, x, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens12[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A13#Prod[F]] =
+            Lens(p => StoreT.store[A13#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t13)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, x, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens13[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A14#Prod[F]] =
+            Lens(p => StoreT.store[A14#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t14)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, x, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens14[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A15#Prod[F]] =
+            Lens(p => StoreT.store[A15#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t15)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, x, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens15[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A16#Prod[F]] =
+            Lens(p => StoreT.store[A16#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t16)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, x, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens16[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A17#Prod[F]] =
+            Lens(p => StoreT.store[A17#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t17)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, x, p.t18, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens17[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A18#Prod[F]] =
+            Lens(p => StoreT.store[A18#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t18)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, x, p.t19, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens18[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A19#Prod[F]] =
+            Lens(p => StoreT.store[A19#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t19)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, x, p.t20, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens19[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A20#Prod[F]] =
+            Lens(p => StoreT.store[A20#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t20)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, x, p.t21, p.t22))))
+        })
+
+    implicit def Prod22FLens20[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A21#Prod[F]] =
+            Lens(p => StoreT.store[A21#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t21)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, x, p.t22))))
+        })
+
+    implicit def Prod22FLens21[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor]: FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Prod] =
+      FLens[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Prod](
+        new ForallF[Lambda[f[_] => Lens[Prod22[f, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Prod[f]]]] {
+          def apply[F[_]]: Lens[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], A22#Prod[F]] =
+            Lens(p => StoreT.store[A22#Prod[F], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]](p.t22)(x =>
+              Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, x))))
+        })
 
     implicit def Prod22Monoid[F[_], A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit M: Monoid[(A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F], A20#Prod[F], A21#Prod[F], A22#Prod[F])]): Monoid[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       MF.xmap(M, Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](_: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F], A7#Prod[F], A8#Prod[F], A9#Prod[F], A10#Prod[F], A11#Prod[F], A12#Prod[F], A13#Prod[F], A14#Prod[F], A15#Prod[F], A16#Prod[F], A17#Prod[F], A18#Prod[F], A19#Prod[F], A20#Prod[F], A21#Prod[F], A22#Prod[F])), (_: Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]).run)
@@ -18871,38 +20766,35 @@ object types {
 
   trait Cop22LP {
 
-    implicit def Cop22Transform[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit trans0: Transform[A1#Cop], trans1: Transform[A2#Cop], trans2: Transform[A3#Cop], trans3: Transform[A4#Cop], trans4: Transform[A5#Cop], trans5: Transform[A6#Cop], trans6: Transform[A7#Cop], trans7: Transform[A8#Cop], trans8: Transform[A9#Cop], trans9: Transform[A10#Cop], trans10: Transform[A11#Cop], trans11: Transform[A12#Cop], trans12: Transform[A13#Cop], trans13: Transform[A14#Cop], trans14: Transform[A15#Cop], trans15: Transform[A16#Cop], trans16: Transform[A17#Cop], trans17: Transform[A18#Cop], trans18: Transform[A19#Cop], trans19: Transform[A20#Cop], trans20: Transform[A21#Cop], trans21: Transform[A22#Cop]): Transform[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
-      new Transform[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] {
-        def transform[F[_], G[_]](nt: F ~> G): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
-          c => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](c.run.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.bimap(_.transform(nt), _.transform(nt)))))))))))))))))))))))
-      }
+    implicit def Cop22Instance[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit ft0: FTraverse[A1#Cop], ft1: FTraverse[A2#Cop], ft2: FTraverse[A3#Cop], ft3: FTraverse[A4#Cop], ft4: FTraverse[A5#Cop], ft5: FTraverse[A6#Cop], ft6: FTraverse[A7#Cop], ft7: FTraverse[A8#Cop], ft8: FTraverse[A9#Cop], ft9: FTraverse[A10#Cop], ft10: FTraverse[A11#Cop], ft11: FTraverse[A12#Cop], ft12: FTraverse[A13#Cop], ft13: FTraverse[A14#Cop], ft14: FTraverse[A15#Cop], ft15: FTraverse[A16#Cop], ft16: FTraverse[A17#Cop], ft17: FTraverse[A18#Cop], ft18: FTraverse[A19#Cop], ft19: FTraverse[A20#Cop], ft20: FTraverse[A21#Cop], ft21: FTraverse[A22#Cop]): FFunctor[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] with FTraverse[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+      new FFunctor[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] with FTraverse[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] {
+        def map[F[_], G[_]](c: Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(nt: F ~> G): Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+          Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))))))))))))))
 
-    implicit def Cop22Sequence[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor, A7 <: AndXor, A8 <: AndXor, A9 <: AndXor, A10 <: AndXor, A11 <: AndXor, A12 <: AndXor, A13 <: AndXor, A14 <: AndXor, A15 <: AndXor, A16 <: AndXor, A17 <: AndXor, A18 <: AndXor, A19 <: AndXor, A20 <: AndXor, A21 <: AndXor, A22 <: AndXor](implicit seq0: Sequence[A1#Cop, Functor], seq1: Sequence[A2#Cop, Functor], seq2: Sequence[A3#Cop, Functor], seq3: Sequence[A4#Cop, Functor], seq4: Sequence[A5#Cop, Functor], seq5: Sequence[A6#Cop, Functor], seq6: Sequence[A7#Cop, Functor], seq7: Sequence[A8#Cop, Functor], seq8: Sequence[A9#Cop, Functor], seq9: Sequence[A10#Cop, Functor], seq10: Sequence[A11#Cop, Functor], seq11: Sequence[A12#Cop, Functor], seq12: Sequence[A13#Cop, Functor], seq13: Sequence[A14#Cop, Functor], seq14: Sequence[A15#Cop, Functor], seq15: Sequence[A16#Cop, Functor], seq16: Sequence[A17#Cop, Functor], seq17: Sequence[A18#Cop, Functor], seq18: Sequence[A19#Cop, Functor], seq19: Sequence[A20#Cop, Functor], seq20: Sequence[A21#Cop, Functor], seq21: Sequence[A22#Cop, Functor]): Sequence[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], Functor] =
-      new Sequence[Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], Functor] {
-        def sequence[F[_]](c: Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(implicit F: Functor[F]): F[Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
+        def traverse[F[_], G[_], A[_]: Applicative](c: Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(f: F ~> Lambda[a => A[G[a]]]): A[Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
           c.run match {
-            case -\/(x) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](-\/(y)))
-            case \/-(-\/(x)) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(-\/(y))))
-            case \/-(\/-(-\/(x))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(-\/(y)))))
-            case \/-(\/-(\/-(-\/(x)))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(-\/(y))))))
-            case \/-(\/-(\/-(\/-(-\/(x))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(-\/(y)))))))
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))))
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))))) => F.map(x.sequence)(y => Cop22[Id, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))))
+            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](-\/(y)))
+            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(-\/(y))))
+            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(-\/(y)))))
+            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(-\/(y))))))
+            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))))
+            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))))) => Functor[A].map(x.traverse(f))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))))
           }
       }
 

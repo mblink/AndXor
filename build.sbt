@@ -1,4 +1,13 @@
-lazy val baseSettings = Seq(
+lazy val splainSettings = Seq(
+  addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
+  scalacOptions ++= Seq(
+    "-P:splain:all",
+    "-P:splain:keepmodules:500",
+    "-P:splain:rewrite:^((([^\\.]+\\.)*)([^\\.]+))\\.Type$/$1"
+  )
+)
+
+lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
   version := "0.2.5-LOCAL-21",

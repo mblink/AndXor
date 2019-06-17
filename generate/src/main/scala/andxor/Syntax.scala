@@ -120,12 +120,11 @@ object syntax {
       foldLen[LS](Nil)(List(s"TC: $TC[$F[${tpes.head}]]"))(selCopOrProd(copOrProd, None)
         .map(t => s"DerivingIso[$t, $F, $TC]").paramSigArgs("deriving"))
 
-    def transformParams(copOrProd: String): LS =
-      foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("Transform", "trans"))
+    def ffunctorParams(copOrProd: String): LS =
+      foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("FFunctor", "ff"))
 
-    def sequenceParams(copOrProd: String): LS =
-      foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).map(t =>
-        s"$t, ${if (copOrProd == "Prod") "Apply" else "Functor"}").paramSigArgs("Sequence", "seq"))
+    def ftraverseParams(copOrProd: String): LS =
+      foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("FTraverse", "ft"))
 
     def foldMapParams: LS =
       foldLen01[LS](Nil)(selProd(None).zip(selCop(None)).map(t => s"${t._1}, ${t._2}").paramSigArgs("FoldMap", "fm"))
@@ -192,5 +191,8 @@ object syntax {
 
     def dummyImpl(used: Boolean): String =
       s"(implicit ${used.fold("", "@scalaz.unused ")}d: Dummy${z.index + 1})"
+
+    def prodAccesses(v: String): LS =
+      1.to(z.length).toList.map(i => s"${v}${z.toList.prodAccess(i)}")
   }
 }

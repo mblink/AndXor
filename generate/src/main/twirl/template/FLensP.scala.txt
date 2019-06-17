@@ -1,0 +1,15 @@
+@import andxor.syntax._
+@import scalaz.Zipper
+
+@(z: Zipper[String])
+@tpes = @{ z.toList }
+@aT(F: Option[String]) = @{ tpes.selProd(F)(z.index) }
+@hkat = @{ tpes.foldLen01(s"Lambda[f[_] => f[${tpes.head}]]")(aT(None)) }
+    implicit def @{tpes.prodName}FLens@{z.index}[@{tpes.axoTpeParams}]: FLens[@{tpes.prodTpeF("?[_]")}, @{hkat}] =
+      FLens[@{tpes.prodTpeF("?[_]")}, @{hkat}](
+        new ForallF[Lambda[f[_] => Lens[@{tpes.prodTpeF("f")}, @{aT(Some("f"))}]]] {
+          def apply[F[_]]: Lens[@{tpes.prodTpe}, @{aT(Some("F"))}] =
+            Lens(p => StoreT.store[@{aT(Some("F"))}, @{tpes.prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>
+              @{tpes.prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple})))
+        }
+      )
