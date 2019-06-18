@@ -2,4 +2,5 @@
 
 @(tpes: List[String])
 
-  def build[@{tpes.tpeParams}](implicit @{tpes.paramSig("AndXorLift", "l")}): @{tpes.builtAndXor} = @{tpes.builtAndXor}
+  def build[@{tpes.tpeParams}](implicit @{tpes.paramSig("AndXorConst", "l")}): @{tpes.builtAndXor} = @{tpes.builtAndXor}
+  def buildNested[@{tpes.rank2TpeParams}](implicit @{tpes.paramSig("AndXorRank2", "l")}): @{tpes.builtAndXor} = @{tpes.builtAndXor}

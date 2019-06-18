@@ -4,15 +4,15 @@ package andxor
 import andxor.types._
 import scalaz.{Monoid, \/}
 
-trait AndXor6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor] extends AndXor {
+trait AndXor6[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]] extends AndXor {
   type Prod[F[_]] = Prod6[F, A1, A2, A3, A4, A5, A6]
   object Prod {
-    def apply[F[_]](p: (A1#Prod[F], A2#Prod[F], A3#Prod[F], A4#Prod[F], A5#Prod[F], A6#Prod[F])): Prod[F] = Prod6[F, A1, A2, A3, A4, A5, A6](p)
+    def apply[F[_]](p: (A1[F], A2[F], A3[F], A4[F], A5[F], A6[F])): Prod[F] = Prod6[F, A1, A2, A3, A4, A5, A6](p)
   }
 
   type Cop[F[_]] = Cop6[F, A1, A2, A3, A4, A5, A6]
   object Cop {
-    def apply[F[_]](c: (A1#Cop[F] \/ (A2#Cop[F] \/ (A3#Cop[F] \/ (A4#Cop[F] \/ (A5#Cop[F] \/ A6#Cop[F])))))): Cop[F] = Cop6[F, A1, A2, A3, A4, A5, A6](c)
+    def apply[F[_]](c: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ A6[F])))))): Cop[F] = Cop6[F, A1, A2, A3, A4, A5, A6](c)
   }
 
   object evidence extends AndXorEvidence[Cop, Prod] {
@@ -22,6 +22,6 @@ trait AndXor6[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndX
 }
 
 object AndXor6 {
-  def apply[A1 <: AndXor, A2 <: AndXor, A3 <: AndXor, A4 <: AndXor, A5 <: AndXor, A6 <: AndXor]: AndXor6[A1, A2, A3, A4, A5, A6] =
+  def apply[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]]: AndXor6[A1, A2, A3, A4, A5, A6] =
     new AndXor6[A1, A2, A3, A4, A5, A6] {}
 }

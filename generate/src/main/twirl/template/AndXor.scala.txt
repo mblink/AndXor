@@ -1,6 +1,4 @@
-@import andxor.syntax._
-
-@()
+@(tpeLists: List[List[String]])
 
 import scalaz.{Apply, Monoid}
 import scalaz.Id.Id
@@ -60,17 +58,22 @@ trait AndXorFixed[F[_]] {
   def apply[TC[_]](implicit x: Apply[TC], d: DerivingProd[axo.Prod, F, TC]): TC[Prod] = d.apply
 }
 
-trait AndXorLift[A] { type AXO <: AndXor }
+sealed trait AndXorLift[A] { type AXO[F[_]] }
+trait AndXorConst[A] extends AndXorLift[A] { type AXO[F[_]] = F[A] }
+trait AndXorRank2[T[_[_]]] extends AndXorLift[T[Any]] { type AXO[F[_]] = T[F] }
+
 trait AndXorLiftLP {
-  implicit def lp[A]: AndXorLift.Aux[A, AndXor1[A]] = new AndXorLift[A] { type AXO = AndXor1[A] }
+  type FConst[F[_], A] = F[A]
+
+  implicit def const[A]: AndXorConst[A] = new AndXorConst[A] {}
 }
 object AndXorLift extends AndXorLiftLP {
-  type Aux[A, AXO0] = AndXorLift[A] { type AXO = AXO0 }
+  type Aux[A, AXO0[_[_]]] = AndXorLift[A] { type AXO[F[_]] = AXO0[F] }
 
-  implicit def hp[A <: AndXor]: AndXorLift.Aux[A, A] = new AndXorLift[A] { type AXO = A }
+  implicit def rank2[T[_[_]]]: AndXorRank2[T] = new AndXorRank2[T] {}
 }
 
+
 object AndXor {
-  def build[A]: AndXor1[A] = AndXor1[A]
-  @mkTpeList(2, 22).map(template.txt.Build(_).toString.trim).mkString("\n")
+  @tpeLists.map(template.txt.Build(_).toString.trim).mkString("\n")
 }

@@ -8,7 +8,7 @@ import scalaz.Isomorphism.<=>
 
 object derivation {
   @tpeLists.map { tpes =>
-  trait Derivation@{tpes.length}P[F[_], @{tpes.axoTpeParams}] {
+  trait Derivation@{tpes.length}P[F[_], @{tpes.rank2TpeParams}] {
     val axo = AndXor@{tpes.length}[@{tpes.tpeParams}]
 
     def deriveCovariant[TC[_], A](iso: A <=> axo.Prod[F])(implicit F: Apply[TC], d: DerivingProd[axo.Prod, F, TC]): TC[A] =
@@ -21,7 +21,7 @@ object derivation {
 
   trait LPSyntax {
     @tpeLists.map { tpes =>
-    implicit class Derivation@{tpes.length}POps[A, F[_], @{tpes.axoTpeParams}](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[F]) {
+    implicit class Derivation@{tpes.length}POps[A, F[_], @{tpes.rank2TpeParams}](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[F]) {
       val derive = new Derivation@{tpes.length}P[F, @{tpes.tpeParams}] {}
 
       def deriveCovariant[TC[_]](implicit F: Apply[TC], d: DerivingProd[derive.axo.Prod, F, TC]): TC[A] =
@@ -35,7 +35,7 @@ object derivation {
 
   object syntax extends LPSyntax {
     @tpeLists.map { tpes =>
-    implicit class Derivation@{tpes.length}POps[A, @{tpes.axoTpeParams}](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[Id]) {
+    implicit class Derivation@{tpes.length}POps[A, @{tpes.rank2TpeParams}](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[Id]) {
       val derive = new Derivation@{tpes.length}P[Id, @{tpes.tpeParams}] {}
 
       def deriveCovariant[TC[_]](implicit F: Apply[TC], d: DerivingProd[derive.axo.Prod, Id, TC]): TC[A] =

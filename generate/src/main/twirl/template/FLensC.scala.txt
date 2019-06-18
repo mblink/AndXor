@@ -7,7 +7,7 @@
 @hkat = @{ tpes.foldLen01(s"Lambda[f[_] => f[${tpes.head}]]")(aT(None)) }
 
 
-    implicit def @{tpes.copName}PFLens@{z.index}[@{tpes.axoTpeParams}]: PFLens[@{tpes.copTpeF("?[_]")}, @{hkat}] =
+    implicit def @{tpes.copName}PFLens@{z.index}[@{tpes.rank2TpeParams}]: PFLens[@{tpes.copTpeF("?[_]")}, @{hkat}] =
       PFLens[@{tpes.copTpeF("?[_]")}, @{hkat}](
         new ForallF[Lambda[f[_] => PLens[@{tpes.copTpeF("f")}, @{aT(Some("f"))}]]] {
           def apply[F[_]]: PLens[@{tpes.copTpe}, @{aT(Some("F"))}] =

@@ -14,7 +14,7 @@ object Generate extends App {
     .setPreference(NewlineAtEndOfFile, true)
     .setPreference(SpacesAroundMultiImports, false)
 
-  val tpeLists = mkTpeList(1, maxN)
+  val tpeLists = mkTpeList(2, maxN)
 
   def noWs(s: String): String = s.filterNot(_.isWhitespace)
 
@@ -35,11 +35,11 @@ object Generate extends App {
     }
   }
 
-  maybeWrite("AndXor.scala", template.txt.AndXor())
-  maybeWrite("Derivation.scala", template.txt.Derivation(tpeLists))
+  maybeWrite("AndXor.scala", template.txt.AndXor(tpeLists))
+  // maybeWrite("Derivation.scala", template.txt.Derivation(tpeLists))
   maybeWrite("Types.scala", template.txt.Types(tpeLists))
   tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes), false))
-  maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(2)))
+  maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(1)))
   maybeWrite("MapN.scala", template.txt.MapN(tpeLists.last))
   maybeWrite("Tuple.scala", template.txt.Tuple(tpeLists))
 }

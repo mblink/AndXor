@@ -5,7 +5,7 @@
 import andxor.types._
 import scalaz.{@{(List("Monoid") ::: tpes.foldLen01(List[String]())(List("\\/"))).mkString(", ")}}
 
-trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends @{tpes.andxorParent} {
+trait AndXor@{tpes.length}[@{tpes.rank2TpeParams}] extends @{tpes.andxorParent} {
   type Prod[F[_]] = @{tpes.prodTpe}
   object Prod {
     def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] = @{tpes.prodTpe}(p)
@@ -23,6 +23,6 @@ trait AndXor@{tpes.length}[@{tpes.axoTpeParams}] extends @{tpes.andxorParent} {
 }
 
 object AndXor@{tpes.length} {
-  def apply[@{tpes.axoTpeParams}]: AndXor@{tpes.length}[@{tpes.tpeParams}] =
+  def apply[@{tpes.rank2TpeParams}]: AndXor@{tpes.length}[@{tpes.tpeParams}] =
     new AndXor@{tpes.length}[@{tpes.tpeParams}] {}
 }

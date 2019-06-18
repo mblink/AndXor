@@ -1,9 +1,7 @@
 package andxor
 
-import scala.collection.immutable.SortedSet
-import scalaz.{\/, Zipper}
+import scalaz.Zipper
 import scalaz.syntax.comonad._
-import scalaz.syntax.either._
 import scalaz.syntax.std.boolean._
 
 object syntax {
@@ -17,46 +15,24 @@ object syntax {
 
   def mkTpeList(start: Int, end: Int): List[LS] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
 
-  case class BoundedType(tpe: String, bound: String) { def tp: String = s"${tpe}${bound}" }
-  implicit class BoundedTypeOps(tpes: List[BoundedType]) {
-    def tpeParams: String = tpes.map(_.tp).mkString(", ")
-  }
-
-  implicit class TpeOps(s: String) {
-    def bounded(bound: String): BoundedType = BoundedType(s, bound)
-  }
-
-  implicit class TpeDjOps(tpes: List[String \/ BoundedType]) {
-    def tpeParams: String = tpes.map(_.map(_.tp).merge).mkString(", ")
-  }
-
-  implicit class TpesTpesOps(tpess: List[List[String]]) {
-    def boundedPermutations(bound: String): Iterator[SortedSet[String \/ BoundedType]] =
-      tpess.toIterator.flatMap { ts =>
-        val tpes = ts.toSet
-        tpes.subsets.map(bounded => SortedSet((tpes.diff(bounded).map(_.left[BoundedType]) ++
-          bounded.map(BoundedType(_, bound).right[String])).toSeq:_*)(Ordering.by(_.map(_.tp).merge[String])))
-      }
-  }
-
   implicit class TpesOps(tpes: LS) {
     def selCopOrProd(copOrProd: String, F: Option[String]): LS =
-      foldLen01(tpes.map(t => F.fold(t)(f => s"$f[$t]")))(tpes.map(t => s"$t#${copOrProd}${F.fold("")(f => s"[$f]")}"))
+      (copOrProd == "Prod").fold(prodTpes(F), copTpes(F))
 
     def selCop(F: Option[String]): LS = selCopOrProd("Cop", F)
     def selProd(F: Option[String]): LS = selCopOrProd("Prod", F)
 
     def copName = s"Cop${tpes.length}"
-    def copTpeDef = s"$copName[F[_], $axoTpeParams]"
+    def copTpeDef = s"$copName[F[_], $rank2TpeParams]"
     def copTpeF(F: String) = s"$copName[$F, $tpeParams]"
     def copTpe = copTpeF("F")
-    def copTpes(F: String = "F"): LS = foldLen01(tpes.map(t => s"$F[$t]"))(tpes.map(t => s"$t#Cop[$F]"))
+    def copTpes(F: Option[String] = Some("F")): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
 
     def prodName = s"Prod${tpes.length}"
-    def prodTpeDef = s"$prodName[F[_], $axoTpeParams]"
+    def prodTpeDef = s"$prodName[F[_], $rank2TpeParams]"
     def prodTpeF(F: String) = s"$prodName[$F, $tpeParams]"
     def prodTpe = prodTpeF("F")
-    def prodTpes(F: String = "F"): LS = foldLen01(tpes.map(t => s"$F[$t]"))(tpes.map(t => s"$t#Prod[$F]"))
+    def prodTpes(F: Option[String] = Some("F")): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
 
     def tcDeps(copOrProd: String, TC: String = "TC", F: String = "F"): String =
       foldLen01(paramSig(List(TC) ++ (F == "Id").fold(Nil, List(F)), "a"))(selCopOrProd(copOrProd, Some(F)).paramSig(TC, "a"))
@@ -65,7 +41,7 @@ object syntax {
       tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
 
     def dj: String = djBase(identity _)
-    def djK(F: String): String = djBase(t => foldLen01(s"$F[$t]")(s"$t#Cop[$F]"))
+    def djK(F: String): String = djBase(t => foldLen01(s"$F[$t]")(s"$t[$F]"))
 
     def mkTuple: String = if (tpes.length <= 1) tpes.mkString(", ") else parens(tpes.mkString(", "))
 
@@ -76,17 +52,13 @@ object syntax {
       tpes.map(wrapTpe).mkTuple
 
     def prod: String = prodBase(identity _)
-    def prodK(F: String): String = prodBase(t => foldLen01(s"$F[$t]")(s"$t#Prod[$F]"))
+    def prodK(F: String): String = prodBase(t => foldLen01(s"$F[$t]")(s"$t[$F]"))
 
     def tpeParams: String = tpes.mkString(", ")
     def tpeParamsF(F: String): String = tpes.map(s => s"$F[$s]").mkString(", ")
 
-    def hkTpeParams: String = tpes.map(t => s"$t[_[_]]").mkString(", ")
-
-    def bounded(bound: String): List[BoundedType] = tpes.map(_.bounded(bound))
-
-    def axoTpeParamsList: List[BoundedType] = bounded(foldLen01("")(" <: AndXor"))
-    def axoTpeParams: String = axoTpeParamsList.tpeParams
+    def rank2TpeParamsList: List[String] = tpes.map(t => s"$t[_[_]]")
+    def rank2TpeParams: String = rank2TpeParamsList.tpeParams
 
     def paramSig(FG: LS, a: String): String =
       tpes.zipWithIndex.map(s => s"${a}${s._2}: ${FG.foldRight(s._1)((e, a) => s"${e}[${a}]")}").mkString(", ")

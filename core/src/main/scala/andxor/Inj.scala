@@ -14,13 +14,12 @@ object FInj {
     def apply[F[_]: PlusEmpty](af: A[F]): T[F] = f.apply(af)
   }
 
-  new FInj[Prod1[?[_], Int], Lambda[f[_] => f[Int]]] {
-    def apply[F[_]: PlusEmpty](i: F[Int]): Prod1[F, Int] = Prod1(i)
-  }
+  // trait FConst[A] { type T[F[_]] = F[A] }
+  type FConst[F[_], A] = F[A]
 
-  new FInj[Prod2[?[_], AndXor1[Int], AndXor1[String]], Lambda[f[_] => f[String]]] {
-    def apply[F[_]: PlusEmpty](s: F[String]): Prod2[F, AndXor1[Int], AndXor1[String]] =
-      Prod2[F, AndXor1[Int], AndXor1[String]]((Prod1[F, Int](PlusEmpty[F].empty[Int]), Prod1[F, String](s)))
+  new FInj[Prod2[?[_], FConst[?[_], Int], FConst[?[_], String]], FConst[?[_], String]] {
+    def apply[F[_]: PlusEmpty](s: F[String]): Prod2[F, FConst[?[_], Int], FConst[?[_], String]] =
+      Prod2[F, FConst[?[_], Int], FConst[?[_], String]]((PlusEmpty[F].empty[Int], s))
   }
 
   // implicit def fdecidableInj[T[_[_]]]: FDecidable[Lambda[a[_] => FInj[T, Lambda[f[_] => a[f[_]]]]]] =
