@@ -176,18 +176,22 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     val labelled: Boolean
 
     lazy val tpe: Type = maybeTpeParams(tparams)(t"$name", ts => t"$name[..$ts]")
-    lazy val origTpes: List[Type] = if (labelled) params.map(_.labelledTpe) else params.map(_.tpe)
-    lazy val tpes: List[Type] = if (origTpes.length <= 1) origTpes else origTpes.map(t => t"_root_.andxor.AndXor1[$t]")
+    lazy val tpes: List[Type] =
+      if (labelled) params.map(_.labelledTpe)
+      else params.map(_.tpe)
 
-    lazy val andxorTpes: List[Type] = id :: tpes
+    lazy val andxorTpes: List[Type] = id :: tpes.map(t => t"_root_.andxor.AndXorConst[$t]#AXO")
+
+    lazy val andxorName: Term.Name = if (labelled) andxorLabelledName else self.andxorName
+    lazy val isoName: Term.Name = if (labelled) labelledIsoName else self.isoName
 
     private lazy val andxorNName = s"AndXor$arity"
     lazy val andxorObj: Term = q"$andxorPkg.${Term.Name(andxorNName)}"
     lazy val andxorTpe: Type = t"$andxorPkg.${Type.Name(andxorNName)}[..$tpes]"
 
-    private lazy val reprName = s"${copOrProd}${arity}"
+    lazy val reprName = s"${copOrProd}${arity}"
     lazy val reprObj: Term = q"$andxorTpesPkg.${Term.Name(reprName)}"
-    lazy val reprTpe: Type = t"$andxorTpesPkg.${Type.Name(reprName)}[..$andxorTpes]"
+    lazy val reprTpe: Type = if (tpes.length <= 1) t"${andxorTpes(1)}[$id]" else t"$andxorTpesPkg.${Type.Name(reprName)}[..$andxorTpes]"
 
     def iso: Term
 
@@ -200,15 +204,9 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
       params.filter(param => getTypeNames(param.tpe).exists(abstractTpeNames.contains(_)))
     }
 
-    lazy val andxorName: Term.Name = if (labelled) andxorLabelledName else self.andxorName
-    lazy val isoName: Term.Name = if (labelled) labelledIsoName else self.isoName
-
     def mkValue(inst: Term, param: Param): Term
 
-    def normalizeValue(v0: Term): Term = {
-      val v = if (tpes.length <= 1) v0 else q"$v0.run"
-      if (labelled) q"$v.value" else v
-    }
+    def normalizeValue(v: Term): Term = if (labelled) q"$v.value" else v
   }
 
   case class ProdTree(klass: Defn.Class, labelled: Boolean) extends GenTree[ProdParam](
@@ -229,22 +227,20 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
       }
 
     private lazy val constructorArgs: List[List[Term]] =
-      paramss.zipWithIndex.map { case (group, i) =>
+      if (tpes.length <= 1) List(List(normalizeValue(q"x")))
+      else paramss.zipWithIndex.map { case (group, i) =>
         group.zipWithIndex.map { case (_, j) => normalizeValue(q"x.${tupleAccess(i + j + 1)}") } }
 
     lazy val iso: Term =
       q"""
       $isoSetObj[$tpe, $reprTpe](
-        (x: $tpe) => $reprObj[..$andxorTpes]($mkTuple),
+        (x: $tpe) => ${if (tpes.length <= 1) mkTuple else q"$reprObj[..$andxorTpes]($mkTuple)"},
         (x: $reprTpe) => new $tpe(...$constructorArgs))
       """
 
-    def mkValue(inst: Term, param: Param): Term = {
-      val v =
-        if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
-        else          q"$inst.${param.termName}"
-      if (tpes.length <= 1) v else q"$andxorTpesPkg.Prod1[$id, ${if (labelled) param.labelledTpe else param.tpe}]($v)"
-    }
+    def mkValue(inst: Term, param: Param): Term =
+      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
+      else          q"$inst.${param.termName}"
   }
 
   case class CopTree(
@@ -265,7 +261,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     lazy val iso: Term = q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => x match {
-          ..case ${params.map(p => p"case inst: ${p.memberTpe} => $andxorName.inj(${mkValue(q"inst", p)})")}
+          ..case ${params.map(p => p"case inst: ${p.memberTpe} => $andxorName.injId(${mkValue(q"inst", p)})")}
         },
         (x: $reprTpe) => ${params.zipWithIndex.tail.foldRight[Term](
           if (params.length == 1 && labelled) maybeUnwrap(q"x.run.value", Some(0)) else q"x.run")(
@@ -292,7 +288,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   def labels[P <: Param](tree: GenTree[P]): List[Defn.Val] =
     tree.params.flatMap(_.label.defns)
 
-  def mkAndxor[P <: Param](tree: GenTree[P]): Term = q"${tree.andxorObj}[..${tree.tpes}]"
+  def mkAndxor[P <: Param](tree: GenTree[P]): Term = q"$andxorPkg.AndXor.build[..${tree.tpes}]"
 
   def andxor[P <: Param](tree: GenTree[P]): Defn =
     valOrDef(Nil, tree.andxorName, tree.tparams, Nil, tree.andxorTpe, mkAndxor(tree))
@@ -304,7 +300,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     tree match {
       case c: CopTree => c.children.zipWithIndex.flatMap { case (x, i) => x.fold(_ => Nil, o =>
         List(valOrDef(List(Mod.Implicit()), Term.Name(s"andxor_${o.name.value}${if (c.labelled) "_labelled" else ""}_inst"),
-          Nil, Nil, c.origTpes(i), c.mkValue(o.name, c.params(i)))))
+          Nil, Nil, c.tpes(i), c.mkValue(o.name, c.params(i)))))
       }
       case p: ProdTree => Nil
     }
@@ -346,7 +342,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]]
       .${tc.variance.mapFunction}(
         ${maybeTpeParams(tc.tree.tparams)(tc.tree.andxorName, ts => q"${tc.tree.andxorName}[..$ts]")}
-          .${tc.variance.derivationFunction}[${tc.typeclass}, _root_.scalaz.Id.Id]
+          .deriving[${tc.typeclass}, $id].${tc.variance.derivationFunction}
       )(${tc.tree.isoName}.${tc.variance.isoFunction})
     """
 

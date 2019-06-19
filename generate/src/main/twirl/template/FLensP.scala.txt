@@ -1,16 +1,12 @@
 @import andxor.syntax._
 @import scalaz.Zipper
+@import scalaz.syntax.std.boolean._
 
-@(z: Zipper[String])
+@(z: Zipper[String], rank2: Boolean)
 @tpes = @{ z.toList }
-@aT(F: Option[String]) = @{ tpes.selProd(F)(z.index) }
-@hkat = @{ tpes.foldLen01(s"Lambda[f[_] => f[${tpes.head}]]")(aT(None)) }
+@aT = @{ rank2.fold(tpes.selProd(Some("F"))(z.index), s"F[${z.focus}]") }
+@prodTpe = @{ rank2.fold(tpes, tpes.map(t => s"AndXorConst[$t]#AXO")).prodTpe }
 
-    implicit def @{tpes.prodName}FLens@{z.index}[@{tpes.rank2TpeParams}]: FLens[@{tpes.prodTpeF("?[_]")}, @{hkat}] =
-      FLens[@{tpes.prodTpeF("?[_]")}, @{hkat}](
-        new ForallF[Lambda[f[_] => Lens[@{tpes.prodTpeF("f")}, @{aT(Some("f"))}]]] {
-          def apply[F[_]]: Lens[@{tpes.prodTpe}, @{aT(Some("F"))}] =
-            Lens(p => StoreT.store[@{aT(Some("F"))}, @{tpes.prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>
-              @{tpes.prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple})))
-        }
-      )
+    implicit def @{tpes.prodName}Lens@{z.index}@{rank2.fold("Rank2", "")}[F[_], @{rank2.fold(tpes.rank2TpeParams, tpes.tpeParams)}]: Lens[@{prodTpe}, @{aT}] =
+      Lens(p => StoreT.store[@{aT}, @{prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>
+        @{prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple})))

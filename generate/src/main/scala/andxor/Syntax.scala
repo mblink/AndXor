@@ -24,15 +24,19 @@ object syntax {
 
     def copName = s"Cop${tpes.length}"
     def copTpeDef = s"$copName[F[_], $rank2TpeParams]"
-    def copTpeF(F: String) = s"$copName[$F, $tpeParams]"
+    def copTpeF(F: String) = foldLen01(s"$tpeParams[$F]")(s"$copName[$F, $tpeParams]")
     def copTpe = copTpeF("F")
     def copTpes(F: Option[String] = Some("F")): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
 
+    def wrapCopVal(v: String, F: String = "F"): String = foldLen01(v)(s"${copTpeF(F)}($v)")
+
     def prodName = s"Prod${tpes.length}"
     def prodTpeDef = s"$prodName[F[_], $rank2TpeParams]"
-    def prodTpeF(F: String) = s"$prodName[$F, $tpeParams]"
+    def prodTpeF(F: String) = foldLen01(s"$tpeParams[$F]")(s"$prodName[$F, $tpeParams]")
     def prodTpe = prodTpeF("F")
     def prodTpes(F: Option[String] = Some("F")): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
+
+    def wrapProdVal(v: String, F: String = "F"): String = foldLen01(v)(s"${prodTpeF(F)}($v)")
 
     def tcDeps(copOrProd: String, TC: String = "TC", F: String = "F"): String =
       foldLen01(paramSig(List(TC) ++ (F == "Id").fold(Nil, List(F)), "a"))(selCopOrProd(copOrProd, Some(F)).paramSig(TC, "a"))
@@ -41,7 +45,7 @@ object syntax {
       tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
 
     def dj: String = djBase(identity _)
-    def djK(F: String): String = djBase(t => foldLen01(s"$F[$t]")(s"$t[$F]"))
+    def djK(F: String): String = djBase(t => foldLen01(s"$t[$F]")(s"$t[$F]"))
 
     def mkTuple: String = if (tpes.length <= 1) tpes.mkString(", ") else parens(tpes.mkString(", "))
 
@@ -52,7 +56,7 @@ object syntax {
       tpes.map(wrapTpe).mkTuple
 
     def prod: String = prodBase(identity _)
-    def prodK(F: String): String = prodBase(t => foldLen01(s"$F[$t]")(s"$t[$F]"))
+    def prodK(F: String): String = prodBase(t => foldLen01(s"$t[$F]")(s"$t[$F]"))
 
     def tpeParams: String = tpes.mkString(", ")
     def tpeParamsF(F: String): String = tpes.map(s => s"$F[$s]").mkString(", ")
@@ -122,9 +126,7 @@ object syntax {
 
     def foldMapName(idx: Int): String = "fm" ++ foldLen01("")(idx.toString)
 
-    def builtAndXor: String = s"AndXor${tpes.length}[${tpes.zipWithIndex.map(t => s"l${t._2}.AXO").tpeParams}]"
-
-    def andxorParent: String = "AndXor"
+    def builtAndXor(extra: String): String = s"AndXor${extra}${tpes.length}[${tpes.tpeParams}]"
 
     def flatToNestedProd: String =
       tpes.init.zipWithIndex.foldRight(s"p._${tpes.length}")((t, a) =>

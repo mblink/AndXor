@@ -45,7 +45,7 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
   private def maybeGenerateGetter(param: Term.Param): Option[Defn.Def] =
     if (param.mods.has[Mod.ValParam] && !param.mods.has[Mod.Private])
-      Some(q"def ${Term.Name(param.name.value)}: ${param.decltpe.get} = self.asInstanceOf[${param.decltpe.get}]")
+      Some(q"def ${Term.Name(param.name.value)}: ${param.decltpe.get} = $$this$$.asInstanceOf[${param.decltpe.get}]")
     else None
 
   private def genExtraMethods(extras: List[Stat]): List[Stat] =
@@ -71,12 +71,12 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
     if (extensionMethods.isEmpty) Nil
     // else if scope.inObject
     else if (tparams.isEmpty) List(
-      q"implicit final class Ops$$newtype(val self: Type) extends $opsParent { ..$extensionMethods }",
-      q"implicit def opsThis(x: Ops$$newtype): Type = x.self"
+      q"implicit final class Ops$$newtype(val $$this$$: Type) extends $opsParent { ..$extensionMethods }",
+      q"implicit def opsThis(x: Ops$$newtype): Type = x.$$this$$"
     )
     else List(
-      q"implicit final class Ops$$newtype[..$tparams](val self: Type[..$tparamNames]) extends $opsParent { ..$extensionMethods }",
-      q"implicit def opsThis[..$tparamsNoMods](x: Ops$$newtype[..$tparamNames]): Type[..$tparamNames] = x.self"
+      q"implicit final class Ops$$newtype[..$tparams](val $$this$$: Type[..$tparamNames]) extends $opsParent { ..$extensionMethods }",
+      q"implicit def opsThis[..$tparamsNoMods](x: Ops$$newtype[..$tparamNames]): Type[..$tparamNames] = x.$$this$$"
     )
   }
 
@@ -131,7 +131,7 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
     val baseTpeDef = mkBaseTypeDef(tpeName)
     val tpeTpeDef = mkTypeTypeDef(tparams, tparamNames)
 
-    (
+    val (a, b, c) = (
       q"type $tpeName[..$tparams] = ${if (tparams.isEmpty) objTpe else t"$objTpe[..$tparamNames]"}",
       q"""
       trait $typesTraitName {
@@ -145,5 +145,9 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
       """,
       objDef
     )
+    // debug("TYPE", a)
+    // debug("TRAIT", b)
+    // debug("OB", c)
+    (a, b, c)
   }
 }

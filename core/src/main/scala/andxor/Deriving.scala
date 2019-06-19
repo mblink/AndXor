@@ -16,11 +16,17 @@ sealed trait Deriving[T[_[_]], F[_], TC[_], Co[_[_]], Contra[_[_]]] {
 }
 
 trait DerivingProd[Prod[_[_]], F[_], TC[_]] extends Deriving[Prod, F, TC, Apply, Divide] {
-  def apply(implicit A: Apply[TC]): TC[Prod[F]] = mkCovariant(identity _)
-  def divide(implicit D: Divide[TC]): TC[Prod[F]] = mkContravariant(identity _)
+  def mkApply[A](f: Prod[F] => A)(implicit A: Apply[TC]): TC[A] = mkCovariant(f)
+  def mkDivide[A](f: A => Prod[F])(implicit D: Divide[TC]): TC[A] = mkContravariant(f)
+
+  def apply(implicit A: Apply[TC]): TC[Prod[F]] = mkApply(identity _)
+  def divide(implicit D: Divide[TC]): TC[Prod[F]] = mkDivide(identity _)
 }
 
 trait DerivingCop[Cop[_[_]], F[_], TC[_]] extends Deriving[Cop, F, TC, Alt, Decidable] {
-  def alt(implicit A: Alt[TC]): TC[Cop[F]] = mkCovariant(identity _)
-  def choose(implicit D: Decidable[TC]): TC[Cop[F]] = mkContravariant(identity _)
+  def mkAlt[A](f: Cop[F] => A)(implicit A: Alt[TC]): TC[A] = mkCovariant(f)
+  def mkChoose[A](f: A => Cop[F])(implicit D: Decidable[TC]): TC[A] = mkContravariant(f)
+
+  def alt(implicit A: Alt[TC]): TC[Cop[F]] = mkAlt(identity _)
+  def choose(implicit D: Decidable[TC]): TC[Cop[F]] = mkChoose(identity _)
 }
