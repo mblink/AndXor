@@ -53,7 +53,7 @@ object AndXorNested@{tpes.length} {
     new AndXorNested@{tpes.length}[@{tpes.tpeParams}] {}
 }
 
-trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXorNested@{tpes.length}[@{tpes.map(t => s"AndXorConst[$t]#AXO").tpeParams}] {
+trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXorNested@{tpes.length}[@{tpes.const.tpeParams}] {
   override def derivingId[TC[_]](implicit @{tpes.paramSig("TC", "t")}): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 }
 

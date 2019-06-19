@@ -49,7 +49,7 @@ object AndXorNested21 {
     new AndXorNested21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {}
 }
 
-trait AndXor21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] extends AndXorNested21[AndXorConst[A1]#AXO, AndXorConst[A2]#AXO, AndXorConst[A3]#AXO, AndXorConst[A4]#AXO, AndXorConst[A5]#AXO, AndXorConst[A6]#AXO, AndXorConst[A7]#AXO, AndXorConst[A8]#AXO, AndXorConst[A9]#AXO, AndXorConst[A10]#AXO, AndXorConst[A11]#AXO, AndXorConst[A12]#AXO, AndXorConst[A13]#AXO, AndXorConst[A14]#AXO, AndXorConst[A15]#AXO, AndXorConst[A16]#AXO, AndXorConst[A17]#AXO, AndXorConst[A18]#AXO, AndXorConst[A19]#AXO, AndXorConst[A20]#AXO, AndXorConst[A21]#AXO] {
+trait AndXor21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] extends AndXorNested21[FConst[?[_], A1], FConst[?[_], A2], FConst[?[_], A3], FConst[?[_], A4], FConst[?[_], A5], FConst[?[_], A6], FConst[?[_], A7], FConst[?[_], A8], FConst[?[_], A9], FConst[?[_], A10], FConst[?[_], A11], FConst[?[_], A12], FConst[?[_], A13], FConst[?[_], A14], FConst[?[_], A15], FConst[?[_], A16], FConst[?[_], A17], FConst[?[_], A18], FConst[?[_], A19], FConst[?[_], A20], FConst[?[_], A21]] {
   override def derivingId[TC[_]](implicit t0: TC[A1], t1: TC[A2], t2: TC[A3], t3: TC[A4], t4: TC[A5], t5: TC[A6], t6: TC[A7], t7: TC[A8], t8: TC[A9], t9: TC[A10], t10: TC[A11], t11: TC[A12], t12: TC[A13], t13: TC[A14], t14: TC[A15], t15: TC[A16], t16: TC[A17], t17: TC[A18], t18: TC[A19], t19: TC[A20], t20: TC[A21]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 }
 

@@ -43,7 +43,7 @@ object AndXorNested1 {
     new AndXorNested1[A1] {}
 }
 
-trait AndXor1[A1] extends AndXorNested1[AndXorConst[A1]#AXO] {
+trait AndXor1[A1] extends AndXorNested1[FConst[?[_], A1]] {
   override def derivingId[TC[_]](implicit t0: TC[A1]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 }
 

@@ -128,6 +128,8 @@ object syntax {
 
     def builtAndXor(extra: String): String = s"AndXor${extra}${tpes.length}[${tpes.tpeParams}]"
 
+    def const: LS = tpes.map(t => s"FConst[?[_], $t]")
+
     def flatToNestedProd: String =
       tpes.init.zipWithIndex.foldRight(s"p._${tpes.length}")((t, a) =>
         s"${tpes.takeRight(tpes.length - t._2).prodTpe}((p._${t._2 + 1}, $a))")

@@ -180,7 +180,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
       if (labelled) params.map(_.labelledTpe)
       else params.map(_.tpe)
 
-    lazy val andxorTpes: List[Type] = id :: tpes.map(t => t"_root_.andxor.AndXorConst[$t]#AXO")
+    lazy val andxorTpes: List[Type] = id :: tpes.map(t => t"({ type X[F[_]] = _root_.andxor.FConst[F, $t] })#X")
 
     lazy val andxorName: Term.Name = if (labelled) andxorLabelledName else self.andxorName
     lazy val isoName: Term.Name = if (labelled) labelledIsoName else self.isoName

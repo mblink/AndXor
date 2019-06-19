@@ -5,7 +5,7 @@
 @(z: Zipper[String], rank2: Boolean)
 @tpes = @{ z.toList }
 @aT = @{ rank2.fold(tpes.selProd(Some("F"))(z.index), s"F[${z.focus}]") }
-@prodTpe = @{ rank2.fold(tpes, tpes.map(t => s"AndXorConst[$t]#AXO")).prodTpe }
+@prodTpe = @{ rank2.fold(tpes, tpes.const).prodTpe }
 
     implicit def @{tpes.prodName}Lens@{z.index}@{rank2.fold("Rank2", "")}[F[_], @{rank2.fold(tpes.rank2TpeParams, tpes.tpeParams)}]: Lens[@{prodTpe}, @{aT}] =
       Lens(p => StoreT.store[@{aT}, @{prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>

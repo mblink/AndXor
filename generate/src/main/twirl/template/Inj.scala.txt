@@ -9,22 +9,14 @@
 @tp = @{ isId.fold("", s"F[_], ") }
 @wrappedTpe = @{ z.toList.copTpes(Some(F))(z.index) }
 
-    implicit def prisma@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]: Prism[@{tpes.copTpeF(F)}, @{wrappedTpe}] =@if(isId) { prisma@{z.index}F[Id, @{tpes.tpeParams}] } else { new Prism[@{tpes.copTpeF(F)}, @{wrappedTpe}] {
-        def getOption(c: @{tpes.copTpeF(F)}): Option[@{wrappedTpe}] = @{tpes.foldLen01("Some(c.run)")(s"""c.run match {
-          case ${z.djVal("x")} => Some(x)
-          case _ => None
-        }""")}
-        def reverseGet(x: @{wrappedTpe}): @{tpes.copTpeF(F)} = @{tpes.copTpeF(F)}(@z.djVal("x"))
-      } }
-
-    implicit def inja@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]: Inj[@{tpes.copTpeF(F)}, @{wrappedTpe}] =@if(isId) { inja@{z.index}F[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.reverseGet(_)) }
-
-    implicit def inja@{z.index}@{F}Inverse[@{tp}@{tpes.rank2TpeParams}]: Inj[Option[@{wrappedTpe}], @{tpes.copTpeF(F)}] =@if(isId) { inja@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.getOption(_)) }
-
-    @if(z.toList.length > 1) {
-    implicit def injViaA@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}, A](implicit i: Inj[@{wrappedTpe}, A]): Inj[@{tpes.copTpeF(F)}, A] =
-      @if(isId) { injViaA@{z.index}F[Id, @{tpes.tpeParams}, A] } else { Inj.instance((i.apply _).andThen(inja@{z.index}@{F}[@{F}, @{tpes.tpeParams}].apply _)) }
-
-    implicit def injViaA@{z.index}@{F}Inverse[@{tp}@{tpes.rank2TpeParams}, A](implicit i: Inj[Option[A], @{wrappedTpe}]): Inj[Option[A], @{tpes.copTpeF(F)}] =
-      @if(isId) { injViaA@{z.index}FInverse[Id, @{tpes.tpeParams}, A] } else { Inj.instance(inja@{z.index}@{F}Inverse[@{F}, @{tpes.tpeParams}](_).flatMap(i(_))) }
+    @if(!isId) {
+      implicit def inja@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]: Inj[@{tpes.copTpeF(F)}, @{wrappedTpe}] =
+        @if(isId) {
+          inja@{z.index}F[Id, @{tpes.tpeParams}]
+        } else {
+          Inj.instance(x => @{tpes.copTpeF(F)}(@z.djVal("x")))
+        }
     }
+
+    implicit def inja@{z.index}@{F}Const[@{tp}@{tpes.tpeParams}]: Inj[@{tpes.const.copTpeF(F)}, @{isId.fold(z.focus, s"$F[${z.focus}]")}] =
+      inja@{z.index}F[@F, @{tpes.const.tpeParams}]

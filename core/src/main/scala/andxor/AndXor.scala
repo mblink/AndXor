@@ -63,21 +63,6 @@ trait AndXorFixed[F[_]] {
   def extractP[B](p: Prod)(implicit l: Lens[Prod, B]): B = l.get(p)
 }
 
-sealed trait AndXorLift[A] { type AXO[F[_]] }
-trait AndXorConst[A] extends AndXorLift[A] { type AXO[F[_]] = F[A] }
-trait AndXorRank2[T[_[_]]] extends AndXorLift[T[Any]] { type AXO[F[_]] = T[F] }
-
-trait AndXorLiftLP {
-  type FConst[F[_], A] = F[A]
-
-  implicit def const[A]: AndXorConst[A] = new AndXorConst[A] {}
-}
-object AndXorLift extends AndXorLiftLP {
-  type Aux[A, AXO0[_[_]]] = AndXorLift[A] { type AXO[F[_]] = AXO0[F] }
-
-  implicit def rank2[T[_[_]]]: AndXorRank2[T] = new AndXorRank2[T] {}
-}
-
 object AndXor {
   def build[A]: AndXor1[A] = new AndXor1[A] {}
   def buildNested[A[_[_]]]: AndXorNested1[A] = new AndXorNested1[A] {}
