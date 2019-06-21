@@ -2,7 +2,6 @@ package andxor
 
 import scalaz.{\/, Semigroup}
 
-
 trait Inj[Cop, A] {
   def apply(a: A): Cop
 }

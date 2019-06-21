@@ -7,16 +7,10 @@
 @tpes = @{ z.toList }
 @F = @{ isId.fold("Id", "F") }
 @tp = @{ isId.fold("", s"F[_], ") }
-@wrappedTpe = @{ z.toList.copTpes(Some(F))(z.index) }
 
-    @if(!isId) {
-      implicit def inja@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]: Inj[@{tpes.copTpeF(F)}, @{wrappedTpe}] =
-        @if(isId) {
-          inja@{z.index}F[Id, @{tpes.tpeParams}]
-        } else {
-          Inj.instance(x => @{tpes.copTpeF(F)}(@z.djVal("x")))
-        }
-    }
-
-    implicit def inja@{z.index}@{F}Const[@{tp}@{tpes.tpeParams}]: Inj[@{tpes.const.copTpeF(F)}, @{isId.fold(z.focus, s"$F[${z.focus}]")}] =
-      inja@{z.index}F[@F, @{tpes.const.tpeParams}]
+implicit def inja@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]: FInj[@{tpes.copTpeF("?[_]")}, @{tpes(z.index)}, @F] =
+  @if(isId) {
+    inja@{z.index}F[Id, @{tpes.tpeParams}]
+  } else {
+    Inj.instance(x => @{tpes.copTpeF(F)}(@z.djVal("x")))
+  }

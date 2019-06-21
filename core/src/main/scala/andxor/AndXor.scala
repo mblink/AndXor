@@ -4,8 +4,13 @@ import scalaz.{Apply, Lens, Monoid, PLens}
 import scalaz.Id.Id
 
 trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
-  implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]]
-  implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]]
+  implicit def injEv[F[_]]: FInj[Cop, Cop, F]
+  implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Prod, F]
+  implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Cop, F]
+
+  implicit def injProdToVecCopEvHelper[A[_[_]], F[_]](implicit i: FInj[Cop, A, F]): FInj[Lambda[f[_] => Vector[Cop[f]]], A, F] =
+    Inj.instance(a => Vector(i(a)))
+  implicit def injProdToVecCopEv[F[_]]: FInj[Lambda[f[_] => Vector[Cop[f]]], Prod, F]
 }
 
 trait AndXorDeriving[TC[_], Cop, Prod] {

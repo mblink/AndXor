@@ -180,7 +180,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
       if (labelled) params.map(_.labelledTpe)
       else params.map(_.tpe)
 
-    lazy val andxorTpes: List[Type] = id :: tpes.map(t => t"({ type X[F[_]] = _root_.andxor.FConst[F, $t] })#X")
+    lazy val andxorTpes: List[Type] = id :: tpes.map(t => t"_root_.andxor.FConst[$t]#T")
 
     lazy val andxorName: Term.Name = if (labelled) andxorLabelledName else self.andxorName
     lazy val isoName: Term.Name = if (labelled) labelledIsoName else self.isoName
@@ -343,7 +343,8 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
       .${tc.variance.mapFunction}(
         ${maybeTpeParams(tc.tree.tparams)(tc.tree.andxorName, ts => q"${tc.tree.andxorName}[..$ts]")}
           .deriving[${tc.typeclass}, $id].${tc.variance.derivationFunction}
-      )(${tc.tree.isoName}.${tc.variance.isoFunction})
+      )(${maybeTpeParams(tc.tree.tparams)(q"${tc.tree.isoName}.${tc.variance.isoFunction}",
+        ts => q"${tc.tree.isoName}[..$ts].${tc.variance.isoFunction}")})
     """
 
   def derivedTypeclass[P <: Param](tc: Typeclass[P]): Defn =

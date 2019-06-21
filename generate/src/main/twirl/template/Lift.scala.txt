@@ -8,20 +8,14 @@
 @tpes = @{ z.toList }
 @F = @{ isId.fold("Id", "F") }
 @tp = @{ isId.fold("", s"F[_], ") }
-@wrappedTpe = @{ tpes.prodTpes(Some(F))(z.index) }
 @monoid(others: Boolean, ts: List[String] = tpes) = @{
   ts.foldLen01("")(others.fold[String => String](x => s", $x", x => s"(implicit $x)")(s" M: Monoid[${ts.prodTpeF(F)}]"))
 }
 
-    @if(!isId) {
-      implicit def lifta@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]@{monoid(false)}: Inj[@tpes.prodTpeF(F), @{wrappedTpe}] =
-        @if(isId) {
-          lifta@{z.index}F[Id, @{tpes.tpeParams}]
-        } else { {
-          @tpes.foldLen01("")("val t = M.zero\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
-            prodAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
-        } }
-    }
-
-    implicit def lifta@{z.index}@{F}Const[@{tp}@{tpes.tpeParams}]@{monoid(false, tpes.const)}: Inj[@tpes.const.prodTpeF(F), @{isId.fold(z.focus, s"$F[${z.focus}]")}] =
-      lifta@{z.index}F[@F, @{tpes.const.tpeParams}]
+implicit def lifta@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]@{monoid(false)}: FInj[@tpes.prodTpeF("?[_]"), @{tpes(z.index)}, @F] =
+  @if(isId) {
+    lifta@{z.index}F[Id, @{tpes.tpeParams}]
+  } else { {
+    @tpes.foldLen01("")("val t = M.zero\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
+      prodAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
+  } }

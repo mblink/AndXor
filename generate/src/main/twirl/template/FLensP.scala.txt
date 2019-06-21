@@ -1,12 +1,10 @@
 @import andxor.syntax._
 @import scalaz.Zipper
-@import scalaz.syntax.std.boolean._
 
-@(z: Zipper[String], rank2: Boolean)
+@(z: Zipper[String])
 @tpes = @{ z.toList }
-@aT = @{ rank2.fold(tpes.selProd(Some("F"))(z.index), s"F[${z.focus}]") }
-@prodTpe = @{ rank2.fold(tpes, tpes.const).prodTpe }
+@aT = @{ tpes.selProd(Some("F"))(z.index) }
 
-    implicit def @{tpes.prodName}Lens@{z.index}@{rank2.fold("Rank2", "")}[F[_], @{rank2.fold(tpes.rank2TpeParams, tpes.tpeParams)}]: Lens[@{prodTpe}, @{aT}] =
-      Lens(p => StoreT.store[@{aT}, @{prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>
-        @{prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple})))
+implicit def @{tpes.prodName}Lens@{z.index}[F[_], @{tpes.rank2TpeParams}]: FLens[@{tpes.prodTpeF("?[_]")}, @{tpes(z.index)}, F] =
+  Lens(p => StoreT.store[@{aT}, @{tpes.prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>
+    @{tpes.prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple})))

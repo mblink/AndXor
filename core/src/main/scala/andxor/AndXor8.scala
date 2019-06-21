@@ -3,6 +3,7 @@ package andxor
 import andxor.types._
 import scalaz.{Apply, Monoid, \/}
 import scalaz.Id.Id
+import scalaz.std.vector._
 
 trait AndXorNested8[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]] extends AndXor {
   type Prod[F[_]] = Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]
@@ -39,8 +40,9 @@ trait AndXorNested8[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], 
 
   object evidence extends AndXorEvidence[Cop, Prod] {
     implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], ?], F].choose
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] =
-      deriving[Inj[Prod[F], ?], F].divide
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = deriving[Inj[Prod[F], ?], F].divide
+    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Cop, F] = deriving[Inj[Prod[F], ?], F].choose
+    implicit def injProdToVecCopEv[F[_]]: FInj[Lambda[f[_] => Vector[Cop[f]]], Prod, F] = deriving[Inj[Vector[Cop[F]], ?], F].divide
   }
 }
 
@@ -49,8 +51,8 @@ object AndXorNested8 {
     new AndXorNested8[A1, A2, A3, A4, A5, A6, A7, A8] {}
 }
 
-trait AndXor8[A1, A2, A3, A4, A5, A6, A7, A8] extends AndXorNested8[FConst[?[_], A1], FConst[?[_], A2], FConst[?[_], A3], FConst[?[_], A4], FConst[?[_], A5], FConst[?[_], A6], FConst[?[_], A7], FConst[?[_], A8]] {
-  override def derivingId[TC[_]](implicit t0: TC[A1], t1: TC[A2], t2: TC[A3], t3: TC[A4], t4: TC[A5], t5: TC[A6], t6: TC[A7], t7: TC[A8]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
+trait AndXor8[A1, A2, A3, A4, A5, A6, A7, A8] extends AndXorNested8[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, FConst[A7]#T, FConst[A8]#T] {
+  def derivingId[TC[_]](implicit dumb: DummyImplicit, t0: TC[A1], t1: TC[A2], t2: TC[A3], t3: TC[A4], t4: TC[A5], t5: TC[A6], t6: TC[A7], t7: TC[A8]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 }
 
 object AndXor8 {

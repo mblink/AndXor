@@ -17,7 +17,7 @@ object types {
   import dummy._
 
   @tpeLists.filter(_.length >= 2).map { tpes =>
-  case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) { self =>
+  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) { self =>
     @template.txt.TupleAccess("run", tpes.prodTpes())
 
     @if(tpes.length > 1) {
@@ -72,13 +72,10 @@ object types {
           }
       }
 
-    @tpes.zipper(template.txt.FLensP(_, true))
+    @tpes.zipper(template.txt.FLensP(_))
 
     def @{tpes.prodName}TupleIso[F[_], @{tpes.rank2TpeParams}]: IsoSet[@{tpes.prodTpe}, @{tpes.prodK("F")}] =
       IsoSet((_: @{tpes.prodTpe}).run, @{tpes.prodTpe}(_: @{tpes.prodK("F")}))
-
-    implicit def @{tpes.prodName}MonoidConst[F[_], @{tpes.tpeParams}](implicit M: Monoid[(@{tpes.tpeParamsF("F")})]): Monoid[@{tpes.const.prodTpe}] =
-      Monoid.fromIso(@{tpes.prodName}TupleIso[F, @{tpes.const.tpeParams}])(M)
 
     implicit def @{tpes.prodName}Monoid[F[_], @{tpes.rank2TpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
       Monoid.fromIso(@{tpes.prodName}TupleIso[F, @{tpes.tpeParams}])(M)
@@ -90,11 +87,9 @@ object types {
     @if(tpes.length == 1) { implicit def convId[A](a: A): Prod1[Id, A] = Prod1[Id, A](a) }
 
     @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
-
-    @tpes.zipper(template.txt.FLensP(_, false))
   }
 
-  case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})
+  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})
 
   @*@{(tpes.length <= 1).fold("", s""" {
     private def mapN = new Map${tpes.length}C[${tpes.tpeParamsF("F")}] {}
@@ -129,15 +124,13 @@ object types {
 
     @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
 
-    @tpes.zipper(template.txt.FLensC(_, true))
+    @tpes.zipper(template.txt.FLensC(_))
   }
 
   object @{tpes.copName} extends @{tpes.copName}LP {
     @if(tpes.length == 1) { implicit def convId[A](a: A): Cop1[Id, A] = Cop1[Id, A](a) }
 
     @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
-
-    @tpes.zipper(template.txt.FLensC(_, false))
   }
   }
 }

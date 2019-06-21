@@ -1,14 +1,12 @@
 @import andxor.syntax._
 @import scalaz.Zipper
-@import scalaz.syntax.std.boolean._
 
-@(z: Zipper[String], rank2: Boolean)
+@(z: Zipper[String])
 @tpes = @{ z.toList }
-@aT = @{ rank2.fold(tpes.selCop(Some("F"))(z.index), s"F[${z.focus}]") }
-@copTpe = @{ rank2.fold(tpes, tpes.const).copTpe }
+@aT = @{ tpes.selCop(Some("F"))(z.index) }
 
-    implicit def @{tpes.copName}PLens@{z.index}@{rank2.fold("Rank2", "")}[F[_], @{rank2.fold(tpes.rank2TpeParams, tpes.tpeParams)}]: PLens[@{copTpe}, @{aT}] =
-      PLens(c => @tpes.foldLen01 { () => Some(StoreT.store[@{aT}, @{copTpe}](c.run)(y => @{copTpe}(@z.djVal("y")))) } { () => c.run match {
-        case @z.djVal("x") => Some(StoreT.store[@{aT}, @{copTpe}](x)(y => @{copTpe}(@z.djVal("y"))))
-        case _ => None
-      } }())
+implicit def @{tpes.copName}PLens@{z.index}[F[_], @{tpes.rank2TpeParams}]: FPLens[@{tpes.copTpeF("?[_]")}, @{tpes(z.index)}, F] =
+  PLens(c => @tpes.foldLen01 { () => Some(StoreT.store[@{aT}, @{tpes.copTpe}](c.run)(y => @{tpes.copTpe}(@z.djVal("y")))) } { () => c.run match {
+    case @z.djVal("x") => Some(StoreT.store[@{aT}, @{tpes.copTpe}](x)(y => @{tpes.copTpe}(@z.djVal("y"))))
+    case _ => None
+  } }())

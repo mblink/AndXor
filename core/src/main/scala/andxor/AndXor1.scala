@@ -2,6 +2,7 @@ package andxor
 
 import scalaz.{Apply, Monoid}
 import scalaz.Id.Id
+import scalaz.std.vector._
 
 trait AndXorNested1[A1[_[_]]] extends AndXor {
   type Prod[F[_]] = A1[F]
@@ -33,8 +34,9 @@ trait AndXorNested1[A1[_[_]]] extends AndXor {
 
   object evidence extends AndXorEvidence[Cop, Prod] {
     implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], ?], F].choose
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] =
-      injEv[F]
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = injEv[F]
+    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Cop, F] = injEv[F]
+    implicit def injProdToVecCopEv[F[_]]: FInj[Lambda[f[_] => Vector[Cop[f]]], Prod, F] = deriving[Inj[Vector[Cop[F]], ?], F].divide
   }
 }
 
@@ -43,8 +45,8 @@ object AndXorNested1 {
     new AndXorNested1[A1] {}
 }
 
-trait AndXor1[A1] extends AndXorNested1[FConst[?[_], A1]] {
-  override def derivingId[TC[_]](implicit t0: TC[A1]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
+trait AndXor1[A1] extends AndXorNested1[FConst[A1]#T] {
+  def derivingId[TC[_]](implicit dumb: DummyImplicit, t0: TC[A1]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 }
 
 object AndXor1 {

@@ -5,6 +5,7 @@
 @tpes.foldLen01("")("import andxor.types._")
 import scalaz.{Apply, @{(List("Monoid") ::: tpes.foldLen01(List[String]())(List("\\/"))).mkString(", ")}}
 import scalaz.Id.Id
+import scalaz.std.vector._
 
 trait AndXorNested@{tpes.length}[@{tpes.rank2TpeParams}] extends AndXor {
   type Prod[F[_]] = @{tpes.prodTpe}
@@ -43,8 +44,9 @@ trait AndXorNested@{tpes.length}[@{tpes.rank2TpeParams}] extends AndXor {
 
   object evidence extends AndXorEvidence[Cop, Prod] {
     implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], ?], F].choose
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] =
-      @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], ?], F].divide")
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], ?], F].divide")
+    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Cop, F] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], ?], F].choose")
+    implicit def injProdToVecCopEv[F[_]]: FInj[Lambda[f[_] => Vector[Cop[f]]], Prod, F] = deriving[Inj[Vector[Cop[F]], ?], F].divide
   }
 }
 
@@ -54,7 +56,7 @@ object AndXorNested@{tpes.length} {
 }
 
 trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXorNested@{tpes.length}[@{tpes.const.tpeParams}] {
-  override def derivingId[TC[_]](implicit @{tpes.paramSig("TC", "t")}): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
+  def derivingId[TC[_]](implicit dumb: DummyImplicit, @{tpes.paramSig("TC", "t")}): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 }
 
 object AndXor@{tpes.length} {
