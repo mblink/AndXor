@@ -1,16 +1,14 @@
 @import andxor.syntax._
 @import scalaz.Zipper
-@import scalaz.syntax.std.boolean._
 
 @(z: Zipper[String], isId: Boolean)
 
 @tpes = @{ z.toList }
-@F = @{ isId.fold("Id", "F") }
-@tp = @{ isId.fold("", s"F[_], ") }
 
-implicit def inja@{z.index}@{F}[@{tp}@{tpes.rank2TpeParams}]: FInj[@{tpes.copTpeF("?[_]")}, @{tpes(z.index)}, @F] =
-  @if(isId) {
-    inja@{z.index}F[Id, @{tpes.tpeParams}]
-  } else {
-    Inj.instance(x => @{tpes.copTpeF(F)}(@z.djVal("x")))
-  }
+@if(isId) {
+  implicit def inja@{z.index}Id[A, @{tpes.rank2TpeParams}](implicit ev: @{tpes(z.index)}[Id] === A): Inj[@{tpes.copTpeF("Id")}, A] =
+    ev.subst(inja@{z.index}F[Id, @{tpes.tpeParams}])
+} else {
+  implicit def inja@{z.index}F[F[_], @{tpes.rank2TpeParams}]: FInj[@{tpes.copTpeF("?[_]")}, @{tpes(z.index)}, F] =
+    Inj.instance(x => @{tpes.copTpeF("F")}(@z.djVal("x")))
+}

@@ -7,6 +7,7 @@ import andxor.syntax.ftraverse._
 import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, Lens, Monoid, PLens, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
+import scalaz.Leibniz.===
 
 object types {
   object dummy {
