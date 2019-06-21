@@ -73,21 +73,21 @@ object types {
           }
       }
 
-    @tpes.zipper(template.txt.FLensP(_))
-
     def @{tpes.prodName}TupleIso[F[_], @{tpes.rank2TpeParams}]: IsoSet[@{tpes.prodTpe}, @{tpes.prodK("F")}] =
       IsoSet((_: @{tpes.prodTpe}).run, @{tpes.prodTpe}(_: @{tpes.prodK("F")}))
 
     implicit def @{tpes.prodName}Monoid[F[_], @{tpes.rank2TpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
       Monoid.fromIso(@{tpes.prodName}TupleIso[F, @{tpes.tpeParams}])(M)
 
-    @tpes.zipper(template.txt.Lift(_, false).toString.trim).mkString("\n\n    ")
+    @tpes.zipper(template.txt.Lift(_, false))
+    @tpes.zipper(template.txt.FLensP(_, false))
   }
 
   object @{tpes.prodName} extends @{tpes.prodName}LP {
     @if(tpes.length == 1) { implicit def convId[A](a: A): Prod1[Id, A] = Prod1[Id, A](a) }
 
-    @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
+    @tpes.zipper(template.txt.Lift(_, true))
+    @tpes.zipper(template.txt.FLensP(_, true))
   }
 
   @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})
@@ -108,7 +108,7 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: @tpes.copTpe)(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.copTpeF("G")}] =
           c.run match {
-            @{tpes.zipper(SequenceC(_)).mkString("        ").trim}
+            @tpes.zipper(SequenceC(_))
           }
       }
 
@@ -123,15 +123,15 @@ object types {
             tpes.paramListF(i => s"deriving$i.choose").mkString(", ")})(f(_).run)")
       }
 
-    @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
-
-    @tpes.zipper(template.txt.FLensC(_))
+    @tpes.zipper(template.txt.Inj(_, false))
+    @tpes.zipper(template.txt.FLensC(_, false))
   }
 
   object @{tpes.copName} extends @{tpes.copName}LP {
     @if(tpes.length == 1) { implicit def convId[A](a: A): Cop1[Id, A] = Cop1[Id, A](a) }
 
-    @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
+    @tpes.zipper(template.txt.Inj(_, true))
+    @tpes.zipper(template.txt.FLensC(_, true))
   }
   }
 }

@@ -1,12 +1,17 @@
 @import andxor.syntax._
 @import scalaz.Zipper
 
-@(z: Zipper[String])
+@(z: Zipper[String], isId: Boolean)
 @tpes = @{ z.toList }
 @aT = @{ tpes.selCop(Some("F"))(z.index) }
 
-implicit def @{tpes.copName}PLens@{z.index}[F[_], @{tpes.rank2TpeParams}]: FPLens[@{tpes.copTpeF("?[_]")}, @{tpes(z.index)}, F] =
-  PLens(c => @tpes.foldLen01 { () => Some(StoreT.store[@{aT}, @{tpes.copTpe}](c.run)(y => @{tpes.copTpe}(@z.djVal("y")))) } { () => c.run match {
-    case @z.djVal("x") => Some(StoreT.store[@{aT}, @{tpes.copTpe}](x)(y => @{tpes.copTpe}(@z.djVal("y"))))
-    case _ => None
-  } }())
+@if(isId) {
+  implicit def @{tpes.copName}PLens@{z.index}Id[A, @{tpes.rank2TpeParams}](implicit ev: @{tpes(z.index)}[Id] === A): PLens[@tpes.copTpeF("Id"), A] =
+    ev.subst(@{tpes.copName}PLens@{z.index}[Id, @{tpes.tpeParams}])
+} else {
+  implicit def @{tpes.copName}PLens@{z.index}[F[_], @{tpes.rank2TpeParams}]: FPLens[@{tpes.copTpeF("?[_]")}, @{tpes(z.index)}, F] =
+    PLens(c => @tpes.foldLen01 { () => Some(StoreT.store[@{aT}, @{tpes.copTpe}](c.run)(y => @{tpes.copTpe}(@z.djVal("y")))) } { () => c.run match {
+      case @z.djVal("x") => Some(StoreT.store[@{aT}, @{tpes.copTpe}](x)(y => @{tpes.copTpe}(@z.djVal("y"))))
+      case _ => None
+    } }())
+}

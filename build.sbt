@@ -10,7 +10,7 @@ lazy val splainSettings = Seq(
 lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.5-LOCAL-37",
+  version := "0.2.5-LOCAL-38",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
     "-deprecation",
