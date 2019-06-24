@@ -92,10 +92,6 @@ object syntax {
       foldLen[LS](Nil)(List(s"tc: $TC[$F[${tpes.head}]]"))(selCopOrProd(copOrProd, None)
         .map(t => s"Deriving$copOrProd[$t, $F, $TC]").paramSigArgs("deriving"))
 
-    def derivingIsoParams(copOrProd: String, TC: String, F: String): LS =
-      foldLen[LS](Nil)(List(s"TC: $TC[$F[${tpes.head}]]"))(selCopOrProd(copOrProd, None)
-        .map(t => s"DerivingIso[$t, $F, $TC]").paramSigArgs("deriving"))
-
     def ffunctorParams(copOrProd: String): LS =
       foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("FFunctor", "ff"))
 
@@ -129,15 +125,6 @@ object syntax {
     def builtAndXor(extra: String): String = s"AndXor${extra}${tpes.length}[${tpes.tpeParams}]"
 
     def const: LS = tpes.map(t => s"FConst[$t]#T")
-
-    def flatToNestedProd: String =
-      tpes.init.zipWithIndex.foldRight(s"p._${tpes.length}")((t, a) =>
-        s"${tpes.takeRight(tpes.length - t._2).prodTpe}((p._${t._2 + 1}, $a))")
-
-    def flatToNestedCop: String =
-      tpes.init.zipWithIndex.foldRight(s"x${tpes.length - 1}")((t, a) =>
-        s"${tpes.takeRight(tpes.length - t._2).copTpe}(${(t._2 == 0).fold("c", s"x${t._2}")}${
-          (t._2 == tpes.length - 2).fold("", s".map(x${t._2 + 1} => $a)")})")
   }
 
   implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {

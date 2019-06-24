@@ -1,5 +1,5 @@
 import andxor.MapN.syntax._
-import scalaz.{~>, Applicative, Lens, PLens}
+import scalaz.{~>, Applicative, Apply, Lens, PLens}
 
 package object andxor {
   type FInj[T[_[_]], A[_[_]], F[_]] = Inj[T[F], A[F]]
@@ -24,4 +24,16 @@ package object andxor {
   implicit def FInjConst[T[_[_]], F[_], A](implicit i: FInj[T, FConst[A]#T, F]): Inj[T[F], F[A]] = i
   implicit def FLensConst[T[_[_]], F[_], A](implicit l: FLens[T, FConst[A]#T, F]): Lens[T[F], F[A]] = l
   implicit def FPLensConst[T[_[_]], F[_], A](implicit l: FPLens[T, FConst[A]#T, F]): PLens[T[F], F[A]] = l
+
+  implicit def FConstDerivingCop[TC[_], F[_], X](implicit tc: TC[F[X]]): DerivingCop[FConst[X]#T, F, TC] =
+    new DerivingCop[FConst[X]#T, F, TC] {
+      def mkCovariant[A](f: FConst[X]#T[F] => A)(implicit A: Alt[TC]): TC[A] = A.map(tc)(f)
+      def mkContravariant[A](f: A => FConst[X]#T[F])(implicit D: Decidable[TC]): TC[A] = D.contramap(tc)(f)
+    }
+
+  implicit def FConstDerivingProd[TC[_], F[_], X](implicit tc: TC[F[X]]): DerivingProd[FConst[X]#T, F, TC] =
+    new DerivingProd[FConst[X]#T, F, TC] {
+      def mkCovariant[A](f: FConst[X]#T[F] => A)(implicit A: Apply[TC]): TC[A] = A.map(tc)(f)
+      def mkContravariant[A](f: A => FConst[X]#T[F])(implicit D: Divide[TC]): TC[A] = D.contramap(tc)(f)
+    }
 }

@@ -18,8 +18,8 @@ object Generate extends App {
 
   def noWs(s: String): String = s.filterNot(_.isWhitespace)
 
-  def maybeWrite(name: String, txt: Txt, format: Boolean = true): Unit = {
-    val f = cwd/"core"/"src"/"main"/"scala"/"andxor"/name
+  def maybeWrite(name: String, txt: Txt, format: Boolean = true, mainOrTest: String = "main"): Unit = {
+    val f = cwd/"core"/"src"/mainOrTest/"scala"/"andxor"/name
     println(s"Generating $f...")
     val code = "package andxor\n\n" ++ txt.toString
     if (f.notExists || noWs(f.contentAsString) != noWs(code)) {
@@ -38,6 +38,7 @@ object Generate extends App {
   maybeWrite("AndXor.scala", template.txt.AndXor(tpeLists))
   // maybeWrite("Derivation.scala", template.txt.Derivation(tpeLists))
   maybeWrite("Types.scala", template.txt.Types(tpeLists))
+  maybeWrite("TypesTest.scala", template.txt.TypesTest(tpeLists), mainOrTest = "test")
   maybeWrite("AndXor1.scala", template.txt.AndXorN(List("A1")))
   tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))
   maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(1)))

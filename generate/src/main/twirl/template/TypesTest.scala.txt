@@ -1,0 +1,49 @@
+@import andxor.syntax._
+@import play.twirl.api.TwirlFeatureImports.defining
+@import scalaz.syntax.std.boolean._
+
+@(tpeLists: List[List[String]])
+
+import andxor.AndXorProperties.arbitrary._
+import andxor.types._
+import org.scalacheck.{Arbitrary, Properties}
+import scalaz.Equal
+import scalaz.scalacheck.ScalazProperties.lens
+import scalaz.std.anyVal._
+import scalaz.std.option._
+import scalaz.std.string._
+
+object arbitrary {
+  @tpeLists.map { tpes =>
+    implicit def prod@{tpes.length}Arb[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.prodTpe] =
+      AndXor.buildNested[@tpes.tpeParams].deriving[Arbitrary, F].apply
+
+    implicit def cop@{tpes.length}Arb[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.copTpe] =
+      AndXor.buildNested[@tpes.tpeParams].deriving[Arbitrary, F].alt
+
+    implicit def prod@{tpes.length}Eq[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.prodTpe] =
+      AndXor.buildNested[@tpes.tpeParams].deriving[Equal, F].divide
+
+    implicit def cop@{tpes.length}Eq[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.copTpe] =
+      AndXor.buildNested[@tpes.tpeParams].deriving[Equal, F].choose
+  }
+}
+
+@tpeLists.map { _tpes => @defining(_tpes.zipWithIndex.map(t => (t._2 % 2 == 0).fold("String", "Int"))) { tpes =>
+  object @{tpes.prodName}Test extends Properties("@{tpes.prodName}") {
+    import arbitrary._
+
+    include(AndXorProperties.ftraverse.laws[@tpes.const.prodTpeF("?[_]")])
+
+    @tpes.zipper { z =>
+      include(lens.laws[@tpes.const.prodTpeF("Option"), Option[@{tpes(z.index)}]](
+        @{tpes.prodName}.@{tpes.prodName}Lens@{z.index}[Option, @{tpes.const.tpeParams}]), "@{z.index}.")
+    }
+  }
+
+  object @{tpes.copName}Test extends Properties("@{tpes.copName}") {
+    import arbitrary._
+
+    include(AndXorProperties.ftraverse.laws[@tpes.const.copTpeF("?[_]")])
+  }
+}}

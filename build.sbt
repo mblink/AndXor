@@ -10,7 +10,7 @@ lazy val splainSettings = Seq(
 lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   scalaVersion := "2.12.8",
-  version := "0.2.5-LOCAL-38",
+  version := "0.2.5-LOCAL-40",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -68,7 +68,10 @@ lazy val baseSettings = splainSettings ++ Seq(
   sources in (Compile, doc) := Seq()
 )
 
-lazy val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.27")
+lazy val scalazVersion = "7.2.27"
+lazy val scalaCheckVersion = "1.14.0"
+
+lazy val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % scalazVersion)
 
 lazy val publishSettings = Seq(
   skip in publish := false,
@@ -96,7 +99,11 @@ lazy val core = project.in(file("core"))
   .settings(publishSettings)
   .settings(Seq(
     name := "andxor-core",
-    scalacOptions ++= enablePlugin((assembly in newtype).value)
+    scalacOptions ++= enablePlugin((assembly in newtype).value),
+    libraryDependencies ++= Seq(
+      "org.scalacheck" %% "scalacheck" % scalaCheckVersion % "test",
+      "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-${scalaCheckVersion.split('.').dropRight(1).mkString(".")}" % "test"
+    )
   ))
 
 lazy val argonaut = project.in(file("argonaut"))

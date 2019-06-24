@@ -31,12 +31,6 @@ trait AndXor { self =>
 
   val evidence: AndXorEvidence[Cop, Prod]
 
-  def fix[F[_]]: AndXorFixed[F] = new AndXorFixed[F] {
-    type AXO = self.type
-    val axo: self.type = self
-    val evidence: AndXorEvidence[self.Cop, self.Prod] = self.evidence
-  }
-
   def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
   def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
   def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
@@ -44,28 +38,8 @@ trait AndXor { self =>
   def extractC[F[_], B](c: Cop[F])(implicit l: PLens[Cop[F], B]): Option[B] = l.get(c)
   def extractP[F[_], B](p: Prod[F])(implicit l: Lens[Prod[F], B]): B = l.get(p)
 
-  def derivingNested[TC[_], F[_]](implicit dc: DerivingCop[Cop, F, TC], dp: DerivingProd[Prod, F, TC]): AndXorDeriving[TC, Cop[F], Prod[F]] =
-    new AndXorDeriving[TC, Cop[F], Prod[F]] {
-      def mkChoose[B](f: B => Cop[F])(implicit d: Decidable[TC]): TC[B] = dc.mkChoose(f)
-      def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[TC]): TC[B] = dc.mkAlt(f)
-      def mkDivide[B](f: B => Prod[F])(implicit a: Divide[TC]): TC[B] = dp.mkDivide(f)
-      def mkApply[B](f: Prod[F] => B)(implicit a: Apply[TC]): TC[B] = dp.mkApply(f)
-    }
-}
-
-trait AndXorFixed[F[_]] {
-  type AXO <: AndXor
-  val axo: AXO
-
-  type Cop = axo.Cop[F]
-  type Prod = axo.Prod[F]
-
-  val evidence: AndXorEvidence[axo.Cop, axo.Prod]
-
-  def inj[A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
-  def lift[A](a: A)(implicit inj: Inj[Prod, A]): Prod = inj(a)
-  def extractC[B](c: Cop)(implicit l: PLens[Cop, B]): Option[B] = l.get(c)
-  def extractP[B](p: Prod)(implicit l: Lens[Prod, B]): B = l.get(p)
+  def derivingNestedCop[TC[_], F[_]](implicit dc: DerivingCop[Cop, F, TC]): DerivingCop[Cop, F, TC] = dc
+  def derivingNestedProd[TC[_], F[_]](implicit dp: DerivingProd[Prod, F, TC]): DerivingProd[Prod, F, TC] = dp
 }
 
 object AndXor {

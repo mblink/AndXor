@@ -261,7 +261,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     lazy val iso: Term = q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => x match {
-          ..case ${params.map(p => p"case inst: ${p.memberTpe} => $andxorName.injId(${mkValue(q"inst", p)})")}
+          ..case ${params.map(p => p"case inst: ${p.memberTpe} => $andxorName.inj(${mkValue(q"inst", p)})")}
         },
         (x: $reprTpe) => ${params.zipWithIndex.tail.foldRight[Term](
           if (params.length == 1 && labelled) maybeUnwrap(q"x.run.value", Some(0)) else q"x.run")(
