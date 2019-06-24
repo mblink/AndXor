@@ -89,7 +89,7 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
   private def genNewType[A <: Defn: Extract[?, Mod]: Extract[?, Stat]: Named](defn: A, companionO: Option[Defn.Object])(
     getName: A => Type.Name,
     getParam: A => Term.Param,
-    getTparams: A => List[Type.Param],
+    getTparams: A => List[Type.Param]
   ): Reader[LocalScope, (Defn.Type, Defn.Trait, Defn.Object)] = Reader { scope =>
     val companion = companionO.getOrElse(genCompanion(defn))
     val tpeName: Type.Name = getName(defn)

@@ -1,3 +1,5 @@
+lazy val scalaVersions = Seq("2.11.12", "2.12.8", "2.13.0")
+
 lazy val splainSettings = Seq(
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
   scalacOptions ++= Seq(
@@ -7,11 +9,54 @@ lazy val splainSettings = Seq(
   )
 )
 
+lazy val scala211_212_opts = Seq(
+  "-Xfuture",
+  "-Yno-adapted-args",
+  "-Ypartial-unification",
+  "-Ywarn-inaccessible",
+  "-Ywarn-infer-any",
+  "-Ywarn-nullary-override",
+  "-Ywarn-nullary-unit"
+)
+
+lazy val scala212_opts = Seq(
+  "-Xlint:by-name-right-associative",
+  "-Xlint:unsound-match"
+)
+
+lazy val scala212_213_opts = Seq(
+  "-Xlint:adapted-args",
+  "-Xlint:constant",
+  "-Xlint:delayedinit-select",
+  "-Xlint:doc-detached",
+  "-Xlint:inaccessible",
+  "-Xlint:infer-any",
+  "-Xlint:missing-interpolator",
+  "-Xlint:nullary-override",
+  "-Xlint:nullary-unit",
+  "-Xlint:option-implicit",
+  "-Xlint:package-object-classes",
+  "-Xlint:poly-implicit-overload",
+  "-Xlint:private-shadow",
+  "-Xlint:stars-align",
+  "-Xlint:type-parameter-shadow",
+  "-Ywarn-unused:implicits",
+  "-Ywarn-unused:imports",
+  "-Ywarn-unused:locals",
+  "-Ywarn-unused:params",
+  "-Ywarn-unused:patvars",
+  "-Ywarn-unused:privates",
+  "-Ywarn-extra-implicit",
+  "-Ycache-plugin-class-loader:last-modified",
+  "-Ycache-macro-class-loader:last-modified"
+)
+
 lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
-  scalaVersion := "2.12.8",
+  crossScalaVersions := scalaVersions,
+  scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
   version := "0.2.5-LOCAL-40",
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
   scalacOptions ++= Seq(
     "-deprecation",
     "-encoding", "UTF-8",
@@ -22,46 +67,18 @@ lazy val baseSettings = splainSettings ++ Seq(
     "-unchecked",
     "-Xcheckinit",
     "-Xfatal-warnings",
-    "-Xfuture",
-    "-Xlint:adapted-args",
-    "-Xlint:by-name-right-associative",
-    "-Xlint:constant",
-    "-Xlint:delayedinit-select",
-    "-Xlint:doc-detached",
-    "-Xlint:inaccessible",
-    "-Xlint:infer-any",
-    "-Xlint:missing-interpolator",
-    "-Xlint:nullary-override",
-    "-Xlint:nullary-unit",
-    "-Xlint:option-implicit",
-    "-Xlint:package-object-classes",
-    "-Xlint:poly-implicit-overload",
-    "-Xlint:private-shadow",
-    "-Xlint:stars-align",
-    "-Xlint:type-parameter-shadow",
-    "-Xlint:unsound-match",
-    "-Yno-adapted-args",
-    "-Ypartial-unification",
     "-Yrangepos",
     "-Ywarn-dead-code",
-    "-Ywarn-extra-implicit",
-    "-Ywarn-inaccessible",
-    "-Ywarn-infer-any",
-    "-Ywarn-nullary-override",
-    "-Ywarn-nullary-unit",
     "-Ywarn-numeric-widen",
-    "-Ywarn-unused:implicits",
-    "-Ywarn-unused:imports",
-    "-Ywarn-unused:locals",
-    "-Ywarn-unused:params",
-    "-Ywarn-unused:patvars",
-    "-Ywarn-unused:privates",
-    "-Ywarn-value-discard",
-    "-Ycache-plugin-class-loader:last-modified",
-    "-Ycache-macro-class-loader:last-modified"
-  ),
-  scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-  scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
+    "-Ywarn-value-discard"
+  ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, 11)) => Seq("-Xlint", "-Ywarn-unused") ++ scala211_212_opts
+    case Some((2, 12)) => scala211_212_opts ++ scala212_opts ++ scala212_213_opts
+    case Some((2, 13)) => scala212_213_opts
+    case _ => Seq()
+  }),
+  scalacOptions in (Compile, console) --= scalacOptions.value.filterNot(x => x.startsWith("-Ywarn-unused") || x.startsWith("-Xlint")),
+  scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value,
   skip in publish := true,
   publishArtifact in (Compile, packageDoc) := false,
   publishArtifact in packageDoc := false,
@@ -86,6 +103,7 @@ lazy val generate = project.in(file("generate"))
   .settings(Seq(
     name := "andxor-generate",
     resolvers += Resolver.sonatypeRepo("snapshots"),
+    crossScalaVersions := Seq(),
     libraryDependencies ++= Seq(
       "com.github.pathikrit" %% "better-files" % "3.5.0",
       "org.scalariform" %% "scalariform" % "0.2.10",
@@ -115,7 +133,7 @@ lazy val argonaut = project.in(file("argonaut"))
   ))
   .dependsOn(core)
 
-lazy val circeVersion = "0.10.0"
+lazy val circeVersion = "0.12.0-M3"
 lazy val circe = project.in(file("circe"))
   .settings(commonSettings)
   .settings(publishSettings)
@@ -128,7 +146,7 @@ lazy val circe = project.in(file("circe"))
   ))
   .dependsOn(core)
 
-lazy val scalametaV = "4.1.10"
+lazy val scalametaV = "4.1.12"
 
 lazy val basePluginOptions = Seq(
   scalacOptions -= "-Ywarn-unused:patvars",
@@ -188,6 +206,7 @@ lazy val newtype = compilerPlugin(project.in(file("newtype")), "andxor-newtype")
 lazy val root = project.in(file("."))
   .settings(commonSettings)
   .settings(Seq(
+    crossScalaVersions := Seq(),
     tutTargetDirectory := file("."),
     scalacOptions in Tut := (scalacOptions in (Compile, console)).value
   ))

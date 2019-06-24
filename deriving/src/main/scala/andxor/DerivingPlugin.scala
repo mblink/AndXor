@@ -171,7 +171,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     val params: List[P],
     val name: Type.Name,
     val tparams: List[Type.Param],
-    val copOrProd: String,
+    val copOrProd: String
   ) {
     val labelled: Boolean
 
@@ -256,7 +256,10 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     }
 
     def maybeUnwrap(inst: Term, paramIdx: Option[Int]): Term =
-      paramIdx.flatMap(children(_).toOption).fold(inst)(_ => q"$adtValTagObj.unwrap($inst)")
+      paramIdx.flatMap(children(_) match {
+        case Right(x) => Some(x)
+        case Left(_) => None
+      }).fold(inst)(_ => q"$adtValTagObj.unwrap($inst)")
 
     lazy val iso: Term = q"""
       $isoSetObj[$tpe, $reprTpe](

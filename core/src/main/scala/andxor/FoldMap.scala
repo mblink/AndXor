@@ -21,7 +21,7 @@ trait FoldMap[Prod[_[_]], Cop[_[_]]] {
     implicit O: Ordering[Cop[G]],
     M: Monoid[C],
     MP: Monoid[Prod[F]],
-    U: Uncons[F, G],
+    U: Uncons[F, G]
   ): C = {
     @tailrec
     def go(prod: Prod[F], q: PQ[Cop[G]], out: C): C =

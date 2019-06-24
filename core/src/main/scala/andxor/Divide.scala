@@ -1,6 +1,5 @@
 package andxor
 
-import scala.language.higherKinds
 import scalaz.{Contravariant, Equal, IsomorphismContravariant, Monoid, Semigroup}
 import scalaz.Isomorphism.<~>
 

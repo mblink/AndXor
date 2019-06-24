@@ -12,8 +12,6 @@ import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.transform.TypingTransformers
 
-private[andxor] final class u extends deprecated("unused", "")
-
 private[andxor] final case class Reader[A, B](run: A => B) {
   def map[C](f: B => C): Reader[A, C] = Reader(run.andThen(f))
   def flatMap[C](f: B => Reader[A, C]): Reader[A, C] = Reader(a => f(run(a)).run(a))
@@ -42,27 +40,27 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
   }
 
   def update(
-    @u anns: List[m.Mod.Annot],
+    @deprecated("unused", "") anns: List[m.Mod.Annot],
     klass: m.Defn.Class,
     companion: Option[m.Defn.Object]
   ): Reader[LocalScope, (Option[(m.Defn.Class, Option[m.Defn.Object])], Vector[m.Stat])] =
     Reader(_ => (Some((klass, companion)), Vector()))
 
   def update(
-    @u anns: List[m.Mod.Annot],
+    @deprecated("unused", "") anns: List[m.Mod.Annot],
     obj: m.Defn.Object
   ): Reader[LocalScope, (Option[m.Defn.Object], Vector[m.Stat])] =
     Reader(_ => (Some(obj), Vector()))
 
   def update(
-    @u anns: List[m.Mod.Annot],
+    @deprecated("unused", "") anns: List[m.Mod.Annot],
     tr: m.Defn.Trait,
     companion: Option[m.Defn.Object]
   ): Reader[LocalScope, (Option[(m.Defn.Trait, Option[m.Defn.Object])], Vector[m.Stat])] =
     Reader(_ => (Some((tr, companion)), Vector()))
 
   def update(
-    @u anns: List[m.Mod.Annot],
+    @deprecated("unused", "") anns: List[m.Mod.Annot],
     tpe: m.Defn.Type,
     companion: Option[m.Defn.Object]
   ): Reader[LocalScope, (Option[(m.Defn.Type, Option[m.Defn.Object])], Vector[m.Stat])] =
@@ -70,11 +68,11 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
 
   trait Named[A] { def name(a: A): m.Name }
   object Named {
-    implicit val namedClass: Named[m.Defn.Class] = _.name
-    implicit val namedObject: Named[m.Defn.Object] = _.name
-    implicit val namedPkg: Named[m.Pkg] = _.name
-    implicit val namedTrait: Named[m.Defn.Trait] = _.name
-    implicit val namedType: Named[m.Defn.Type] = _.name
+    implicit val namedClass: Named[m.Defn.Class] = new Named[m.Defn.Class] { def name(a: m.Defn.Class): m.Name = a.name }
+    implicit val namedObject: Named[m.Defn.Object] = new Named[m.Defn.Object] { def name(a: m.Defn.Object): m.Name = a.name }
+    implicit val namedPkg: Named[m.Pkg] = new Named[m.Pkg] { def name(a: m.Pkg): m.Name = a.name }
+    implicit val namedTrait: Named[m.Defn.Trait] = new Named[m.Defn.Trait] { def name(a: m.Defn.Trait): m.Name = a.name }
+    implicit val namedType: Named[m.Defn.Type] = new Named[m.Defn.Type] { def name(a: m.Defn.Type): m.Name = a.name }
   }
   implicit class NamedOps[A](a: A)(implicit n: Named[A]) { def name: m.Name = n.name(a) }
 
@@ -223,8 +221,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     ): Reader[LocalScope, Vector[m.Stat]] =
       for {
         companion <- Reader((_: LocalScope).objects.get(tree.name.value))
-        (ann, cleaned) = extractTrigger(tree)
-        updated <- upd(ann, cleaned, companion)
+        t = extractTrigger(tree)
+        updated <- upd(t._1, t._2, companion)
       } yield updated._1.map(_._1).toVector ++
               updated._1.flatMap(_._2).toVector ++
               updated._2

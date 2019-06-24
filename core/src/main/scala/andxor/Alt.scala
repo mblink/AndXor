@@ -1,6 +1,5 @@
 package andxor
 
-import scala.language.higherKinds
 import scalaz.{\/, Applicative, IsomorphismApplicative}
 import scalaz.Isomorphism.<~>
 import scalaz.syntax.either._
