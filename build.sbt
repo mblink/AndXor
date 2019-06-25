@@ -206,7 +206,6 @@ lazy val newtype = compilerPlugin(project.in(file("newtype")), "andxor-newtype")
 lazy val root = project.in(file("."))
   .settings(commonSettings)
   .settings(Seq(
-    crossScalaVersions := Seq(),
     tutTargetDirectory := file("."),
     scalacOptions in Tut := (scalacOptions in (Compile, console)).value
   ))
