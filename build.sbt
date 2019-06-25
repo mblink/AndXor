@@ -77,7 +77,8 @@ lazy val baseSettings = splainSettings ++ Seq(
     case Some((2, 13)) => scala212_213_opts
     case _ => Seq()
   }),
-  scalacOptions in (Compile, console) --= scalacOptions.value.filterNot(x => x.startsWith("-Ywarn-unused") || x.startsWith("-Xlint")),
+  scalacOptions in (Compile, console) := scalacOptions.value.filterNot(x =>
+    x.startsWith("-Ywarn-unused") || x.startsWith("-Xlint") || x.startsWith("-P:splain")),
   scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value,
   skip in publish := true,
   publishArtifact in (Compile, packageDoc) := false,

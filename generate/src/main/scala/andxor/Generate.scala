@@ -36,7 +36,6 @@ object Generate extends App {
   }
 
   maybeWrite("AndXor.scala", template.txt.AndXor(tpeLists))
-  // maybeWrite("Derivation.scala", template.txt.Derivation(tpeLists))
   maybeWrite("Types.scala", template.txt.Types(tpeLists))
   maybeWrite("TypesTest.scala", template.txt.TypesTest(tpeLists), mainOrTest = "test")
   maybeWrite("AndXor1.scala", template.txt.AndXorN(List("A1")))

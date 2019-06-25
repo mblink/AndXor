@@ -1,4 +1,5 @@
 @import andxor.syntax._
+@import scalaz.syntax.std.boolean._
 
 @(tpeLists: List[List[String]])
 
@@ -90,12 +91,10 @@ object types {
     @tpes.zipper(template.txt.FLensP(_, true))
   }
 
-  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})
-
-  @*@{(tpes.length <= 1).fold("", s""" {
-    private def mapN = new Map${tpes.length}C[${tpes.tpeParamsF("F")}] {}
+  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{(tpes.length <= 1).fold("", s""" {
+    private def mapN = new Map${tpes.length}C[${tpes.tpeTpes(Some("F")).tpeParams}] {}
     ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
-  }""")}*@
+  }""")}
 
   trait @{tpes.copName}LP {
     @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Cop1[F, A] = Cop1[F, A](a) }

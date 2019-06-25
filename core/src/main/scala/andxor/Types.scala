@@ -144,7 +144,22 @@ object types {
 
   }
 
-  @newtype case class Cop2[F[_], A1[_[_]], A2[_[_]]](run: (A1[F] \/ A2[F]))
+  @newtype case class Cop2[F[_], A1[_[_]], A2[_[_]]](run: (A1[F] \/ A2[F])) {
+    private def mapN = new Map2C[A1[F], A2[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop2[F, B, A2] =
+      Cop2[F, B, A2](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop2[F, B, A2] =
+      Cop2[F, B, A2](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop2[F, A1, B] =
+      Cop2[F, A1, B](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop2[F, A1, B] =
+      Cop2[F, A1, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop2LP {
 
@@ -341,7 +356,28 @@ object types {
 
   }
 
-  @newtype case class Cop3[F[_], A1[_[_]], A2[_[_]], A3[_[_]]](run: (A1[F] \/ (A2[F] \/ A3[F])))
+  @newtype case class Cop3[F[_], A1[_[_]], A2[_[_]], A3[_[_]]](run: (A1[F] \/ (A2[F] \/ A3[F]))) {
+    private def mapN = new Map3C[A1[F], A2[F], A3[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop3[F, B, A2, A3] =
+      Cop3[F, B, A2, A3](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop3[F, B, A2, A3] =
+      Cop3[F, B, A2, A3](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop3[F, A1, B, A3] =
+      Cop3[F, A1, B, A3](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop3[F, A1, B, A3] =
+      Cop3[F, A1, B, A3](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop3[F, A1, A2, B] =
+      Cop3[F, A1, A2, B](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop3[F, A1, A2, B] =
+      Cop3[F, A1, A2, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop3LP {
 
@@ -580,7 +616,34 @@ object types {
 
   }
 
-  @newtype case class Cop4[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ A4[F]))))
+  @newtype case class Cop4[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ A4[F])))) {
+    private def mapN = new Map4C[A1[F], A2[F], A3[F], A4[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop4[F, B, A2, A3, A4] =
+      Cop4[F, B, A2, A3, A4](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop4[F, B, A2, A3, A4] =
+      Cop4[F, B, A2, A3, A4](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop4[F, A1, B, A3, A4] =
+      Cop4[F, A1, B, A3, A4](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop4[F, A1, B, A3, A4] =
+      Cop4[F, A1, B, A3, A4](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop4[F, A1, A2, B, A4] =
+      Cop4[F, A1, A2, B, A4](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop4[F, A1, A2, B, A4] =
+      Cop4[F, A1, A2, B, A4](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop4[F, A1, A2, A3, B] =
+      Cop4[F, A1, A2, A3, B](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop4[F, A1, A2, A3, B] =
+      Cop4[F, A1, A2, A3, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop4LP {
 
@@ -861,7 +924,40 @@ object types {
 
   }
 
-  @newtype case class Cop5[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ A5[F])))))
+  @newtype case class Cop5[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ A5[F]))))) {
+    private def mapN = new Map5C[A1[F], A2[F], A3[F], A4[F], A5[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop5[F, B, A2, A3, A4, A5] =
+      Cop5[F, B, A2, A3, A4, A5](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop5[F, B, A2, A3, A4, A5] =
+      Cop5[F, B, A2, A3, A4, A5](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop5[F, A1, B, A3, A4, A5] =
+      Cop5[F, A1, B, A3, A4, A5](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop5[F, A1, B, A3, A4, A5] =
+      Cop5[F, A1, B, A3, A4, A5](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop5[F, A1, A2, B, A4, A5] =
+      Cop5[F, A1, A2, B, A4, A5](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop5[F, A1, A2, B, A4, A5] =
+      Cop5[F, A1, A2, B, A4, A5](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop5[F, A1, A2, A3, B, A5] =
+      Cop5[F, A1, A2, A3, B, A5](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop5[F, A1, A2, A3, B, A5] =
+      Cop5[F, A1, A2, A3, B, A5](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop5[F, A1, A2, A3, A4, B] =
+      Cop5[F, A1, A2, A3, A4, B](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop5[F, A1, A2, A3, A4, B] =
+      Cop5[F, A1, A2, A3, A4, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop5LP {
 
@@ -1184,7 +1280,46 @@ object types {
 
   }
 
-  @newtype case class Cop6[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ A6[F]))))))
+  @newtype case class Cop6[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ A6[F])))))) {
+    private def mapN = new Map6C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop6[F, B, A2, A3, A4, A5, A6] =
+      Cop6[F, B, A2, A3, A4, A5, A6](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop6[F, B, A2, A3, A4, A5, A6] =
+      Cop6[F, B, A2, A3, A4, A5, A6](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop6[F, A1, B, A3, A4, A5, A6] =
+      Cop6[F, A1, B, A3, A4, A5, A6](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop6[F, A1, B, A3, A4, A5, A6] =
+      Cop6[F, A1, B, A3, A4, A5, A6](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop6[F, A1, A2, B, A4, A5, A6] =
+      Cop6[F, A1, A2, B, A4, A5, A6](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop6[F, A1, A2, B, A4, A5, A6] =
+      Cop6[F, A1, A2, B, A4, A5, A6](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop6[F, A1, A2, A3, B, A5, A6] =
+      Cop6[F, A1, A2, A3, B, A5, A6](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop6[F, A1, A2, A3, B, A5, A6] =
+      Cop6[F, A1, A2, A3, B, A5, A6](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop6[F, A1, A2, A3, A4, B, A6] =
+      Cop6[F, A1, A2, A3, A4, B, A6](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop6[F, A1, A2, A3, A4, B, A6] =
+      Cop6[F, A1, A2, A3, A4, B, A6](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop6[F, A1, A2, A3, A4, A5, B] =
+      Cop6[F, A1, A2, A3, A4, A5, B](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop6[F, A1, A2, A3, A4, A5, B] =
+      Cop6[F, A1, A2, A3, A4, A5, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop6LP {
 
@@ -1549,7 +1684,52 @@ object types {
 
   }
 
-  @newtype case class Cop7[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ A7[F])))))))
+  @newtype case class Cop7[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ A7[F]))))))) {
+    private def mapN = new Map7C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop7[F, B, A2, A3, A4, A5, A6, A7] =
+      Cop7[F, B, A2, A3, A4, A5, A6, A7](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop7[F, B, A2, A3, A4, A5, A6, A7] =
+      Cop7[F, B, A2, A3, A4, A5, A6, A7](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop7[F, A1, B, A3, A4, A5, A6, A7] =
+      Cop7[F, A1, B, A3, A4, A5, A6, A7](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop7[F, A1, B, A3, A4, A5, A6, A7] =
+      Cop7[F, A1, B, A3, A4, A5, A6, A7](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop7[F, A1, A2, B, A4, A5, A6, A7] =
+      Cop7[F, A1, A2, B, A4, A5, A6, A7](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop7[F, A1, A2, B, A4, A5, A6, A7] =
+      Cop7[F, A1, A2, B, A4, A5, A6, A7](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop7[F, A1, A2, A3, B, A5, A6, A7] =
+      Cop7[F, A1, A2, A3, B, A5, A6, A7](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop7[F, A1, A2, A3, B, A5, A6, A7] =
+      Cop7[F, A1, A2, A3, B, A5, A6, A7](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop7[F, A1, A2, A3, A4, B, A6, A7] =
+      Cop7[F, A1, A2, A3, A4, B, A6, A7](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop7[F, A1, A2, A3, A4, B, A6, A7] =
+      Cop7[F, A1, A2, A3, A4, B, A6, A7](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop7[F, A1, A2, A3, A4, A5, B, A7] =
+      Cop7[F, A1, A2, A3, A4, A5, B, A7](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop7[F, A1, A2, A3, A4, A5, B, A7] =
+      Cop7[F, A1, A2, A3, A4, A5, B, A7](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop7[F, A1, A2, A3, A4, A5, A6, B] =
+      Cop7[F, A1, A2, A3, A4, A5, A6, B](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop7[F, A1, A2, A3, A4, A5, A6, B] =
+      Cop7[F, A1, A2, A3, A4, A5, A6, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop7LP {
 
@@ -1956,7 +2136,58 @@ object types {
 
   }
 
-  @newtype case class Cop8[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ A8[F]))))))))
+  @newtype case class Cop8[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ A8[F])))))))) {
+    private def mapN = new Map8C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop8[F, B, A2, A3, A4, A5, A6, A7, A8] =
+      Cop8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop8[F, B, A2, A3, A4, A5, A6, A7, A8] =
+      Cop8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop8[F, A1, B, A3, A4, A5, A6, A7, A8] =
+      Cop8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop8[F, A1, B, A3, A4, A5, A6, A7, A8] =
+      Cop8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop8[F, A1, A2, B, A4, A5, A6, A7, A8] =
+      Cop8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop8[F, A1, A2, B, A4, A5, A6, A7, A8] =
+      Cop8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop8[F, A1, A2, A3, B, A5, A6, A7, A8] =
+      Cop8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop8[F, A1, A2, A3, B, A5, A6, A7, A8] =
+      Cop8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop8[F, A1, A2, A3, A4, B, A6, A7, A8] =
+      Cop8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop8[F, A1, A2, A3, A4, B, A6, A7, A8] =
+      Cop8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop8[F, A1, A2, A3, A4, A5, B, A7, A8] =
+      Cop8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop8[F, A1, A2, A3, A4, A5, B, A7, A8] =
+      Cop8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop8[F, A1, A2, A3, A4, A5, A6, B, A8] =
+      Cop8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop8[F, A1, A2, A3, A4, A5, A6, B, A8] =
+      Cop8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop8[F, A1, A2, A3, A4, A5, A6, A7, B] =
+      Cop8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop8[F, A1, A2, A3, A4, A5, A6, A7, B] =
+      Cop8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop8LP {
 
@@ -2405,7 +2636,64 @@ object types {
 
   }
 
-  @newtype case class Cop9[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ A9[F])))))))))
+  @newtype case class Cop9[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ A9[F]))))))))) {
+    private def mapN = new Map9C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop9[F, B, A2, A3, A4, A5, A6, A7, A8, A9] =
+      Cop9[F, B, A2, A3, A4, A5, A6, A7, A8, A9](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop9[F, B, A2, A3, A4, A5, A6, A7, A8, A9] =
+      Cop9[F, B, A2, A3, A4, A5, A6, A7, A8, A9](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop9[F, A1, B, A3, A4, A5, A6, A7, A8, A9] =
+      Cop9[F, A1, B, A3, A4, A5, A6, A7, A8, A9](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop9[F, A1, B, A3, A4, A5, A6, A7, A8, A9] =
+      Cop9[F, A1, B, A3, A4, A5, A6, A7, A8, A9](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop9[F, A1, A2, B, A4, A5, A6, A7, A8, A9] =
+      Cop9[F, A1, A2, B, A4, A5, A6, A7, A8, A9](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop9[F, A1, A2, B, A4, A5, A6, A7, A8, A9] =
+      Cop9[F, A1, A2, B, A4, A5, A6, A7, A8, A9](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop9[F, A1, A2, A3, B, A5, A6, A7, A8, A9] =
+      Cop9[F, A1, A2, A3, B, A5, A6, A7, A8, A9](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop9[F, A1, A2, A3, B, A5, A6, A7, A8, A9] =
+      Cop9[F, A1, A2, A3, B, A5, A6, A7, A8, A9](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop9[F, A1, A2, A3, A4, B, A6, A7, A8, A9] =
+      Cop9[F, A1, A2, A3, A4, B, A6, A7, A8, A9](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop9[F, A1, A2, A3, A4, B, A6, A7, A8, A9] =
+      Cop9[F, A1, A2, A3, A4, B, A6, A7, A8, A9](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop9[F, A1, A2, A3, A4, A5, B, A7, A8, A9] =
+      Cop9[F, A1, A2, A3, A4, A5, B, A7, A8, A9](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop9[F, A1, A2, A3, A4, A5, B, A7, A8, A9] =
+      Cop9[F, A1, A2, A3, A4, A5, B, A7, A8, A9](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop9[F, A1, A2, A3, A4, A5, A6, B, A8, A9] =
+      Cop9[F, A1, A2, A3, A4, A5, A6, B, A8, A9](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop9[F, A1, A2, A3, A4, A5, A6, B, A8, A9] =
+      Cop9[F, A1, A2, A3, A4, A5, A6, B, A8, A9](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop9[F, A1, A2, A3, A4, A5, A6, A7, B, A9] =
+      Cop9[F, A1, A2, A3, A4, A5, A6, A7, B, A9](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop9[F, A1, A2, A3, A4, A5, A6, A7, B, A9] =
+      Cop9[F, A1, A2, A3, A4, A5, A6, A7, B, A9](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, B] =
+      Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, B](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, B] =
+      Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop9LP {
 
@@ -2896,7 +3184,70 @@ object types {
 
   }
 
-  @newtype case class Cop10[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ A10[F]))))))))))
+  @newtype case class Cop10[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ A10[F])))))))))) {
+    private def mapN = new Map10C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop10[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop10[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop10[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop10[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop10[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop10[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop10[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop10[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop10[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop10[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop10[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop10[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop10[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop10[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop10[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop10[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B] =
+      Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop10LP {
 
@@ -3429,7 +3780,76 @@ object types {
 
   }
 
-  @newtype case class Cop11[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ A11[F])))))))))))
+  @newtype case class Cop11[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ A11[F]))))))))))) {
+    private def mapN = new Map11C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop11[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop11[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop11[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop11[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop11[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop11[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop11[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop11[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop11[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop11[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop11[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop11[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop11[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop11[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop11[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop11[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B] =
+      Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop11LP {
 
@@ -4004,7 +4424,82 @@ object types {
 
   }
 
-  @newtype case class Cop12[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ A12[F]))))))))))))
+  @newtype case class Cop12[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ A12[F])))))))))))) {
+    private def mapN = new Map12C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop12[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop12[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop12[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop12[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop12[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop12[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop12[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop12[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop12[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop12[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop12[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop12[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop12[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop12[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop12[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop12[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B] =
+      Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop12LP {
 
@@ -4621,7 +5116,88 @@ object types {
 
   }
 
-  @newtype case class Cop13[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ A13[F])))))))))))))
+  @newtype case class Cop13[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ A13[F]))))))))))))) {
+    private def mapN = new Map13C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop13[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop13[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop13[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop13[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop13[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop13[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop13[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop13[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop13[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop13[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop13[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop13[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop13[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B] =
+      Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop13LP {
 
@@ -5280,7 +5856,94 @@ object types {
 
   }
 
-  @newtype case class Cop14[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ A14[F]))))))))))))))
+  @newtype case class Cop14[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ A14[F])))))))))))))) {
+    private def mapN = new Map14C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop14[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop14[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop14[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop14[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop14[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop14[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop14[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop14[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop14[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop14[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop14[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop14[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop14[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B] =
+      Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop14LP {
 
@@ -5981,7 +6644,100 @@ object types {
 
   }
 
-  @newtype case class Cop15[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ A15[F])))))))))))))))
+  @newtype case class Cop15[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ A15[F]))))))))))))))) {
+    private def mapN = new Map15C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B] =
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop15LP {
 
@@ -6724,7 +7480,106 @@ object types {
 
   }
 
-  @newtype case class Cop16[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ A16[F]))))))))))))))))
+  @newtype case class Cop16[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ A16[F])))))))))))))))) {
+    private def mapN = new Map16C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F], A16[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop16[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop16[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop16[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop16[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop16[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop16[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop16[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop16[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop16[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop16[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop16[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop16[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop16[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16](mapN.mapAt(f)(run))
+
+    def map16[B[_[_]]](f: A16[F] => B[F]): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B](mapN.map16(run)(f))
+
+    def mapAt[B[_[_]]](f: A16[F] => B[F])(implicit d: Dummy16): Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B] =
+      Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop16LP {
 
@@ -7509,7 +8364,112 @@ object types {
 
   }
 
-  @newtype case class Cop17[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ A17[F])))))))))))))))))
+  @newtype case class Cop17[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ A17[F]))))))))))))))))) {
+    private def mapN = new Map17C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F], A16[F], A17[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop17[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop17[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop17[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop17[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop17[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop17[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop17[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop17[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop17[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop17[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop17[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop17[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop17[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17](mapN.mapAt(f)(run))
+
+    def map16[B[_[_]]](f: A16[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17](mapN.map16(run)(f))
+
+    def mapAt[B[_[_]]](f: A16[F] => B[F])(implicit d: Dummy16): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17](mapN.mapAt(f)(run))
+
+    def map17[B[_[_]]](f: A17[F] => B[F]): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B](mapN.map17(run)(f))
+
+    def mapAt[B[_[_]]](f: A17[F] => B[F])(implicit d: Dummy17): Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B] =
+      Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop17LP {
 
@@ -8336,7 +9296,118 @@ object types {
 
   }
 
-  @newtype case class Cop18[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ A18[F]))))))))))))))))))
+  @newtype case class Cop18[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ A18[F])))))))))))))))))) {
+    private def mapN = new Map18C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F], A16[F], A17[F], A18[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop18[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop18[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop18[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop18[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop18[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop18[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop18[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop18[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop18[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop18[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop18[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop18[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop18[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18](mapN.mapAt(f)(run))
+
+    def map16[B[_[_]]](f: A16[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18](mapN.map16(run)(f))
+
+    def mapAt[B[_[_]]](f: A16[F] => B[F])(implicit d: Dummy16): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18](mapN.mapAt(f)(run))
+
+    def map17[B[_[_]]](f: A17[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18](mapN.map17(run)(f))
+
+    def mapAt[B[_[_]]](f: A17[F] => B[F])(implicit d: Dummy17): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18](mapN.mapAt(f)(run))
+
+    def map18[B[_[_]]](f: A18[F] => B[F]): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B](mapN.map18(run)(f))
+
+    def mapAt[B[_[_]]](f: A18[F] => B[F])(implicit d: Dummy18): Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B] =
+      Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop18LP {
 
@@ -9205,7 +10276,124 @@ object types {
 
   }
 
-  @newtype case class Cop19[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ A19[F])))))))))))))))))))
+  @newtype case class Cop19[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ A19[F]))))))))))))))))))) {
+    private def mapN = new Map19C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F], A16[F], A17[F], A18[F], A19[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop19[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop19[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop19[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop19[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop19[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop19[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop19[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop19[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop19[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop19[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop19[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop19[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop19[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map16[B[_[_]]](f: A16[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19](mapN.map16(run)(f))
+
+    def mapAt[B[_[_]]](f: A16[F] => B[F])(implicit d: Dummy16): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19](mapN.mapAt(f)(run))
+
+    def map17[B[_[_]]](f: A17[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19](mapN.map17(run)(f))
+
+    def mapAt[B[_[_]]](f: A17[F] => B[F])(implicit d: Dummy17): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19](mapN.mapAt(f)(run))
+
+    def map18[B[_[_]]](f: A18[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19](mapN.map18(run)(f))
+
+    def mapAt[B[_[_]]](f: A18[F] => B[F])(implicit d: Dummy18): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19](mapN.mapAt(f)(run))
+
+    def map19[B[_[_]]](f: A19[F] => B[F]): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B](mapN.map19(run)(f))
+
+    def mapAt[B[_[_]]](f: A19[F] => B[F])(implicit d: Dummy19): Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B] =
+      Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop19LP {
 
@@ -10116,7 +11304,130 @@ object types {
 
   }
 
-  @newtype case class Cop20[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ (A19[F] \/ A20[F]))))))))))))))))))))
+  @newtype case class Cop20[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ (A19[F] \/ A20[F])))))))))))))))))))) {
+    private def mapN = new Map20C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F], A16[F], A17[F], A18[F], A19[F], A20[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop20[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop20[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop20[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop20[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop20[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop20[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop20[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop20[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop20[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop20[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop20[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop20[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop20[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map16[B[_[_]]](f: A16[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20](mapN.map16(run)(f))
+
+    def mapAt[B[_[_]]](f: A16[F] => B[F])(implicit d: Dummy16): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map17[B[_[_]]](f: A17[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20](mapN.map17(run)(f))
+
+    def mapAt[B[_[_]]](f: A17[F] => B[F])(implicit d: Dummy17): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20](mapN.mapAt(f)(run))
+
+    def map18[B[_[_]]](f: A18[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20](mapN.map18(run)(f))
+
+    def mapAt[B[_[_]]](f: A18[F] => B[F])(implicit d: Dummy18): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20](mapN.mapAt(f)(run))
+
+    def map19[B[_[_]]](f: A19[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20](mapN.map19(run)(f))
+
+    def mapAt[B[_[_]]](f: A19[F] => B[F])(implicit d: Dummy19): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20](mapN.mapAt(f)(run))
+
+    def map20[B[_[_]]](f: A20[F] => B[F]): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B](mapN.map20(run)(f))
+
+    def mapAt[B[_[_]]](f: A20[F] => B[F])(implicit d: Dummy20): Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B] =
+      Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop20LP {
 
@@ -11069,7 +12380,136 @@ object types {
 
   }
 
-  @newtype case class Cop21[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ (A19[F] \/ (A20[F] \/ A21[F])))))))))))))))))))))
+  @newtype case class Cop21[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ (A19[F] \/ (A20[F] \/ A21[F]))))))))))))))))))))) {
+    private def mapN = new Map21C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F], A16[F], A17[F], A18[F], A19[F], A20[F], A21[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop21[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop21[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop21[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop21[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop21[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop21[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop21[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop21[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop21[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop21[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop21[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop21[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop21[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map16[B[_[_]]](f: A16[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21](mapN.map16(run)(f))
+
+    def mapAt[B[_[_]]](f: A16[F] => B[F])(implicit d: Dummy16): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map17[B[_[_]]](f: A17[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21](mapN.map17(run)(f))
+
+    def mapAt[B[_[_]]](f: A17[F] => B[F])(implicit d: Dummy17): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map18[B[_[_]]](f: A18[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21](mapN.map18(run)(f))
+
+    def mapAt[B[_[_]]](f: A18[F] => B[F])(implicit d: Dummy18): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21](mapN.mapAt(f)(run))
+
+    def map19[B[_[_]]](f: A19[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21](mapN.map19(run)(f))
+
+    def mapAt[B[_[_]]](f: A19[F] => B[F])(implicit d: Dummy19): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21](mapN.mapAt(f)(run))
+
+    def map20[B[_[_]]](f: A20[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21](mapN.map20(run)(f))
+
+    def mapAt[B[_[_]]](f: A20[F] => B[F])(implicit d: Dummy20): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21](mapN.mapAt(f)(run))
+
+    def map21[B[_[_]]](f: A21[F] => B[F]): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B](mapN.map21(run)(f))
+
+    def mapAt[B[_[_]]](f: A21[F] => B[F])(implicit d: Dummy21): Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B] =
+      Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop21LP {
 
@@ -12064,7 +13504,142 @@ object types {
 
   }
 
-  @newtype case class Cop22[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]], A22[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ (A19[F] \/ (A20[F] \/ (A21[F] \/ A22[F]))))))))))))))))))))))
+  @newtype case class Cop22[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]], A22[_[_]]](run: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ (A9[F] \/ (A10[F] \/ (A11[F] \/ (A12[F] \/ (A13[F] \/ (A14[F] \/ (A15[F] \/ (A16[F] \/ (A17[F] \/ (A18[F] \/ (A19[F] \/ (A20[F] \/ (A21[F] \/ A22[F])))))))))))))))))))))) {
+    private def mapN = new Map22C[A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F], A13[F], A14[F], A15[F], A16[F], A17[F], A18[F], A19[F], A20[F], A21[F], A22[F]] {}
+
+    def map1[B[_[_]]](f: A1[F] => B[F]): Cop22[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map1(run)(f))
+
+    def mapAt[B[_[_]]](f: A1[F] => B[F]): Cop22[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map2[B[_[_]]](f: A2[F] => B[F]): Cop22[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map2(run)(f))
+
+    def mapAt[B[_[_]]](f: A2[F] => B[F])(implicit d: Dummy2): Cop22[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map3[B[_[_]]](f: A3[F] => B[F]): Cop22[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map3(run)(f))
+
+    def mapAt[B[_[_]]](f: A3[F] => B[F])(implicit d: Dummy3): Cop22[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map4[B[_[_]]](f: A4[F] => B[F]): Cop22[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map4(run)(f))
+
+    def mapAt[B[_[_]]](f: A4[F] => B[F])(implicit d: Dummy4): Cop22[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map5[B[_[_]]](f: A5[F] => B[F]): Cop22[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map5(run)(f))
+
+    def mapAt[B[_[_]]](f: A5[F] => B[F])(implicit d: Dummy5): Cop22[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map6[B[_[_]]](f: A6[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map6(run)(f))
+
+    def mapAt[B[_[_]]](f: A6[F] => B[F])(implicit d: Dummy6): Cop22[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map7[B[_[_]]](f: A7[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map7(run)(f))
+
+    def mapAt[B[_[_]]](f: A7[F] => B[F])(implicit d: Dummy7): Cop22[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map8[B[_[_]]](f: A8[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map8(run)(f))
+
+    def mapAt[B[_[_]]](f: A8[F] => B[F])(implicit d: Dummy8): Cop22[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map9[B[_[_]]](f: A9[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map9(run)(f))
+
+    def mapAt[B[_[_]]](f: A9[F] => B[F])(implicit d: Dummy9): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map10[B[_[_]]](f: A10[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map10(run)(f))
+
+    def mapAt[B[_[_]]](f: A10[F] => B[F])(implicit d: Dummy10): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map11[B[_[_]]](f: A11[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map11(run)(f))
+
+    def mapAt[B[_[_]]](f: A11[F] => B[F])(implicit d: Dummy11): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map12[B[_[_]]](f: A12[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map12(run)(f))
+
+    def mapAt[B[_[_]]](f: A12[F] => B[F])(implicit d: Dummy12): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map13[B[_[_]]](f: A13[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map13(run)(f))
+
+    def mapAt[B[_[_]]](f: A13[F] => B[F])(implicit d: Dummy13): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map14[B[_[_]]](f: A14[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22](mapN.map14(run)(f))
+
+    def mapAt[B[_[_]]](f: A14[F] => B[F])(implicit d: Dummy14): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map15[B[_[_]]](f: A15[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21, A22](mapN.map15(run)(f))
+
+    def mapAt[B[_[_]]](f: A15[F] => B[F])(implicit d: Dummy15): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B, A16, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map16[B[_[_]]](f: A16[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22](mapN.map16(run)(f))
+
+    def mapAt[B[_[_]]](f: A16[F] => B[F])(implicit d: Dummy16): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, B, A17, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map17[B[_[_]]](f: A17[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21, A22](mapN.map17(run)(f))
+
+    def mapAt[B[_[_]]](f: A17[F] => B[F])(implicit d: Dummy17): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, B, A18, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map18[B[_[_]]](f: A18[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22](mapN.map18(run)(f))
+
+    def mapAt[B[_[_]]](f: A18[F] => B[F])(implicit d: Dummy18): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, B, A19, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map19[B[_[_]]](f: A19[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21, A22](mapN.map19(run)(f))
+
+    def mapAt[B[_[_]]](f: A19[F] => B[F])(implicit d: Dummy19): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, B, A20, A21, A22](mapN.mapAt(f)(run))
+
+    def map20[B[_[_]]](f: A20[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22](mapN.map20(run)(f))
+
+    def mapAt[B[_[_]]](f: A20[F] => B[F])(implicit d: Dummy20): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, B, A21, A22](mapN.mapAt(f)(run))
+
+    def map21[B[_[_]]](f: A21[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B, A22](mapN.map21(run)(f))
+
+    def mapAt[B[_[_]]](f: A21[F] => B[F])(implicit d: Dummy21): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B, A22] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, B, A22](mapN.mapAt(f)(run))
+
+    def map22[B[_[_]]](f: A22[F] => B[F]): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B](mapN.map22(run)(f))
+
+    def mapAt[B[_[_]]](f: A22[F] => B[F])(implicit d: Dummy22): Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B] =
+      Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, B](mapN.mapAt(f)(run))
+
+  }
 
   trait Cop22LP {
 
