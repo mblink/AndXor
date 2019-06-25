@@ -61,18 +61,17 @@ package object circe extends LPCirce {
   implicit val encoderDecide: Decidable[Encoder] = Decidable.fromIso(encoderIso)
 
   implicit def decoderLabelled[L <: Singleton with String, A: Decoder](implicit label: L): Decoder[Labelled.Aux[A, L]] =
-    Decoder.instance(_.get[A](label).map(Labelled(_, label)))
+    Decoder.instance(_.get[A](label) match {
+      case Right(x) => Right(Labelled(x, label))
+      case Left(f) => Left(f)
+    })
 
-  implicit val decoderApply: Apply[Decoder] = new Apply[Decoder] {
+  implicit val decoderApply: Apply[Decoder] = new Apply[Decoder] with DecoderAp {
     def map[A, B](fa: Decoder[A])(f: A => B): Decoder[B] = fa.map(f)
-    def ap[A, B](fa: => Decoder[A])(f: => Decoder[A => B]): Decoder[B] =
-      Decoder(c => f(c).flatMap(g => fa(c).map(g(_))))
   }
 
-  implicit val decoderAlt: Alt[Decoder] = new Alt[Decoder] {
+  implicit val decoderAlt: Alt[Decoder] = new Alt[Decoder] with DecoderAp {
     def point[A](a: => A): Decoder[A] = Decoder.instance(_ => Right(a))
-    def ap[A, B](fa: => Decoder[A])(f: => Decoder[A => B]): Decoder[B] =
-      Decoder.instance(c => f(c).flatMap(g => fa(c).map(g(_))))
     def alt[A](a1: => Decoder[A], a2: => Decoder[A]): Decoder[A] = a1.or(a2)
   }
 }

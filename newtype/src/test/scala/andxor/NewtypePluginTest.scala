@@ -20,7 +20,7 @@ object types {
 
   @newtype case class Test4(run: String)
   object Test4 {
-    implicit val show: Show[Test4] = x => s"newtype Test4(${x.run})"
+    implicit val show: Show[Test4] = new Show[Test4] { def apply(t: Test4): String = s"newtype Test4(${t.run})" }
 
     def printTest4(t: Test4): Unit = println(Show(t))
   }

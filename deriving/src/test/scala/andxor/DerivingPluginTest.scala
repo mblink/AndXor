@@ -21,7 +21,7 @@ object annotations {
     val covariant: Vector[AnyRef] = Vector(),
     val labelledCovariant: Vector[AnyRef] = Vector(),
     val contravariant: Vector[AnyRef] = Vector(),
-    val labelledContravariant: Vector[AnyRef] = Vector(),
+    val labelledContravariant: Vector[AnyRef] = Vector()
   ) extends Annotation
 }
 
@@ -42,46 +42,62 @@ object typeclasses {
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
     implicit def readLabelled[A, L <: Singleton with String](implicit l: L, r: Read[A]): Read[Labelled.Aux[A, L]] =
-      _.split("\n").flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
+      new Read[Labelled.Aux[A, L]] {
+        def read(s: String): Option[Labelled.Aux[A, L]] =
+          s.split("\n").flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
+      }
 
     implicit def readAdtVal[A, L <: Singleton with String](
       implicit label: L,
       value: Labelled.Aux[A @@ ADTValue, L]
     ): Read[Labelled.Aux[A @@ ADTValue, L]] =
-      _.split("\n").flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
+      new Read[Labelled.Aux[A @@ ADTValue, L]] {
+        def read(s: String): Option[Labelled.Aux[A @@ ADTValue, L]] =
+          s.split("\n").flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
+      }
 
-    implicit val readStr: Read[String] = """^"(.*)"$""".r.findFirstIn(_)
-    implicit val readInt: Read[Int] = _.parseInt.toOption
-    implicit val readBool: Read[Boolean] = _.parseBoolean.toOption
+    implicit val readStr: Read[String] = new Read[String] { def read(s: String): Option[String] = """^"(.*)"$""".r.findFirstIn(s) }
+    implicit val readInt: Read[Int] = new Read[Int] { def read(s: String): Option[Int] = s.parseInt.toOption }
+    implicit val readBool: Read[Boolean] = new Read[Boolean] { def read(s: String): Option[Boolean] = s.parseBoolean.toOption }
 
-    implicit val readApply: Apply[Read] = new Apply[Read] {
-      def map[A, B](fa: Read[A])(f: A => B): Read[B] = s => fa.read(s).map(f)
-      def ap[A, B](fa: => Read[A])(f: => Read[A => B]): Read[B] = s => (f.read(s) |@| fa.read(s))(_(_))
+    trait ReadAp {
+      def ap[A, B](fa: => Read[A])(f: => Read[A => B]): Read[B] =
+        new Read[B] { def read(s: String): Option[B] = (f.read(s) |@| fa.read(s))(_(_)) }
     }
 
-    implicit val readAlt: Alt[Read] = new Alt[Read] {
-      def point[A](a: => A): Read[A] = _ => Some(a)
-      def ap[A, B](fa: => Read[A])(f: => Read[A => B]): Read[B] = s => (f.read(s) |@| fa.read(s))(_(_))
-      def alt[A](a1: => Read[A], a2: => Read[A]): Read[A] = s => a1.read(s).orElse(a2.read(s))
+    implicit val readApply: Apply[Read] = new Apply[Read] with ReadAp {
+      def map[A, B](fa: Read[A])(f: A => B): Read[B] = new Read[B] { def read(s: String): Option[B] = fa.read(s).map(f) }
+    }
+
+    implicit val readAlt: Alt[Read] = new Alt[Read] with ReadAp {
+      def point[A](a: => A): Read[A] = new Read[A] { def apply(s: String): Option[A] = Some(a) }
+      def alt[A](a1: => Read[A], a2: => Read[A]): Read[A] =
+        new Read[A] { def apply(s: String): Option[A] = a1.read(s).orElse(a2.read(s)) }
     }
   }
 
   trait Csv[A] { def toCsv(a: A): List[String] }
   object Csv {
-    implicit val csvStr: Csv[String] = List(_)
-    implicit val csvInt: Csv[Int] = i => List(i.toString)
-    implicit val csvBool: Csv[Boolean] = b => List(b.toString)
-    implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] = _.flatMap(c.toCsv(_))
+    implicit val csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
+    implicit val csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
+    implicit val csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
+    implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] =
+      new Csv[List[A]] { def toCsv(l: List[A]): List[String] = l.flatMap(c.toCsv(_)) }
 
     implicit def csvLabelled[A: Csv, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled.Aux[A, L]] =
-      a => c.toCsv(a.value)
+      new Csv[Labelled.Aux[A, L]] {
+        def toCsv(a: Labelled.Aux[A, L]): List[String] = c.toCsv(a.value)
+      }
 
     implicit def csvAdtVal[A, L <: Singleton with String]: Csv[Labelled.Aux[A @@ ADTValue, L]] =
-      a => List(a.label)
+      new Csv[Labelled.Aux[A @@ ADTValue, L]] {
+        def toCsv(a: Labelled.Aux[A @@ ADTValue, L]): List[String] = List(a.label)
+      }
 
     type CsvF[A] = A => List[String]
     implicit val csvIso: IsoFunctor[Csv, CsvF] =
-      IsoFunctor[Csv, CsvF](Lambda[Csv ~> CsvF](_.toCsv _), new (CsvF ~> Csv) { def apply[A](f: CsvF[A]): Csv[A] = f(_) })
+      IsoFunctor[Csv, CsvF](Lambda[Csv ~> CsvF](_.toCsv _), new (CsvF ~> Csv) { def apply[A](f: CsvF[A]): Csv[A] =
+        new Csv[A] { def toCsv(a: A): List[String] = f(a) } })
 
     implicit val csvDecide: Decidable[Csv] = Decidable.fromIso[Csv, CsvF](csvIso)
     implicit val csvDivide: Divide[Csv] = Divide.fromIso[Csv, CsvF](csvIso)
