@@ -16,17 +16,12 @@ object syntax {
   def mkTpeList(start: Int, end: Int): List[LS] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
 
   implicit class TpesOps(tpes: LS) {
-    def selCopOrProd(copOrProd: String, F: Option[String]): LS =
-      (copOrProd == "Prod").fold(prodTpes(F), copTpes(F))
-
-    def selCop(F: Option[String]): LS = selCopOrProd("Cop", F)
-    def selProd(F: Option[String]): LS = selCopOrProd("Prod", F)
+    def tpeTpes(F: Option[String]): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
 
     def copName = s"Cop${tpes.length}"
     def copTpeDef = s"$copName[F[_], $rank2TpeParams]"
     def copTpeF(F: String) = foldLen01(s"$tpeParams[$F]")(s"$copName[$F, $tpeParams]")
     def copTpe = copTpeF("F")
-    def copTpes(F: Option[String] = Some("F")): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
 
     def wrapCopVal(v: String, F: String = "F"): String = foldLen01(v)(s"${copTpeF(F)}($v)")
 
@@ -34,12 +29,8 @@ object syntax {
     def prodTpeDef = s"$prodName[F[_], $rank2TpeParams]"
     def prodTpeF(F: String) = foldLen01(s"$tpeParams[$F]")(s"$prodName[$F, $tpeParams]")
     def prodTpe = prodTpeF("F")
-    def prodTpes(F: Option[String] = Some("F")): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
 
     def wrapProdVal(v: String, F: String = "F"): String = foldLen01(v)(s"${prodTpeF(F)}($v)")
-
-    def tcDeps(copOrProd: String, TC: String = "TC", F: String = "F"): String =
-      foldLen01(paramSig(List(TC) ++ (F == "Id").fold(Nil, List(F)), "a"))(selCopOrProd(copOrProd, Some(F)).paramSig(TC, "a"))
 
     def djBase(wrapTpe: String => String): String =
       tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
@@ -89,17 +80,14 @@ object syntax {
       paramList(a, sIx).mkString(", ")
 
     def derivingParams(copOrProd: String, TC: String, F: String): LS =
-      foldLen[LS](Nil)(List(s"tc: $TC[$F[${tpes.head}]]"))(selCopOrProd(copOrProd, None)
+      foldLen[LS](Nil)(List(s"tc: $TC[$F[${tpes.head}]]"))(tpeTpes(None)
         .map(t => s"Deriving$copOrProd[$t, $F, $TC]").paramSigArgs("deriving"))
 
-    def ffunctorParams(copOrProd: String): LS =
-      foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("FFunctor", "ff"))
-
-    def ftraverseParams(copOrProd: String): LS =
-      foldLen01[LS](Nil)(selCopOrProd(copOrProd, None).paramSigArgs("FTraverse", "ft"))
+    def ftraverseParams: LS =
+      foldLen01[LS](Nil)(tpeTpes(None).paramSigArgs("FTraverse", "ft"))
 
     def foldMapParams: LS =
-      foldLen01[LS](Nil)(selProd(None).zip(selCop(None)).map(t => s"${t._1}, ${t._2}").paramSigArgs("FoldMap", "fm"))
+      foldLen01[LS](Nil)(tpeTpes(None).map(t => s"$t, $t").paramSigArgs("FoldMap", "fm"))
 
     def asImpls(otherImpls: Boolean): String =
       tpes.isEmpty.fold("", otherImpls.fold(s", ${tpes.mkString(", ")}", s"(implicit ${tpes.mkString(", ")})"))

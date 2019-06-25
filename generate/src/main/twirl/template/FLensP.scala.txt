@@ -3,7 +3,7 @@
 
 @(z: Zipper[String], isId: Boolean)
 @tpes = @{ z.toList }
-@aT = @{ tpes.selProd(Some("F"))(z.index) }
+@aT = @{ tpes.tpeTpes(Some("F"))(z.index) }
 
 @if(isId) {
   implicit def @{tpes.prodName}Lens@{z.index}Id[A, @{tpes.rank2TpeParams}](implicit ev: @{tpes(z.index)}[Id] === A): Lens[@tpes.prodTpeF("Id"), A] =

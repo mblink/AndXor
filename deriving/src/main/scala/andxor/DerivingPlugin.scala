@@ -191,7 +191,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
     lazy val reprName = s"${copOrProd}${arity}"
     lazy val reprObj: Term = q"$andxorTpesPkg.${Term.Name(reprName)}"
-    lazy val reprTpe: Type = if (tpes.length <= 1) t"${andxorTpes(1)}[$id]" else t"$andxorTpesPkg.${Type.Name(reprName)}[..$andxorTpes]"
+    lazy val reprTpe: Type = if (tpes.length <= 1) tpes(0) else t"$andxorTpesPkg.${Type.Name(reprName)}[..$andxorTpes]"
 
     def iso: Term
 
@@ -229,7 +229,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     private lazy val constructorArgs: List[List[Term]] =
       if (tpes.length <= 1) List(List(normalizeValue(q"x")))
       else paramss.zipWithIndex.map { case (group, i) =>
-        group.zipWithIndex.map { case (_, j) => normalizeValue(q"x.${tupleAccess(i + j + 1)}") } }
+        group.zipWithIndex.map { case (_, j) => normalizeValue(q"(x.${tupleAccess(i + j + 1)}: ${tpes(i + j)})") } }
 
     lazy val iso: Term =
       q"""
@@ -256,9 +256,9 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     }
 
     def maybeUnwrap(inst: Term, paramIdx: Option[Int]): Term =
-      paramIdx.flatMap(children(_) match {
-        case Right(x) => Some(x)
-        case Left(_) => None
+      paramIdx.flatMap(children.lift(_) match {
+        case Some(Right(x)) => Some(x)
+        case _ => None
       }).fold(inst)(_ => q"$adtValTagObj.unwrap($inst)")
 
     lazy val iso: Term = q"""
@@ -269,8 +269,8 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
         (x: $reprTpe) => ${params.zipWithIndex.tail.foldRight[Term](
           if (params.length == 1 && labelled) maybeUnwrap(q"x.run.value", Some(0)) else q"x.run")(
           (t, acc) => q"""$acc.bimap(
-            x => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
-            x => ${maybeUnwrap(normalizeValue(q"x"), if (t._2 == params.length - 1) Some(t._2) else None)}).merge[$id[$tpe]]""")})
+            x => ${maybeUnwrap(normalizeValue(q"(x: ${tpes(t._2 - 1)})"), Some(t._2 - 1))},
+            x => ${maybeUnwrap(normalizeValue(q"(x: ${tpes(t._2)})"), if (t._2 == params.length - 1) Some(t._2) else None)}).merge[$id[$tpe]]""")})
     """
   }
 

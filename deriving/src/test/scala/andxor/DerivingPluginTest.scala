@@ -44,7 +44,7 @@ object typeclasses {
     implicit def readLabelled[A, L <: Singleton with String](implicit l: L, r: Read[A]): Read[Labelled.Aux[A, L]] =
       new Read[Labelled.Aux[A, L]] {
         def read(s: String): Option[Labelled.Aux[A, L]] =
-          s.split("\n").flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
+          s.split("\n").toList.flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
       }
 
     implicit def readAdtVal[A, L <: Singleton with String](
@@ -53,7 +53,7 @@ object typeclasses {
     ): Read[Labelled.Aux[A @@ ADTValue, L]] =
       new Read[Labelled.Aux[A @@ ADTValue, L]] {
         def read(s: String): Option[Labelled.Aux[A @@ ADTValue, L]] =
-          s.split("\n").flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
+          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
       }
 
     implicit val readStr: Read[String] = new Read[String] { def read(s: String): Option[String] = """^"(.*)"$""".r.findFirstIn(s) }
@@ -70,9 +70,9 @@ object typeclasses {
     }
 
     implicit val readAlt: Alt[Read] = new Alt[Read] with ReadAp {
-      def point[A](a: => A): Read[A] = new Read[A] { def apply(s: String): Option[A] = Some(a) }
+      def point[A](a: => A): Read[A] = new Read[A] { def read(s: String): Option[A] = Some(a) }
       def alt[A](a1: => Read[A], a2: => Read[A]): Read[A] =
-        new Read[A] { def apply(s: String): Option[A] = a1.read(s).orElse(a2.read(s)) }
+        new Read[A] { def read(s: String): Option[A] = a1.read(s).orElse(a2.read(s)) }
     }
   }
 
