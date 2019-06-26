@@ -1,6 +1,6 @@
 @import andxor.syntax._
 
-@(tpes: List[String])
+@(existing: List[String], add: List[String])
 
-  def build[@{tpes.tpeParams}]: @{tpes.builtAndXor("")} = @{tpes.builtAndXor("")}
-  def buildNested[@{tpes.rank2TpeParams}]: @{tpes.builtAndXor("Nested")} = @{tpes.builtAndXor("Nested")}
+  def apply[@{add.tpeParams}]: @{(existing ++ add.const).builtAndXor} = @{(existing ++ add.const).builtAndXor}
+  def nest[@{add.rank2TpeParams}]: @{(existing ++ add).builtAndXor} = @{(existing ++ add).builtAndXor}

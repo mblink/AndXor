@@ -43,7 +43,7 @@ trait AndXor { self =>
 }
 
 object AndXor {
-  def build[A]: AndXor1[A] = new AndXor1[A] {}
-  def buildNested[A[_[_]]]: AndXorNested1[A] = new AndXorNested1[A] {}
-  @tpeLists.map(template.txt.Build(_).toString.trim).mkString("\n")
+  def apply[A]: AndXor1[A] = new AndXor1[A] {}
+  def nest[A[_[_]]]: AndXorNested1[A] = new AndXorNested1[A] {}
+  @tpeLists.map(template.txt.Build(Nil, _))
 }

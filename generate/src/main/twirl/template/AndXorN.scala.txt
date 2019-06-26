@@ -8,6 +8,8 @@ import scalaz.Id.Id
 import scalaz.std.vector._
 
 trait AndXorNested@{tpes.length}[@{tpes.rank2TpeParams}] extends AndXor {
+  @mkTpeList(1, maxLen - tpes.length, "B").map(template.txt.Build(tpes, _))
+
   type Prod[F[_]] = @{tpes.prodTpe}
   object Prod {
     def apply[F[_]](p: @{tpes.prodK("F")}): Prod[F] = @{tpes.wrapProdVal("p")}

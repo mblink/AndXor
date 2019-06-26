@@ -42,8 +42,8 @@ import scalaz.{Show, $bslash$div, $tilde$greater}
 scala> import scalaz.Id.Id
 import scalaz.Id.Id
 
-scala> val SIS = AndXor.build[String, Int, List[String]]
-SIS: andxor.AndXor3[String,Int,List[String]] = andxor.AndXor3$$anon$3@48dd498c
+scala> val SIS = AndXor[String, Int, List[String]]
+SIS: andxor.AndXor3[String,Int,List[String]] = andxor.AndXor3$$anon$4@41f85572
 
 scala> implicit val ds: Decidable[Show] = new Decidable[Show] {
      |   def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] =
@@ -52,7 +52,7 @@ scala> implicit val ds: Decidable[Show] = new Decidable[Show] {
      |   def contramap[A, B](fa: Show[A])(f: B => A): Show[B] =
      |     Show.show[B]((b: B) => fa.show(f(b)))
      | }
-ds: andxor.Decidable[scalaz.Show] = $anon$1@1d0eb289
+ds: andxor.Decidable[scalaz.Show] = $anon$1@a0ca3f4
 
 scala> SIS.derivingId[Show].choose.show(SIS.inj("foo"))
 res0: scalaz.Cord = "foo"
@@ -72,13 +72,13 @@ os: SIS.Prod[Option] = (Some(foo),Some(4),Some(List(bar)))
 
 scala> // convert between F[_]s using a ~>
      | val l2o = new (List ~> Option) { def apply[A](l: List[A]): Option[A] = l.headOption }
-l2o: List ~> Option = $anon$1@4e68c06
+l2o: List ~> Option = $anon$1@3f0083e7
 
 scala> FFunctor[SIS.Prod].map(ls)(l2o)
 res5: SIS.Prod[Option] = (Some(foo),Some(4),Some(List(bar)))
 
 scala> val o2l = new (Option ~> List) { def apply[A](o: Option[A]): List[A] = o.toList }
-o2l: Option ~> List = $anon$1@5a5fcfe7
+o2l: Option ~> List = $anon$1@1bf93246
 
 scala> FFunctor[SIS.Prod].map(os)(o2l)
 res6: SIS.Prod[List] = (List(foo),List(4),List(List(bar)))

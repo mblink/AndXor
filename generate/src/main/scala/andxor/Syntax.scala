@@ -5,7 +5,7 @@ import scalaz.syntax.comonad._
 import scalaz.syntax.std.boolean._
 
 object syntax {
-  val tupleLen = 22
+  val maxLen = 22
 
   def range(start: Int, end: Int): List[Int] = start.to(end).toList
 
@@ -13,7 +13,8 @@ object syntax {
 
   type LS = List[String]
 
-  def mkTpeList(start: Int, end: Int): List[LS] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
+  def mkTpeList(start: Int, end: Int, a: String = "A"): List[LS] =
+    start.to(end).toList.map(1.to(_).toList.map(x => s"${a}${x}"))
 
   implicit class TpesOps(tpes: LS) {
     def tpeTpes(F: Option[String]): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
@@ -110,7 +111,7 @@ object syntax {
 
     def foldMapName(idx: Int): String = "fm" ++ foldLen01("")(idx.toString)
 
-    def builtAndXor(extra: String): String = s"AndXor${extra}${tpes.length}[${tpes.tpeParams}]"
+    def builtAndXor: String = s"AndXorNested${tpes.length}[${tpes.tpeParams}]"
 
     def const: LS = tpes.map(t => s"FConst[$t]#T")
   }

@@ -185,9 +185,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
     lazy val andxorName: Term.Name = if (labelled) andxorLabelledName else self.andxorName
     lazy val isoName: Term.Name = if (labelled) labelledIsoName else self.isoName
 
-    private lazy val andxorNName = s"AndXor$arity"
-    lazy val andxorObj: Term = q"$andxorPkg.${Term.Name(andxorNName)}"
-    lazy val andxorTpe: Type = t"$andxorPkg.${Type.Name(andxorNName)}[..$tpes]"
+    lazy val andxorTpe: Type = t"$andxorPkg.${Type.Name(s"AndXorNested$arity")}[..${andxorTpes.tail}]"
 
     lazy val reprName = s"${copOrProd}${arity}"
     lazy val reprObj: Term = q"$andxorTpesPkg.${Term.Name(reprName)}"
@@ -291,7 +289,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   def labels[P <: Param](tree: GenTree[P]): List[Defn.Val] =
     tree.params.flatMap(_.label.defns)
 
-  def mkAndxor[P <: Param](tree: GenTree[P]): Term = q"$andxorPkg.AndXor.build[..${tree.tpes}]"
+  def mkAndxor[P <: Param](tree: GenTree[P]): Term = q"$andxorPkg.AndXor[..${tree.tpes}]"
 
   def andxor[P <: Param](tree: GenTree[P]): Defn =
     valOrDef(Nil, tree.andxorName, tree.tparams, Nil, tree.andxorTpe, mkAndxor(tree))

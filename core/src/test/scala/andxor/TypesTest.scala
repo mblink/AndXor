@@ -12,256 +12,256 @@ import scalaz.std.string._
 object arbitrary {
 
   implicit def prod2Arb[F[_], A1[_[_]], A2[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]]): Arbitrary[Prod2[F, A1, A2]] =
-    AndXor.buildNested[A1, A2].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2].deriving[Arbitrary, F].apply
 
   implicit def cop2Arb[F[_], A1[_[_]], A2[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]]): Arbitrary[Cop2[F, A1, A2]] =
-    AndXor.buildNested[A1, A2].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2].deriving[Arbitrary, F].alt
 
   implicit def prod2Eq[F[_], A1[_[_]], A2[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]]): Equal[Prod2[F, A1, A2]] =
-    AndXor.buildNested[A1, A2].deriving[Equal, F].divide
+    AndXor.nest[A1, A2].deriving[Equal, F].divide
 
   implicit def cop2Eq[F[_], A1[_[_]], A2[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]]): Equal[Cop2[F, A1, A2]] =
-    AndXor.buildNested[A1, A2].deriving[Equal, F].choose
+    AndXor.nest[A1, A2].deriving[Equal, F].choose
 
   implicit def prod3Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]]): Arbitrary[Prod3[F, A1, A2, A3]] =
-    AndXor.buildNested[A1, A2, A3].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3].deriving[Arbitrary, F].apply
 
   implicit def cop3Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]]): Arbitrary[Cop3[F, A1, A2, A3]] =
-    AndXor.buildNested[A1, A2, A3].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3].deriving[Arbitrary, F].alt
 
   implicit def prod3Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]]): Equal[Prod3[F, A1, A2, A3]] =
-    AndXor.buildNested[A1, A2, A3].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3].deriving[Equal, F].divide
 
   implicit def cop3Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]]): Equal[Cop3[F, A1, A2, A3]] =
-    AndXor.buildNested[A1, A2, A3].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3].deriving[Equal, F].choose
 
   implicit def prod4Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]]): Arbitrary[Prod4[F, A1, A2, A3, A4]] =
-    AndXor.buildNested[A1, A2, A3, A4].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4].deriving[Arbitrary, F].apply
 
   implicit def cop4Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]]): Arbitrary[Cop4[F, A1, A2, A3, A4]] =
-    AndXor.buildNested[A1, A2, A3, A4].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4].deriving[Arbitrary, F].alt
 
   implicit def prod4Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]]): Equal[Prod4[F, A1, A2, A3, A4]] =
-    AndXor.buildNested[A1, A2, A3, A4].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4].deriving[Equal, F].divide
 
   implicit def cop4Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]]): Equal[Cop4[F, A1, A2, A3, A4]] =
-    AndXor.buildNested[A1, A2, A3, A4].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4].deriving[Equal, F].choose
 
   implicit def prod5Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]]): Arbitrary[Prod5[F, A1, A2, A3, A4, A5]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5].deriving[Arbitrary, F].apply
 
   implicit def cop5Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]]): Arbitrary[Cop5[F, A1, A2, A3, A4, A5]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5].deriving[Arbitrary, F].alt
 
   implicit def prod5Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]]): Equal[Prod5[F, A1, A2, A3, A4, A5]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5].deriving[Equal, F].divide
 
   implicit def cop5Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]]): Equal[Cop5[F, A1, A2, A3, A4, A5]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5].deriving[Equal, F].choose
 
   implicit def prod6Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]]): Arbitrary[Prod6[F, A1, A2, A3, A4, A5, A6]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6].deriving[Arbitrary, F].apply
 
   implicit def cop6Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]]): Arbitrary[Cop6[F, A1, A2, A3, A4, A5, A6]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6].deriving[Arbitrary, F].alt
 
   implicit def prod6Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]]): Equal[Prod6[F, A1, A2, A3, A4, A5, A6]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6].deriving[Equal, F].divide
 
   implicit def cop6Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]]): Equal[Cop6[F, A1, A2, A3, A4, A5, A6]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6].deriving[Equal, F].choose
 
   implicit def prod7Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]]): Arbitrary[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7].deriving[Arbitrary, F].apply
 
   implicit def cop7Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]]): Arbitrary[Cop7[F, A1, A2, A3, A4, A5, A6, A7]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7].deriving[Arbitrary, F].alt
 
   implicit def prod7Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]]): Equal[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7].deriving[Equal, F].divide
 
   implicit def cop7Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]]): Equal[Cop7[F, A1, A2, A3, A4, A5, A6, A7]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7].deriving[Equal, F].choose
 
   implicit def prod8Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]]): Arbitrary[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Arbitrary, F].apply
 
   implicit def cop8Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]]): Arbitrary[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Arbitrary, F].alt
 
   implicit def prod8Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]]): Equal[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Equal, F].divide
 
   implicit def cop8Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]]): Equal[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8].deriving[Equal, F].choose
 
   implicit def prod9Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]]): Arbitrary[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Arbitrary, F].apply
 
   implicit def cop9Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]]): Arbitrary[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Arbitrary, F].alt
 
   implicit def prod9Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]]): Equal[Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Equal, F].divide
 
   implicit def cop9Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]]): Equal[Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9].deriving[Equal, F].choose
 
   implicit def prod10Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]]): Arbitrary[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Arbitrary, F].apply
 
   implicit def cop10Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]]): Arbitrary[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Arbitrary, F].alt
 
   implicit def prod10Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]]): Equal[Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Equal, F].divide
 
   implicit def cop10Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]]): Equal[Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10].deriving[Equal, F].choose
 
   implicit def prod11Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]]): Arbitrary[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Arbitrary, F].apply
 
   implicit def cop11Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]]): Arbitrary[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Arbitrary, F].alt
 
   implicit def prod11Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]]): Equal[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Equal, F].divide
 
   implicit def cop11Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]]): Equal[Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11].deriving[Equal, F].choose
 
   implicit def prod12Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]]): Arbitrary[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Arbitrary, F].apply
 
   implicit def cop12Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]]): Arbitrary[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Arbitrary, F].alt
 
   implicit def prod12Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]]): Equal[Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Equal, F].divide
 
   implicit def cop12Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]]): Equal[Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12].deriving[Equal, F].choose
 
   implicit def prod13Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]]): Arbitrary[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Arbitrary, F].apply
 
   implicit def cop13Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]]): Arbitrary[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Arbitrary, F].alt
 
   implicit def prod13Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]]): Equal[Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Equal, F].divide
 
   implicit def cop13Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]]): Equal[Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13].deriving[Equal, F].choose
 
   implicit def prod14Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]]): Arbitrary[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Arbitrary, F].apply
 
   implicit def cop14Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]]): Arbitrary[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Arbitrary, F].alt
 
   implicit def prod14Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]]): Equal[Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Equal, F].divide
 
   implicit def cop14Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]]): Equal[Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14].deriving[Equal, F].choose
 
   implicit def prod15Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]]): Arbitrary[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Arbitrary, F].apply
 
   implicit def cop15Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]]): Arbitrary[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Arbitrary, F].alt
 
   implicit def prod15Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]]): Equal[Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Equal, F].divide
 
   implicit def cop15Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]]): Equal[Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15].deriving[Equal, F].choose
 
   implicit def prod16Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]]): Arbitrary[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Arbitrary, F].apply
 
   implicit def cop16Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]]): Arbitrary[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Arbitrary, F].alt
 
   implicit def prod16Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]]): Equal[Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Equal, F].divide
 
   implicit def cop16Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]]): Equal[Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16].deriving[Equal, F].choose
 
   implicit def prod17Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]]): Arbitrary[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Arbitrary, F].apply
 
   implicit def cop17Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]]): Arbitrary[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Arbitrary, F].alt
 
   implicit def prod17Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]]): Equal[Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Equal, F].divide
 
   implicit def cop17Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]]): Equal[Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17].deriving[Equal, F].choose
 
   implicit def prod18Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]]): Arbitrary[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Arbitrary, F].apply
 
   implicit def cop18Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]]): Arbitrary[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Arbitrary, F].alt
 
   implicit def prod18Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]]): Equal[Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Equal, F].divide
 
   implicit def cop18Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]]): Equal[Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18].deriving[Equal, F].choose
 
   implicit def prod19Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]]): Arbitrary[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Arbitrary, F].apply
 
   implicit def cop19Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]]): Arbitrary[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Arbitrary, F].alt
 
   implicit def prod19Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]]): Equal[Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Equal, F].divide
 
   implicit def cop19Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]]): Equal[Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19].deriving[Equal, F].choose
 
   implicit def prod20Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]], a19: Arbitrary[A20[F]]): Arbitrary[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Arbitrary, F].apply
 
   implicit def cop20Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]], a19: Arbitrary[A20[F]]): Arbitrary[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Arbitrary, F].alt
 
   implicit def prod20Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]], e19: Equal[A20[F]]): Equal[Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Equal, F].divide
 
   implicit def cop20Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]], e19: Equal[A20[F]]): Equal[Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20].deriving[Equal, F].choose
 
   implicit def prod21Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]], a19: Arbitrary[A20[F]], a20: Arbitrary[A21[F]]): Arbitrary[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Arbitrary, F].apply
 
   implicit def cop21Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]], a19: Arbitrary[A20[F]], a20: Arbitrary[A21[F]]): Arbitrary[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Arbitrary, F].alt
 
   implicit def prod21Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]], e19: Equal[A20[F]], e20: Equal[A21[F]]): Equal[Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Equal, F].divide
 
   implicit def cop21Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]], e19: Equal[A20[F]], e20: Equal[A21[F]]): Equal[Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21].deriving[Equal, F].choose
 
   implicit def prod22Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]], A22[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]], a19: Arbitrary[A20[F]], a20: Arbitrary[A21[F]], a21: Arbitrary[A22[F]]): Arbitrary[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Arbitrary, F].apply
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Arbitrary, F].apply
 
   implicit def cop22Arb[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]], A22[_[_]]](implicit a0: Arbitrary[A1[F]], a1: Arbitrary[A2[F]], a2: Arbitrary[A3[F]], a3: Arbitrary[A4[F]], a4: Arbitrary[A5[F]], a5: Arbitrary[A6[F]], a6: Arbitrary[A7[F]], a7: Arbitrary[A8[F]], a8: Arbitrary[A9[F]], a9: Arbitrary[A10[F]], a10: Arbitrary[A11[F]], a11: Arbitrary[A12[F]], a12: Arbitrary[A13[F]], a13: Arbitrary[A14[F]], a14: Arbitrary[A15[F]], a15: Arbitrary[A16[F]], a16: Arbitrary[A17[F]], a17: Arbitrary[A18[F]], a18: Arbitrary[A19[F]], a19: Arbitrary[A20[F]], a20: Arbitrary[A21[F]], a21: Arbitrary[A22[F]]): Arbitrary[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Arbitrary, F].alt
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Arbitrary, F].alt
 
   implicit def prod22Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]], A22[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]], e19: Equal[A20[F]], e20: Equal[A21[F]], e21: Equal[A22[F]]): Equal[Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Equal, F].divide
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Equal, F].divide
 
   implicit def cop22Eq[F[_], A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]], A10[_[_]], A11[_[_]], A12[_[_]], A13[_[_]], A14[_[_]], A15[_[_]], A16[_[_]], A17[_[_]], A18[_[_]], A19[_[_]], A20[_[_]], A21[_[_]], A22[_[_]]](implicit e0: Equal[A1[F]], e1: Equal[A2[F]], e2: Equal[A3[F]], e3: Equal[A4[F]], e4: Equal[A5[F]], e5: Equal[A6[F]], e6: Equal[A7[F]], e7: Equal[A8[F]], e8: Equal[A9[F]], e9: Equal[A10[F]], e10: Equal[A11[F]], e11: Equal[A12[F]], e12: Equal[A13[F]], e13: Equal[A14[F]], e14: Equal[A15[F]], e15: Equal[A16[F]], e16: Equal[A17[F]], e17: Equal[A18[F]], e18: Equal[A19[F]], e19: Equal[A20[F]], e20: Equal[A21[F]], e21: Equal[A22[F]]): Equal[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
-    AndXor.buildNested[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Equal, F].choose
+    AndXor.nest[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Equal, F].choose
 
 }
 

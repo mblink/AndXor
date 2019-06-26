@@ -16,16 +16,16 @@ import scalaz.std.string._
 object arbitrary {
   @tpeLists.map { tpes =>
     implicit def prod@{tpes.length}Arb[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.prodTpe] =
-      AndXor.buildNested[@tpes.tpeParams].deriving[Arbitrary, F].apply
+      AndXor.nest[@tpes.tpeParams].deriving[Arbitrary, F].apply
 
     implicit def cop@{tpes.length}Arb[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.copTpe] =
-      AndXor.buildNested[@tpes.tpeParams].deriving[Arbitrary, F].alt
+      AndXor.nest[@tpes.tpeParams].deriving[Arbitrary, F].alt
 
     implicit def prod@{tpes.length}Eq[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.prodTpe] =
-      AndXor.buildNested[@tpes.tpeParams].deriving[Equal, F].divide
+      AndXor.nest[@tpes.tpeParams].deriving[Equal, F].divide
 
     implicit def cop@{tpes.length}Eq[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.copTpe] =
-      AndXor.buildNested[@tpes.tpeParams].deriving[Equal, F].choose
+      AndXor.nest[@tpes.tpeParams].deriving[Equal, F].choose
   }
 }
 

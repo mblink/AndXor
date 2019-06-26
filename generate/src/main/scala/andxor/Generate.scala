@@ -8,13 +8,11 @@ import scalariform.formatter.preferences._
 import scalaz.syntax.std.boolean._
 
 object Generate extends App {
-  val maxN = 22
-
   val conf = FormattingPreferences()
     .setPreference(NewlineAtEndOfFile, true)
     .setPreference(SpacesAroundMultiImports, false)
 
-  val tpeLists = mkTpeList(2, maxN)
+  val tpeLists = mkTpeList(2, maxLen)
 
   def noWs(s: String): String = s.filterNot(_.isWhitespace)
 

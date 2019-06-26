@@ -22,7 +22,7 @@ import scalaz.syntax.monoid._
 import scalaz.syntax.either._
 import scalaz.{Show, \/, ~>}
 import scalaz.Id.Id
-val SIS = AndXor.build[String, Int, List[String]]
+val SIS = AndXor[String, Int, List[String]]
 implicit val ds: Decidable[Show] = new Decidable[Show] {
   def choose2[Z, A1, A2](a1: => Show[A1], a2: =>Show[A2])(f: Z => (A1 \/ A2)): Show[Z] =
     Show.show[Z]((z: Z) => f(z).fold(a1.show(_), a2.show(_)))
