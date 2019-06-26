@@ -1,6 +1,6 @@
 @import andxor.syntax._
 
-@(tpes: List[String])
-  def build[@{tpes.tpeParams}]: AndXor@{tpes.length}[@{tpes.tpeParams}] = AndXor@{tpes.length}[@{tpes.tpeParams}]
-  def buildF[@{tpes.tpeParams}]: AndXorF@{tpes.length}[@{tpes.tpeParams}] = AndXorF@{tpes.length}[@{tpes.tpeParams}]
-  def buildK[F[_], @{tpes.tpeParams}]: AndXorK@{tpes.length}[F, @{tpes.tpeParams}] = AndXorK@{tpes.length}[F, @{tpes.tpeParams}]
+@(existing: List[String], add: List[String])
+
+  def apply[@{add.tpeParams}]: @{(existing ++ add.const).builtAndXor} = @{(existing ++ add.const).builtAndXor}
+  def nest[@{add.rank2TpeParams}]: @{(existing ++ add).builtAndXor} = @{(existing ++ add).builtAndXor}

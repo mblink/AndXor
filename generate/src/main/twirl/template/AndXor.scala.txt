@@ -1,36 +1,49 @@
-@(tpes: List[List[String]])
+@(tpeLists: List[List[String]])
 
-import scalaz.{Apply, Monoid}
+import scalaz.{Apply, Lens, Monoid, PLens}
+import scalaz.Id.Id
 
-abstract class ComposeAndXor[F[_], Cop, Prod] {
-  def mkChoose[B](f: B => Cop)(implicit d: Decidable[F]): F[B]
-  def mkAlt[B](f: Cop => B)(implicit a: Alt[F]): F[B]
-  def mkDivide[B](f: B => Prod)(implicit a: Divide[F]): F[B]
-  def mkApply[B](f: Prod => B)(implicit a: Apply[F]): F[B]
+trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
+  implicit def injEv[F[_]]: FInj[Cop, Cop, F]
+  implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Prod, F]
+  implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Cop, F]
 
-  def choose(implicit d: Decidable[F]): F[Cop] = mkChoose(identity _)
-  def alt(implicit a: Alt[F]): F[Cop] = mkAlt(identity _)
-  def divide(implicit d: Divide[F]): F[Prod] = mkDivide(identity _)
-  def apply(implicit a: Apply[F]): F[Prod] = mkApply(identity _)
+  implicit def injProdToVecCopEvHelper[A[_[_]], F[_]](implicit i: FInj[Cop, A, F]): FInj[Lambda[f[_] => Vector[Cop[f]]], A, F] =
+    Inj.instance(a => Vector(i(a)))
+  implicit def injProdToVecCopEv[F[_]]: FInj[Lambda[f[_] => Vector[Cop[f]]], Prod, F]
 }
 
-trait AndXorEvidence[Cop, Prod] {
-  implicit val injEv: Inj[Cop, Cop]
-  implicit def liftEv(implicit M: Monoid[Prod]): Inj[Prod, Prod]
-  implicit def injCopToProdEv(implicit M: Monoid[Prod]): Inj[Prod, Cop]
+trait AndXorDeriving[TC[_], Cop, Prod] {
+  def mkChoose[B](f: B => Cop)(implicit d: Decidable[TC]): TC[B]
+  def mkAlt[B](f: Cop => B)(implicit a: Alt[TC]): TC[B]
+  def mkDivide[B](f: B => Prod)(implicit a: Divide[TC]): TC[B]
+  def mkApply[B](f: Prod => B)(implicit a: Apply[TC]): TC[B]
 
-  implicit def injProdToVecCopEvHelper[A](implicit i: Inj[Cop, A]): Inj[Vector[Cop], A] = Inj.instance(a => Vector(i(a)))
-  implicit val injProdToVecCopEv: Inj[Vector[Cop], Prod]
+  def choose(implicit d: Decidable[TC]): TC[Cop] = mkChoose(identity _)
+  def alt(implicit a: Alt[TC]): TC[Cop] = mkAlt(identity _)
+  def divide(implicit d: Divide[TC]): TC[Prod] = mkDivide(identity _)
+  def apply(implicit a: Apply[TC]): TC[Prod] = mkApply(identity _)
 }
 
-trait AndXor {
-  type Cop
-  type Prod
-  def inj[A](a: A)(implicit inj: Inj[Cop, A]): Cop = inj(a)
-  def lift[A](a: A)(implicit inj: Inj[Prod, A]): Prod = inj(a)
+trait AndXor { self =>
+  type Cop[F[_]]
+  type Prod[F[_]]
+
   val evidence: AndXorEvidence[Cop, Prod]
+
+  def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
+  def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
+  def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
+  def liftId[A](a: A)(implicit inj: Inj[Prod[Id], Id[A]]): Prod[Id] = inj(a)
+  def extractC[F[_], B](c: Cop[F])(implicit l: PLens[Cop[F], B]): Option[B] = l.get(c)
+  def extractP[F[_], B](p: Prod[F])(implicit l: Lens[Prod[F], B]): B = l.get(p)
+
+  def derivingNestedCop[TC[_], F[_]](implicit dc: DerivingCop[Cop, F, TC]): DerivingCop[Cop, F, TC] = dc
+  def derivingNestedProd[TC[_], F[_]](implicit dp: DerivingProd[Prod, F, TC]): DerivingProd[Prod, F, TC] = dp
 }
 
 object AndXor {
-  @tpes.map(template.txt.Build(_)).mkString("\n")
+  def apply[A]: AndXor1[A] = new AndXor1[A] {}
+  def nest[A[_[_]]]: AndXorNested1[A] = new AndXorNested1[A] {}
+  @tpeLists.map(template.txt.Build(Nil, _))
 }

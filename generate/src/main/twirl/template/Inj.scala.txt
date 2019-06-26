@@ -1,22 +1,14 @@
 @import andxor.syntax._
 @import scalaz.Zipper
-@import scalaz.syntax.std.boolean._
 
 @(z: Zipper[String], isId: Boolean)
 
 @tpes = @{ z.toList }
-@F = @{ isId.fold("Id", "F") }
-@tp = @{ isId.fold("", s"F[_], ") }
-@wrapTpe(s: String) = @{ isId.fold(s, s"F[$s]") }
 
-    implicit def prisma@{z.index}@{F}[@{tp}@{tpes.tpeParams}]: Prism[@{tpes.copTpeF(F)}, @{wrapTpe(z.focus)}] =@if(isId) { prisma@{z.index}F[Id, @{tpes.tpeParams}] } else { new Prism[@{tpes.copTpeF(F)}, @{wrapTpe(z.focus)}] {
-        def getOption(c: @{tpes.copTpeF(F)}): Option[@{wrapTpe(z.focus)}] = @{tpes.foldLen01("Some(c.run)")(s"""c.run match {
-          case ${z.djVal("x")} => Some(x)
-          case _ => None
-        }""")}
-        def reverseGet(x: @{wrapTpe(z.focus)}): @{tpes.copTpeF(F)} = @{tpes.copTpeF(F)}(@z.djVal("x"))
-      } }
-
-    implicit def inja@{z.index}@{F}[@{tp}@{tpes.tpeParams}]: Inj[@{tpes.copTpeF(F)}, @{wrapTpe(z.focus)}] =@if(isId) { inja@{z.index}F[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.reverseGet(_)) }
-
-    implicit def inja@{z.index}@{F}Inverse[F[_], @{tpes.tpeParams}]: Inj[Option[@{wrapTpe(z.focus)}], @{tpes.copTpeF(F)}] =@if(isId) { inja@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(prisma@{z.index}@{F}.getOption(_)) }
+@if(isId) {
+  implicit def inja@{z.index}Id[A, @{tpes.rank2TpeParams}](implicit ev: @{tpes(z.index)}[Id] === A): Inj[@{tpes.copTpeF("Id")}, A] =
+    ev.subst(inja@{z.index}F[Id, @{tpes.tpeParams}])
+} else {
+  implicit def inja@{z.index}F[F[_], @{tpes.rank2TpeParams}]: FInj[@{tpes.copTpeF("?[_]")}, @{tpes(z.index)}, F] =
+    Inj.instance(x => @{tpes.copTpeF("F")}(@z.djVal("x")))
+}

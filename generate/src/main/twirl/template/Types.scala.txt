@@ -3,9 +3,12 @@
 
 @(tpeLists: List[List[String]])
 
-import io.estatico.newtype.macros.newtype
-import scalaz.{\/, -\/, \/-, InvariantFunctor, Monoid}
+import andxor.syntax.ffunctor._
+import andxor.syntax.ftraverse._
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, Lens, Monoid, PLens, StoreT}
 import scalaz.Id.Id
+import scalaz.Isomorphism.IsoSet
+import scalaz.Leibniz.===
 
 object types {
   object dummy {
@@ -15,35 +18,119 @@ object types {
 
   import dummy._
 
-  private val MF = InvariantFunctor[Monoid]
-  @tpeLists.map { tpes =>
-  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")})@{(tpes.length <= 1).fold("", s""" {
-    private def mapN = new Map${tpes.length}P[${tpes.tpeParamsF("F")}] {}
-    ${tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
-  }""")}
+  @tpeLists.filter(_.length >= 2).map { tpes =>
+  @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) { self =>
+    @template.txt.TupleAccess("run", tpes.tpeTpes(Some("F")))
+
+    @if(tpes.length > 1) {
+    private def mapN = new Map@{tpes.length}P[@{tpes.tpeTpes(Some("F")).tpeParams}] {}
+    @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
+    }
+  }
 
   trait @{tpes.prodName}LP {
-    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
-      MF.xmap(M, @{tpes.prodTpe}(_), (_: @{tpes.prodTpe}).run)
+    @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Prod1[F, A] = Prod1[F, A](a) }
 
-    @tpes.zipper(template.txt.Lift(_, false).toString.trim).mkString("\n\n    ")
+    implicit def @{tpes.prodName}Instance[@{tpes.rank2TpeParams}]@{tpes.ftraverseParams.asImpls(false)}: FFunctor[@{tpes.prodTpeF("?[_]")}] with FTraverse[@{tpes.prodTpeF("?[_]")}] =
+      new FFunctor[@{tpes.prodTpeF("?[_]")}] with FTraverse[@{tpes.prodTpeF("?[_]")}] {
+        def map[F[_], G[_]](p: @tpes.prodTpe)(nt: F ~> G): @tpes.prodTpeF("G") =
+          @{tpes.prodTpeF("G")}(@{tpes.paramListF(i =>
+            tpes.foldLen01((s: String) => s"nt($s)")(s => s"ft$i.map($s)(nt)")(s"p${tpes.prodAccess(i + 1)}")).mkTuple})
+
+        def traverse[F[_], G[_], A[_]: Applicative](p: @tpes.prodTpe)(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.prodTpeF("G")}] =
+          @tpes.paramListF(i => s"ft$i.traverse(p${tpes.prodAccess(i + 1)})(f)").tail.foldLeft(
+            s"Applicative[A].map(${tpes.foldLen01(s"f(p${tpes.prodAccess(1)})")(s"ft0.traverse(p${tpes.prodAccess(1)})(f)")})(${tpes.tpeTpes(Some("G")).paramSigArgs("i")
+              .map(parens).mkString(" => ")} => ${tpes.prodTpeF("G")}(${tpes.paramList("i").mkTuple}))")(
+                (a, e) => s"Applicative[A].ap($e)($a)")
+      }
+
+    implicit def @{tpes.prodName}FoldMap[@{tpes.rank2TpeParams}]@{tpes.foldMapParams.asImpls(false)}: FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] =
+      new FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] {
+        def unconsAll[F[_], G[_]](p: @{tpes.prodTpe})(implicit U: Uncons[F, G]): (List[@{tpes.copTpeF("G")}], @{tpes.prodTpe}) = {
+          @{1.to(tpes.length).toList.map(i => s"val (h$i, t$i) = ${tpes.foldLen01("U")(s"${tpes.foldMapName(i - 1)}.unconsAll")}(p${tpes.prodAccess(i)})").mkString("\n      ")}
+          (List(@{1.to(tpes.length).toList.map(i => s"h$i.map(Inj[${tpes.copTpeF("G")}, ${tpes.tpeTpes(Some("G"))(i - 1)}].apply(_))").mkString(", ")}).flatten,
+            @{tpes.prodTpe}(@{1.to(tpes.length).toList.map(i => s"t$i").mkTuple}))
+        }
+
+        def unconsOne[F[_], G[_]](p: @{tpes.prodTpe}, c: @{tpes.copTpeF("G")})(implicit U: Uncons[F, G]): (Option[@{tpes.copTpeF("G")}], @{tpes.prodTpe}) =
+          c.run match {
+            @{tpes.zipper(FoldMap(_)).mkString("").dropWhile(_ == ' ')}
+          }
+      }
+
+    implicit def @{tpes.prodName}DerivingProd[TC[_], F[_], @{tpes.rank2TpeParams}]@{tpes.derivingParams("Prod", "TC", "F").asImpls(false)}: DerivingProd[@{tpes.prodTpeF("?[_]")}, F, TC] =
+      new DerivingProd[@{tpes.prodTpeF("?[_]")}, F, TC] {
+        def mkContravariant[A](f: A => @{tpes.prodTpe})(implicit D: Divide[TC]): TC[A] =
+          @tpes.foldLen01("D.contramap(tc)(f(_).run)")(s"Combine.divide${tpes.length}(${
+            tpes.paramListF(i => s"deriving$i.divide").mkString(", ")})(f(_).run)")
+
+
+        def mkCovariant[A](f: @{tpes.prodTpe} => A)(implicit A: Apply[TC]): TC[A] =
+          @tpes.foldLen01[Any](s"A.map(tc)(x => f(${tpes.prodTpe}(x)))") {
+          Combine.apply@{tpes.length}(@{tpes.paramListF(i => s"deriving$i.apply").mkString(", ")}) {
+            case @{tpes.paramList("i").mkTuple} =>
+              f(@{tpes.prodTpe}(@{tpes.paramList("i").mkTuple}))
+          }
+          }
+      }
+
+    def @{tpes.prodName}TupleIso[F[_], @{tpes.rank2TpeParams}]: IsoSet[@{tpes.prodTpe}, @{tpes.prodK("F")}] =
+      IsoSet((_: @{tpes.prodTpe}).run, @{tpes.prodTpe}(_: @{tpes.prodK("F")}))
+
+    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.rank2TpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
+      Monoid.fromIso(@{tpes.prodName}TupleIso[F, @{tpes.tpeParams}])(M)
+
+    @tpes.zipper(template.txt.Lift(_, false))
+    @tpes.zipper(template.txt.FLensP(_, false))
   }
 
   object @{tpes.prodName} extends @{tpes.prodName}LP {
-    @tpes.zipper(template.txt.Lift(_, true).toString.trim).mkString("\n\n    ")
+    @if(tpes.length == 1) { implicit def convId[A](a: A): Prod1[Id, A] = Prod1[Id, A](a) }
+
+    @tpes.zipper(template.txt.Lift(_, true))
+    @tpes.zipper(template.txt.FLensP(_, true))
   }
 
   @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{(tpes.length <= 1).fold("", s""" {
-    private def mapN = new Map${tpes.length}C[${tpes.tpeParamsF("F")}] {}
+    private def mapN = new Map${tpes.length}C[${tpes.tpeTpes(Some("F")).tpeParams}] {}
     ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
   }""")}
 
   trait @{tpes.copName}LP {
-    @tpes.zipper(template.txt.Inj(_, false).toString.trim).mkString("\n\n    ")
+    @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Cop1[F, A] = Cop1[F, A](a) }
+
+    implicit def @{tpes.copName}Instance[@{tpes.rank2TpeParams}]@{tpes.ftraverseParams.asImpls(false)}: FFunctor[@{tpes.copTpeF("?[_]")}] with FTraverse[@{tpes.copTpeF("?[_]")}] =
+      new FFunctor[@{tpes.copTpeF("?[_]")}] with FTraverse[@{tpes.copTpeF("?[_]")}] {
+        def map[F[_], G[_]](c: @tpes.copTpe)(nt: F ~> G): @tpes.copTpeF("G") =
+          @{tpes.copTpeF("G")}(@{tpes.foldLen01("nt(c.run)")(
+            s"c.run${tpes.tail.foldRight("_.map(nt)")((_, a) => s"_.bimap(_.map(nt), $a)").tail}")})
+
+        def traverse[F[_], G[_], A[_]: Applicative](c: @tpes.copTpe)(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.copTpeF("G")}] =
+          c.run match {
+            @tpes.zipper(SequenceC(_))
+          }
+      }
+
+    implicit def @{tpes.copName}DerivingCop[TC[_], F[_], @{tpes.rank2TpeParams}]@{tpes.derivingParams("Cop", "TC", "F").asImpls(false)}: DerivingCop[@{tpes.copTpeF("?[_]")}, F, TC] =
+      new DerivingCop[@{tpes.copTpeF("?[_]")}, F, TC] {
+        def mkCovariant[A](f: @{tpes.copTpe} => A)(implicit A: Alt[TC]): TC[A] =
+          @tpes.foldLen01(s"A.map(tc)(x => f(${tpes.copTpe}(x)))")(s"Combine.altly${tpes.length}(${
+            tpes.paramListF(i => s"deriving$i.alt").mkString(", ")})(x => f(${tpes.copTpe}(x)))")
+
+        def mkContravariant[A](f: A => @{tpes.copTpe})(implicit D: Decidable[TC]): TC[A] =
+          @tpes.foldLen01("D.contramap(tc)(f(_).run)")(s"Combine.choose${tpes.length}(${
+            tpes.paramListF(i => s"deriving$i.choose").mkString(", ")})(f(_).run)")
+      }
+
+    @tpes.zipper(template.txt.Inj(_, false))
+    @tpes.zipper(template.txt.FLensC(_, false))
   }
 
   object @{tpes.copName} extends @{tpes.copName}LP {
-    @tpes.zipper(template.txt.Inj(_, true).toString.trim).mkString("\n\n    ")
+    @if(tpes.length == 1) { implicit def convId[A](a: A): Cop1[Id, A] = Cop1[Id, A](a) }
+
+    @tpes.zipper(template.txt.Inj(_, true))
+    @tpes.zipper(template.txt.FLensC(_, true))
   }
   }
 }

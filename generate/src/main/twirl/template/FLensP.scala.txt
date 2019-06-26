@@ -1,0 +1,15 @@
+@import andxor.syntax._
+@import scalaz.Zipper
+
+@(z: Zipper[String], isId: Boolean)
+@tpes = @{ z.toList }
+@aT = @{ tpes.tpeTpes(Some("F"))(z.index) }
+
+@if(isId) {
+  implicit def @{tpes.prodName}Lens@{z.index}Id[A, @{tpes.rank2TpeParams}](implicit ev: @{tpes(z.index)}[Id] === A): Lens[@tpes.prodTpeF("Id"), A] =
+    ev.subst(@{tpes.prodName}Lens@{z.index}[Id, @{tpes.tpeParams}])
+} else {
+  implicit def @{tpes.prodName}Lens@{z.index}[F[_], @{tpes.rank2TpeParams}]: FLens[@{tpes.prodTpeF("?[_]")}, @{tpes(z.index)}, F] =
+    Lens(p => StoreT.store[@{aT}, @{tpes.prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>
+      @{tpes.prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple})))
+}

@@ -1,36 +1,29 @@
 package andxor
 
+import andxor.syntax._
 import better.files.Dsl._
-import org.scalafmt.Scalafmt
 import play.twirl.api.Txt
+import scalariform.formatter.ScalaFormatter
+import scalariform.formatter.preferences._
 import scalaz.syntax.std.boolean._
 
 object Generate extends App {
-  val maxN = 22
+  val conf = FormattingPreferences()
+    .setPreference(NewlineAtEndOfFile, true)
+    .setPreference(SpacesAroundMultiImports, false)
 
-  val conf = Scalafmt.parseHoconConfig(
-    """align.openParenCallSite=false
-       binPack.literalArgumentLists=true
-       maxColumn=200
-       newlines.penalizeSingleSelectMultiArgList=false
-       verticalMultiline.atDefnSite=false
-       verticalMultiline.newlineAfterOpenParen=false""").get
-
-  def mkTpeList(start: Int, end: Int): List[List[String]] = start.to(end).toList.map(1.to(_).toList.map(x => s"A${x}"))
-
-  val tpeLists = mkTpeList(1, maxN)
-  val tupleTpes = mkTpeList(9, maxN)
+  val tpeLists = mkTpeList(2, maxLen)
 
   def noWs(s: String): String = s.filterNot(_.isWhitespace)
 
-  def maybeWrite(name: String, txt: Txt, format: Boolean = true): Unit = {
-    val f = cwd/"core"/"src"/"main"/"scala"/"andxor"/name
+  def maybeWrite(name: String, txt: Txt, format: Boolean = true, mainOrTest: String = "main"): Unit = {
+    val f = cwd/"core"/"src"/mainOrTest/"scala"/"andxor"/name
+    println(s"Generating $f...")
     val code = "package andxor\n\n" ++ txt.toString
     if (f.notExists || noWs(f.contentAsString) != noWs(code)) {
-      println(s"Generating $f...")
       val toWrite = format.fold({
         println("    formatting...")
-        Scalafmt.format(code, conf).get.toString
+        ScalaFormatter.format(code, conf)
       }, code)
       println("    writing...")
       f.overwrite(toWrite)
@@ -42,8 +35,10 @@ object Generate extends App {
 
   maybeWrite("AndXor.scala", template.txt.AndXor(tpeLists))
   maybeWrite("Types.scala", template.txt.Types(tpeLists))
+  maybeWrite("TypesTest.scala", template.txt.TypesTest(tpeLists), mainOrTest = "test")
+  maybeWrite("AndXor1.scala", template.txt.AndXorN(List("A1")))
   tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))
-  maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(2)))
+  maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(1)))
   maybeWrite("MapN.scala", template.txt.MapN(tpeLists.last))
-  maybeWrite("Tuple.scala", template.txt.Tuple(tupleTpes))
+  maybeWrite("Tuple.scala", template.txt.Tuple(tpeLists))
 }

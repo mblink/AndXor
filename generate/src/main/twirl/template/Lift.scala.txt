@@ -4,16 +4,19 @@
 
 @(z: Zipper[String], isId: Boolean)
 
-@tupleAccesses(l: List[String], i: Int) = @{ l.zip(Stream.from(i)).map(t => s"t${z.toList.tupleAccess(t._2 + 1)}") }
+@prodAccesses(l: List[String], i: Int) = @{ l.zip(Stream.from(i)).map(t => s"t${z.toList.prodAccess(t._2 + 1)}") }
 @tpes = @{ z.toList }
 @F = @{ isId.fold("Id", "F") }
-@tp = @{ isId.fold("", s"F[_], ") }
-@wrapTpe(s: String) = @{ isId.fold(s, s"F[$s]") }
+@monoid(others: Boolean, ts: List[String] = tpes) = @{
+  ts.foldLen01("")(others.fold[String => String](x => s", $x", x => s"(implicit $x)")(s" M: Monoid[${ts.prodTpeF(F)}]"))
+}
 
-    implicit def lifta@{z.index}@{F}[@{tp}@{tpes.tpeParams}]@{tpes.foldLen01("")(s"(implicit M: Monoid[${tpes.prodTpeF(F)}])")}: Inj[@tpes.prodTpeF(F), @{wrapTpe(z.focus)}] =@if(isId) { lifta@{z.index}F[Id, @{tpes.tpeParams}] } else { {
-      @tpes.foldLen01("")("val t = M.zero.run\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((tupleAccesses(z.lefts.toList, 0) :+ "x") ++
-        tupleAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
-    }
-    }
-
-    implicit def lifta@{z.index}@{F}Inverse[@{tp}@{tpes.tpeParams}]: Inj[@{wrapTpe(z.focus)}, @tpes.prodTpeF(F)] =@if(isId) { lifta@{z.index}FInverse[Id, @{tpes.tpeParams}] } else { Inj.instance(_.run@{z.toList.tupleAccess(z.index + 1)}) }
+@if(isId) {
+  implicit def lifta@{z.index}Id[A, @{tpes.rank2TpeParams}](implicit ev: @{tpes(z.index)}[Id] === A@{monoid(true)}): Inj[@{tpes.prodTpeF("Id")}, A] =
+    ev.subst(lifta@{z.index}F[Id, @{tpes.tpeParams}])
+} else {
+  implicit def lifta@{z.index}F[F[_], @{tpes.rank2TpeParams}]@{monoid(false)}: FInj[@tpes.prodTpeF("?[_]"), @{tpes(z.index)}, F] = {
+    @tpes.foldLen01("")("val t = M.zero\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
+      prodAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
+  }
+}

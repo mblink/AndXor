@@ -3,10 +3,15 @@
 @import scalaz.syntax.std.boolean._
 
 @(z: Zipper[String], prod: Boolean)
+@tpes = @{ z.toList }
+@mod = @{ tpes.updated(z.index, "B") }
+@B = @{ prod.fold(mod.toList.rank2TpeParamsList(z.index), mod.toList(z.index)) }
+@origT = @{ tpes.tpeTpes(Some("F"))(z.index) }
+@modT = @{ mod.tpeTpes(Some("F"))(z.index) }
 
-  def map@{z.index + 1}[B](f: @{prod.fold(s"F[${z.focus}]", z.focus)} => @{prod.fold(s"F[B]", "B")}): @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.modify(_ => "B").toList)} =
+  def map@{z.index + 1}[@{B}](f: @{prod.fold(origT, z.focus)} => @{prod.fold(modT, "B")}): @{prod.fold(mod.prodTpe, mod.prod)} =
     @z.wrapProdOrTuple(prod)(s"mapN.map${z.index + 1}(${prod.fold("run", "p")})(f)")
 
-  def mapAt[B](f: @{prod.fold(s"F[${z.focus}]", z.focus)} => @{prod.fold(s"F[B]", "B")})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
-    _ => z.dummyImpl(prod))}: @{prod.fold((_: LS).prodTpe, (_: LS).prod)(z.modify(_ => "B").toList)} =
+  def mapAt[@{B}](f: @{prod.fold(origT, z.focus)} => @{prod.fold(modT, "B")})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
+    _ => z.dummyImpl(prod))}: @{prod.fold(mod.prodTpe, mod.prod)} =
     @z.wrapProdOrTuple(prod)(s"mapN.map${prod.fold("At(f)(run)", s"${z.index + 1}(p)(f)")}")

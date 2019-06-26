@@ -1,19 +1,26 @@
 @import andxor.syntax._
+@import scalaz.syntax.std.boolean._
 
-@(monoidTpes: List[List[String]])
+@(tpeLists: List[List[String]])
 
-import scalaz.{Monoid, Need}
+@tpeLists.filter(_.length > 8).nonEmpty.fold("import scalaz.{Monoid, Need}", "")
 
 package object tuple {
-  @monoidTpes.map { tpes =>
-    implicit def tuple@{tpes.length}Monoid[@{tpes.tpeParams}](implicit @{tpes.paramSig("Monoid", "m")}): Monoid[@{tpes.prod}] =
-      new Monoid[@{tpes.prod}] {
-        type T = @{tpes.prod}
-        def zero: T = @{tpes.paramList("m").map(m => s"$m.zero").mkTuple}
-        def append(t1: T, _t2: => T): T = {
-          val t2 = Need(_t2)
-          @{tpes.paramList("m").zipWithIndex.map(t => s"${t._1}.append(t1${tpes.tupleAccess(t._2 + 1)}, t2.value${tpes.tupleAccess(t._2 + 1)})").mkTuple}
-        }
+  @tpeLists.filter(_.length > 8).map { tpes =>
+  implicit def tuple@{tpes.length}Monoid[@{tpes.tpeParams}](implicit @{tpes.paramSig("Monoid", "m")}): Monoid[@{tpes.prod}] =
+    new Monoid[@{tpes.prod}] {
+      type T = @{tpes.prod}
+      def zero: T = @{tpes.paramList("m").map(m => s"$m.zero").mkTuple}
+      def append(t1: T, _t2: => T): T = {
+        val t2 = Need(_t2)
+        @{tpes.paramList("m").zipWithIndex.map(t => s"${t._1}.append(t1${tpes.tupleAccess(t._2 + 1)}, t2.value${tpes.tupleAccess(t._2 + 1)})").mkTuple}
       }
+    }
+  }
+
+  @tpeLists.filter(_.length > 1).map { tpes =>
+  implicit class Tuple@{tpes.length}Ops[@{tpes.tpeParams}](t: @{tpes.mkTuple}) {
+    @template.txt.TupleAccess("t", tpes)
+  }
   }
 }

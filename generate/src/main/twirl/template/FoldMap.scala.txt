@@ -2,9 +2,7 @@
 @import scalaz.Zipper
 
 @(z: Zipper[String])
-            case dj @@ @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
-                  """_""")(_ => """-\/(_)"""))((_, a) => s"""\\/-(${a})""")} =>
-              val pr = prod.run
-              val (h, t) = U(pr@{z.toList.tupleAccess(z.index + 1)})
-              go(TG.Prod(@{(1 to z.length).toList.map(i => s"pr${z.toList.tupleAccess(i)}").updated(z.index, "t").mkTuple}),
-                q ++= h.map(TI.inj(_: Id[A@{z.index + 1}])), M.append(out, map(TI.Cop(dj))))
+            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")("x"))(_ => "-\\/(x)"))((_, a) => s"\\/-(${a})")} =>
+              val (h, t) = @z.toList.foldLen01(s"U(p.run)")(s"${z.toList.foldMapName(z.index)}.unconsOne(p${z.toList.prodAccess(z.index + 1)}, x)")
+              (h.map(v => @{z.toList.copTpeF("G")}(@{z.djVal("v")})), @{z.toList.prodTpe}(@{
+                z.prodAccesses("p").updated(z.index, "t").mkTuple}))
