@@ -269,7 +269,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
         },
         (repr: $reprTpe) => {
           val x = ${if (params.length <= 1) q"repr" else q"repr.run"}
-          ${params.zipWithIndex.tail.foldRight[Term](maybeUnwrap(normalizeValue(q"x"), Some(params.length - 1)))(
+          ${params.zipWithIndex.tail.foldRight[Term](maybeUnwrap(normalizeValue(q"(x: ${tpes.last})"), Some(params.length - 1)))(
             (t, acc) => q"""x.fold[$tpe](
               (x: ${tpes(t._2 - 1)}) => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
               x => $acc)""")}
