@@ -259,16 +259,21 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
         case _ => None
       }).fold(inst)(_ => q"$adtValTagObj.unwrap($inst)")
 
+    def injInst(param: Param): Term =
+      if (params.length <= 1) mkValue(q"inst", param) else q"$andxorName.inj(${mkValue(q"inst", param)})"
+
     lazy val iso: Term = q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => x match {
-          ..case ${params.map(p => p"case inst: ${p.memberTpe} => $andxorName.inj(${mkValue(q"inst", p)})")}
+          ..case ${params.map(p => p"case inst: ${p.memberTpe} => ${injInst(p)}")}
         },
-        (x: $reprTpe) => ${params.zipWithIndex.tail.foldRight[Term](
-          if (params.length == 1 && labelled) maybeUnwrap(q"x.run.value", Some(0)) else q"x.run")(
-          (t, acc) => q"""$acc.bimap(
-            x => ${maybeUnwrap(normalizeValue(q"(x: ${tpes(t._2 - 1)})"), Some(t._2 - 1))},
-            x => ${maybeUnwrap(normalizeValue(q"(x: ${tpes(t._2)})"), if (t._2 == params.length - 1) Some(t._2) else None)}).merge[$id[$tpe]]""")})
+        (repr: $reprTpe) => {
+          val x = ${if (params.length <= 1) q"repr" else q"repr.run"}
+          ${params.zipWithIndex.tail.foldRight[Term](maybeUnwrap(normalizeValue(q"x"), Some(params.length - 1)))(
+            (t, acc) => q"""x.fold[$tpe](
+              (x: ${tpes(t._2 - 1)}) => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
+              x => $acc)""")}
+        })
     """
   }
 
