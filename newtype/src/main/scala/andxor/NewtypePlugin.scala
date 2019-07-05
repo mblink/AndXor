@@ -12,7 +12,7 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
   implicit class LocalScopeOps(scope: LocalScope) {
     def inObject: Boolean = scope.self match {
-      case _: Defn.Object | _: Pkg.Object => true
+      case _: g.ModuleDef => true
       case _ => false
     }
   }

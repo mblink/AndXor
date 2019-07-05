@@ -160,8 +160,8 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
   def getChildrenOfTpe(tpeName: Type.Name, companion: Defn.Object): Reader[LocalScope, List[Either[Defn.Class, Defn.Object]]] =
     Reader(scope => (companion.extract[Stat] ++
-      scope.objects.values.toList ++
-      scope.classes.values.toList).flatMap(childOfTpe(tpeName, _)))
+      scope.objects.values.toList.map(_._2) ++
+      scope.classes.values.toList.map(_._2)).flatMap(childOfTpe(tpeName, _)))
 
   sealed abstract class GenTree[+P <: Param](
     val params: List[P],

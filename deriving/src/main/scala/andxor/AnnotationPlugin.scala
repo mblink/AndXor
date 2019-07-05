@@ -4,9 +4,8 @@ import scala.annotation.tailrec
 import scala.{meta => m}
 import scala.meta.contrib._
 import scala.meta.contrib.equality.Structurally
+import scala.meta.parsers._
 import scala.meta.quasiquotes._
-import scala.meta.internal.semanticdb.scalac.SemanticdbOps
-import scala.meta.internal.tokenizers.PlatformTokenizerCache
 import scala.reflect.internal.{util => r}
 import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
@@ -27,11 +26,11 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
   def triggers: List[String]
 
   case class LocalScope(
-    self: m.Tree,
-    classes: Map[String, m.Defn.Class],
-    objects: Map[String, m.Defn.Object],
-    traits: Map[String, m.Defn.Trait],
-    types: Map[String, m.Defn.Type]
+    self: g.Tree,
+    classes: Map[String, (g.ClassDef, m.Defn.Class)],
+    objects: Map[String, (g.ModuleDef, m.Defn.Object)],
+    traits: Map[String, (g.ClassDef, m.Defn.Trait)],
+    types: Map[String, (g.TypeDef, m.Defn.Type)]
   )
 
   def error(pos: m.inputs.Position, msg: String): Unit = pos.input match {
@@ -172,37 +171,27 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     override val global: AnnotationPlugin.this.global.type =
       AnnotationPlugin.this.global
     override final def newPhase(prev: Phase): Phase = new StdPhase(prev) {
-      override def apply(unit: g.CompilationUnit): Unit = {
-        if (unit.isJava || unit.source.file.path.endsWith(".template.scala")) ()
-        else {
-          PlatformTokenizerCache.megaCache.clear
-          val semanticdb = new SemanticdbOps { val global: self.g.type = self.g }
-          import semanticdb.XtensionCompilationUnitSource
-          val src = unit.toSource
-          val transformed = transformer(src)
-          if (!structurallyEqual(src, transformed))
-            unit.body = g.newUnitParser(g.newCompilationUnit(transformed.syntax, unit.source.path)).smartParse()
-        }
-      }
+      override def apply(unit: g.CompilationUnit): Unit = newTransformer(unit).transformUnit(unit)
+    }
+
+    private def newTransformer(unit: g.CompilationUnit) =
+      new TypingTransformer(unit) {
+        override def transform(tree: g.Tree): g.Tree =
+          autobots(super.transform(tree))
     }
 
     override val runsRightAfter: Option[String] = Some("parser")
     override val runsAfter: List[String] = runsRightAfter.toList
     override val runsBefore: List[String] = List[String]("typer")
 
-    private object transformer extends m.Transformer {
-      override def apply(tree: m.Tree): m.Tree = autobots(super.apply(tree))
+    val Triggers: List[g.TypeName] = triggers.map(g.newTypeName)
+    private def hasTrigger(t: g.Tree): Boolean = t.exists {
+      case c: g.ClassDef if hasTrigger(c.mods)  => true
+      case m: g.ModuleDef if hasTrigger(m.mods) => true
+      case _                                    => false
     }
 
-    private def hasTrigger(t: m.Tree): Boolean = t.collectFirst {
-      case c: m.Defn.Class if hasTrigger(c.mods)  => ()
-      case o: m.Defn.Object if hasTrigger(o.mods) => ()
-      case t: m.Defn.Type if hasTrigger(t.mods) => ()
-      case t: m.Defn.Trait if hasTrigger(t.mods) => ()
-      case o: m.Pkg.Object if hasTrigger(o.mods) => ()
-    }.nonEmpty
-
-    private def hasTrigger(mods: List[m.Mod]): Boolean = getTriggers(mods).nonEmpty
+    private def hasTrigger(mods: g.Modifiers): Boolean = Triggers.exists(mods.hasAnnotationNamed)
 
     private def extractTrigger[A <: m.Tree: Extract[?, m.Mod]: Replace[?, m.Mod]](tree: A): (List[m.Mod.Annot], A) = {
       val trigger = getTriggers(tree.extract[m.Mod])
@@ -215,78 +204,88 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         case a: m.Mod.Annot if triggers.contains(annotationName(a)) => a
       }
 
+    private def gTreeToMTree(gTree: g.Tree): m.Tree = g.showCode(gTree).parse[m.Stat].get
+
+    private def mTreeToGTree(mTree: m.Tree): g.Tree = {
+      val objName = g.currentFreshNameCreator.newName("_annotation_plugin_")
+      g.newUnitParser(s"object $objName { ${mTree.syntax} }", g.currentSource.path).smartParse().collect {
+        case g.ModuleDef(_, g.TermName(`objName`), g.Template(_, _,
+          g.DefDef(_, g.nme.CONSTRUCTOR, _, _, _, _) :: t :: Nil)) => t
+      }.head
+    }
+
     private def updateTreeAndCompanion[A <: m.Stat: Extract[?, m.Mod]: Replace[?, m.Mod]: Named](
-      tree: A,
-      upd: (List[m.Mod.Annot], A, Option[m.Defn.Object]) => Reader[LocalScope, (Option[(A, Option[m.Defn.Object])], Vector[m.Stat])]
-    ): Reader[LocalScope, Vector[m.Stat]] =
+      orig: g.Tree,
+      updF: (List[m.Mod.Annot], A, Option[m.Defn.Object]) => Reader[LocalScope, (Option[(A, Option[m.Defn.Object])], Vector[m.Stat])]
+    ): Reader[LocalScope, Vector[g.Tree]] =
       for {
-        companion <- Reader((_: LocalScope).objects.get(tree.name.value))
+        tree <- Reader((_: LocalScope) => gTreeToMTree(orig).asInstanceOf[A])
+        xCompanion <- Reader((_: LocalScope).objects.get(tree.name.value))
+        companion = xCompanion.map(_._2)
         t = extractTrigger(tree)
-        updated <- upd(t._1, t._2, companion)
-      } yield updated._1.map(_._1).toVector ++
-              updated._1.flatMap(_._2).toVector ++
-              updated._2
+        updated <- updF(t._1, t._2, companion)
+        upd = (_: Vector[m.Tree]).map(t => mTreeToGTree(t))
+        updA = upd(updated._1.map(_._1).toVector)
+        updCompanion = upd(updated._1.flatMap(_._2).toVector)
+        updExtra = upd(updated._2)
+      } yield updA ++ updCompanion ++ updExtra
 
     // responds to visiting all the parts of the tree and passes to decepticons
     // to do the rewrites
-    def autobots(tree: m.Tree): m.Tree =
+    def autobots(tree: g.Tree): g.Tree =
       tree match {
-        case t: m.Defn.Class if hasTrigger(t) => decepticons(t)
-        case t: m.Defn.Object if hasTrigger(t) => decepticons(t)
-        case t: m.Defn.Trait if hasTrigger(t) => decepticons(t)
-        case t: m.Pkg if hasTrigger(t) => decepticons(t)
+        case p: g.PackageDef if hasTrigger(p) =>
+          g.treeCopy.PackageDef(p, p.pid, decepticons(p, p.stats))
+        case m: g.ModuleDef if hasTrigger(m.impl) =>
+          g.treeCopy.ModuleDef(m, m.mods, m.name,
+            g.treeCopy.Template(m.impl, m.impl.parents, m.impl.self, decepticons(m, m.impl.body)))
+        case c: g.ClassDef if hasTrigger(c.impl) =>
+          g.treeCopy.ClassDef(c, c.mods, c.name, c.tparams,
+            g.treeCopy.Template(c.impl, c.impl.parents, c.impl.self, decepticons(c, c.impl.body)))
         case t => t
       }
 
-    private def companionName[A <: m.Stat](tree: A): Option[m.Name] =
-      tree match {
-        case c: m.Defn.Class => Some(c.name)
-        case t: m.Defn.Trait => Some(t.name)
-        case t: m.Defn.Type => Some(t.name)
-        case _ => None
-      }
-
-    private def withoutCompanion[A <: m.Stat](tree: A, stats: Vector[m.Stat]): Vector[m.Stat] =
-      companionName(tree).fold(stats)(name => stats.filter(_ match {
-        case o: m.Defn.Object if o.name.value == name.value => false
+    private def withoutCompanion(companionName: g.Name, stats: Vector[g.Tree]): Vector[g.Tree] =
+      stats.filter(_ match {
+        case o: g.ModuleDef if o.name.decodedName.toString == companionName.decodedName.toString => false
         case _ => true
-      }))
+      })
 
-    private def getLocals[T <: m.Tree: Extract[?, m.Stat], A <: m.Stat: Named](tree: T)(pf: PartialFunction[m.Tree, A]): Map[String, A] =
-      tree.extract[m.Stat].flatMap(pf.lift(_).map(a => a.name.value -> a)).toMap
+    private def getLocals[A <: g.NameTree, B <: m.Stat](trees: List[g.Tree])(pf: PartialFunction[g.Tree, A]): Map[String, (A, B)] =
+      trees.flatMap(pf.lift(_).map(a => a.name.decodedName.toString -> ((a, gTreeToMTree(a).asInstanceOf[B])))).toMap
 
-    // does not recurse, let the autobots handle that
-    def decepticons[A <: m.Tree: Extract[?, m.Stat]: Replace[?, m.Stat]: Named](tree: A): A = {
-      val scope = LocalScope(
-        tree,
-        getLocals(tree) { case c: m.Defn.Class => c },
-        getLocals(tree) { case o: m.Defn.Object => o },
-        getLocals(tree) { case t: m.Defn.Trait => t },
-        getLocals(tree) { case t: m.Defn.Type => t })
+    private def isTrait(c: g.ClassDef): Boolean = c.mods.hasFlag(g.Flag.TRAIT)
+
+    def decepticons(scopeSelf: g.Tree, trees: List[g.Tree]): List[g.Tree] = {
+      lazy val scope = LocalScope(
+        scopeSelf,
+        getLocals[g.ClassDef, m.Defn.Class](trees) { case c: g.ClassDef if !isTrait(c) => c },
+        getLocals[g.ModuleDef, m.Defn.Object](trees) { case o: g.ModuleDef => o },
+        getLocals[g.ClassDef, m.Defn.Trait](trees) { case t: g.ClassDef if isTrait(t) => t },
+        getLocals[g.TypeDef, m.Defn.Type](trees) { case t: g.TypeDef => t })
 
       @tailrec
-      def go(queue: Vector[m.Stat], out: Vector[m.Stat]): Vector[m.Stat] =
+      def go(queue: Vector[g.Tree], out: Vector[g.Tree]): Vector[g.Tree] =
         queue match {
           case Vector() => out
 
-          case (c: m.Defn.Class) +: tail if hasTrigger(c.mods) =>
-            go(withoutCompanion(c, tail), out ++ updateTreeAndCompanion[m.Defn.Class](c, update).run(scope))
+          case (c: g.ClassDef) +: tail if hasTrigger(c.mods) =>
+            go(withoutCompanion(c.name.companionName, tail), out ++
+              (if (isTrait(c)) updateTreeAndCompanion[m.Defn.Trait](c, update)
+               else updateTreeAndCompanion[m.Defn.Class](c, update)).run(scope))
 
-          case (o: m.Defn.Object) +: tail if hasTrigger(o.mods) =>
-            val (ann, cleaned) = extractTrigger(o)
+          case (o: g.ModuleDef) +: tail if hasTrigger(o.mods) =>
+            val (ann, cleaned) = extractTrigger(gTreeToMTree(o).asInstanceOf[m.Defn.Object])
             val (upd, extra) = update(ann, cleaned).run(scope)
-            go(tail, out ++ upd.toVector ++ extra)
+            go(tail, out ++ (upd.toVector ++ extra).map(x => mTreeToGTree(x)))
 
-          case (t: m.Defn.Trait) +: tail if hasTrigger(t.mods) =>
-            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Trait](t, update).run(scope))
-
-          case (t: m.Defn.Type) +: tail if hasTrigger(t.mods) =>
-            go(withoutCompanion(t, tail), out ++ updateTreeAndCompanion[m.Defn.Type](t, update).run(scope))
+          case (t: g.TypeDef) +: tail if hasTrigger(t.mods) =>
+            go(withoutCompanion(t.name.companionName, tail), out ++ updateTreeAndCompanion[m.Defn.Type](t, update).run(scope))
 
           case t +: tail => go(tail, out :+ t)
         }
 
-      tree.withStats(go(tree.extract[m.Stat].toVector, Vector()).toList)
+      go(trees.toVector, Vector()).toList
     }
   }
 
