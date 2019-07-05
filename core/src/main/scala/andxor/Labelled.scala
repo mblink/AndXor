@@ -1,5 +1,9 @@
 package andxor
 
+import scalaz.Equal
+import scalaz.std.string._
+import scalaz.std.tuple._
+
 trait Labelled[A] {
   type L <: Singleton with String
   val label: L
@@ -16,4 +20,7 @@ object Labelled {
     val label: L = label0
     val value: A = value0
   }
+
+  implicit def equalLabelled[A: Equal, L <: Singleton with String]: Equal[Labelled.Aux[A, L]] =
+    Equal.equalBy(l => ((l.label: String), l.value))
 }

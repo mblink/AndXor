@@ -1,8 +1,8 @@
 package andxor
 
-import andxor.tags._
+import andxor.types.ADTValue
 import _root_.argonaut.{DecodeJson, DecodeResult, EncodeJson, HCursor, Json}
-import scalaz.{~>, @@, Apply, Monoid, Tag}
+import scalaz.{~>, Apply, Monoid}
 import scalaz.Isomorphism.IsoFunctor
 
 trait LPArgonaut {
@@ -32,13 +32,13 @@ trait LPArgonaut {
     implicit def default[A]: JsonSumCodec[A] = new ObjectCodec[A]
   }
 
-  implicit def encodeJsonBaseAdtVal[A, L <: Singleton with String](implicit codec: JsonSumCodec[A]): EncodeJson[Labelled.Aux[A @@ ADTValue, L]] =
+  implicit def encodeJsonBaseAdtVal[A <: Singleton, L <: Singleton with String](implicit codec: JsonSumCodec[A]): EncodeJson[Labelled.Aux[ADTValue[A], L]] =
     EncodeJson(a => codec.encodeField(a.label, Json()))
 
-  implicit def decodeJsonBaseAdtVal[A, L <: Singleton with String](
-    implicit value: Labelled.Aux[A @@ ADTValue, L],
-    codec: JsonSumCodec[Labelled.Aux[A @@ ADTValue, L]]
-  ): DecodeJson[Labelled.Aux[A @@ ADTValue, L]] =
+  implicit def decodeJsonBaseAdtVal[A <: Singleton, L <: Singleton with String](
+    implicit value: Labelled.Aux[ADTValue[A], L],
+    codec: JsonSumCodec[Labelled.Aux[ADTValue[A], L]]
+  ): DecodeJson[Labelled.Aux[ADTValue[A], L]] =
     DecodeJson(codec.decodeField(value.label, _, DecodeJson(_ => DecodeResult.ok(value))))
 }
 
@@ -48,8 +48,8 @@ package object argonaut extends LPArgonaut {
   implicit def encodeJsonLabelled[L <: Singleton with String, A](implicit ej: EncodeJson[A]): EncodeJson[Labelled.Aux[A, L]] =
     EncodeJson(l => Json(l.label -> ej(l.value)))
 
-  implicit def encodeJsonAdtVal[A, L <: Singleton with String](implicit ej: EncodeJson[A], codec: JsonSumCodec[A]): EncodeJson[Labelled.Aux[A @@ ADTValue, L]] =
-    EncodeJson(a => codec.encodeField(a.label, ej.encode(Tag.of[ADTValue].unwrap(a.value))))
+  implicit def encodeJsonAdtVal[A <: Singleton, L <: Singleton with String](implicit ej: EncodeJson[A], codec: JsonSumCodec[A]): EncodeJson[Labelled.Aux[ADTValue[A], L]] =
+    EncodeJson(a => codec.encodeField(a.label, ej.encode(a.value.value)))
 
   type EncodeJsonF[A] = A => Json
 

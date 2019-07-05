@@ -48,12 +48,8 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   private lazy val id = t"$scalazPkg.Id.Id"
   private lazy val isoSetObj = q"$scalazPkg.Isomorphism.IsoSet"
   private lazy val isoSetTpe = t"$scalazPkg.Isomorphism.IsoSet"
-  private lazy val tagObj = q"$scalazPkg.Tag"
-  private lazy val tagTpe = t"_root_.scalaz.@@"
-  private lazy val adtValTagTpe = t"$andxorPkg.tags.ADTValue"
-  private lazy val adtValTagObj = q"$tagObj.of[$adtValTagTpe]"
-  private def mkAdtVal(inst: Term): Term = q"$adtValTagObj($inst)"
-  private def adtValTpe(tpe: Type): Type = t"$tagTpe[$tpe, $adtValTagTpe]"
+  private def mkAdtVal(inst: Term): Term = q"$andxorPkg.types.ADTValue($inst)"
+  private def adtValTpe(tpe: Type): Type = t"$andxorPkg.types.ADTValue[$tpe]"
 
   sealed trait Param {
     val name: Name
@@ -257,7 +253,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
       paramIdx.flatMap(children.lift(_) match {
         case Some(Right(x)) => Some(x)
         case _ => None
-      }).fold(inst)(_ => q"$adtValTagObj.unwrap($inst)")
+      }).fold(inst)(_ => q"$inst.value")
 
     def injInst(param: Param): Term =
       if (params.length <= 1) mkValue(q"inst", param) else q"$andxorName.inj(${mkValue(q"inst", param)})"
@@ -362,7 +358,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
   def mkStats[P <: Param](mkTree: Boolean => GenTree[P], mods: List[Mod.Annot]): List[Stat] = {
     val (base, labelled) = (mkTree(false), mkTree(true))
     val tcs = mods.flatMap(m => getTypeclasses(m.init.argss, base, labelled))
-    List(q"""
+    val res = List(q"""
       object andxor {
         ..${labels(labelled) :::
             implicits(base) :::
@@ -370,5 +366,7 @@ class DerivingPlugin(global: Global) extends AnnotationPlugin(global) { self =>
             List(andxor(base), andxor(labelled), iso(base), iso(labelled))}
       }
     """) ::: (if (tcs.nonEmpty) List(q"import andxor._") else Nil) ::: tcs.map(derivedTypeclass)
+    // res.map(debug("TREE", _))
+    res
   }
 }

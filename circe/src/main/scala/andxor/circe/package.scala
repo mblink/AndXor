@@ -1,8 +1,8 @@
 package andxor
 
-import andxor.tags._
+import andxor.types.ADTValue
 import _root_.io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
-import scalaz.{~>, @@, Apply, Monoid, Tag}
+import scalaz.{~>, Apply, Monoid}
 import scalaz.Isomorphism.IsoFunctor
 
 trait LPCirce {
@@ -33,13 +33,13 @@ trait LPCirce {
     implicit def default[A]: JsonSumCodec[A] = new ObjectCodec[A]
   }
 
-  implicit def encoderBaseAdtVal[A, L <: Singleton with String](implicit codec: JsonSumCodec[A]): Encoder[Labelled.Aux[A @@ ADTValue, L]] =
+  implicit def encoderBaseAdtVal[A <: Singleton, L <: Singleton with String](implicit codec: JsonSumCodec[A]): Encoder[Labelled.Aux[ADTValue[A], L]] =
     Encoder.instance(a => codec.encodeField(a.label, Json.obj()))
 
-  implicit def decoderBaseAdtVal[A, L <: Singleton with String](
-    implicit value: Labelled.Aux[A @@ ADTValue, L],
-    codec: JsonSumCodec[Labelled.Aux[A @@ ADTValue, L]]
-  ): Decoder[Labelled.Aux[A @@ ADTValue, L]] =
+  implicit def decoderBaseAdtVal[A <: Singleton, L <: Singleton with String](
+    implicit value: Labelled.Aux[ADTValue[A], L],
+    codec: JsonSumCodec[Labelled.Aux[ADTValue[A], L]]
+  ): Decoder[Labelled.Aux[ADTValue[A], L]] =
     Decoder.instance(codec.decodeField(value.label, _, Decoder.instance(_ => Right(value))))
 }
 
@@ -49,8 +49,8 @@ package object circe extends LPCirce {
   implicit def encoderLabelled[L <: Singleton with String, A](implicit e: Encoder[A]): Encoder[Labelled.Aux[A, L]] =
     Encoder.instance(l => Json.obj(l.label -> e(l.value)))
 
-  implicit def encoderAdtVal[A, L <: Singleton with String](implicit e: Encoder[A], codec: JsonSumCodec[A]): Encoder[Labelled.Aux[A @@ ADTValue, L]] =
-    Encoder.instance(a => codec.encodeField(a.label, e(Tag.of[ADTValue].unwrap(a.value))))
+  implicit def encoderAdtVal[A <: Singleton, L <: Singleton with String](implicit e: Encoder[A], codec: JsonSumCodec[A]): Encoder[Labelled.Aux[ADTValue[A], L]] =
+    Encoder.instance(a => codec.encodeField(a.label, e(a.value.value)))
 
   type EncoderF[A] = A => Json
 

@@ -55,7 +55,7 @@ lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   crossScalaVersions := scalaVersions,
   scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
-  version := "0.3.2",
+  version := "0.3.3",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -87,7 +87,8 @@ lazy val baseSettings = splainSettings ++ Seq(
 )
 
 lazy val scalazVersion = "7.2.27"
-lazy val scalaCheckVersion = "1.14.0"
+lazy val scalacheckVersion = "1.14.0"
+lazy val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
 lazy val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % scalazVersion)
 
@@ -97,6 +98,17 @@ lazy val publishSettings = Seq(
   bintrayRepository := "andxor",
   bintrayReleaseOnPublish in ThisBuild := false,
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
+)
+
+lazy val testSettings = Seq(
+  libraryDependencies ++= Seq(
+    scalacheckDep % "test",
+    "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-${scalacheckVersion.split('.').dropRight(1).mkString(".")}" % "test"
+  ),
+  testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2")) ++
+    Option(System.getProperty("testIterations")).map(_.toInt)
+      .map(n => Seq(Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", n.toString)))
+      .getOrElse(Seq())
 )
 
 lazy val generate = project.in(file("generate"))
@@ -116,13 +128,10 @@ lazy val generate = project.in(file("generate"))
 lazy val core = project.in(file("core"))
   .settings(commonSettings)
   .settings(publishSettings)
+  .settings(testSettings)
   .settings(Seq(
     name := "andxor-core",
-    scalacOptions ++= enablePlugin((assembly in newtype).value),
-    libraryDependencies ++= Seq(
-      "org.scalacheck" %% "scalacheck" % scalaCheckVersion % "test",
-      "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-${scalaCheckVersion.split('.').dropRight(1).mkString(".")}" % "test"
-    )
+    scalacOptions ++= enablePlugin((assembly in newtype).value)
   ))
 
 lazy val argonaut = project.in(file("argonaut"))
@@ -144,6 +153,15 @@ lazy val circe = project.in(file("circe"))
       "io.circe" %% "circe-core",
       "io.circe" %% "circe-parser"
     ).map(_ % circeVersion)
+  ))
+  .dependsOn(core)
+
+lazy val scalacheck = project.in(file("scalacheck"))
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(Seq(
+    name := "andxor-scalacheck",
+    libraryDependencies += scalacheckDep
   ))
   .dependsOn(core)
 
@@ -200,7 +218,8 @@ def compilerPlugin(proj: Project, nme: String) =
 
 lazy val deriving =
   compilerPlugin(project.in(file("deriving")), "andxor-deriving")
-    .dependsOn(argonaut % "test->test", circe % "test->test")
+    .settings(testSettings)
+    .dependsOn(argonaut % "test->test", circe % "test->test", scalacheck % "test->test")
 
 lazy val newtype = compilerPlugin(project.in(file("newtype")), "andxor-newtype")
 

@@ -1,35 +1,30 @@
 package andxor.test
 
-import andxor.{Alt, Decidable, Divide, Labelled}
+import andxor.{Alt, Decidable, Divide, FConst, Labelled}
 import andxor.argonaut._
 import andxor.circe._
-import andxor.tags._
+import andxor.scalacheck._
+import andxor.types.ADTValue
 import argonaut.{DecodeJson, EncodeJson}
 import io.circe.{Decoder, Encoder}
-import scala.annotation.Annotation
-import scalaz.{@@, ~>, Apply, Cord, Show}
+import org.scalacheck.{Arbitrary, Properties}
+import org.scalacheck.Prop.{BooleanOperators, forAllNoShrink}
+import scalaz.{~>, Apply, Cord, Equal, Show}
+import scalaz.Id.Id
 import scalaz.Isomorphism.IsoFunctor
 import scalaz.std.anyVal._
 import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.std.string._
 import scalaz.syntax.apply._
+import scalaz.syntax.equal._
 import scalaz.syntax.std.string._
-
-object annotations {
-  final class deriving(
-    val covariant: Vector[AnyRef] = Vector(),
-    val labelledCovariant: Vector[AnyRef] = Vector(),
-    val contravariant: Vector[AnyRef] = Vector(),
-    val labelledContravariant: Vector[AnyRef] = Vector()
-  ) extends Annotation
-}
 
 object typeclasses {
   implicit def showLabelled[A: Show, L <: Singleton with String]: Show[Labelled.Aux[A, L]] =
     Show.shows(l => s"""${l.label} := ${Show[A].shows(l.value)}""" ++ "\n")
 
-  implicit def showAdtVal[A, L <: Singleton with String]: Show[Labelled.Aux[A @@ ADTValue, L]] =
+  implicit def showAdtVal[A <: Singleton, L <: Singleton with String]: Show[Labelled.Aux[ADTValue[A], L]] =
     Show.shows(a => s"""ADTValue := ${a.label}""" ++ "\n")
 
   type ShowF[A] = A => Cord
@@ -47,16 +42,19 @@ object typeclasses {
           s.split("\n").toList.flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
       }
 
-    implicit def readAdtVal[A, L <: Singleton with String](
+    implicit def readAdtVal[A <: Singleton, L <: Singleton with String](
       implicit label: L,
-      value: Labelled.Aux[A @@ ADTValue, L]
-    ): Read[Labelled.Aux[A @@ ADTValue, L]] =
-      new Read[Labelled.Aux[A @@ ADTValue, L]] {
-        def read(s: String): Option[Labelled.Aux[A @@ ADTValue, L]] =
+      value: Labelled.Aux[ADTValue[A], L]
+    ): Read[Labelled.Aux[ADTValue[A], L]] =
+      new Read[Labelled.Aux[ADTValue[A], L]] {
+        def read(s: String): Option[Labelled.Aux[ADTValue[A], L]] =
           s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
       }
 
-    implicit val readStr: Read[String] = new Read[String] { def read(s: String): Option[String] = """^"(.*)"$""".r.findFirstIn(s) }
+    implicit val readStr: Read[String] = new Read[String] {
+      def read(s: String): Option[String] =
+        if (s.headOption.exists(_ == '"') && s.lastOption.exists(_ == '"')) Some(s.drop(1).dropRight(1)) else None
+    }
     implicit val readInt: Read[Int] = new Read[Int] { def read(s: String): Option[Int] = s.parseInt.toOption }
     implicit val readBool: Read[Boolean] = new Read[Boolean] { def read(s: String): Option[Boolean] = s.parseBoolean.toOption }
 
@@ -89,9 +87,9 @@ object typeclasses {
         def toCsv(a: Labelled.Aux[A, L]): List[String] = c.toCsv(a.value)
       }
 
-    implicit def csvAdtVal[A, L <: Singleton with String]: Csv[Labelled.Aux[A @@ ADTValue, L]] =
-      new Csv[Labelled.Aux[A @@ ADTValue, L]] {
-        def toCsv(a: Labelled.Aux[A @@ ADTValue, L]): List[String] = List(a.label)
+    implicit def csvAdtVal[A <: Singleton, L <: Singleton with String]: Csv[Labelled.Aux[ADTValue[A], L]] =
+      new Csv[Labelled.Aux[ADTValue[A], L]] {
+        def toCsv(a: Labelled.Aux[ADTValue[A], L]): List[String] = List(a.label)
       }
 
     type CsvF[A] = A => List[String]
@@ -107,26 +105,28 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  @annotations.deriving(
+  @deriving case class NoInstances(s: String)
+
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    labelledContravariant = Vector(Csv, Show, EncodeJson, Encoder)
+    labelledContravariant = Vector(Csv, EncodeJson, Encoder, Equal, Show)
   )
   sealed trait Foo
   case object Bar extends Foo
-  @annotations.deriving(
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Baz(s: String) extends Foo
 
-  @annotations.deriving case class NoInstances(s: String)
-
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test1(
     x1: String
@@ -135,22 +135,22 @@ object types {
     val foobar = "foobar"
   }
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test2(
     x1: String,
     x2: Int
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test3(
     x1: String,
@@ -158,11 +158,11 @@ object types {
     x3: Boolean
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test4(
     x1: String,
@@ -171,11 +171,11 @@ object types {
     x4: String
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test5(
     x1: String,
@@ -185,11 +185,11 @@ object types {
     x5: Int
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test6(
     x1: String,
@@ -200,11 +200,11 @@ object types {
     x6: Boolean
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test7(
     x1: String,
@@ -216,11 +216,11 @@ object types {
     x7: String
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test8(
     x1: String,
@@ -233,11 +233,11 @@ object types {
     x8: Int
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test9(
     x1: String,
@@ -251,11 +251,11 @@ object types {
     x9: Boolean
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test10(
     x1: String,
@@ -270,11 +270,11 @@ object types {
     x10: String
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test11(
     x1: String,
@@ -290,11 +290,11 @@ object types {
     x11: Int
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test12(
     x1: String,
@@ -311,11 +311,11 @@ object types {
     x12: Boolean
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test13(
     x1: String,
@@ -333,11 +333,11 @@ object types {
     x13: String
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test14(
     x1: String,
@@ -356,11 +356,11 @@ object types {
     x14: Int
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test15(
     x1: String,
@@ -380,11 +380,11 @@ object types {
     x15: Boolean
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test16(
     x1: String,
@@ -405,11 +405,11 @@ object types {
     x16: String
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test17(
     x1: String,
@@ -431,11 +431,11 @@ object types {
     x17: Int
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test18(
     x1: String,
@@ -458,11 +458,11 @@ object types {
     x18: Boolean
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test19(
     x1: String,
@@ -486,11 +486,11 @@ object types {
     x19: String
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test20(
     x1: String,
@@ -515,11 +515,11 @@ object types {
     x20: Int
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test21(
     x1: String,
@@ -545,11 +545,11 @@ object types {
     x21: Boolean
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Test22(
     x1: String,
@@ -576,41 +576,41 @@ object types {
     x22: String
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class Multi(str: String)(val int: Int)
 
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams1[A1](
     x1: A1
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams2[A1, A2](
     x1: A1,
     x2: A2
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams3[A1, A2, A3](
     x1: A1,
@@ -618,11 +618,11 @@ object types {
     x3: A3
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams4[A1, A2, A3, A4](
     x1: A1,
@@ -631,11 +631,11 @@ object types {
     x4: A4
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams5[A1, A2, A3, A4, A5](
     x1: A1,
@@ -645,11 +645,11 @@ object types {
     x5: A5
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams6[A1, A2, A3, A4, A5, A6](
     x1: A1,
@@ -660,11 +660,11 @@ object types {
     x6: A6
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams7[A1, A2, A3, A4, A5, A6, A7](
     x1: A1,
@@ -676,11 +676,11 @@ object types {
     x7: A7
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams8[A1, A2, A3, A4, A5, A6, A7, A8](
     x1: A1,
@@ -693,11 +693,11 @@ object types {
     x8: A8
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams9[A1, A2, A3, A4, A5, A6, A7, A8, A9](
     x1: A1,
@@ -711,11 +711,11 @@ object types {
     x9: A9
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
     x1: A1,
@@ -730,11 +730,11 @@ object types {
     x10: A10
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
     x1: A1,
@@ -750,11 +750,11 @@ object types {
     x11: A11
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
     x1: A1,
@@ -771,11 +771,11 @@ object types {
     x12: A12
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
     x1: A1,
@@ -793,11 +793,11 @@ object types {
     x13: A13
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
     x1: A1,
@@ -816,11 +816,11 @@ object types {
     x14: A14
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
     x1: A1,
@@ -840,11 +840,11 @@ object types {
     x15: A15
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
     x1: A1,
@@ -865,11 +865,11 @@ object types {
     x16: A16
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
     x1: A1,
@@ -891,11 +891,11 @@ object types {
     x17: A17
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
     x1: A1,
@@ -918,11 +918,11 @@ object types {
     x18: A18
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
     x1: A1,
@@ -946,11 +946,11 @@ object types {
     x19: A19
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
     x1: A1,
@@ -975,11 +975,11 @@ object types {
     x20: A20
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
     x1: A1,
@@ -1005,11 +1005,11 @@ object types {
     x21: A21
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class TParams22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
     x1: A1,
@@ -1036,231 +1036,319 @@ object types {
     x22: A22
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK1[F[_], A1](
     run: F[A1]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK2[F[_, _], A1, A2](
     run: F[A1, A2]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK3[F[_, _, _], A1, A2, A3](
     run: F[A1, A2, A3]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK4[F[_, _, _, _], A1, A2, A3, A4](
     run: F[A1, A2, A3, A4]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK5[F[_, _, _, _, _], A1, A2, A3, A4, A5](
     run: F[A1, A2, A3, A4, A5]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK6[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](
     run: F[A1, A2, A3, A4, A5, A6]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK7[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](
     run: F[A1, A2, A3, A4, A5, A6, A7]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK8[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK9[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK10[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK11[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK12[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK13[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK14[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK15[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK16[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK17[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK18[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK19[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK20[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK21[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HK22[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](
     run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]
   )
 
-  @annotations.deriving(
-    covariant = Vector(),
+  @deriving(
+    covariant = Vector(Arbitrary),
     labelledCovariant = Vector(Read, DecodeJson, Decoder),
-    contravariant = Vector(Csv),
-    labelledContravariant = Vector(Show, EncodeJson, Encoder)
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HKFG[F[_[_]], G[_]](run: F[G])
+}
+
+object DerivingPluginTest extends Properties("DerivingPlugin") {
+  import typeclasses.{Csv, Read}
+  import types._
+
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Equal: Read: Show](label: String) =
+    property(label) = forAllNoShrink((a: A) => {
+      (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
+      ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not equal") &&
+      ((implicitly[Decoder[A]].decodeJson(implicitly[Encoder[A]].apply(a)) match {
+        case Right(res) => res === a
+        case _ => false
+      }) :| "circe was not equal") &&
+      // can't really test `Read` because the implementations don't work for nested values
+      (implicitly[Show[A]].shows(a).nonEmpty :| "show/read was not equal")
+    })
+
+  proof[Foo]("Foo")
+  proof[Baz]("Baz")
+  proof[Test1]("Test1")
+  proof[Test2]("Test2")
+  proof[Test3]("Test3")
+  proof[Test4]("Test4")
+  proof[Test5]("Test5")
+  proof[Test6]("Test6")
+  proof[Test7]("Test7")
+  proof[Test8]("Test8")
+  proof[Test9]("Test9")
+  proof[Test10]("Test10")
+  proof[Test11]("Test11")
+  proof[Test12]("Test12")
+  proof[Test13]("Test13")
+  proof[Test14]("Test14")
+  proof[Test15]("Test15")
+  proof[Test16]("Test16")
+  proof[Test17]("Test17")
+  proof[Test18]("Test18")
+  proof[Test19]("Test19")
+  proof[Test20]("Test20")
+  proof[Test21]("Test21")
+  proof[Test22]("Test22")
+  proof[Multi]("Multi")
+  proof[TParams1[String]]("TParams1")
+  proof[TParams2[String, String]]("TParams2")
+  proof[TParams3[String, String, String]]("TParams3")
+  proof[TParams4[String, String, String, String]]("TParams4")
+  proof[TParams5[String, String, String, String, String]]("TParams5")
+  proof[TParams6[String, String, String, String, String, String]]("TParams6")
+  proof[TParams7[String, String, String, String, String, String, String]]("TParams7")
+  proof[TParams8[String, String, String, String, String, String, String, String]]("TParams8")
+  proof[TParams9[String, String, String, String, String, String, String, String, String]]("TParams9")
+  proof[TParams10[String, String, String, String, String, String, String, String, String, String]]("TParams10")
+  proof[TParams11[String, String, String, String, String, String, String, String, String, String, String]]("TParams11")
+  proof[TParams12[String, String, String, String, String, String, String, String, String, String, String, String]]("TParams12")
+  proof[TParams13[String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams13")
+  proof[TParams14[String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams14")
+  proof[TParams15[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams15")
+  proof[TParams16[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams16")
+  proof[TParams17[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams17")
+  proof[TParams18[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams18")
+  proof[TParams19[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams19")
+  proof[TParams20[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams20")
+  proof[TParams21[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams21")
+  proof[TParams22[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams22")
+  proof[HK1[TParams1, String]]("HK1")
+  proof[HK2[TParams2, String, String]]("HK2")
+  proof[HK3[TParams3, String, String, String]]("HK3")
+  proof[HK4[TParams4, String, String, String, String]]("HK4")
+  proof[HK5[TParams5, String, String, String, String, String]]("HK5")
+  proof[HK6[TParams6, String, String, String, String, String, String]]("HK6")
+  proof[HK7[TParams7, String, String, String, String, String, String, String]]("HK7")
+  proof[HK8[TParams8, String, String, String, String, String, String, String, String]]("HK8")
+  proof[HK9[TParams9, String, String, String, String, String, String, String, String, String]]("HK9")
+  proof[HK10[TParams10, String, String, String, String, String, String, String, String, String, String]]("HK10")
+  proof[HK11[TParams11, String, String, String, String, String, String, String, String, String, String, String]]("HK11")
+  proof[HK12[TParams12, String, String, String, String, String, String, String, String, String, String, String, String]]("HK12")
+  proof[HK13[TParams13, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK13")
+  proof[HK14[TParams14, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK14")
+  proof[HK15[TParams15, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK15")
+  proof[HK16[TParams16, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK16")
+  proof[HK17[TParams17, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK17")
+  proof[HK18[TParams18, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK18")
+  proof[HK19[TParams19, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK19")
+  proof[HK20[TParams20, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK20")
+  proof[HK21[TParams21, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK21")
+  proof[HK22[TParams22, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK22")
+  proof[HKFG[FConst[String]#T, Id]]("HKFG")
 }

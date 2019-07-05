@@ -2,7 +2,7 @@ package andxor
 
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, Lens, Monoid, PLens, StoreT}
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Equal, Functor, Lens, Monoid, PLens, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 import scalaz.Leibniz.===
@@ -34,6 +34,11 @@ object types {
   }
 
   import dummy._
+
+  @newtype case class ADTValue[A <: Singleton](value: A)
+  object ADTValue {
+    implicit def equal[A <: Singleton]: Equal[ADTValue[A]] = Equal.equal((a1, a2) => a1.value == a2.value)
+  }
 
   @newtype case class Prod2[F[_], A1[_[_]], A2[_[_]]](run: (A1[F], A2[F])) { self =>
     def t1: A1[F] = run._1

@@ -5,7 +5,7 @@
 
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Functor, Lens, Monoid, PLens, StoreT}
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Apply, Equal, Functor, Lens, Monoid, PLens, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 import scalaz.Leibniz.===
@@ -17,6 +17,11 @@ object types {
   }
 
   import dummy._
+
+  @@newtype case class ADTValue[A <: Singleton](value: A)
+  object ADTValue {
+    implicit def equal[A <: Singleton]: Equal[ADTValue[A]] = Equal.equal((a1, a2) => a1.value == a2.value)
+  }
 
   @tpeLists.filter(_.length >= 2).map { tpes =>
   @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) { self =>
