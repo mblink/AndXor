@@ -214,6 +214,26 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       }.head
     }
 
+    private case class Structural(t: g.Tree) {
+      override def hashCode: Int = 0
+      override def equals(other: Any): Boolean = other.isInstanceOf[g.Tree] && t.equalsStructure(other.asInstanceOf[g.Tree])
+    }
+    private var allPositions: Map[Structural, g.Position] = null
+    private def mkPositions(trees: List[g.Tree]): Map[Structural, g.Position] =
+      trees.foldLeft(Map[Structural, g.Position]())((acc, t) => acc ++ Map(Structural(t) -> t.pos) ++ mkPositions(t.children))
+
+    private def updatePos(trees: Vector[g.Tree], fallback: Option[g.Position]): Reader[LocalScope, Vector[g.Tree]] =
+      Reader { scope =>
+        if (allPositions == null) allPositions = mkPositions(scope.self.children)
+        val f = (_: Option[g.Position]).filter(_ != g.NoPosition)
+        trees.foreach { tree =>
+          val pos = f(allPositions.get(Structural(tree))).orElse(f(fallback))
+          pos.foreach(p => tree.setPos(new r.TransparentPosition(p.source, p.start, p.end, p.end)))
+          updatePos(tree.children.toVector, pos).run(scope)
+        }
+        trees
+      }
+
     private def updateTreeAndCompanion[A <: m.Stat: Extract[?, m.Mod]: Replace[?, m.Mod]: Named](
       orig: g.Tree,
       updF: (List[m.Mod.Annot], A, Option[m.Defn.Object]) => Reader[LocalScope, (Option[(A, Option[m.Defn.Object])], Vector[m.Stat])]
@@ -224,10 +244,10 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         companion = xCompanion.map(_._2)
         t = extractTrigger(tree)
         updated <- updF(t._1, t._2, companion)
-        upd = (_: Vector[m.Tree]).map(t => mTreeToGTree(t))
-        updA = upd(updated._1.map(_._1).toVector)
-        updCompanion = upd(updated._1.flatMap(_._2).toVector)
-        updExtra = upd(updated._2)
+        upd = (ts: Vector[m.Tree]) => updatePos(ts.map(mTreeToGTree), Some(orig.pos))
+        updA <- upd(updated._1.map(_._1).toVector)
+        updCompanion <- upd(updated._1.flatMap(_._2).toVector)
+        updExtra <- upd(updated._2)
       } yield updA ++ updCompanion ++ updExtra
 
     // responds to visiting all the parts of the tree and passes to decepticons
@@ -277,7 +297,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
           case (o: g.ModuleDef) +: tail if hasTrigger(o.mods) =>
             val (ann, cleaned) = extractTrigger(gTreeToMTree(o).asInstanceOf[m.Defn.Object])
             val (upd, extra) = update(ann, cleaned).run(scope)
-            go(tail, out ++ (upd.toVector ++ extra).map(x => mTreeToGTree(x)))
+            go(tail, out ++ updatePos((upd.toVector ++ extra).map(mTreeToGTree), None).run(scope))
 
           case (t: g.TypeDef) +: tail if hasTrigger(t.mods) =>
             go(withoutCompanion(t.name.companionName, tail), out ++ updateTreeAndCompanion[m.Defn.Type](t, update).run(scope))
