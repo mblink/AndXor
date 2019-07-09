@@ -55,7 +55,7 @@ lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   crossScalaVersions := scalaVersions,
   scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
-  version := "0.3.3",
+  version := "0.3.4",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -131,7 +131,7 @@ lazy val core = project.in(file("core"))
   .settings(testSettings)
   .settings(Seq(
     name := "andxor-core",
-    scalacOptions ++= enablePlugin((assembly in newtype).value)
+    scalacOptions ++= enablePlugin((Keys.`package` in Compile in newtype).value)
   ))
 
 lazy val argonaut = project.in(file("argonaut"))
@@ -165,49 +165,13 @@ lazy val scalacheck = project.in(file("scalacheck"))
   ))
   .dependsOn(core)
 
-lazy val scalametaV = "4.1.12"
-
-lazy val basePluginOptions = Seq(
+lazy val pluginOptions = Seq(
   scalacOptions -= "-Ywarn-unused:patvars",
-  libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "org.scalameta" %% "scalameta" % scalametaV,
-    "org.scalameta" %% "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-  )
+  scalacOptions in Test ++= enablePlugin((Keys.`package` in Compile).value),
+  libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
 )
 
 def enablePlugin(jar: File): Seq[String] = Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-
-lazy val pluginOptions = basePluginOptions ++ Seq(
-  scalacOptions in (Compile, console) ++= enablePlugin(assembly.value),
-  scalacOptions in Test ++= enablePlugin(assembly.value),
-  test.in(assembly) := {},
-  assemblyJarName.in(assembly) :=
-    name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
-  assemblyOption.in(assembly) ~= { _.copy(includeScala = false) },
-  Keys.`package`.in(Compile) := {
-    val slimJar = Keys.`package`.in(Compile).value
-    val fatJar = new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
-    val _ = assembly.value
-    IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
-    slimJar
-  },
-  packagedArtifact.in(Compile).in(packageBin) := {
-    val temp = packagedArtifact.in(Compile).in(packageBin).value
-    val (art, slimJar) = temp
-    val fatJar = new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
-    val _ = assembly.value
-    IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
-    (art, slimJar)
-  },
-  assemblyMergeStrategy.in(assembly) := {
-    case PathList("com", "sun", _*) => MergeStrategy.discard
-    case PathList("sun", _*) => MergeStrategy.discard
-    case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
-      oldStrategy(x)
-  }
-)
 
 def compilerPlugin(proj: Project, nme: String) =
   proj

@@ -1,12 +1,6 @@
 package andxor
 
 import scala.annotation.tailrec
-import scala.{meta => m}
-import scala.meta.contrib._
-import scala.meta.contrib.equality.Structurally
-import scala.meta.parsers._
-import scala.meta.quasiquotes._
-import scala.reflect.internal.{util => r}
 import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.transform.TypingTransformers
@@ -19,108 +13,117 @@ private[andxor] final case class Reader[A, B](run: A => B) {
 abstract class AnnotationPlugin(override val global: Global) extends Plugin { self =>
   val g: global.type = global
 
+  import global._
+
   override lazy val description: String =
     s"Generates code for annotations $triggers"
 
   /** Annotations that trigger the plugin */
   def triggers: List[String]
 
+  def isImplicitVal(v: ValDef): Boolean = v.mods.isImplicit
+  def isImplicitVal(vs: List[ValDef]): Boolean = vs.forall(isImplicitVal(_))
+
+  def ctorParams(klass: ClassDef): (List[List[ValDef]], Option[List[ValDef]]) =
+    klass.impl.body.collect { case d@DefDef(_, termNames.CONSTRUCTOR, _, _, _, impl) => d } match {
+      case DefDef(_, _, _, vh :: vt, _, _) :: Nil if !isImplicitVal(vh) =>
+        vt.span(!isImplicitVal(_)) match {
+          case (e, i :: Nil) => (vh :: e, Some(i))
+          case (e, Nil) => (vh :: e, None)
+          case _ => abort(s"Found more than one implicit parameter group for ${klass.name}")
+        }
+      case _ => abort(s"Failed to find exactly one constructor for ${klass.name}")
+    }
+
+  def freshName(prefix: String): String = currentFreshNameCreator.newName(prefix)
+
+  trait Get[A, T] { def get(a: A): T }
+  object Get {
+    def apply[A, T](f: A => T): Get[A, T] = new Get[A, T] { def get(a: A): T = f(a) }
+
+    implicit lazy val getClassMods: Get[ClassDef, Modifiers] = Get(_.mods)
+    implicit lazy val getObjMods: Get[ModuleDef, Modifiers] = Get(_.mods)
+    implicit lazy val getTypeMods: Get[TypeDef, Modifiers] = Get(_.mods)
+
+    implicit lazy val getClassStats: Get[ClassDef, List[Tree]] = Get(_.impl.body.flatMap(_ match {
+      case v: ValDef => if (v.mods.isCaseAccessor || v.mods.isParamAccessor) Nil else List(v)
+      case d: DefDef => if (d.name == termNames.CONSTRUCTOR) Nil else List(d)
+    }))
+    implicit lazy val getObjStats: Get[ModuleDef, List[Tree]] = Get(_.impl.body)
+  }
+  implicit class GetOps[A](a: A) {
+    def get[T](implicit g: Get[A, T]): T = g.get(a)
+  }
+
+  trait Set0[A, T] { def set(a: A, t: T): A }
+  object Set0 {
+    def apply[A, T](f: (A, T) => A): Set0[A, T] = new Set0[A, T] { def set(a: A, t: T): A = f(a, t) }
+
+    implicit lazy val setClassMods: Set0[g.ClassDef, g.Modifiers] = Set0((x, m) => treeCopy.ClassDef(x, m, x.name, x.tparams, x.impl))
+    implicit lazy val setObjMods: Set0[g.ModuleDef, g.Modifiers] = Set0((x, m) => treeCopy.ModuleDef(x, m, x.name, x.impl))
+    implicit lazy val setTypeMods: Set0[g.TypeDef, g.Modifiers] = Set0((x, m) => treeCopy.TypeDef(x, m, x.name, x.tparams, x.rhs))
+  }
+  implicit class Set0Ops[A](a: A) {
+    def set[T](t: T)(implicit s: Set0[A, T]): A = s.set(a, t)
+  }
+
   case class LocalScope(
     self: g.Tree,
-    classes: Map[String, (g.ClassDef, m.Defn.Class)],
-    objects: Map[String, (g.ModuleDef, m.Defn.Object)],
-    traits: Map[String, (g.ClassDef, m.Defn.Trait)],
-    types: Map[String, (g.TypeDef, m.Defn.Type)]
+    classes: Map[String, g.ClassDef],
+    objects: Map[String, g.ModuleDef],
+    traits: Map[String, g.ClassDef],
+    types: Map[String, g.TypeDef]
   )
 
-  def error(pos: m.inputs.Position, msg: String): Unit = pos.input match {
-    case m.Input.File(path, _) => g.globalError(r.Position.range(g.getSourceFile(path.toString), pos.start, pos.start, pos.end), msg)
-    case _ => g.error(msg)
-  }
+  def error(pos: g.Position, msg: String): Unit = g.globalError(pos, msg)
 
-  def update(
-    @deprecated("unused", "") anns: List[m.Mod.Annot],
-    klass: m.Defn.Class,
-    companion: Option[m.Defn.Object]
-  ): Reader[LocalScope, (Option[(m.Defn.Class, Option[m.Defn.Object])], Vector[m.Stat])] =
+  def updateClass(
+    @deprecated("unused", "") anns: List[g.Tree],
+    klass: g.ClassDef,
+    companion: Option[g.ModuleDef]
+  ): Reader[LocalScope, (Option[(g.ClassDef, Option[g.ModuleDef])], Vector[g.Tree])] =
     Reader(_ => (Some((klass, companion)), Vector()))
 
-  def update(
-    @deprecated("unused", "") anns: List[m.Mod.Annot],
-    obj: m.Defn.Object
-  ): Reader[LocalScope, (Option[m.Defn.Object], Vector[m.Stat])] =
+  def updateObject(
+    @deprecated("unused", "") anns: List[g.Tree],
+    obj: g.ModuleDef
+  ): Reader[LocalScope, (Option[g.ModuleDef], Vector[g.Tree])] =
     Reader(_ => (Some(obj), Vector()))
 
-  def update(
-    @deprecated("unused", "") anns: List[m.Mod.Annot],
-    tr: m.Defn.Trait,
-    companion: Option[m.Defn.Object]
-  ): Reader[LocalScope, (Option[(m.Defn.Trait, Option[m.Defn.Object])], Vector[m.Stat])] =
+  def updateTrait(
+    @deprecated("unused", "") anns: List[g.Tree],
+    tr: g.ClassDef,
+    companion: Option[g.ModuleDef]
+  ): Reader[LocalScope, (Option[(g.ClassDef, Option[g.ModuleDef])], Vector[g.Tree])] =
     Reader(_ => (Some((tr, companion)), Vector()))
 
-  def update(
-    @deprecated("unused", "") anns: List[m.Mod.Annot],
-    tpe: m.Defn.Type,
-    companion: Option[m.Defn.Object]
-  ): Reader[LocalScope, (Option[(m.Defn.Type, Option[m.Defn.Object])], Vector[m.Stat])] =
+  def updateType(
+    @deprecated("unused", "") anns: List[g.Tree],
+    tpe: g.TypeDef,
+    companion: Option[g.ModuleDef]
+  ): Reader[LocalScope, (Option[(g.TypeDef, Option[g.ModuleDef])], Vector[g.Tree])] =
     Reader(_ => (Some((tpe, companion)), Vector()))
 
-  trait Named[A] { def name(a: A): m.Name }
-  object Named {
-    implicit val namedClass: Named[m.Defn.Class] = new Named[m.Defn.Class] { def name(a: m.Defn.Class): m.Name = a.name }
-    implicit val namedObject: Named[m.Defn.Object] = new Named[m.Defn.Object] { def name(a: m.Defn.Object): m.Name = a.name }
-    implicit val namedPkg: Named[m.Pkg] = new Named[m.Pkg] { def name(a: m.Pkg): m.Name = a.name }
-    implicit val namedTrait: Named[m.Defn.Trait] = new Named[m.Defn.Trait] { def name(a: m.Defn.Trait): m.Name = a.name }
-    implicit val namedType: Named[m.Defn.Type] = new Named[m.Defn.Type] { def name(a: m.Defn.Type): m.Name = a.name }
-  }
-  implicit class NamedOps[A](a: A)(implicit n: Named[A]) { def name: m.Name = n.name(a) }
-
-  def genCompanion[A <: m.Tree: Extract[?, m.Mod]: Named](tree: A): m.Defn.Object = {
-    val (name, mods) = (tree.name, tree.extract[m.Mod])
-    val objMods = mods.collectFirst { case p: m.Mod.Private => p }
-      .orElse(mods.collectFirst { case p: m.Mod.Protected => p })
-      .toList
-
-    val isCase = mods.collectFirst { case _: m.Mod.Case => () }.nonEmpty
+  def genCompanion[A <: g.NameTree: Get[?, g.Modifiers]](tree: A): g.ModuleDef = {
+    val (name, mods) = (tree.name, tree.get[g.Modifiers])
+    val objMods = Option(Modifiers(g.Flag.PRIVATE)).filter(_ => mods.isPrivate)
+      .orElse(Option(Modifiers(g.Flag.PROTECTED)).filter(_ => mods.isProtected))
+      .getOrElse(Modifiers())
 
     def toString_ =
-      q"override def toString: _root_.java.lang.String = ${m.Lit.String(name.value)}"
+      q"override def toString: _root_.java.lang.String = ${g.Literal(g.Constant(tree.name.companionName.decode))}"
 
-    q"""..$objMods object ${m.Term.Name(name.value)} extends _root_.scala.AnyRef {
-      ..${if (isCase) List(toString_) else Nil}
+    q"""$objMods object ${g.TermName(name.decode)} extends _root_.scala.AnyRef {
+      ..${if (mods.isCase) List(toString_) else Nil}
     }"""
   }
 
-  def regenObject(obj: m.Defn.Object, extras: List[m.Stat]): m.Defn.Object =
+  def regenObject(obj: g.ModuleDef, extras: List[g.Tree]): g.ModuleDef =
     extras match {
       case Nil => obj
-      case x   => obj.withStats(obj.extract[m.Stat] ::: x)
+      case x => treeCopy.ModuleDef(obj, obj.mods, obj.name,
+        treeCopy.Template(obj.impl, obj.impl.parents, obj.impl.self, obj.impl.body ::: x))
     }
-
-  implicit class TreeOps(tree: m.Tree) {
-    private def isOwner(t: m.Tree): Boolean =
-      t match {
-        case _: m.Source | _: m.Pkg | _: m.Defn => true
-        case _ => false
-      }
-
-    def owner: Option[m.Tree] =
-      tree.parent.flatMap {
-        case x: m.Term.Block => x.owner
-        case x: m.Template => x.owner
-        case x if isOwner(x) => Some(x)
-        case _ => None
-      }
-  }
-
-  implicit val replacePkgObjectStats: Replace[m.Pkg, m.Stat] =
-    Replace((a, bs) => a.copy(stats = bs))
-
-  implicit val extractTermBlockStats: Extract[m.Term.Block, m.Stat] =
-    Extract(_.stats)
-
-  implicit val replaceTermBlockStats: Replace[m.Term.Block, m.Stat] =
-    Replace((a, bs) => a.copy(stats = bs))
 
   private case class PrettyPrinter(level: Int, inQuotes: Boolean, backslashed: Boolean) {
     val indent = List.fill(level)("  ").mkString
@@ -147,24 +150,11 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       (newPP, sb.append(res))
     }._2.toString.replaceAll("""\(\s+\)""", "()")
 
-  private def showTree(tree: m.Tree, pretty: Boolean): String =
-    if (pretty) prettyPrint(tree.structure) else tree.structure
+  private def showTree(tree: g.Tree, pretty: Boolean): String =
+    if (pretty) prettyPrint(g.showRaw(tree)) else g.showRaw(tree)
 
-  // best way to inspect a tree, just call this
-  def debug(name: String, tree: m.Tree, pretty: Boolean = true): Unit =
-    println(s"===\n$name ${tree.pos}:\n${tree.syntax}\n${showTree(tree, pretty)}")
-
-  // recovers the final part of an annotation
-  def annotationName(ann: m.Mod.Annot): String =
-    ann.init.tpe match {
-      case m.Type.Name(name) => name
-      case m.Type.Select(_, m.Type.Name(name)) => name
-      case _ =>
-        error(ann.pos, s"no name for $ann")
-        ""
-    }
-
-  def structurallyEqual(t1: m.Tree, t2: m.Tree): Boolean = t1.isEqual[Structurally](t2)
+  def debug(name: String, tree: g.Tree, pretty: Boolean = true): Unit =
+    println(s"===\n$name ${tree.pos}:\n${g.showCode(tree)}\n${showTree(tree, pretty)}")
 
   private def phase = new PluginComponent with TypingTransformers {
     override val phaseName: String = AnnotationPlugin.this.name
@@ -193,61 +183,33 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
 
     private def hasTrigger(mods: g.Modifiers): Boolean = Triggers.exists(mods.hasAnnotationNamed)
 
-    private def extractTrigger[A <: m.Tree: Extract[?, m.Mod]: Replace[?, m.Mod]](tree: A): (List[m.Mod.Annot], A) = {
-      val trigger = getTriggers(tree.extract[m.Mod])
-      val update = tree.withMods(tree.extract[m.Mod].filterNot(trigger.contains(_)))
-      (trigger, update)
+    private def extractTrigger[A <: g.Tree: Get[?, g.Modifiers]: Set0[?, g.Modifiers]](tree: A): (List[g.Tree], A) = {
+      val mods = tree.get[g.Modifiers]
+      val (triggers, rest) = getTriggers(mods.annotations)
+      val update = tree.set(mods.mapAnnotations(_ => rest))
+      (triggers, update)
     }
 
-    private def getTriggers(mods: List[m.Mod]): List[m.Mod.Annot] =
-      mods.collect {
-        case a: m.Mod.Annot if triggers.contains(annotationName(a)) => a
-      }
+    private def getTriggers(anns: List[g.Tree]): (List[g.Tree], List[g.Tree]) =
+      anns.partition(a => Triggers.exists(isNamed(a, _)))
 
-    private def gTreeToMTree(gTree: g.Tree): m.Tree = g.showCode(gTree).parse[m.Stat].get
-
-    private def mTreeToGTree(mTree: m.Tree): g.Tree = {
-      val objName = g.currentFreshNameCreator.newName("_annotation_plugin_")
-      g.newUnitParser(s"object $objName { ${mTree.syntax} }", g.currentSource.path).smartParse().collect {
-        case g.ModuleDef(_, g.TermName(`objName`), g.Template(_, _,
-          g.DefDef(_, g.nme.CONSTRUCTOR, _, _, _, _) :: t :: Nil)) => t
-      }.head
+    private def isNamed(t: g.Tree, name: g.TypeName) = t match {
+      case Apply(Select(New(Ident(`name`)), _), _)     => true
+      case Apply(Select(New(Select(_, `name`)), _), _) => true
+      case _                                           => false
     }
 
-    private case class Structural(t: g.Tree) {
-      override def hashCode: Int = 0
-      override def equals(other: Any): Boolean = other.isInstanceOf[g.Tree] && t.equalsStructure(other.asInstanceOf[g.Tree])
-    }
-    private var allPositions: Map[Structural, g.Position] = null
-    private def mkPositions(trees: List[g.Tree]): Map[Structural, g.Position] =
-      trees.foldLeft(Map[Structural, g.Position]())((acc, t) => acc ++ Map(Structural(t) -> t.pos) ++ mkPositions(t.children))
-
-    private def updatePos(trees: Vector[g.Tree], fallback: Option[g.Position]): Reader[LocalScope, Vector[g.Tree]] =
-      Reader { scope =>
-        if (allPositions == null) allPositions = mkPositions(scope.self.children)
-        val f = (_: Option[g.Position]).filter(_ != g.NoPosition)
-        trees.foreach { tree =>
-          val pos = f(allPositions.get(Structural(tree))).orElse(f(fallback))
-          pos.foreach(p => tree.setPos(new r.TransparentPosition(p.source, p.start, p.end, p.end)))
-          updatePos(tree.children.toVector, pos).run(scope)
-        }
-        trees
-      }
-
-    private def updateTreeAndCompanion[A <: m.Stat: Extract[?, m.Mod]: Replace[?, m.Mod]: Named](
-      orig: g.Tree,
-      updF: (List[m.Mod.Annot], A, Option[m.Defn.Object]) => Reader[LocalScope, (Option[(A, Option[m.Defn.Object])], Vector[m.Stat])]
+    private def updateTreeAndCompanion[A <: g.NameTree: Get[?, g.Modifiers]: Set0[?, g.Modifiers]](
+      tree: A,
+      updF: (List[g.Tree], A, Option[g.ModuleDef]) => Reader[LocalScope, (Option[(A, Option[g.ModuleDef])], Vector[g.Tree])]
     ): Reader[LocalScope, Vector[g.Tree]] =
       for {
-        tree <- Reader((_: LocalScope) => gTreeToMTree(orig).asInstanceOf[A])
-        xCompanion <- Reader((_: LocalScope).objects.get(tree.name.value))
-        companion = xCompanion.map(_._2)
+        companion <- Reader((_: LocalScope).objects.get(tree.name.decode))
         t = extractTrigger(tree)
         updated <- updF(t._1, t._2, companion)
-        upd = (ts: Vector[m.Tree]) => updatePos(ts.map(mTreeToGTree), Some(orig.pos))
-        updA <- upd(updated._1.map(_._1).toVector)
-        updCompanion <- upd(updated._1.flatMap(_._2).toVector)
-        updExtra <- upd(updated._2)
+        updA = updated._1.map(_._1).toVector
+        updCompanion = updated._1.flatMap(_._2).toVector
+        updExtra = updated._2
       } yield updA ++ updCompanion ++ updExtra
 
     // responds to visiting all the parts of the tree and passes to decepticons
@@ -271,18 +233,18 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         case _ => true
       })
 
-    private def getLocals[A <: g.NameTree, B <: m.Stat](trees: List[g.Tree])(pf: PartialFunction[g.Tree, A]): Map[String, (A, B)] =
-      trees.flatMap(pf.lift(_).map(a => a.name.decodedName.toString -> ((a, gTreeToMTree(a).asInstanceOf[B])))).toMap
+    private def getLocals[A <: g.NameTree](trees: List[g.Tree])(pf: PartialFunction[g.Tree, A]): Map[String, A] =
+      trees.flatMap(pf.lift(_).map(a => a.name.decodedName.toString -> a)).toMap
 
-    private def isTrait(c: g.ClassDef): Boolean = c.mods.hasFlag(g.Flag.TRAIT)
+    private def isTrait(c: g.ClassDef): Boolean = c.mods.isTrait
 
     def decepticons(scopeSelf: g.Tree, trees: List[g.Tree]): List[g.Tree] = {
       lazy val scope = LocalScope(
         scopeSelf,
-        getLocals[g.ClassDef, m.Defn.Class](trees) { case c: g.ClassDef if !isTrait(c) => c },
-        getLocals[g.ModuleDef, m.Defn.Object](trees) { case o: g.ModuleDef => o },
-        getLocals[g.ClassDef, m.Defn.Trait](trees) { case t: g.ClassDef if isTrait(t) => t },
-        getLocals[g.TypeDef, m.Defn.Type](trees) { case t: g.TypeDef => t })
+        getLocals[g.ClassDef](trees) { case c: g.ClassDef if !isTrait(c) => c },
+        getLocals[g.ModuleDef](trees) { case o: g.ModuleDef => o },
+        getLocals[g.ClassDef](trees) { case t: g.ClassDef if isTrait(t) => t },
+        getLocals[g.TypeDef](trees) { case t: g.TypeDef => t })
 
       @tailrec
       def go(queue: Vector[g.Tree], out: Vector[g.Tree]): Vector[g.Tree] =
@@ -291,16 +253,16 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
 
           case (c: g.ClassDef) +: tail if hasTrigger(c.mods) =>
             go(withoutCompanion(c.name.companionName, tail), out ++
-              (if (isTrait(c)) updateTreeAndCompanion[m.Defn.Trait](c, update)
-               else updateTreeAndCompanion[m.Defn.Class](c, update)).run(scope))
+              (if (isTrait(c)) updateTreeAndCompanion(c, updateTrait)
+               else updateTreeAndCompanion(c, updateClass)).run(scope))
 
           case (o: g.ModuleDef) +: tail if hasTrigger(o.mods) =>
-            val (ann, cleaned) = extractTrigger(gTreeToMTree(o).asInstanceOf[m.Defn.Object])
-            val (upd, extra) = update(ann, cleaned).run(scope)
-            go(tail, out ++ updatePos((upd.toVector ++ extra).map(mTreeToGTree), None).run(scope))
+            val (ann, cleaned) = extractTrigger(o)
+            val (upd, extra) = updateObject(ann, cleaned).run(scope)
+            go(tail, out ++ upd.toVector ++ extra)
 
           case (t: g.TypeDef) +: tail if hasTrigger(t.mods) =>
-            go(withoutCompanion(t.name.companionName, tail), out ++ updateTreeAndCompanion[m.Defn.Type](t, update).run(scope))
+            go(withoutCompanion(t.name.companionName, tail), out ++ updateTreeAndCompanion(t, updateType).run(scope))
 
           case t +: tail => go(tail, out :+ t)
         }
