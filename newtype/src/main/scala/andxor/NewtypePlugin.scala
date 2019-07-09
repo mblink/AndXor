@@ -1,10 +1,10 @@
 package andxor
 
-import scala.meta._
-import scala.meta.contrib._
 import scala.tools.nsc.Global
 
-class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
+class NewtypePlugin(override val global: Global) extends AnnotationPlugin(global) { self =>
+  import global._
+
   private val newtype = "newtype"
 
   val name: String = newtype
@@ -12,46 +12,46 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
 
   implicit class LocalScopeOps(scope: LocalScope) {
     def inObject: Boolean = scope.self match {
-      case _: Defn.Object | _: Pkg.Object => true
+      case _: g.ModuleDef => true
       case _ => false
     }
   }
 
-  override def update(
-    anns: List[Mod.Annot],
-    klass: Defn.Class,
-    companionO: Option[Defn.Object]
-  ): Reader[LocalScope, (Option[(Defn.Class, Option[Defn.Object])], Vector[Stat])] =
+  override def updateClass(
+    anns: List[Tree],
+    klass: ClassDef,
+    companionO: Option[ModuleDef]
+  ): Reader[LocalScope, (Option[(ClassDef, Option[ModuleDef])], Vector[Tree])] =
     genNewType(klass, companionO)(
       _.name,
-      _.ctor.paramss match {
-        case List(List(p)) => p.withMods(Mod.ValParam() :: p.extract[Mod])
+      c => ctorParams(c) match {
+        case (List(List(p)), _) => p
         case _ => g.error("newtype class constructor must have exactly one parameter"); null
       },
       _.tparams).map { case (tpe, tr, companion) => (None, Vector(tpe, tr, companion)) }
 
-  override def update(
-    anns: List[Mod.Annot],
-    tpeDef: Defn.Type,
-    companionO: Option[Defn.Object]
-  ): Reader[LocalScope, (Option[(Defn.Type, Option[Defn.Object])], Vector[Stat])] = {
-    implicit val extractTpeStats: Extract[Defn.Type, Stat] = Extract(_ => Nil)
+  override def updateType(
+    anns: List[Tree],
+    tpeDef: TypeDef,
+    companionO: Option[ModuleDef]
+  ): Reader[LocalScope, (Option[(TypeDef, Option[ModuleDef])], Vector[Tree])] = {
+    implicit val getTpeStats: Get[TypeDef, List[Tree]] = Get(_ => Nil)
 
     genNewType(tpeDef, companionO)(
       _.name,
-      t => Term.Param(List(Mod.ValParam()), Term.Name("value"), Some(t.body), None),
+      t => ValDef(Modifiers(Flag.PARAM), TermName("value"), t.rhs, EmptyTree),
       _.tparams).map { case (upd, tr, companion) => (Some((upd, Some(companion))), Vector(tr)) }
   }
 
-  private def maybeGenerateGetter(param: Term.Param): Option[Defn.Def] =
-    if (param.mods.has[Mod.ValParam] && !param.mods.has[Mod.Private])
-      Some(q"def ${Term.Name(param.name.value)}: ${param.decltpe.get} = $$this$$.asInstanceOf[${param.decltpe.get}]")
+  private def maybeGenerateGetter(param: ValDef): Option[DefDef] =
+    if (param.mods.hasFlag(Flag.PARAM) && !param.mods.isPrivate)
+      Some(q"def ${param.name}: ${param.tpt.duplicate} = $$this$$.asInstanceOf[${param.tpt.duplicate}]")
     else None
 
-  private def genExtraMethods(extras: List[Stat]): List[Stat] =
+  private def genExtraMethods(extras: List[Tree]): List[Tree] =
     extras.flatMap(_ match {
-      case d: Defn.Def => List(d)
-      case v: Defn.Val =>
+      case d: DefDef => List(d)
+      case v: ValDef =>
         error(v.pos, "val definitions not supported, use def instead")
         Nil
       case x =>
@@ -60,66 +60,67 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
     })
 
   private def generateOps(
-    param: Term.Param,
-    extras: List[Stat],
-    tparams: List[Type.Param],
-    tparamsNoMods: List[Type.Param],
-    tparamNames: List[Type.Name]
-  ): Reader[LocalScope, List[Stat]] = Reader { scope =>
+    param: ValDef,
+    extras: List[Tree],
+    tparams: () => List[TypeDef],
+    tparamsNoMods: List[TypeDef] => List[TypeDef],
+    tparamNames: () => List[Tree]
+  ): Reader[LocalScope, List[Tree]] = Reader { scope =>
     val extensionMethods = maybeGenerateGetter(param).toList ++ genExtraMethods(extras)
-    val opsParent = Init(if (scope.inObject) t"_root_.scala.AnyVal" else t"_root_.scala.AnyRef", Name.Anonymous(), Nil)
+    val opsParent = List(if (scope.inObject) tq"_root_.scala.AnyVal" else tq"_root_.scala.AnyRef")
+    val ts = tparams()
     if (extensionMethods.isEmpty) Nil
     // else if scope.inObject
-    else if (tparams.isEmpty) List(
-      q"implicit final class Ops$$newtype(val $$this$$: Type) extends $opsParent { ..$extensionMethods }",
+    else if (ts.isEmpty) List(
+      q"implicit final class Ops$$newtype(val $$this$$: Type) extends ..$opsParent { ..$extensionMethods }",
       q"implicit def opsThis(x: Ops$$newtype): Type = x.$$this$$"
     )
     else List(
-      q"implicit final class Ops$$newtype[..$tparams](val $$this$$: Type[..$tparamNames]) extends $opsParent { ..$extensionMethods }",
-      q"implicit def opsThis[..$tparamsNoMods](x: Ops$$newtype[..$tparamNames]): Type[..$tparamNames] = x.$$this$$"
+      q"implicit final class Ops$$newtype[..$ts](val $$this$$: Type[..${tparamNames()}]) extends ..$opsParent { ..$extensionMethods }",
+      q"implicit def opsThis[..${tparamsNoMods(ts)}](x: Ops$$newtype[..${tparamNames()}]): Type[..${tparamNames()}] = x.$$this$$"
     )
   }
 
-  private def mkBaseTypeDef(tpeName: Type.Name): Defn.Type =
-    q"type Base = _root_.scala.Any { type ${Type.Name(s"__${tpeName.value}__newtype")} } "
+  private def mkBaseTypeDef(tpeName: TypeName): TypeDef =
+    q"type Base = _root_.scala.Any { type ${TypeName(s"__${tpeName.decode}__newtype")} } "
 
-  private def mkTypeTypeDef(tparams: List[Type.Param], tparamNames: List[Type.Name]): Decl.Type =
-    q"type Type[..$tparams] <: Base with ${if (tparams.isEmpty) t"Tag" else t"Tag[..$tparamNames]"}"
+  private def mkTypeTypeDef(tparams: () => List[TypeDef], tparamNames: () => List[Tree]): TypeDef = tparams() match {
+    case Nil => q"type Type <: Base with Tag"
+    case ts => q"type Type[..$ts] <: Base with Tag[..${tparamNames()}]"
+  }
 
-  private def genNewType[A <: Defn: Extract[?, Mod]: Extract[?, Stat]: Named](defn: A, companionO: Option[Defn.Object])(
-    getName: A => Type.Name,
-    getParam: A => Term.Param,
-    getTparams: A => List[Type.Param]
-  ): Reader[LocalScope, (Defn.Type, Defn.Trait, Defn.Object)] = Reader { scope =>
+  private def genNewType[A <: NameTree: Get[?, Modifiers]: Get[?, List[Tree]]](defn: A, companionO: Option[ModuleDef])(
+    getName: A => TypeName,
+    getParam: A => ValDef,
+    getTparams: A => List[TypeDef]
+  ): Reader[LocalScope, (TypeDef, ClassDef, ModuleDef)] = Reader { scope =>
     val companion = companionO.getOrElse(genCompanion(defn))
-    val tpeName: Type.Name = getName(defn)
-    val param: Term.Param = getParam(defn)
-    val reprTpe: Type = param.decltpe.get
-    val tparams = getTparams(defn)
-    val tparamNames: List[Type.Name] = tparams.map(p => Type.Name(p.name.value))
-    val tparamsNoMods: List[Type.Param] = tparams.map(_.withMods(Nil))
+    val tpeName: TypeName = getName(defn)
+    val param: ValDef = getParam(defn)
+    val tparams = () => getTparams(defn).map(_.duplicate)
+    val tparamNames = () => tparams().map(t => Ident(t.name).duplicate)
+    val tparamsNoMods = (_: List[TypeDef]).map(t => treeCopy.TypeDef(t, Modifiers(), t.name, t.tparams, t.rhs))
+    val ts = tparams()
 
-    val applyMethod: Defn.Def =
-      if (tparams.isEmpty) q"def apply(x: $reprTpe): $tpeName = x.asInstanceOf[$tpeName]"
-      else q"def apply[..$tparamsNoMods](x: $reprTpe): $tpeName[..$tparamNames] = x.asInstanceOf[$tpeName[..$tparamNames]]"
+    val applyMethod: DefDef =
+      if (ts.isEmpty) q"def apply(x: ${param.tpt.duplicate}): $tpeName = x.asInstanceOf[$tpeName]"
+      else q"def apply[..${tparamsNoMods(ts)}](x: ${param.tpt.duplicate}): $tpeName[..${tparamNames()}] = x.asInstanceOf[$tpeName[..${tparamNames()}]]"
 
-    val unapplyMethod: Defn.Def =
-      if (tparams.isEmpty) q"""def unapply(x: $tpeName): Some[$reprTpe] = Some(x.asInstanceOf[$reprTpe])"""
-      else q"def unapply[..$tparamsNoMods](x: $tpeName[..$tparamNames]): Some[$reprTpe] = Some(x.asInstanceOf[$reprTpe])"
+    val unapplyMethod: DefDef =
+      if (ts.isEmpty) q"""def unapply(x: $tpeName): Some[${param.tpt.duplicate}] = Some(x.asInstanceOf[${param.tpt.duplicate}])"""
+      else q"def unapply[..${tparamsNoMods(ts)}](x: $tpeName[..${tparamNames()}]): Some[${param.tpt.duplicate}] = Some(x.asInstanceOf[${param.tpt.duplicate}])"
 
     val companionExtras =
       applyMethod ::
       unapplyMethod ::
-      generateOps(param, defn.extract[Stat], tparams, tparamsNoMods, tparamNames).run(scope)
+      generateOps(param, defn.get[List[Tree]], tparams, tparamsNoMods, tparamNames).run(scope)
       // generateCoercibleInstances(tparamsNoVar, tparamNames, tparamsWild) :::
       // generateDerivingMethods(tparamsNoVar, tparamNames, tparamsWild)
 
-    val typesTraitName = Type.Name(s"${tpeName.value}__Types")
-    val objDef = companion.copy(templ = companion.templ.copy(
-      inits = companion.templ.inits :+ Init(typesTraitName, Name.Anonymous(), Nil),
-      stats = companion.templ.stats ++ companionExtras
-    ))
-    val objTpe = Type.Select(objDef.name, t"Type")
+    val typesTraitName = TypeName(s"${tpeName.decode}__Types")
+    val objDef = treeCopy.ModuleDef(companion, companion.mods, companion.name,
+      treeCopy.Template(companion.impl, companion.impl.parents :+ Ident(typesTraitName), companion.impl.self, companion.impl.body ++ companionExtras))
+    val objTpe = Select(Ident(objDef.name), TypeName("Type"))
 
     // Note that we use an abstract type alias
     // `type Type <: Base with Tag` and not `type Type = ...` to prevent
@@ -132,13 +133,13 @@ class NewtypePlugin(global: Global) extends AnnotationPlugin(global) { self =>
     val tpeTpeDef = mkTypeTypeDef(tparams, tparamNames)
 
     val (a, b, c) = (
-      q"type $tpeName[..$tparams] = ${if (tparams.isEmpty) objTpe else t"$objTpe[..$tparamNames]"}",
+      q"type $tpeName[..${ts}] = ${if (ts.isEmpty) objTpe else tq"$objTpe[..${tparamNames()}]"}",
       q"""
       trait $typesTraitName {
         ..${List(
-          q"type Repr[..$tparams] = $reprTpe",
+          q"type Repr[..${ts}] = ${param.tpt.duplicate}",
           baseTpeDef,
-          q"trait Tag[..$tparams] extends _root_.scala.Any",
+          q"trait Tag[..${ts}] extends _root_.scala.Any",
           tpeTpeDef
         )}
       }

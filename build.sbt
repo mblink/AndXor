@@ -1,4 +1,4 @@
-lazy val scalaVersions = Seq("2.11.12", "2.12.8", "2.13.0")
+lazy val scalaVersions = Seq("2.12.8", "2.13.0")
 
 lazy val splainSettings = Seq(
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
@@ -9,19 +9,16 @@ lazy val splainSettings = Seq(
   )
 )
 
-lazy val scala211_212_opts = Seq(
+lazy val scala212_opts = Seq(
   "-Xfuture",
+  "-Xlint:by-name-right-associative",
+  "-Xlint:unsound-match",
   "-Yno-adapted-args",
   "-Ypartial-unification",
   "-Ywarn-inaccessible",
   "-Ywarn-infer-any",
   "-Ywarn-nullary-override",
   "-Ywarn-nullary-unit"
-)
-
-lazy val scala212_opts = Seq(
-  "-Xlint:by-name-right-associative",
-  "-Xlint:unsound-match"
 )
 
 lazy val scala212_213_opts = Seq(
@@ -51,11 +48,18 @@ lazy val scala212_213_opts = Seq(
   "-Ycache-macro-class-loader:last-modified"
 )
 
+def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
+  CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, 12)) => Seq(srcBaseDir / srcName / "scala-2.12")
+    case Some((2, 13)) => Seq(srcBaseDir / srcName / "scala-2.13")
+    case _ => Seq()
+  }
+
 lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   crossScalaVersions := scalaVersions,
   scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
-  version := "0.3.3",
+  version := "0.3.4",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -72,14 +76,15 @@ lazy val baseSettings = splainSettings ++ Seq(
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard"
   ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 11)) => Seq("-Xlint", "-Ywarn-unused") ++ scala211_212_opts
-    case Some((2, 12)) => scala211_212_opts ++ scala212_opts ++ scala212_213_opts
+    case Some((2, 12)) => scala212_opts ++ scala212_213_opts
     case Some((2, 13)) => scala212_213_opts
     case _ => Seq()
   }),
   scalacOptions in (Compile, console) := scalacOptions.value.filterNot(x =>
     x.startsWith("-Ywarn-unused") || x.startsWith("-Xlint") || x.startsWith("-P:splain")),
   scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value,
+  unmanagedSourceDirectories in Compile ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
+  unmanagedSourceDirectories in Test ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
   skip in publish := true,
   publishArtifact in (Compile, packageDoc) := false,
   publishArtifact in packageDoc := false,
@@ -131,7 +136,7 @@ lazy val core = project.in(file("core"))
   .settings(testSettings)
   .settings(Seq(
     name := "andxor-core",
-    scalacOptions ++= enablePlugin((assembly in newtype).value)
+    scalacOptions ++= enablePlugin((Keys.`package` in Compile in newtype).value)
   ))
 
 lazy val argonaut = project.in(file("argonaut"))
@@ -165,49 +170,13 @@ lazy val scalacheck = project.in(file("scalacheck"))
   ))
   .dependsOn(core)
 
-lazy val scalametaV = "4.1.12"
-
-lazy val basePluginOptions = Seq(
+lazy val pluginOptions = Seq(
   scalacOptions -= "-Ywarn-unused:patvars",
-  libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    "org.scalameta" %% "scalameta" % scalametaV,
-    "org.scalameta" %% "semanticdb-scalac-core" % scalametaV cross CrossVersion.full
-  )
+  scalacOptions in Test ++= enablePlugin((Keys.`package` in Compile).value),
+  libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
 )
 
 def enablePlugin(jar: File): Seq[String] = Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
-
-lazy val pluginOptions = basePluginOptions ++ Seq(
-  scalacOptions in (Compile, console) ++= enablePlugin(assembly.value),
-  scalacOptions in Test ++= enablePlugin(assembly.value),
-  test.in(assembly) := {},
-  assemblyJarName.in(assembly) :=
-    name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
-  assemblyOption.in(assembly) ~= { _.copy(includeScala = false) },
-  Keys.`package`.in(Compile) := {
-    val slimJar = Keys.`package`.in(Compile).value
-    val fatJar = new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
-    val _ = assembly.value
-    IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
-    slimJar
-  },
-  packagedArtifact.in(Compile).in(packageBin) := {
-    val temp = packagedArtifact.in(Compile).in(packageBin).value
-    val (art, slimJar) = temp
-    val fatJar = new File(crossTarget.value + "/" + assemblyJarName.in(assembly).value)
-    val _ = assembly.value
-    IO.copy(List(fatJar -> slimJar), CopyOptions().withOverwrite(true))
-    (art, slimJar)
-  },
-  assemblyMergeStrategy.in(assembly) := {
-    case PathList("com", "sun", _*) => MergeStrategy.discard
-    case PathList("sun", _*) => MergeStrategy.discard
-    case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
-      oldStrategy(x)
-  }
-)
 
 def compilerPlugin(proj: Project, nme: String) =
   proj
