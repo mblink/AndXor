@@ -1,4 +1,4 @@
-lazy val scalaVersions = Seq("2.11.12", "2.12.8", "2.13.0")
+lazy val scalaVersions = Seq("2.12.8", "2.13.0")
 
 lazy val splainSettings = Seq(
   addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
@@ -9,19 +9,16 @@ lazy val splainSettings = Seq(
   )
 )
 
-lazy val scala211_212_opts = Seq(
+lazy val scala212_opts = Seq(
   "-Xfuture",
+  "-Xlint:by-name-right-associative",
+  "-Xlint:unsound-match",
   "-Yno-adapted-args",
   "-Ypartial-unification",
   "-Ywarn-inaccessible",
   "-Ywarn-infer-any",
   "-Ywarn-nullary-override",
   "-Ywarn-nullary-unit"
-)
-
-lazy val scala212_opts = Seq(
-  "-Xlint:by-name-right-associative",
-  "-Xlint:unsound-match"
 )
 
 lazy val scala212_213_opts = Seq(
@@ -51,6 +48,13 @@ lazy val scala212_213_opts = Seq(
   "-Ycache-macro-class-loader:last-modified"
 )
 
+def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
+  CrossVersion.partialVersion(scalaVersion) match {
+    case Some((2, 12)) => Seq(srcBaseDir / srcName / "scala-2.12")
+    case Some((2, 13)) => Seq(srcBaseDir / srcName / "scala-2.13")
+    case _ => Seq()
+  }
+
 lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   crossScalaVersions := scalaVersions,
@@ -72,14 +76,15 @@ lazy val baseSettings = splainSettings ++ Seq(
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard"
   ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 11)) => Seq("-Xlint", "-Ywarn-unused") ++ scala211_212_opts
-    case Some((2, 12)) => scala211_212_opts ++ scala212_opts ++ scala212_213_opts
+    case Some((2, 12)) => scala212_opts ++ scala212_213_opts
     case Some((2, 13)) => scala212_213_opts
     case _ => Seq()
   }),
   scalacOptions in (Compile, console) := scalacOptions.value.filterNot(x =>
     x.startsWith("-Ywarn-unused") || x.startsWith("-Xlint") || x.startsWith("-P:splain")),
   scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value,
+  unmanagedSourceDirectories in Compile ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
+  unmanagedSourceDirectories in Test ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
   skip in publish := true,
   publishArtifact in (Compile, packageDoc) := false,
   publishArtifact in packageDoc := false,

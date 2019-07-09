@@ -1,8 +1,9 @@
 package andxor
 
+import andxor.compat.ParseTypeclasses
 import scala.tools.nsc.Global
 
-class DerivingPlugin(override val global: Global) extends AnnotationPlugin(global) { self =>
+class DerivingPlugin(override val global: Global) extends AnnotationPlugin(global) with ParseTypeclasses { self =>
   import global._
 
   private val deriving = "deriving"
@@ -325,13 +326,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       ("labelledContravariant", contra, true)
     ).flatMap { case (term, variance, l) =>
       val tree = if (l) labelled else base
-      args.flatMap(_ match {
-        case AssignOrNamedArg(Ident(TermName(`term`)), q"List(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case AssignOrNamedArg(Ident(TermName(`term`)), q"Set(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case AssignOrNamedArg(Ident(TermName(`term`)), q"Set(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case AssignOrNamedArg(Ident(TermName(`term`)), q"Vector(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case t => Nil
-      })
+      getTypeclasses0[Param](parseTypeclasses(term, args), tree, variance)
     }
   }
 
