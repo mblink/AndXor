@@ -118,7 +118,8 @@ lazy val generate = project.in(file("generate"))
       "org.scalariform" %% "scalariform" % "0.2.10",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value
     ),
-    TwirlKeys.templateImports := Seq()
+    TwirlKeys.templateImports := Seq(),
+    bintrayRelease := {}
   )).enablePlugins(SbtTwirl)
 
 lazy val core = project.in(file("core"))
@@ -187,7 +188,8 @@ lazy val root = project.in(file("."))
   .settings(commonSettings)
   .settings(Seq(
     tutTargetDirectory := file("."),
-    scalacOptions in Tut := (scalacOptions in (Compile, console)).value
+    scalacOptions in Tut := (scalacOptions in (Compile, console)).value,
+    bintrayRelease := {}
   ))
   .dependsOn(core)
   .aggregate(generate, core, argonaut, circe, deriving, newtype)
