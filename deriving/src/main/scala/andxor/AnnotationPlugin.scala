@@ -1,6 +1,7 @@
 package andxor
 
 import scala.annotation.tailrec
+import scala.reflect.internal.util.TransparentPosition
 import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.transform.TypingTransformers
@@ -170,9 +171,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
           autobots(super.transform(tree))
     }
 
-    override val runsRightAfter: Option[String] = Some("parser")
-    override val runsAfter: List[String] = runsRightAfter.toList
-    override val runsBefore: List[String] = List[String]("typer")
+    override val runsAfter: List[String] = List("parser")
+    override val runsBefore: List[String] = List("namer")
 
     val Triggers: List[g.TypeName] = triggers.map(g.newTypeName)
     private def hasTrigger(t: g.Tree): Boolean = t.exists {
@@ -199,6 +199,15 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       case _                                           => false
     }
 
+    private def withAllPos(tree: Tree, pos: Position): Tree = {
+      tree.foreach { t =>
+        if (!t.pos.isDefined || t.pos == NoPosition)
+          t.setPos(new TransparentPosition(pos.source, pos.start, pos.end, pos.end))
+        ()
+      }
+      tree
+    }
+
     private def updateTreeAndCompanion[A <: g.NameTree: Get[?, g.Modifiers]: Set0[?, g.Modifiers]](
       tree: A,
       updF: (List[g.Tree], A, Option[g.ModuleDef]) => Reader[LocalScope, (Option[(A, Option[g.ModuleDef])], Vector[g.Tree])]
@@ -207,9 +216,10 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         companion <- Reader((_: LocalScope).objects.get(tree.name.decode))
         t = extractTrigger(tree)
         updated <- updF(t._1, t._2, companion)
-        updA = updated._1.map(_._1).toVector
-        updCompanion = updated._1.flatMap(_._2).toVector
-        updExtra = updated._2
+        upd = (ts: Vector[Tree], p: Position) => ts.map(withAllPos(_, p))
+        updA = upd(updated._1.map(_._1).toVector, tree.pos)
+        updCompanion = upd(updated._1.flatMap(_._2).toVector, companion.getOrElse(tree).pos)
+        updExtra = upd(updated._2, tree.pos)
       } yield updA ++ updCompanion ++ updExtra
 
     // responds to visiting all the parts of the tree and passes to decepticons
@@ -259,7 +269,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
           case (o: g.ModuleDef) +: tail if hasTrigger(o.mods) =>
             val (ann, cleaned) = extractTrigger(o)
             val (upd, extra) = updateObject(ann, cleaned).run(scope)
-            go(tail, out ++ upd.toVector ++ extra)
+            go(tail, out ++ upd.map(withAllPos(_, o.pos)).toVector ++ extra.map(withAllPos(_, o.pos)))
 
           case (t: g.TypeDef) +: tail if hasTrigger(t.mods) =>
             go(withoutCompanion(t.name.companionName, tail), out ++ updateTreeAndCompanion(t, updateType).run(scope))

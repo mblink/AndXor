@@ -110,12 +110,13 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       case _ => g.abort(s"Unable to convert term `${showCode(term)}` to type")
     }
 
-  def maybeTpeParams[T](tparams: () => List[TypeDef])(empty: => T, nonEmpty: List[Tree] => T): T =
-    Some(tparams()).filter(_.nonEmpty).fold(empty)(ts => nonEmpty(ts.map(t => Ident(t.name).duplicate)))
+  def maybeTpeParams[T](tparams: List[TypeDef])(empty: => T, nonEmpty: List[Tree] => T): T =
+    Some(tparams).filter(_.nonEmpty).fold(empty)(ts => nonEmpty(ts.map(t => Ident(t.name).duplicate)))
 
-  def valOrDef(mods: Modifiers, name: TermName, tparams: () => List[TypeDef], params: List[List[ValDef]], tpe: Tree, body: Tree): Tree =
-    Some(tparams()).filter(_.nonEmpty).fold[Tree](q"$mods val $name: $tpe = $body")(
-      ts => q"$mods def $name[..$ts](...$params): $tpe = $body")
+  def valOrDef(mods: Modifiers, name: TermName, tparams: List[TypeDef], params: List[List[ValDef]], tpe: Tree, body: Tree): Tree =
+    Some(tparams).filter(_.nonEmpty).fold[Tree](q"$mods val $name: $tpe = $body")(
+      ts => q"$mods def $name[..${ts.map(t =>
+        treeCopy.TypeDef(t, Modifiers(Flag.PARAM), t.name, t.tparams, t.rhs))}](...$params): $tpe = $body")
 
   lazy val name = "deriving"
 
@@ -153,19 +154,20 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       scope.objects.values.toList ++
       scope.classes.values.toList).flatMap(childOfTpe(tpeName, _)))
 
-
-    def getTypeNames(tpe: Tree): Set[TypeName] =
-      (tpe match {
-        case Ident(t: TypeName) => Set(t)
-        case _ => Set()
-      }) ++ tpe.children.flatMap(getTypeNames(_))
+  def getTypeNames(tpe: Tree): Set[TypeName] =
+    (tpe match {
+      case Ident(t: TypeName) => Set(t)
+      case _ => Set()
+    }) ++ tpe.children.flatMap(getTypeNames(_))
 
   sealed abstract class GenTree[+P <: Param](
     val params: List[P],
     val name: TypeName,
-    val tparams: () => List[TypeDef],
+    protected val tparams0: List[TypeDef],
     val copOrProd: String
   ) {
+    final val tparams: List[TypeDef] = tparams0.map(_.duplicate)
+
     val labelled: Boolean
 
     lazy val tpe: Tree = maybeTpeParams(tparams)(tq"$name", ts => tq"$name[..$ts]")
@@ -182,7 +184,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
     lazy val reprName = s"${copOrProd}${arity}"
     lazy val reprObj: Tree = q"$andxorTpesPkg.${TermName(reprName)}"
-    lazy val reprTpe: Tree = if (tpes.length <= 1) tpes(0) else tq"$andxorTpesPkg.${TypeName(reprName)}[..$andxorTpes]"
+    lazy val reprTpe: Tree = if (tpes.length <= 1) tpes.head.duplicate else tq"$andxorTpesPkg.${TypeName(reprName)}[..$andxorTpes]"
 
     def iso: Tree
 
@@ -191,7 +193,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     lazy val arity: Int = params.length
 
     lazy val abstractParams: List[Param] = {
-      val abstractTpeNames = tparams().map(_.name).toSet
+      val abstractTpeNames = tparams.map(_.name).toSet
       params.filter(param => getTypeNames(param.tpe).exists(abstractTpeNames.contains(_)))
     }
 
@@ -203,7 +205,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   case class ProdTree(klass: ClassDef, labelled: Boolean) extends GenTree[ProdParam](
     ctorParams(klass)._1.flatMap(_.map(ProdParam(_))),
     klass.name,
-    () => klass.tparams,
+    klass.tparams,
     "Prod"
   ) {
     lazy val paramss = ctorParams(klass)._1
@@ -220,7 +222,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     private lazy val constructorArgs: List[List[Tree]] =
       if (tpes.length <= 1) List(List(normalizeValue(q"x")))
       else paramss.zipWithIndex.map { case (group, i) =>
-        group.zipWithIndex.map { case (_, j) => normalizeValue(q"(x.${tupleAccess(i + j + 1)}: ${tpes(i + j)})") } }
+        group.zipWithIndex.map { case (_, j) => normalizeValue(q"x.${tupleAccess(i + j + 1)}") } }
 
     lazy val iso: Tree =
       q"""
@@ -237,9 +239,9 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   case class CopTree(
     children: List[Either[ClassDef, ModuleDef]],
     override val name: TypeName,
-    override val tparams: () => List[TypeDef],
+    override val tparams0:  List[TypeDef],
     override val labelled: Boolean
-  ) extends GenTree[CopParam](children.map(CopParam(_)), name, tparams, "Cop") {
+  ) extends GenTree[CopParam](children.map(CopParam(_)), name, tparams0, "Cop") {
     def mkValue(inst: Tree, param: Param): Tree = {
       val v = param.asInstanceOf[CopParam].member.fold(_ => inst, _ => mkAdtVal(inst))
       if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($v, ${param.label.valName})"
@@ -262,23 +264,23 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
         },
         (repr: $reprTpe) => {
           val x = ${if (params.length <= 1) q"repr" else q"repr.run"}
-          ${params.zipWithIndex.tail.foldRight[Tree](maybeUnwrap(normalizeValue(q"(x: ${tpes.last})"), Some(params.length - 1)))(
+          ${params.zipWithIndex.tail.foldRight[Tree](maybeUnwrap(normalizeValue(q"x"), Some(params.length - 1)))(
             (t, acc) => q"""x.fold[$tpe](
-              (x: ${tpes(t._2 - 1)}) => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
+              (x: ${tpes(t._2 - 1).duplicate}) => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
               x => $acc)""")}
         })
     """
   }
 
   object CopTree {
-    def apply(name: TypeName, companion: ModuleDef, tparams: () => List[TypeDef]): Reader[LocalScope, Boolean => CopTree] =
+    def apply(name: TypeName, companion: ModuleDef, tparams: List[TypeDef]): Reader[LocalScope, Boolean => CopTree] =
       getChildrenOfTpe(name, companion).map(children => labelled => new CopTree(children, name, tparams, labelled))
 
     def klass(c: ClassDef, companion: ModuleDef): Reader[LocalScope, Boolean => CopTree] =
-      apply(c.name, companion, () => c.tparams)
+      apply(c.name, companion, c.tparams)
 
     def trait0(t: ClassDef, companion: ModuleDef): Reader[LocalScope, Boolean => CopTree] =
-      apply(t.name, companion, () => t.tparams)
+      apply(t.name, companion, t.tparams)
   }
 
   def memberName(t: Tree): TermName =
@@ -299,7 +301,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     tree match {
       case c: CopTree => c.children.zipWithIndex.flatMap { case (x, i) => x.fold(_ => Nil, o =>
         List(valOrDef(Modifiers(Flag.IMPLICIT), TermName(s"andxor_${o.name.decode}${if (c.labelled) "_labelled" else ""}_inst"),
-          () => Nil, Nil, c.tpes(i), c.mkValue(Ident(o.name), c.params(i)))))
+          Nil, Nil, c.tpes(i), c.mkValue(Ident(o.name), c.params(i)))))
       }
       case p: ProdTree => Nil
     }
@@ -341,7 +343,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     """
 
   def derivedTypeclass[P <: Param](tc: Typeclass[P]): Tree =
-    valOrDef(Modifiers(Flag.IMPLICIT), tc.memberName, () => tc.tree.tparams().map(_.duplicate),
+    valOrDef(Modifiers(Flag.IMPLICIT), tc.memberName, tc.tree.tparams,
       Some(tc.tree.abstractParams).filter(_.nonEmpty).fold(List[List[ValDef]]())(
         ps => List(ps.map(p => q"implicit val ${TermName(freshName("ev"))}: ${tc.typeclass}[${p.tpe}]"))),
       tq"${tc.typeclass}[${tc.tree.tpe.duplicate}]", mkDerivedTypeclass(tc))
@@ -360,6 +362,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
             List(andxor(base), andxor(labelled), iso(base), iso(labelled))}
       }
     """) ::: (if (tcs.nonEmpty) List(q"import andxor._") else Nil) ::: tcs.map(derivedTypeclass)
+    // res.foreach(debug("tree", _))
     res
   }
 }

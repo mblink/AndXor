@@ -1263,6 +1263,24 @@ object types {
     labelledContravariant = Vector(EncodeJson, Encoder, Show)
   )
   case class HKFG[F[_[_]], G[_]](run: F[G])
+
+  @deriving(
+    covariant = Vector(Arbitrary),
+    labelledCovariant = Vector(Read, DecodeJson, Decoder),
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
+  )
+  case class Covariant[+A](a: A)
+
+  @deriving(
+    covariant = Vector(Arbitrary),
+    labelledCovariant = Vector(Read, DecodeJson, Decoder),
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
+  )
+  case class Contravariant[-A](s: String, i: Int) {
+    def go(a: A): (String, Int) = (s"$s -- $a", i)
+  }
 }
 
 object DerivingPluginTest extends Properties("DerivingPlugin") {
@@ -1351,4 +1369,6 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[HK21[TParams21, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK21")
   proof[HK22[TParams22, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK22")
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
+  proof[Covariant[String]]("Covariant")
+  proof[Contravariant[String]]("Contravariant")
 }

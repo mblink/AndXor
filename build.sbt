@@ -1,14 +1,5 @@
 lazy val scalaVersions = Seq("2.12.8", "2.13.0")
 
-lazy val splainSettings = Seq(
-  addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
-  scalacOptions ++= Seq(
-    "-P:splain:all",
-    "-P:splain:keepmodules:500",
-    "-P:splain:rewrite:^((([^\\.]+\\.)*)([^\\.]+))\\.Type$/$1"
-  )
-)
-
 lazy val scala212_opts = Seq(
   "-Xfuture",
   "-Xlint:by-name-right-associative",
@@ -55,7 +46,7 @@ def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scala
     case _ => Seq()
   }
 
-lazy val baseSettings = splainSettings ++ Seq(
+lazy val baseSettings = Seq(
   organization := "andxor",
   crossScalaVersions := scalaVersions,
   scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
