@@ -1410,7 +1410,4 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
-  proof[ErrorTest1[String]]("ErrorTest1")
-  proof[ErrorTest2[String]]("ErrorTest2")
-  // proof[ErrorTest3[Option, String]]("ErrorTest3")
 }
