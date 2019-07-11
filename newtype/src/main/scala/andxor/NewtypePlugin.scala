@@ -12,7 +12,7 @@ class NewtypePlugin(override val global: Global) extends AnnotationPlugin(global
 
   implicit class LocalScopeOps(scope: LocalScope) {
     def inObject: Boolean = scope.self match {
-      case _: g.ModuleDef => true
+      case _: ModuleDef => true
       case _ => false
     }
   }
@@ -26,7 +26,7 @@ class NewtypePlugin(override val global: Global) extends AnnotationPlugin(global
       _.name,
       c => ctorParams(c) match {
         case (List(List(p)), _) => p
-        case _ => g.error("newtype class constructor must have exactly one parameter"); null
+        case _ => error(c.pos, "newtype class constructor must have exactly one parameter"); null
       },
       _.tparams).map { case (tpe, tr, companion) => (None, Vector(tpe, tr, companion)) }
 

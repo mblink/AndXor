@@ -1,12 +1,14 @@
 package andxor
 
-import andxor.compat.ParseTypeclasses
+import andxor.compat.ParseNamedArg
 import scala.tools.nsc.Global
 
-class DerivingPlugin(override val global: Global) extends AnnotationPlugin(global) with ParseTypeclasses { self =>
+class DerivingPlugin(override val global: Global) extends AnnotationPlugin(global) with ParseNamedArg { self =>
   import global._
 
   private val deriving = "deriving"
+
+  private val varianceFlags: Long = (Flag.COVARIANT | Flag.CONTRAVARIANT).asInstanceOf[Long]
 
   val triggers: List[String] = List(deriving)
 
@@ -36,40 +38,40 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     } yield (Some((t, Some(updatedCompanion))), Vector())
 
   // Andxor types
-  private lazy val andxorPkg = q"_root_.andxor"
-  private lazy val andxorTpesPkg = q"_root_.andxor.types"
-  private lazy val labelledObj = q"$andxorPkg.Labelled"
+  private val andxorPkg = q"_root_.andxor"
+  private val andxorTpesPkg = q"_root_.andxor.types"
+  private val labelledObj = q"$andxorPkg.Labelled"
 
   // Scala types
-  private lazy val scalaPkg = q"_root_.scala"
+  private val scalaPkg = q"_root_.scala"
 
   // Scalaz types
-  private lazy val scalazPkg = q"_root_.scalaz"
-  private lazy val id = tq"$scalazPkg.Id.Id"
-  private lazy val isoSetObj = q"$scalazPkg.Isomorphism.IsoSet"
-  private lazy val isoSetTpe = tq"$scalazPkg.Isomorphism.IsoSet"
+  private val scalazPkg = q"_root_.scalaz"
+  private val id = tq"$scalazPkg.Id.Id"
+  private val isoSetObj = q"$scalazPkg.Isomorphism.IsoSet"
+  private val isoSetTpe = tq"$scalazPkg.Isomorphism.IsoSet"
   private def mkAdtVal(inst: Tree): Tree = q"$andxorPkg.types.ADTValue($inst)"
   private def adtValTpe(tpe: Tree): Tree = tq"$andxorPkg.types.ADTValue[$tpe]"
 
   sealed trait Param {
     val name: Name
-    def tpe: Tree
-    lazy val label: Label = Label(name)
-    lazy val labelledTpe: Tree = tq"_root_.andxor.Labelled.Aux[$tpe, ${label.singletonTpe}]"
-    lazy val termName: TermName = TermName(name.decode)
+    val tpe: Tree
+    final lazy val label: Label = Label(name)
+    final lazy val labelledTpe: Tree = tq"_root_.andxor.Labelled.Aux[$tpe, ${label.singletonTpe}]"
+    final lazy val termName: TermName = TermName(name.decode)
   }
 
   case class ProdParam(name: Name, tpeF: () => Tree) extends Param {
-    def tpe: Tree = tpeF().duplicate
+    final val tpe: Tree = tpeF().duplicate
   }
   object ProdParam {
     def apply(p: ValDef): ProdParam = ProdParam(p.name, () => p.tpt)
   }
 
   case class CopParam(member: Either[ClassDef, ModuleDef]) extends Param {
-    lazy val name: Name = member.fold(_.name, _.name)
-    lazy val tpe: Tree = member.fold(_ => memberTpe, _ => adtValTpe(memberTpe))
-    lazy val memberTpe: Tree = member.fold(ProdTree(_, false).tpe, o => SingletonTypeTree(Ident(o.name)))
+    final val name: Name = member.fold(_.name, _.name)
+    final val memberTpe: Tree = member.fold(ProdTree(_, false).tpe, o => SingletonTypeTree(Ident(o.name)))
+    final val tpe: Tree = member.fold(_ => memberTpe, _ => adtValTpe(memberTpe))
   }
 
   sealed abstract class Variance[+P <: Param] {
@@ -103,37 +105,35 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     val derivationFunction = TermName("choose")
   }
 
-  def termToType(term: Tree): Tree =
+  def termToType(term: Tree): RefTree =
     term match {
-      case Ident(TermName(name)) => Ident(TypeName(name))
-      case Select(qual, TermName(name)) => Select(qual, TypeName(name))
-      case _ => g.abort(s"Unable to convert term `${showCode(term)}` to type")
+      case Ident(name) => Ident(name.toTypeName)
+      case Select(qual, name) => Select(qual, name.toTypeName)
+      case _ => error(term.pos, s"Unable to convert term `${showCode(term)}` to type"); null
     }
 
-  def maybeTpeParams[T](tparams: List[TypeDef])(empty: => T, nonEmpty: List[Tree] => T): T =
-    Some(tparams).filter(_.nonEmpty).fold(empty)(ts => nonEmpty(ts.map(t => Ident(t.name).duplicate)))
-
   def valOrDef(mods: Modifiers, name: TermName, tparams: List[TypeDef], params: List[List[ValDef]], tpe: Tree, body: Tree): Tree =
-    Some(tparams).filter(_.nonEmpty).fold[Tree](q"$mods val $name: $tpe = $body")(
-      ts => q"$mods def $name[..${ts.map(t =>
-        treeCopy.TypeDef(t, Modifiers(Flag.PARAM), t.name, t.tparams, t.rhs))}](...$params): $tpe = $body")
+    (tparams, params) match {
+      case (Nil, Nil) => q"$mods val $name: $tpe = $body"
+      case (ts, ps)   => q"$mods def $name[..$ts](...$ps): $tpe = $body"
+    }
 
-  lazy val name = "deriving"
+  val name = "deriving"
 
-  private[andxor] lazy val andxorName = TermName("repr")
-  private[andxor] lazy val isoName = TermName("iso")
-  private[andxor] lazy val andxorLabelledName = TermName("labelledRepr")
-  private[andxor] lazy val labelledIsoName = TermName("labelledIso")
+  private[andxor] val andxorName = TermName("repr")
+  private[andxor] val isoName = TermName("iso")
+  private[andxor] val andxorLabelledName = TermName("labelledRepr")
+  private[andxor] val labelledIsoName = TermName("labelledIso")
 
   case class Label(paramName: Name) {
     // Don't use `freshName` because label name needs to be deterministic
-    lazy val valName = TermName(s"andxor_label_${paramName.decode}")
-    private lazy val implValName = TermName(s"${valName}_impl")
-    lazy val defns: List[Tree] = List(
-      q"val $valName: String = ${g.Literal(g.Constant(paramName.decode))}",
+    final val valName = TermName(s"andxor_label_${paramName.decode}")
+    final val singletonTpe: SingletonTypeTree = SingletonTypeTree(Ident(valName))
+    private val implValName = TermName(s"${valName}_impl")
+    final val defns: List[Tree] = List(
+      q"val $valName: String = ${Literal(Constant(paramName.decode))}",
       q"implicit val $implValName: $singletonTpe = $valName"
     )
-    lazy val singletonTpe: SingletonTypeTree = SingletonTypeTree(Ident(valName))
   }
 
   def extendsTpe(tpeName: TypeName, parents: List[Tree]): Boolean =
@@ -161,38 +161,40 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     }) ++ tpe.children.flatMap(getTypeNames(_))
 
   sealed abstract class GenTree[+P <: Param](
+    val labelled: Boolean,
     val params: List[P],
     val name: TypeName,
     protected val tparams0: List[TypeDef],
     val copOrProd: String
   ) {
     final val tparams: List[TypeDef] = tparams0.map(_.duplicate)
+    final val tparamsNoVariance: List[TypeDef] =
+      tparams.map(t => treeCopy.TypeDef(t, t.mods & ~varianceFlags, t.name, t.tparams, t.rhs))
+    final val tparamNames: List[Ident] = tparams0.map(t => Ident(t.name))
 
-    val labelled: Boolean
+    final val arity: Int = params.length
 
-    lazy val tpe: Tree = maybeTpeParams(tparams)(tq"$name", ts => tq"$name[..$ts]")
-    lazy val tpes: List[Tree] =
+    final val tpe: Tree = tq"$name[..$tparamNames]"
+    final val tpes: List[Tree] =
       if (labelled) params.map(_.labelledTpe)
       else params.map(_.tpe)
 
-    lazy val andxorTpes: List[Tree] = id :: tpes.map(t => tq"_root_.andxor.FConst[$t]#T")
+    final val andxorTpes: List[Tree] = id :: tpes.map(t => tq"_root_.andxor.FConst[$t]#T")
 
-    lazy val andxorName: TermName = if (labelled) andxorLabelledName else self.andxorName
-    lazy val isoName: TermName = if (labelled) labelledIsoName else self.isoName
+    final val andxorName: TermName = if (labelled) andxorLabelledName else self.andxorName
+    final val isoName: TermName = if (labelled) labelledIsoName else self.isoName
 
-    lazy val andxorTpe: Tree = tq"$andxorPkg.${TypeName(s"AndXorNested$arity")}[..${andxorTpes.tail}]"
+    final val andxorTpe: Tree = tq"$andxorPkg.${TypeName(s"AndXorNested$arity")}[..${andxorTpes.tail}]"
 
-    lazy val reprName = s"${copOrProd}${arity}"
-    lazy val reprObj: Tree = q"$andxorTpesPkg.${TermName(reprName)}"
-    lazy val reprTpe: Tree = if (tpes.length <= 1) tpes.head.duplicate else tq"$andxorTpesPkg.${TypeName(reprName)}[..$andxorTpes]"
+    final val reprName = s"${copOrProd}${arity}"
+    final val reprObj: Tree = q"$andxorTpesPkg.${TermName(reprName)}"
+    final val reprTpe: Tree = if (tpes.length <= 1) tpes.head else tq"$andxorTpesPkg.${TypeName(reprName)}[..$andxorTpes]"
 
     def iso: Tree
 
-    lazy val isoTpe: Tree = tq"$isoSetTpe[$tpe, $reprTpe]"
+    final val isoTpe: Tree = tq"$isoSetTpe[$tpe, $reprTpe]"
 
-    lazy val arity: Int = params.length
-
-    lazy val abstractParams: List[Param] = {
+    final val abstractParams: List[Param] = {
       val abstractTpeNames = tparams.map(_.name).toSet
       params.filter(param => getTypeNames(param.tpe).exists(abstractTpeNames.contains(_)))
     }
@@ -202,29 +204,30 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     def normalizeValue(v: Tree): Tree = if (labelled) q"$v.value" else v
   }
 
-  case class ProdTree(klass: ClassDef, labelled: Boolean) extends GenTree[ProdParam](
+  case class ProdTree(klass: ClassDef, override val labelled: Boolean) extends GenTree[ProdParam](
+    labelled,
     ctorParams(klass)._1.flatMap(_.map(ProdParam(_))),
     klass.name,
     klass.tparams,
     "Prod"
   ) {
-    lazy val paramss = ctorParams(klass)._1
+    final val paramss = ctorParams(klass)._1
 
     private def tupleAccess(idx: Int): TermName = TermName(s"t$idx")
 
-    private lazy val mkTuple: Tree =
+    private val mkTuple: Tree =
       params match {
-        case Nil      => g.abort("TODO - support 0 parameter case classes")
+        case Nil      => error(klass.pos, "TODO - support 0 parameter case classes"); klass
         case p :: Nil => mkValue(q"x", p)
         case ps       => q"$scalaPkg.${TermName(s"Tuple${ps.length}")}.apply(..${ps.map(mkValue(q"x", _))})"
       }
 
-    private lazy val constructorArgs: List[List[Tree]] =
+    private val constructorArgs: List[List[Tree]] =
       if (tpes.length <= 1) List(List(normalizeValue(q"x")))
       else paramss.zipWithIndex.map { case (group, i) =>
         group.zipWithIndex.map { case (_, j) => normalizeValue(q"x.${tupleAccess(i + j + 1)}") } }
 
-    lazy val iso: Tree =
+    final val iso: Tree =
       q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => ${if (tpes.length <= 1) mkTuple else q"$reprObj[..$andxorTpes]($mkTuple)"},
@@ -241,7 +244,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     override val name: TypeName,
     override val tparams0:  List[TypeDef],
     override val labelled: Boolean
-  ) extends GenTree[CopParam](children.map(CopParam(_)), name, tparams0, "Cop") {
+  ) extends GenTree[CopParam](labelled, children.map(CopParam(_)), name, tparams0, "Cop") {
     def mkValue(inst: Tree, param: Param): Tree = {
       val v = param.asInstanceOf[CopParam].member.fold(_ => inst, _ => mkAdtVal(inst))
       if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($v, ${param.label.valName})"
@@ -257,7 +260,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     def injInst(param: Param): Tree =
       if (params.length <= 1) mkValue(q"inst", param) else q"$andxorName.inj(${mkValue(q"inst", param)})"
 
-    lazy val iso: Tree = q"""
+    final val iso: Tree = q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => x match {
           case ..${params.map(p => cq"inst: ${p.memberTpe} => ${injInst(p)}")}
@@ -266,7 +269,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
           val x = ${if (params.length <= 1) q"repr" else q"repr.run"}
           ${params.zipWithIndex.tail.foldRight[Tree](maybeUnwrap(normalizeValue(q"x"), Some(params.length - 1)))(
             (t, acc) => q"""x.fold[$tpe](
-              (x: ${tpes(t._2 - 1).duplicate}) => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
+              (x: ${tpes(t._2 - 1)}) => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
               x => $acc)""")}
         })
     """
@@ -292,10 +295,10 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   def mkAndxor[P <: Param](tree: GenTree[P]): Tree = q"$andxorPkg.AndXor[..${tree.tpes}]"
 
   def andxor[P <: Param](tree: GenTree[P]): Tree =
-    valOrDef(Modifiers(), tree.andxorName, tree.tparams, Nil, tree.andxorTpe, mkAndxor(tree))
+    valOrDef(Modifiers(), tree.andxorName, tree.tparamsNoVariance, Nil, tree.andxorTpe, mkAndxor(tree))
 
   def iso[P <: Param](tree: GenTree[P]): Tree =
-    valOrDef(Modifiers(), tree.isoName, tree.tparams, Nil, tree.isoTpe, tree.iso)
+    valOrDef(Modifiers(), tree.isoName, tree.tparamsNoVariance, Nil, tree.isoTpe, tree.iso)
 
   def implicits[P <: Param](tree: GenTree[P]): List[Tree] =
     tree match {
@@ -328,32 +331,45 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       ("labelledContravariant", contra, true)
     ).flatMap { case (term, variance, l) =>
       val tree = if (l) labelled else base
-      getTypeclasses0[Param](parseTypeclasses(term, args), tree, variance)
+      args.flatMap(parseNamedArg(_, term) match {
+        case Some(q"List(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
+        case Some(q"Set(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
+        case Some(q"Set(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
+        case Some(q"Vector(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
+        case _ => Nil
+      })
     }
   }
 
+  def getDebug(args: List[Tree]): Boolean = args.exists(parseNamedArg(_, "debug") match {
+    case Some(q"true") => true
+    case _ => false
+  })
+
   def mkDerivedTypeclass[P <: Param](tc: Typeclass[P]): Tree =
     q"""
-    $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]]
-      .${tc.variance.mapFunction}(
-        ${maybeTpeParams(tc.tree.tparams)(q"${tc.tree.andxorName}", ts => q"${tc.tree.andxorName}[..$ts]")}
-          .deriving[${tc.typeclass}, $id].${tc.variance.derivationFunction}
-      )(${maybeTpeParams(tc.tree.tparams)(q"${tc.tree.isoName}.${tc.variance.isoFunction}",
-        ts => q"${tc.tree.isoName}[..$ts].${tc.variance.isoFunction}")})
+    $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]].${tc.variance.mapFunction}(
+      ${Ident(tc.tree.andxorName)}[..${tc.tree.tparamNames}].deriving[${tc.typeclass}, $id](
+        ...${List(tc.tree.params.zipWithIndex.map(p =>
+          q"$scalaPkg.Predef.implicitly[${tc.typeclass}[${tc.tree.tpes(p._2)}]]"))}
+      ).${tc.variance.derivationFunction}
+    )(${Ident(tc.tree.isoName)}[..${tc.tree.tparamNames}].${tc.variance.isoFunction})
     """
 
   def derivedTypeclass[P <: Param](tc: Typeclass[P]): Tree =
-    valOrDef(Modifiers(Flag.IMPLICIT), tc.memberName, tc.tree.tparams,
+    valOrDef(Modifiers(Flag.IMPLICIT), tc.memberName, tc.tree.tparamsNoVariance,
       Some(tc.tree.abstractParams).filter(_.nonEmpty).fold(List[List[ValDef]]())(
-        ps => List(ps.map(p => q"implicit val ${TermName(freshName("ev"))}: ${tc.typeclass}[${p.tpe}]"))),
-      tq"${tc.typeclass}[${tc.tree.tpe.duplicate}]", mkDerivedTypeclass(tc))
+        ps => List(ps.map(p => q"${Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC)} val ${TermName(freshName("ev"))}: ${tc.typeclass}[${p.tpe}]"))),
+      tq"${tc.typeclass}[${tc.tree.tpe}]", mkDerivedTypeclass(tc))
 
   def mkStats[P <: Param](mkTree: Boolean => GenTree[P], mods: List[Tree]): List[Tree] = {
-    val (base, labelled) = (mkTree(false), mkTree(true))
-    val tcs = mods.flatMap(_ match {
-      case Apply(Select(New(_), termNames.CONSTRUCTOR), args) => getTypeclasses(args, base, labelled)
+    val modArgs = mods.flatMap(_ match {
+      case Apply(Select(New(_), termNames.CONSTRUCTOR), args) => args
       case _ => Nil
     })
+    setDebug(getDebug(modArgs))
+    val (base, labelled) = (mkTree(false), mkTree(true))
+    val tcs = getTypeclasses(modArgs, base, labelled)
     val res = List(q"""
       object andxor {
         ..${labels(labelled) :::
@@ -361,8 +377,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
             implicits(labelled) :::
             List(andxor(base), andxor(labelled), iso(base), iso(labelled))}
       }
-    """) ::: (if (tcs.nonEmpty) List(q"import andxor._") else Nil) ::: tcs.map(derivedTypeclass)
-    // res.foreach(debug("tree", _))
+    """) ::: Some(tcs).filter(_.nonEmpty).map(ts => q"import andxor._" :: ts.map(derivedTypeclass)).getOrElse(Nil)
     res
   }
 }

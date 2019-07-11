@@ -51,6 +51,14 @@ object typeclasses {
           s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
       }
 
+    implicit def readList[A: Read]: Read[List[A]] = new Read[List[A]] {
+      def read(s: String): Option[List[A]] = Some(Nil)
+    }
+
+    implicit def readOption[A](implicit r: Read[A]): Read[Option[A]] = new Read[Option[A]] {
+      def read(s: String): Option[Option[A]] = r.read(s).map(Some(_))
+    }
+
     implicit val readStr: Read[String] = new Read[String] {
       def read(s: String): Option[String] =
         if (s.headOption.exists(_ == '"') && s.lastOption.exists(_ == '"')) Some(s.drop(1).dropRight(1)) else None
@@ -81,6 +89,9 @@ object typeclasses {
     implicit val csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
     implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] =
       new Csv[List[A]] { def toCsv(l: List[A]): List[String] = l.flatMap(c.toCsv(_)) }
+
+    implicit def csvOption[A](implicit c: Csv[A]): Csv[Option[A]] =
+      new Csv[Option[A]] { def toCsv(o: Option[A]): List[String] = o.fold(List[String](null))(c.toCsv(_)) }
 
     implicit def csvLabelled[A: Csv, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled.Aux[A, L]] =
       new Csv[Labelled.Aux[A, L]] {
@@ -1281,6 +1292,34 @@ object types {
   case class Contravariant[-A](s: String, i: Int) {
     def go(a: A): (String, Int) = (s"$s -- $a", i)
   }
+
+  @deriving(
+    covariant = Vector(Arbitrary),
+    labelledCovariant = Vector(Read, DecodeJson, Decoder),
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
+  )
+  case class ErrorTest1[A](i: Int, a: A)
+
+  @deriving(
+    covariant = Vector(Arbitrary),
+    labelledCovariant = Vector(Read, DecodeJson, Decoder),
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
+  )
+  case class ErrorTest2[A](as: List[A], ints: List[Int], test1s: List[ErrorTest1[A]])
+
+  @deriving(
+    covariant = Vector(Arbitrary),
+    labelledCovariant = Vector(Read, DecodeJson, Decoder),
+    contravariant = Vector(Csv, Equal),
+    labelledContravariant = Vector(EncodeJson, Encoder, Show)
+  )
+  case class ErrorTest3[D[_], A](test1s: List[ErrorTest1[D[A]]], test2: ErrorTest2[A])
+  object ErrorTest3 {
+    def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
+      ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
+  }
 }
 
 object DerivingPluginTest extends Properties("DerivingPlugin") {
@@ -1371,4 +1410,7 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
+  proof[ErrorTest1[String]]("ErrorTest1")
+  proof[ErrorTest2[String]]("ErrorTest2")
+  // proof[ErrorTest3[Option, String]]("ErrorTest3")
 }
