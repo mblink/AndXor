@@ -1,8 +1,15 @@
 @import andxor.syntax._
 @import scalaz.Zipper
 
-@(z: Zipper[String])
-            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")("x"))(_ => "-\\/(x)"))((_, a) => s"\\/-(${a})")} =>
-              val (h, t) = @z.toList.foldLen01(s"U(p.run)")(s"${z.toList.foldMapName(z.index)}.unconsOne(p${z.toList.prodAccess(z.index + 1)}, x)")
-              (h.map(v => @{z.toList.copTpeF("G")}(@{z.djVal("v")})), @{z.toList.prodTpe}(@{
+@(z: Zipper[String], nested: Boolean)
+
+@copG = @{ if (nested) z.toList.nestedCopTpe("G") else z.toList.copTpeF("G") }
+@prodF = @{ if (nested) z.toList.nestedProdTpe() else z.toList.prodTpe }
+@unconsOne = @{ if (nested) s"fm${z.index}.unconsOne" else "U" }
+@unconsArgs = @{ if (nested) s"p${z.toList.prodAccess(z.index + 1)}, x" else s"p${z.toList.prodAccess(z.index + 1)}" }
+@bindVar = @{ if (nested) "x" else "_" }
+
+            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")(bindVar))(_ => s"-\\/($bindVar)"))((_, a) => s"\\/-(${a})")} =>
+              val (h, t) = @{unconsOne}(@unconsArgs)
+              (h.map(v => @{copG}(@{z.djVal("v")})), @{prodF}(@{
                 z.prodAccesses("p").updated(z.index, "t").mkTuple}))

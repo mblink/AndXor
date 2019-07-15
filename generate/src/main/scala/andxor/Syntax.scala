@@ -17,18 +17,16 @@ object syntax {
     start.to(end).toList.map(1.to(_).toList.map(x => s"${a}${x}"))
 
   implicit class TpesOps(tpes: LS) {
-    def tpeTpes(F: Option[String]): LS = tpes.map(t => s"${t}${F.fold("")(f => s"[$f]")}")
-
     def copName = s"Cop${tpes.length}"
-    def copTpeDef = s"$copName[F[_], $rank2TpeParams]"
-    def copTpeF(F: String) = foldLen01(s"$tpeParams[$F]")(s"$copName[$F, $tpeParams]")
+    def copTpeDef = s"$copName[F[_], $tpeParams]"
+    def copTpeF(F: String) = foldLen01(s"$F[$tpeParams]")(s"$copName[$F, $tpeParams]")
     def copTpe = copTpeF("F")
 
     def wrapCopVal(v: String, F: String = "F"): String = foldLen01(v)(s"${copTpeF(F)}($v)")
 
     def prodName = s"Prod${tpes.length}"
-    def prodTpeDef = s"$prodName[F[_], $rank2TpeParams]"
-    def prodTpeF(F: String) = foldLen01(s"$tpeParams[$F]")(s"$prodName[$F, $tpeParams]")
+    def prodTpeDef = s"$prodName[F[_], $tpeParams]"
+    def prodTpeF(F: String) = foldLen01(s"$F[$tpeParams]")(s"$prodName[$F, $tpeParams]")
     def prodTpe = prodTpeF("F")
 
     def wrapProdVal(v: String, F: String = "F"): String = foldLen01(v)(s"${prodTpeF(F)}($v)")
@@ -37,7 +35,7 @@ object syntax {
       tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
 
     def dj: String = djBase(identity _)
-    def djK(F: String): String = djBase(t => foldLen01(s"$t[$F]")(s"$t[$F]"))
+    def djK(F: String): String = djBase(t => s"$F[$t]")
 
     def mkTuple: String = if (tpes.length <= 1) tpes.mkString(", ") else parens(tpes.mkString(", "))
 
@@ -48,13 +46,24 @@ object syntax {
       tpes.map(wrapTpe).mkTuple
 
     def prod: String = prodBase(identity _)
-    def prodK(F: String): String = prodBase(t => foldLen01(s"$t[$F]")(s"$t[$F]"))
+    def prodK(F: String): String = prodBase(t => s"$F[$t]")
 
     def tpeParams: String = tpes.mkString(", ")
     def tpeParamsF(F: String): String = tpes.map(s => s"$F[$s]").mkString(", ")
 
-    def rank2TpeParamsList: List[String] = tpes.map(t => s"$t[_[_]]")
-    def rank2TpeParams: String = rank2TpeParamsList.tpeParams
+    def nestedTpeParams: String = tpes.map(t => s"$t[_[_]]").mkString(", ")
+    def nestedTpes(F: String = "F"): LS = tpes.map(t => s"$t[$F]")
+    def nestedProdTpe(F: String = "F"): String = nestedTpes(F).prodTpeF("Id")
+    def nestedCopTpe(F: String = "F"): String = nestedTpes(F).copTpeF("Id")
+    def nestedBuiltAndXor: String = s"AndXorNested${tpes.length}[${tpes.tpeParams}]"
+
+    def ftraverseParams: LS = foldLen01[LS](Nil)(tpes.paramSigArgs("FTraverse", "ft"))
+    def foldMapParams: LS = foldLen01[LS](Nil)(tpes.map(t => s"$t, $t").paramSigArgs("FoldMap", "fm"))
+
+    def asImpls(otherImpls: Boolean): String =
+      tpes.isEmpty.fold("", otherImpls.fold(s", ${tpes.mkString(", ")}", s"(implicit ${tpes.mkString(", ")})"))
+
+    def const: LS = tpes.map(t => s"FConst[$t]#T")
 
     def paramSig(FG: LS, a: String): String =
       tpes.zipWithIndex.map(s => s"${a}${s._2}: ${FG.foldRight(s._1)((e, a) => s"${e}[${a}]")}").mkString(", ")
@@ -80,19 +89,6 @@ object syntax {
     def params(a: String, sIx: Int = 0): String =
       paramList(a, sIx).mkString(", ")
 
-    def derivingParams(copOrProd: String, TC: String, F: String): LS =
-      foldLen[LS](Nil)(List(s"tc: $TC[$F[${tpes.head}]]"))(tpeTpes(None)
-        .map(t => s"Deriving$copOrProd[$t, $F, $TC]").paramSigArgs("deriving"))
-
-    def ftraverseParams: LS =
-      foldLen01[LS](Nil)(tpeTpes(None).paramSigArgs("FTraverse", "ft"))
-
-    def foldMapParams: LS =
-      foldLen01[LS](Nil)(tpeTpes(None).map(t => s"$t, $t").paramSigArgs("FoldMap", "fm"))
-
-    def asImpls(otherImpls: Boolean): String =
-      tpes.isEmpty.fold("", otherImpls.fold(s", ${tpes.mkString(", ")}", s"(implicit ${tpes.mkString(", ")})"))
-
     def toZipper: Zipper[String] =
       Zipper.zipper(Stream.empty[String], tpes.head, tpes.tail.toStream)
 
@@ -109,11 +105,7 @@ object syntax {
     def foldLen01[A](lteq1: => A)(gt1: => A): A = (tpes.length <= 1).fold(lteq1, gt1)
     def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)((tpes.length == 1).fold(eq1, gt1))
 
-    def foldMapName(idx: Int): String = "fm" ++ foldLen01("")(idx.toString)
-
-    def builtAndXor: String = s"AndXorNested${tpes.length}[${tpes.tpeParams}]"
-
-    def const: LS = tpes.map(t => s"FConst[$t]#T")
+    def builtAndXor: String = s"AndXor${tpes.length}[${tpes.tpeParams}]"
   }
 
   implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {

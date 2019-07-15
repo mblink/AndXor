@@ -1,5 +1,10 @@
 @import andxor.syntax._
 @import scalaz.Zipper
 
-@(z: Zipper[String])
-case @z.djVal("x") => Functor[A].map(@{z.toList.foldLen01("f(x)")("x.traverse(f)")})(y => @{z.toList.copTpeF("G")}(@z.djVal("y")))
+@(z: Zipper[String], nested: Boolean)
+
+@if(nested) {
+  case @z.djVal("x") => Functor[A].map(x.traverse(f))(y => @{z.toList.nestedCopTpe("G")}(@z.djVal("y")))
+} else {
+  case @z.djVal("x") => Functor[A].map(f(x))(y => @{z.toList.copTpeF("G")}(@z.djVal("y")))
+}

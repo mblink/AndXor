@@ -12,10 +12,10 @@
 }
 
 @if(isId) {
-  implicit def lifta@{z.index}Id[A, @{tpes.rank2TpeParams}](implicit ev: @{tpes(z.index)}[Id] === A@{monoid(true)}): Inj[@{tpes.prodTpeF("Id")}, A] =
-    ev.subst(lifta@{z.index}F[Id, @{tpes.tpeParams}])
+  implicit def lifta@{z.index}Id[@{tpes.tpeParams}]@{monoid(false)}: Inj[@{tpes.prodTpeF("Id")}, @z.focus] =
+    lifta@{z.index}F[Id, @{tpes.tpeParams}]
 } else {
-  implicit def lifta@{z.index}F[F[_], @{tpes.rank2TpeParams}]@{monoid(false)}: FInj[@tpes.prodTpeF("?[_]"), @{tpes(z.index)}, F] = {
+  implicit def lifta@{z.index}F[F[_], @{tpes.tpeParams}]@{monoid(false)}: Inj[@tpes.prodTpe, F[@z.focus]] = {
     @tpes.foldLen01("")("val t = M.zero\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
       prodAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
   }

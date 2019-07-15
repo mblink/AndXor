@@ -2,13 +2,114 @@
 
 @(tpes: List[String])
 
-@tpes.foldLen01("")("import andxor.types._")
-import scalaz.{Apply, @{(List("Monoid") ::: tpes.foldLen01(List[String]())(List("\\/"))).mkString(", ")}}
+@tpes.foldLen01("")("import andxor.syntax.ffunctor._\nimport andxor.syntax.ftraverse._\nimport andxor.types._")
+import scalaz.{@{(tpes.foldLen01(List[String]())(List("~>", "\\/, -\\/", "\\/-", "Applicative", "Functor")) ::: List("Apply", "Monoid")).mkString(", ")}}
 import scalaz.Id.Id
 import scalaz.std.vector._
 
-trait AndXorNested@{tpes.length}[@{tpes.rank2TpeParams}] extends AndXor {
-  @mkTpeList(1, maxLen - tpes.length, "B").map(template.txt.Build(tpes, _))
+@axoDeriving(cop: String, prod: String) = {
+  new AndXorDeriving[TC, Cop[F], Prod[F]] {
+    def mkChoose[B](f: B => Cop[F])(implicit d: Decidable[TC]): TC[B] =
+      @tpes.foldLen01("d.contramap(t0)(f)")(s"Combine.choose${tpes.length}(${
+        tpes.paramList("t").mkString(", ")})(f(_).run)")
+
+    def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[TC]): TC[B] =
+      @tpes.foldLen01(s"a.map(t0)(f)")(s"Combine.altly${tpes.length}(${
+        tpes.paramList("t").mkString(", ")})(x => f(${cop}(x)))")
+
+    def mkDivide[B](f: B => Prod[F])(implicit a: Divide[TC]): TC[B] =
+      @tpes.foldLen01(s"a.contramap(t0)(f)")(s"Combine.divide${tpes.length}(${tpes.paramList("t").mkString(", ")})(f(_).run)")
+
+    def mkApply[B](f: Prod[F] => B)(implicit a: Apply[TC]): TC[B] =
+      @tpes.foldLen01[Any](s"a.map(t0)(f)") {
+      Combine.apply@{tpes.length}(@{tpes.paramList("t").mkString(", ")}) {
+        case @{tpes.paramList("i").mkTuple} =>
+          f(@{prod}(@{tpes.paramList("i").mkTuple}))
+      }
+      }
+  }
+}
+
+@axoEv = {
+  object evidence extends AndXorEvidence[Cop, Prod] {
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], ?], F].choose
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], ?], F].divide")
+    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], ?], F].choose")
+    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], ?], F].divide
+  }
+}
+
+trait AndXorNested@{tpes.length}[@{tpes.nestedTpeParams}] extends AndXor {
+  @mkTpeList(1, maxLen - tpes.length, "B").map(template.txt.Build(tpes, _, true))
+
+  type Prod[F[_]] = @{tpes.nestedProdTpe()}
+  object Prod {
+    def apply[F[_]](p: @{tpes.nestedTpes().prod}): Prod[F] = @tpes.foldLen01("p")(tpes.nestedProdTpe() ++ "(p)")
+  }
+
+  type Cop[F[_]] = @{tpes.nestedCopTpe()}
+  object Cop {
+    def apply[F[_]](c: @{tpes.nestedTpes().dj}): Cop[F] = @tpes.foldLen01("c")(tpes.nestedCopTpe() ++ "(c)")
+  }
+
+  @if(tpes.length > 1) {
+    object instances {
+      implicit def axo@{tpes.prodName}Instance@{tpes.ftraverseParams.asImpls(false)}: FFunctor[Prod] with FTraverse[Prod] =
+        new FFunctor[Prod] with FTraverse[Prod] {
+          def map[F[_], G[_]](p: @tpes.nestedProdTpe())(nt: F ~> G): @tpes.nestedProdTpe("G") =
+            @{tpes.nestedProdTpe("G")}(@{tpes.paramListF(i =>
+              tpes.foldLen01((s: String) => s"nt($s)")(s => s"ft$i.map($s)(nt)")(s"p${tpes.prodAccess(i + 1)}")).mkTuple})
+
+          def traverse[F[_], G[_], A[_]: Applicative](p: @tpes.nestedProdTpe())(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.nestedProdTpe("G")}] =
+            @tpes.paramListF(i => s"ft$i.traverse(p${tpes.prodAccess(i + 1)})(f)").tail.foldLeft(
+              s"Applicative[A].map(${tpes.foldLen01(s"f(p${tpes.prodAccess(1)})")(s"ft0.traverse(p${tpes.prodAccess(1)})(f)")})(${tpes.nestedTpes("G").paramSigArgs("i")
+                .map(parens).mkString(" => ")} => ${tpes.nestedProdTpe("G")}(${tpes.paramList("i").mkTuple}))")(
+                  (a, e) => s"Applicative[A].ap($e)($a)")
+        }
+
+      implicit def axo@{tpes.prodName}FoldMap@{tpes.foldMapParams.asImpls(false)}: FoldMap[Prod, Cop] =
+        new FoldMap[Prod, Cop] {
+          def unconsAll[F[_], G[_]](p: @{tpes.nestedProdTpe()})(implicit U: Uncons[F, G]): (List[@{tpes.nestedCopTpe("G")}], @{tpes.nestedProdTpe()}) = {
+            @{1.to(tpes.length).toList.map(i => s"val (h$i, t$i) = ${tpes.foldLen01("U")(s"fm${i - 1}.unconsAll")}(p${tpes.prodAccess(i)})").mkString("\n      ")}
+            (List(@{1.to(tpes.length).toList.map(i => s"h$i.map(Inj[${tpes.nestedCopTpe("G")}, ${tpes.nestedTpes("G")(i - 1)}].apply(_))").mkString(", ")}).flatten,
+              @{tpes.nestedProdTpe()}(@{1.to(tpes.length).toList.map(i => s"t$i").mkTuple}))
+          }
+
+          def unconsOne[F[_], G[_]](p: @{tpes.nestedProdTpe()}, c: @{tpes.nestedCopTpe("G")})(implicit U: Uncons[F, G]): (Option[@{tpes.nestedCopTpe("G")}], @{tpes.nestedProdTpe()}) =
+            c.run match {
+              @{tpes.zipper(FoldMap(_, true)).mkString("").dropWhile(_ == ' ')}
+            }
+        }
+
+      implicit def axo@{tpes.copName}Instance@{tpes.ftraverseParams.asImpls(false)}: FFunctor[Cop] with FTraverse[Cop] =
+        new FFunctor[Cop] with FTraverse[Cop] {
+          def map[F[_], G[_]](c: @tpes.nestedCopTpe())(nt: F ~> G): @tpes.nestedCopTpe("G") =
+            @{tpes.nestedCopTpe("G")}(@{tpes.foldLen01("nt(c.run)")(
+              s"c.run${tpes.tail.foldRight("_.map(nt)")((_, a) => s"_.bimap(_.map(nt), $a)").tail}")})
+
+          def traverse[F[_], G[_], A[_]: Applicative](c: @tpes.nestedCopTpe())(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.nestedCopTpe("G")}] =
+            c.run match {
+              @tpes.zipper(SequenceC(_, true))
+            }
+        }
+    }
+  }
+
+  def deriving[TC[_], F[_]](implicit @{tpes.map(t => s"TC[$t[F]]").paramSig("t")}): AndXorDeriving[TC, Cop[F], Prod[F]] =
+    @axoDeriving(tpes.nestedCopTpe(), tpes.nestedProdTpe())
+
+  def derivingId[TC[_]](implicit @{tpes.map(t => s"TC[$t[Id]]").paramSig("t")}): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
+
+  @axoEv
+}
+
+object AndXorNested@{tpes.length} {
+  def apply[@{tpes.nestedTpeParams}]: AndXorNested@{tpes.length}[@{tpes.tpeParams}] =
+    new AndXorNested@{tpes.length}[@{tpes.tpeParams}] {}
+}
+
+trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
+  @mkTpeList(1, maxLen - tpes.length, "B").map(template.txt.Build(tpes, _, false))
 
   type Prod[F[_]] = @{tpes.prodTpe}
   object Prod {
@@ -20,45 +121,12 @@ trait AndXorNested@{tpes.length}[@{tpes.rank2TpeParams}] extends AndXor {
     def apply[F[_]](c: @{tpes.djK("F")}): Cop[F] = @{tpes.wrapCopVal("c")}
   }
 
-  def deriving[TC[_], F[_]](implicit @{tpes.map(t => s"TC[$t[F]]").paramSig("t")}): AndXorDeriving[TC, Cop[F], Prod[F]] =
-    new AndXorDeriving[TC, Cop[F], Prod[F]] {
-      def mkChoose[B](f: B => Cop[F])(implicit d: Decidable[TC]): TC[B] =
-        @tpes.foldLen01("d.contramap(t0)(f)")(s"Combine.choose${tpes.length}(${
-          tpes.paramList("t").mkString(", ")})(f(_).run)")
+  def deriving[TC[_], F[_]](implicit @{tpes.paramSig(List("TC", "F"), "t")}): AndXorDeriving[TC, Cop[F], Prod[F]] =
+    @axoDeriving(tpes.copTpe, tpes.prodTpe)
 
-      def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[TC]): TC[B] =
-        @tpes.foldLen01(s"a.map(t0)(f)")(s"Combine.altly${tpes.length}(${
-          tpes.paramList("t").mkString(", ")})(x => f(${tpes.copTpe}(x)))")
+  def derivingId[TC[_]](implicit @{tpes.paramSig("TC", "t")}): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 
-      def mkDivide[B](f: B => Prod[F])(implicit a: Divide[TC]): TC[B] =
-        @tpes.foldLen01(s"a.contramap(t0)(f)")(s"Combine.divide${tpes.length}(${tpes.paramList("t").mkString(", ")})(f(_).run)")
-
-      def mkApply[B](f: Prod[F] => B)(implicit a: Apply[TC]): TC[B] =
-        @tpes.foldLen01[Any](s"a.map(t0)(f)") {
-        Combine.apply@{tpes.length}(@{tpes.paramList("t").mkString(", ")}) {
-          case @{tpes.paramList("i").mkTuple} =>
-            f(@{tpes.prodTpe}(@{tpes.paramList("i").mkTuple}))
-        }
-        }
-    }
-
-  def derivingId[TC[_]](implicit @{tpes.map(t => s"TC[$t[Id]]").paramSig("t")}): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
-
-  object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], ?], F].choose
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], ?], F].divide")
-    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): FInj[Prod, Cop, F] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], ?], F].choose")
-    implicit def injProdToVecCopEv[F[_]]: FInj[Lambda[f[_] => Vector[Cop[f]]], Prod, F] = deriving[Inj[Vector[Cop[F]], ?], F].divide
-  }
-}
-
-object AndXorNested@{tpes.length} {
-  def apply[@{tpes.rank2TpeParams}]: AndXorNested@{tpes.length}[@{tpes.tpeParams}] =
-    new AndXorNested@{tpes.length}[@{tpes.tpeParams}] {}
-}
-
-trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXorNested@{tpes.length}[@{tpes.const.tpeParams}] {
-  def derivingId[TC[_]](implicit dumb: DummyImplicit, @{tpes.paramSig("TC", "t")}): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
+  @axoEv
 }
 
 object AndXor@{tpes.length} {

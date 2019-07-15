@@ -179,12 +179,12 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       if (labelled) params.map(_.labelledTpe)
       else params.map(_.tpe)
 
-    final val andxorTpes: List[Tree] = id :: tpes.map(t => tq"_root_.andxor.FConst[$t]#T")
+    final val andxorTpes: List[Tree] = id :: tpes
 
     final val andxorName: TermName = if (labelled) andxorLabelledName else self.andxorName
     final val isoName: TermName = if (labelled) labelledIsoName else self.isoName
 
-    final val andxorTpe: Tree = tq"$andxorPkg.${TypeName(s"AndXorNested$arity")}[..${andxorTpes.tail}]"
+    final val andxorTpe: Tree = tq"$andxorPkg.${TypeName(s"AndXor$arity")}[..${andxorTpes.tail}]"
 
     final val reprName = s"${copOrProd}${arity}"
     final val reprObj: Tree = q"$andxorTpesPkg.${TermName(reprName)}"
@@ -349,10 +349,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   def mkDerivedTypeclass[P <: Param](tc: Typeclass[P]): Tree =
     q"""
     $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]].${tc.variance.mapFunction}(
-      ${Ident(tc.tree.andxorName)}[..${tc.tree.tparamNames}].deriving[${tc.typeclass}, $id](
-        ...${List(tc.tree.params.zipWithIndex.map(p =>
-          q"$scalaPkg.Predef.implicitly[${tc.typeclass}[${tc.tree.tpes(p._2)}]]"))}
-      ).${tc.variance.derivationFunction}
+      ${Ident(tc.tree.andxorName)}[..${tc.tree.tparamNames}].derivingId[${tc.typeclass}].${tc.variance.derivationFunction}
     )(${Ident(tc.tree.isoName)}[..${tc.tree.tparamNames}].${tc.variance.isoFunction})
     """
 
