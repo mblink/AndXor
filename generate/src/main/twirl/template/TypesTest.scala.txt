@@ -15,17 +15,17 @@ import scalaz.std.string._
 
 object arbitrary {
   @tpeLists.map { tpes =>
-    implicit def prod@{tpes.length}Arb[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.prodTpe] =
-      AndXor.nest[@tpes.tpeParams].deriving[Arbitrary, F].apply
+    implicit def prod@{tpes.length}Arb[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Arbitrary", "F"), "a")}): Arbitrary[@tpes.prodTpe] =
+      AndXor[@tpes.tpeParams].deriving[Arbitrary, F].apply
 
-    implicit def cop@{tpes.length}Arb[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.copTpe] =
-      AndXor.nest[@tpes.tpeParams].deriving[Arbitrary, F].alt
+    implicit def cop@{tpes.length}Arb[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Arbitrary", "F"), "a")}): Arbitrary[@tpes.copTpe] =
+      AndXor[@tpes.tpeParams].deriving[Arbitrary, F].alt
 
-    implicit def prod@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.prodTpe] =
-      AndXor.nest[@tpes.tpeParams].deriving[Equal, F].divide
+    implicit def prod@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Equal", "F"), "e")}): Equal[@tpes.prodTpe] =
+      AndXor[@tpes.tpeParams].deriving[Equal, F].divide
 
-    implicit def cop@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.copTpe] =
-      AndXor.nest[@tpes.tpeParams].deriving[Equal, F].choose
+    implicit def cop@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Equal", "F"), "e")}): Equal[@tpes.copTpe] =
+      AndXor[@tpes.tpeParams].deriving[Equal, F].choose
   }
 }
 
