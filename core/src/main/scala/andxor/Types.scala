@@ -80,9 +80,11 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod2[F, A1, A2], c: Cop2[G, A1, A2])(implicit U: Uncons[F, G]): (Option[Cop2[G, A1, A2]], Prod2[F, A1, A2]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop2[G, A1, A2](-\/(v))), Prod2[F, A1, A2]((t, p.t2)))
+
             case \/-(_) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop2[G, A1, A2](\/-(v))), Prod2[F, A1, A2]((p.t1, t)))
@@ -158,7 +160,9 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop2[F, A1, A2])(f: F ~> Lambda[a => A[G[a]]]): A[Cop2[G, A1, A2]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop2[G, A1, A2](-\/(y)))
+
             case \/-(x) => Functor[A].map(f(x))(y => Cop2[G, A1, A2](\/-(y)))
 
           }
@@ -251,12 +255,15 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod3[F, A1, A2, A3], c: Cop3[G, A1, A2, A3])(implicit U: Uncons[F, G]): (Option[Cop3[G, A1, A2, A3]], Prod3[F, A1, A2, A3]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop3[G, A1, A2, A3](-\/(v))), Prod3[F, A1, A2, A3]((t, p.t2, p.t3)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop3[G, A1, A2, A3](\/-(-\/(v)))), Prod3[F, A1, A2, A3]((p.t1, t, p.t3)))
+
             case \/-(\/-(_)) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop3[G, A1, A2, A3](\/-(\/-(v)))), Prod3[F, A1, A2, A3]((p.t1, p.t2, t)))
@@ -353,8 +360,11 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop3[F, A1, A2, A3])(f: F ~> Lambda[a => A[G[a]]]): A[Cop3[G, A1, A2, A3]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](\/-(-\/(y))))
+
             case \/-(\/-(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](\/-(\/-(y))))
 
           }
@@ -470,15 +480,19 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod4[F, A1, A2, A3, A4], c: Cop4[G, A1, A2, A3, A4])(implicit U: Uncons[F, G]): (Option[Cop4[G, A1, A2, A3, A4]], Prod4[F, A1, A2, A3, A4]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop4[G, A1, A2, A3, A4](-\/(v))), Prod4[F, A1, A2, A3, A4]((t, p.t2, p.t3, p.t4)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop4[G, A1, A2, A3, A4](\/-(-\/(v)))), Prod4[F, A1, A2, A3, A4]((p.t1, t, p.t3, p.t4)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop4[G, A1, A2, A3, A4](\/-(\/-(-\/(v))))), Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, t, p.t4)))
+
             case \/-(\/-(\/-(_))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop4[G, A1, A2, A3, A4](\/-(\/-(\/-(v))))), Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, p.t3, t)))
@@ -596,9 +610,13 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop4[F, A1, A2, A3, A4])(f: F ~> Lambda[a => A[G[a]]]): A[Cop4[G, A1, A2, A3, A4]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(x))) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](\/-(\/-(\/-(y)))))
 
           }
@@ -737,18 +755,23 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod5[F, A1, A2, A3, A4, A5], c: Cop5[G, A1, A2, A3, A4, A5])(implicit U: Uncons[F, G]): (Option[Cop5[G, A1, A2, A3, A4, A5]], Prod5[F, A1, A2, A3, A4, A5]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop5[G, A1, A2, A3, A4, A5](-\/(v))), Prod5[F, A1, A2, A3, A4, A5]((t, p.t2, p.t3, p.t4, p.t5)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(-\/(v)))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, t, p.t3, p.t4, p.t5)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(-\/(v))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, t, p.t4, p.t5)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(v)))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, t, p.t5)))
+
             case \/-(\/-(\/-(\/-(_)))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(v)))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, p.t4, t)))
@@ -887,10 +910,15 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop5[F, A1, A2, A3, A4, A5])(f: F ~> Lambda[a => A[G[a]]]): A[Cop5[G, A1, A2, A3, A4, A5]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(x)))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(y))))))
 
           }
@@ -1052,21 +1080,27 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod6[F, A1, A2, A3, A4, A5, A6], c: Cop6[G, A1, A2, A3, A4, A5, A6])(implicit U: Uncons[F, G]): (Option[Cop6[G, A1, A2, A3, A4, A5, A6]], Prod6[F, A1, A2, A3, A4, A5, A6]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop6[G, A1, A2, A3, A4, A5, A6](-\/(v))), Prod6[F, A1, A2, A3, A4, A5, A6]((t, p.t2, p.t3, p.t4, p.t5, p.t6)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(-\/(v)))), Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, t, p.t3, p.t4, p.t5, p.t6)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(-\/(v))))), Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, t, p.t4, p.t5, p.t6)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(-\/(v)))))), Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, p.t3, t, p.t5, p.t6)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(-\/(v))))))), Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, p.t3, p.t4, t, p.t6)))
+
             case \/-(\/-(\/-(\/-(\/-(_))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(\/-(v))))))), Prod6[F, A1, A2, A3, A4, A5, A6]((p.t1, p.t2, p.t3, p.t4, p.t5, t)))
@@ -1226,11 +1260,17 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop6[F, A1, A2, A3, A4, A5, A6])(f: F ~> Lambda[a => A[G[a]]]): A[Cop6[G, A1, A2, A3, A4, A5, A6]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop6[G, A1, A2, A3, A4, A5, A6](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(x))))) => Functor[A].map(f(x))(y => Cop6[G, A1, A2, A3, A4, A5, A6](\/-(\/-(\/-(\/-(\/-(y)))))))
 
           }
@@ -1415,24 +1455,31 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7], c: Cop7[G, A1, A2, A3, A4, A5, A6, A7])(implicit U: Uncons[F, G]): (Option[Cop7[G, A1, A2, A3, A4, A5, A6, A7]], Prod7[F, A1, A2, A3, A4, A5, A6, A7]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](-\/(v))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(v)))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(v))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(v)))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(v))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(_)))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(v)))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t)))
@@ -1613,12 +1660,19 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop7[F, A1, A2, A3, A4, A5, A6, A7])(f: F ~> Lambda[a => A[G[a]]]): A[Cop7[G, A1, A2, A3, A4, A5, A6, A7]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(x)))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(y))))))))
 
           }
@@ -1826,27 +1880,35 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], c: Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8])(implicit U: Uncons[F, G]): (Option[Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8]], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](-\/(v))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(-\/(v)))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(-\/(v))))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(-\/(v)))))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(-\/(v))))))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))), Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t)))
@@ -2048,13 +2110,21 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8])(f: F ~> Lambda[a => A[G[a]]]): A[Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))) => Functor[A].map(f(x))(y => Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8](\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))
 
           }
@@ -2285,30 +2355,39 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9], c: Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9])(implicit U: Uncons[F, G]): (Option[Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](-\/(v))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(-\/(v)))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(-\/(v))))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(-\/(v)))))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(-\/(v))))))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))), Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t)))
@@ -2531,14 +2610,23 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(f: F ~> Lambda[a => A[G[a]]]): A[Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))) => Functor[A].map(f(x))(y => Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))
 
           }
@@ -2792,33 +2880,43 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], c: Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(implicit U: Uncons[F, G]): (Option[Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](-\/(v))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(-\/(v)))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(-\/(v))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(-\/(v)))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(-\/(v))))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))))), Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t)))
@@ -3062,15 +3160,25 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(f: F ~> Lambda[a => A[G[a]]]): A[Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))) => Functor[A].map(f(x))(y => Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))
 
           }
@@ -3347,36 +3455,47 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], c: Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(implicit U: Uncons[F, G]): (Option[Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](-\/(v))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(-\/(v)))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(-\/(v))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(-\/(v)))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(-\/(v))))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))))), Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t)))
@@ -3641,16 +3760,27 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(f: F ~> Lambda[a => A[G[a]]]): A[Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))) => Functor[A].map(f(x))(y => Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))
 
           }
@@ -3950,39 +4080,51 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], c: Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(implicit U: Uncons[F, G]): (Option[Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](-\/(v))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(-\/(v)))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(-\/(v))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(-\/(v)))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(-\/(v))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))))))), Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t)))
@@ -4268,17 +4410,29 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(f: F ~> Lambda[a => A[G[a]]]): A[Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))) => Functor[A].map(f(x))(y => Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))
 
           }
@@ -4601,42 +4755,55 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], c: Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(implicit U: Uncons[F, G]): (Option[Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](-\/(v))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(-\/(v)))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(-\/(v))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(-\/(v)))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(-\/(v))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))))))), Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t)))
@@ -4943,18 +5110,31 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(f: F ~> Lambda[a => A[G[a]]]): A[Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))) => Functor[A].map(f(x))(y => Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))
 
           }
@@ -5300,45 +5480,59 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], c: Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(implicit U: Uncons[F, G]): (Option[Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](-\/(v))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(-\/(v)))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(-\/(v))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(-\/(v)))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(-\/(v))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))))))))), Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t)))
@@ -5666,19 +5860,33 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(f: F ~> Lambda[a => A[G[a]]]): A[Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))) => Functor[A].map(f(x))(y => Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))
 
           }
@@ -6047,48 +6255,63 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], c: Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(implicit U: Uncons[F, G]): (Option[Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](-\/(v))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(-\/(v)))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(-\/(v))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(-\/(v)))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(-\/(v))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))))))))), Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t)))
@@ -6437,20 +6660,35 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(f: F ~> Lambda[a => A[G[a]]]): A[Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))) => Functor[A].map(f(x))(y => Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))
 
           }
@@ -6842,51 +7080,67 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], c: Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(implicit U: Uncons[F, G]): (Option[Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](-\/(v))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(-\/(v)))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(-\/(v))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(-\/(v)))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(-\/(v))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t, p.t16)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))))))))))) =>
               val (h, t) = U(p.t16)
               (h.map(v => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))))))))))), Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, t)))
@@ -7256,21 +7510,37 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(f: F ~> Lambda[a => A[G[a]]]): A[Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))) => Functor[A].map(f(x))(y => Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))
 
           }
@@ -7685,54 +7955,71 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], c: Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(implicit U: Uncons[F, G]): (Option[Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](-\/(v))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(-\/(v)))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(-\/(v))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(-\/(v)))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(-\/(v))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t, p.t16, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))) =>
               val (h, t) = U(p.t16)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, t, p.t17)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))))))))))) =>
               val (h, t) = U(p.t17)
               (h.map(v => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))))))))))), Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, t)))
@@ -8123,22 +8410,39 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(f: F ~> Lambda[a => A[G[a]]]): A[Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))) => Functor[A].map(f(x))(y => Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))
 
           }
@@ -8576,57 +8880,75 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], c: Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(implicit U: Uncons[F, G]): (Option[Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](-\/(v))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(-\/(v)))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(-\/(v))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(-\/(v)))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(-\/(v))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t, p.t16, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))) =>
               val (h, t) = U(p.t16)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, t, p.t17, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))) =>
               val (h, t) = U(p.t17)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, t, p.t18)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))))))))))))) =>
               val (h, t) = U(p.t18)
               (h.map(v => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))))))))))))), Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, t)))
@@ -9038,23 +9360,41 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(f: F ~> Lambda[a => A[G[a]]]): A[Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))) => Functor[A].map(f(x))(y => Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))
 
           }
@@ -9515,60 +9855,79 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], c: Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(implicit U: Uncons[F, G]): (Option[Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](-\/(v))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(-\/(v)))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(-\/(v))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(-\/(v)))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(-\/(v))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t, p.t16, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))) =>
               val (h, t) = U(p.t16)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, t, p.t17, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))) =>
               val (h, t) = U(p.t17)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, t, p.t18, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))))) =>
               val (h, t) = U(p.t18)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, t, p.t19)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))))))))))))) =>
               val (h, t) = U(p.t19)
               (h.map(v => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))))))))))))), Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, t)))
@@ -10001,24 +10360,43 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(f: F ~> Lambda[a => A[G[a]]]): A[Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))) => Functor[A].map(f(x))(y => Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))
 
           }
@@ -10502,63 +10880,83 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], c: Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(implicit U: Uncons[F, G]): (Option[Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](-\/(v))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(-\/(v)))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(-\/(v))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(-\/(v)))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(-\/(v))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t, p.t16, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))) =>
               val (h, t) = U(p.t16)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, t, p.t17, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))) =>
               val (h, t) = U(p.t17)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, t, p.t18, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))))) =>
               val (h, t) = U(p.t18)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, t, p.t19, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))))) =>
               val (h, t) = U(p.t19)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, t, p.t20)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))))))))))))))) =>
               val (h, t) = U(p.t20)
               (h.map(v => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))))))))))))))), Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, t)))
@@ -11012,25 +11410,45 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(f: F ~> Lambda[a => A[G[a]]]): A[Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))) => Functor[A].map(f(x))(y => Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))
 
           }
@@ -11537,66 +11955,87 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], c: Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(implicit U: Uncons[F, G]): (Option[Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](-\/(v))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(-\/(v)))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(-\/(v))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(-\/(v)))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(-\/(v))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))) =>
               val (h, t) = U(p.t16)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, t, p.t17, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))) =>
               val (h, t) = U(p.t17)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, t, p.t18, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))))) =>
               val (h, t) = U(p.t18)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, t, p.t19, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))))) =>
               val (h, t) = U(p.t19)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, t, p.t20, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))))))) =>
               val (h, t) = U(p.t20)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, t, p.t21)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_)))))))))))))))))))) =>
               val (h, t) = U(p.t21)
               (h.map(v => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))))))))))))))), Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, t)))
@@ -12071,26 +12510,47 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(f: F ~> Lambda[a => A[G[a]]]): A[Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))))))))))))))) => Functor[A].map(f(x))(y => Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))))))))))))))
 
           }
@@ -12620,69 +13080,91 @@ object types {
 
         def unconsOne[F[_], G[_]](p: Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], c: Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(implicit U: Uncons[F, G]): (Option[Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]) =
           c.run match {
+
             case -\/(_) =>
               val (h, t) = U(p.t1)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](-\/(v))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(-\/(_)) =>
               val (h, t) = U(p.t2)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(-\/(v)))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(-\/(_))) =>
               val (h, t) = U(p.t3)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(-\/(v))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(-\/(_)))) =>
               val (h, t) = U(p.t4)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(-\/(v)))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(-\/(_))))) =>
               val (h, t) = U(p.t5)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(-\/(v))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
               val (h, t) = U(p.t6)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))) =>
               val (h, t) = U(p.t7)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))) =>
               val (h, t) = U(p.t8)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))) =>
               val (h, t) = U(p.t9)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))) =>
               val (h, t) = U(p.t10)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, t, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))) =>
               val (h, t) = U(p.t11)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, t, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))) =>
               val (h, t) = U(p.t12)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, t, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))) =>
               val (h, t) = U(p.t13)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, t, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))) =>
               val (h, t) = U(p.t14)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, t, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))) =>
               val (h, t) = U(p.t15)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, t, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))) =>
               val (h, t) = U(p.t16)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, t, p.t17, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))) =>
               val (h, t) = U(p.t17)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, t, p.t18, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))))) =>
               val (h, t) = U(p.t18)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, t, p.t19, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))))) =>
               val (h, t) = U(p.t19)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, t, p.t20, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_)))))))))))))))))))) =>
               val (h, t) = U(p.t20)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, t, p.t21, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(_))))))))))))))))))))) =>
               val (h, t) = U(p.t21)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, t, p.t22)))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(_))))))))))))))))))))) =>
               val (h, t) = U(p.t22)
               (h.map(v => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v))))))))))))))))))))))), Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9, p.t10, p.t11, p.t12, p.t13, p.t14, p.t15, p.t16, p.t17, p.t18, p.t19, p.t20, p.t21, t)))
@@ -13178,27 +13660,49 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(f: F ~> Lambda[a => A[G[a]]]): A[Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
           c.run match {
+
             case -\/(x) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](-\/(y)))
+
             case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(-\/(y))))
+
             case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(-\/(y)))))
+
             case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(-\/(y))))))
+
             case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(-\/(y)))))))
+
             case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))))))))))))))))
+
             case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x))))))))))))))))))))) => Functor[A].map(f(x))(y => Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))))))))))))))))
 
           }

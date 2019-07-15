@@ -51,6 +51,20 @@ object syntax {
     def tpeParams: String = tpes.mkString(", ")
     def tpeParamsF(F: String): String = tpes.map(s => s"$F[$s]").mkString(", ")
 
+    def nestedTpeParams: String = tpes.map(t => s"$t[_[_]]").mkString(", ")
+    def nestedTpes(F: String = "F"): LS = tpes.map(t => s"$t[$F]")
+    def nestedProdTpe(F: String = "F"): String = nestedTpes(F).prodTpeF("Id")
+    def nestedCopTpe(F: String = "F"): String = nestedTpes(F).copTpeF("Id")
+    def nestedBuiltAndXor: String = s"AndXorNested${tpes.length}[${tpes.tpeParams}]"
+
+    def ftraverseParams: LS = foldLen01[LS](Nil)(tpes.paramSigArgs("FTraverse", "ft"))
+    def foldMapParams: LS = foldLen01[LS](Nil)(tpes.map(t => s"$t, $t").paramSigArgs("FoldMap", "fm"))
+
+    def asImpls(otherImpls: Boolean): String =
+      tpes.isEmpty.fold("", otherImpls.fold(s", ${tpes.mkString(", ")}", s"(implicit ${tpes.mkString(", ")})"))
+
+    def const: LS = tpes.map(t => s"FConst[$t]#T")
+
     def paramSig(FG: LS, a: String): String =
       tpes.zipWithIndex.map(s => s"${a}${s._2}: ${FG.foldRight(s._1)((e, a) => s"${e}[${a}]")}").mkString(", ")
 

@@ -1,5 +1,12 @@
 @import andxor.syntax._
 
-@(existing: List[String], add: List[String])
+@(existing: List[String], add: List[String], alreadyNested: Boolean)
 
-  def apply[@{add.tpeParams}]: @{(existing ++ add).builtAndXor} = @{(existing ++ add).builtAndXor}
+  @if(alreadyNested) {
+    def apply[@{add.tpeParams}]: @{(existing ++ add.const).nestedBuiltAndXor} = @{(existing ++ add.const).nestedBuiltAndXor}
+    def nest[@{add.nestedTpeParams}]: @{(existing ++ add).nestedBuiltAndXor} = @{(existing ++ add).nestedBuiltAndXor}
+  } else {
+    def apply[@{add.tpeParams}]: @{(existing ++ add).builtAndXor} = @{(existing ++ add).builtAndXor}
+    def nest[@{add.nestedTpeParams}]: @{(existing.const ++ add).nestedBuiltAndXor} = @{(existing.const ++ add).nestedBuiltAndXor}
+  }
+

@@ -10,6 +10,10 @@ trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
 
   implicit def injProdToVecCopEvHelper[F[_], A](implicit i: Inj[Cop[F], F[A]]): Inj[Vector[Cop[F]], F[A]] =
     Inj.instance(a => Vector(i(a)))
+
+  implicit def injNestedProdToVecCopEvHelper[A[_[_]], F[_]](implicit i: Inj[Cop[F], Id[A[F]]]): Inj[Vector[Cop[F]], A[F]] =
+    Inj.instance(a => Vector(i(a)))
+
   implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]]
 }
 
@@ -44,5 +48,6 @@ trait AndXor { self =>
 
 object AndXor {
   def apply[A]: AndXor1[A] = new AndXor1[A] {}
-  @tpeLists.map(template.txt.Build(Nil, _))
+  def nest[A[_[_]]]: AndXorNested1[A] = new AndXorNested1[A] {}
+  @tpeLists.map(template.txt.Build(Nil, _, false))
 }

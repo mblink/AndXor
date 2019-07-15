@@ -55,7 +55,7 @@ object types {
 
         def unconsOne[F[_], G[_]](p: @{tpes.prodTpe}, c: @{tpes.copTpeF("G")})(implicit U: Uncons[F, G]): (Option[@{tpes.copTpeF("G")}], @{tpes.prodTpe}) =
           c.run match {
-            @{tpes.zipper(FoldMap(_)).mkString("").dropWhile(_ == ' ')}
+            @{tpes.zipper(FoldMap(_, false)).mkString("").dropWhile(_ == ' ')}
           }
       }
 
@@ -92,7 +92,7 @@ object types {
 
         def traverse[F[_], G[_], A[_]: Applicative](c: @tpes.copTpe)(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.copTpeF("G")}] =
           c.run match {
-            @tpes.zipper(SequenceC(_))
+            @tpes.zipper(SequenceC(_, false))
           }
       }
 
