@@ -2,5 +2,4 @@
 
 @(existing: List[String], add: List[String])
 
-  def apply[@{add.tpeParams}]: @{(existing ++ add.const).builtAndXor} = @{(existing ++ add.const).builtAndXor}
-  def nest[@{add.rank2TpeParams}]: @{(existing ++ add).builtAndXor} = @{(existing ++ add).builtAndXor}
+  def apply[@{add.tpeParams}]: @{(existing ++ add).builtAndXor} = @{(existing ++ add).builtAndXor}

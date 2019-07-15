@@ -2,4 +2,4 @@
 @import scalaz.Zipper
 
 @(z: Zipper[String])
-case @z.djVal("x") => Functor[A].map(@{z.toList.foldLen01("f(x)")("x.traverse(f)")})(y => @{z.toList.copTpeF("G")}(@z.djVal("y")))
+case @z.djVal("x") => Functor[A].map(f(x))(y => @{z.toList.copTpeF("G")}(@z.djVal("y")))

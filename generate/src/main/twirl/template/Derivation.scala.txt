@@ -5,12 +5,12 @@
 import scalaz.Apply
 import scalaz.Isomorphism.<=>
 
-@tcs(tpes: List[String]) = @{ tpes.map(t => s"TC[$t[F]]").paramSig("t") }
+@tcs(tpes: List[String]) = @{ tpes.paramSig(List("TC", "F"), "t") }
 
 object derivation {
   @tpeLists.map { tpes =>
-  trait Derivation@{tpes.length}C[@{tpes.rank2TpeParams}] {
-    val axo = AndXorNested@{tpes.length}[@{tpes.tpeParams}]
+  trait Derivation@{tpes.length}C[@{tpes.tpeParams}] {
+    val axo = AndXor@{tpes.length}[@{tpes.tpeParams}]
 
     def deriveCovariant[TC[_], F[_], A](iso: A <=> axo.Cop[F])(implicit F: Alt[TC], @tcs(tpes)): TC[A] =
       F.map(axo.deriving[TC, F].alt)(iso.from(_))
@@ -19,8 +19,8 @@ object derivation {
       F.contramap(axo.deriving[TC, F].choose)(iso.to(_))
   }
 
-  trait Derivation@{tpes.length}P[@{tpes.rank2TpeParams}] {
-    val axo = AndXorNested@{tpes.length}[@{tpes.tpeParams}]
+  trait Derivation@{tpes.length}P[@{tpes.tpeParams}] {
+    val axo = AndXor@{tpes.length}[@{tpes.tpeParams}]
 
     def deriveCovariant[TC[_], F[_], A](iso: A <=> axo.Prod[F])(implicit F: Apply[TC], @tcs(tpes)): TC[A] =
       F.map(axo.deriving[TC, F].apply)(iso.from(_))
@@ -32,7 +32,7 @@ object derivation {
 
   object ops {
     @tpeLists.map { tpes =>
-    implicit class Derivation@{tpes.length}COps[A, @{tpes.rank2TpeParams}, F[_]](iso: A <=> AndXorNested@{tpes.length}[@{tpes.tpeParams}]#Cop[F]) {
+    implicit class Derivation@{tpes.length}COps[A, @{tpes.tpeParams}, F[_]](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Cop[F]) {
       val derive = new Derivation@{tpes.length}C[@{tpes.tpeParams}] {}
 
       def deriveCovariant[TC[_]](implicit F: Alt[TC], @tcs(tpes)): TC[A] =
@@ -42,7 +42,7 @@ object derivation {
         derive.deriveContravariant[TC, F, A](iso)
     }
 
-    implicit class Derivation@{tpes.length}POps[A, @{tpes.rank2TpeParams}, F[_]](iso: A <=> AndXorNested@{tpes.length}[@{tpes.tpeParams}]#Prod[F]) {
+    implicit class Derivation@{tpes.length}POps[A, @{tpes.tpeParams}, F[_]](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[F]) {
       val derive = new Derivation@{tpes.length}P[@{tpes.tpeParams}] {}
 
       def deriveCovariant[TC[_]](implicit F: Apply[TC], @tcs(tpes)): TC[A] =

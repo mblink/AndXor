@@ -1,6 +1,6 @@
 package andxor.test
 
-import andxor.{Alt, Decidable, Divide, FConst, Labelled}
+import andxor.{Alt, Decidable, Divide, Labelled}
 import andxor.argonaut._
 import andxor.circe._
 import andxor.scalacheck._
@@ -1320,6 +1320,8 @@ object types {
     def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
       ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
   }
+
+  type FConst[A] = { type T[F[_]] >: F[A] <: F[A] }
 }
 
 object DerivingPluginTest extends Properties("DerivingPlugin") {

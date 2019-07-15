@@ -15,16 +15,16 @@ import scalaz.std.string._
 
 object arbitrary {
   @tpeLists.map { tpes =>
-    implicit def prod@{tpes.length}Arb[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.prodTpe] =
+    implicit def prod@{tpes.length}Arb[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.prodTpe] =
       AndXor.nest[@tpes.tpeParams].deriving[Arbitrary, F].apply
 
-    implicit def cop@{tpes.length}Arb[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.copTpe] =
+    implicit def cop@{tpes.length}Arb[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Arbitrary[$t[F]]").paramSig("a")}): Arbitrary[@tpes.copTpe] =
       AndXor.nest[@tpes.tpeParams].deriving[Arbitrary, F].alt
 
-    implicit def prod@{tpes.length}Eq[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.prodTpe] =
+    implicit def prod@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.prodTpe] =
       AndXor.nest[@tpes.tpeParams].deriving[Equal, F].divide
 
-    implicit def cop@{tpes.length}Eq[F[_], @tpes.rank2TpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.copTpe] =
+    implicit def cop@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.map(t => s"Equal[$t[F]]").paramSig("e")}): Equal[@tpes.copTpe] =
       AndXor.nest[@tpes.tpeParams].deriving[Equal, F].choose
   }
 }
@@ -33,17 +33,17 @@ object arbitrary {
   object @{tpes.prodName}Test extends Properties("@{tpes.prodName}") {
     import arbitrary._
 
-    include(AndXorProperties.ftraverse.laws[@tpes.const.prodTpeF("?[_]")])
+    include(AndXorProperties.ftraverse.laws[@tpes.prodTpeF("?[_]")])
 
     @tpes.zipper { z =>
-      include(lens.laws[@tpes.const.prodTpeF("Option"), Option[@{tpes(z.index)}]](
-        @{tpes.prodName}.@{tpes.prodName}Lens@{z.index}[Option, @{tpes.const.tpeParams}]), "@{z.index}.")
+      include(lens.laws[@tpes.prodTpeF("Option"), Option[@{tpes(z.index)}]](
+        @{tpes.prodName}.@{tpes.prodName}Lens@{z.index}[Option, @{tpes.tpeParams}]), "@{z.index}.")
     }
   }
 
   object @{tpes.copName}Test extends Properties("@{tpes.copName}") {
     import arbitrary._
 
-    include(AndXorProperties.ftraverse.laws[@tpes.const.copTpeF("?[_]")])
+    include(AndXorProperties.ftraverse.laws[@tpes.copTpeF("?[_]")])
   }
 }}

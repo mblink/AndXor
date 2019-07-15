@@ -2,7 +2,7 @@
 @import scalaz.Zipper
 
 @(z: Zipper[String])
-            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")("x"))(_ => "-\\/(x)"))((_, a) => s"\\/-(${a})")} =>
-              val (h, t) = @z.toList.foldLen01(s"U(p.run)")(s"${z.toList.foldMapName(z.index)}.unconsOne(p${z.toList.prodAccess(z.index + 1)}, x)")
+            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")("_"))(_ => "-\\/(_)"))((_, a) => s"\\/-(${a})")} =>
+              val (h, t) = U(@{z.toList.foldLen01("p.run")(s"p${z.toList.prodAccess(z.index + 1)}")})
               (h.map(v => @{z.toList.copTpeF("G")}(@{z.djVal("v")})), @{z.toList.prodTpe}(@{
                 z.prodAccesses("p").updated(z.index, "t").mkTuple}))
