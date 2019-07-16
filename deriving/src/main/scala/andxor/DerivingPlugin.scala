@@ -1,6 +1,7 @@
 package andxor
 
 import andxor.compat.ParseNamedArg
+import scala.collection.mutable.{Map => MMap}
 import scala.tools.nsc.Global
 
 class DerivingPlugin(override val global: Global) extends AnnotationPlugin(global) with ParseNamedArg { self =>
@@ -11,6 +12,41 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   private val varianceFlags: Long = (Flag.COVARIANT | Flag.CONTRAVARIANT).asInstanceOf[Long]
 
   val triggers: List[String] = List(deriving)
+
+  case class ConfiguredTc(prod: (Variance[ProdParam], Boolean), cop: (Variance[CopParam], Boolean))
+  val configuredTcs: MMap[String, ConfiguredTc] = MMap()
+
+  override def processOptions(opts: List[String], error: String => Unit): Unit = {
+    def configure(tcs: String, copOrProd: Either[Unit, Unit], tpe: String): Unit = {
+      def upd(labelled: Boolean, vs: (Variance[CopParam], Variance[ProdParam])): Unit = {
+        val (p, c): ((Variance[ProdParam], Boolean), (Variance[CopParam], Boolean)) =
+          copOrProd match {
+            case Left(_) => (null, (vs._1, labelled))
+            case Right(_) => ((vs._2, labelled), null)
+          }
+        tcs.split('|').foreach(tc => configuredTcs.update(tc, configuredTcs.get(tc) match {
+          case Some(conf) => conf.copy(prod = Option(p).getOrElse(conf.prod), cop = Option(c).getOrElse(conf.cop))
+          case None => ConfiguredTc(p, c)
+        }))
+      }
+
+      tpe.toLowerCase match {
+        case "covariant" => upd(false, (CovariantCoproduct, CovariantProduct))
+        case "labelledcovariant" => upd(true, (CovariantCoproduct, CovariantProduct))
+        case "contravariant" => upd(false, (ContravariantCoproduct, ContravariantProduct))
+        case "labelledcontravariant" => upd(true, (ContravariantCoproduct, ContravariantProduct))
+      }
+    }
+
+    opts.foreach(opt => opt.split(":").toList match {
+      case tpe :: x :: tcs :: Nil if x.toLowerCase == "cop" => configure(tcs, Left(()), tpe)
+      case tpe :: x :: tcs :: Nil if x.toLowerCase == "prod" => configure(tcs, Right(()), tpe)
+      case tpe :: tc :: Nil =>
+        configure(tc, Left(()), tpe)
+        configure(tc, Right(()), tpe)
+      case _ => error(s"deriving: invalid option `$opt`")
+    })
+  }
 
   override def updateClass(
     anns: List[Tree],
@@ -105,11 +141,20 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     val derivationFunction = TermName("choose")
   }
 
-  def termToType(term: Tree): RefTree =
+  def identOrSelect(term: Tree): Option[Either[Ident, Select]] =
     term match {
-      case Ident(name) => Ident(name.toTypeName)
-      case Select(qual, name) => Select(qual, name.toTypeName)
-      case _ => error(term.pos, s"Unable to convert term `${showCode(term)}` to type"); null
+      case i@Ident(name) => Some(Left(i))
+      case s@Select(qual, name) => Some(Right(s))
+      case _ => None
+    }
+
+  def termToType(term: Tree): Tree =
+    identOrSelect(term).map(_ match {
+      case Left(Ident(n)) => Ident(n.toTypeName)
+      case Right(Select(q, n)) => Select(q, n.toTypeName)
+    }).getOrElse {
+      error(term.pos, s"Unable to convert term `${showCode(term)}` to type")
+      q""
     }
 
   def valOrDef(mods: Modifiers, name: TermName, tparams: List[TypeDef], params: List[List[ValDef]], tpe: Tree, body: Tree): Tree =
@@ -316,36 +361,6 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     memberName: TermName
   )
 
-  def getTypeclasses0[P <: Param](tcs: List[Tree], tree: GenTree[P], variance: Variance[P]): List[Typeclass[P]] =
-    tcs.map(tc => Typeclass(tree, termToType(tc), variance, memberName(tc)))
-
-  def getTypeclasses[P <: Param](args: List[Tree], base: GenTree[P], labelled: GenTree[P]): List[Typeclass[Param]] = {
-    val (co, contra): (Covariant[Param], Contravariant[Param]) = base match {
-      case _: ProdTree => (CovariantProduct, ContravariantProduct)
-      case _: CopTree  => (CovariantCoproduct, ContravariantCoproduct)
-    }
-    List[(String, Variance[Param], Boolean)](
-      ("covariant", co, false),
-      ("labelledCovariant", co, true),
-      ("contravariant", contra, false),
-      ("labelledContravariant", contra, true)
-    ).flatMap { case (term, variance, l) =>
-      val tree = if (l) labelled else base
-      args.flatMap(parseNamedArg(_, term) match {
-        case Some(q"List(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case Some(q"Set(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case Some(q"Set(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case Some(q"Vector(..$tcs)") => getTypeclasses0[Param](tcs, tree, variance)
-        case _ => Nil
-      })
-    }
-  }
-
-  def getDebug(args: List[Tree]): Boolean = args.exists(parseNamedArg(_, "debug") match {
-    case Some(q"true") => true
-    case _ => false
-  })
-
   def mkDerivedTypeclass[P <: Param](tc: Typeclass[P]): Tree =
     q"""
     $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]].${tc.variance.mapFunction}(
@@ -359,14 +374,52 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
         ps => List(ps.map(p => q"${Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC)} val ${TermName(freshName("ev"))}: ${tc.typeclass}[${p.tpe}]"))),
       tq"${tc.typeclass}[${tc.tree.tpe}]", mkDerivedTypeclass(tc))
 
+  def getTypeclasses[P <: Param](tcs: List[Tree], tree: GenTree[P], variance: Variance[P]): List[Typeclass[P]] =
+    tcs.map(tc => Typeclass(tree, termToType(tc), variance, memberName(tc)))
+
+  def parseArgs[P <: Param](args: List[Tree], base: GenTree[P], labelled: GenTree[P]): List[Typeclass[Param]] = {
+    val prod = Some(base).collect { case _: ProdTree => true }.getOrElse(false)
+    val (co, contra) = if (prod) (CovariantProduct, ContravariantProduct) else  (CovariantCoproduct, ContravariantCoproduct)
+    val tree = (l: Boolean) => if (l) labelled else base
+    val err = (t: Tree, msg: String) => { error(t.pos, msg); Nil }
+
+    setDebug(false)
+    val (remArgs, tcs) = args.foldLeft((List[Tree](), List[Typeclass[Param]]())) { case ((remArgs, tcs), t) =>
+      parseNamedArg(t, "debug") match {
+        case Some(d) =>
+          setDebug(d.equalsStructure(q"true"))
+          (remArgs, tcs)
+        case None => (parseNamedArg(t, "covariant").map(_ -> (co -> false)): Option[(Tree, (Variance[Param], Boolean))])
+          .orElse(parseNamedArg(t, "labelledCovariant").map(_ -> (co -> true)))
+          .orElse(parseNamedArg(t, "contravariant").map(_ -> (contra -> false)))
+          .orElse(parseNamedArg(t, "labelledContravariant").map(_ -> (contra -> true))) match {
+            case Some((q"List(..$xs)", (v, l))) => (remArgs, tcs ++ getTypeclasses[Param](xs, tree(l), v))
+            case Some((q"Seq(..$xs)", (v, l))) => (remArgs, tcs ++ getTypeclasses[Param](xs, tree(l), v))
+            case Some((q"Set(..$xs)", (v, l))) => (remArgs, tcs ++ getTypeclasses[Param](xs, tree(l), v))
+            case Some((q"Vector(..$xs)", (v, l))) => (remArgs, tcs ++ getTypeclasses[Param](xs, tree(l), v))
+            case None => (remArgs :+ t, tcs)
+          }
+      }
+    }
+
+    tcs ++ remArgs.flatMap(t => identOrSelect(t) match {
+      case Some(x) =>
+        val tc = x.fold(a => a, a => a)
+        configuredTcs.get(showCode(tc)).flatMap(c => Option(if (prod) c.prod else c.cop)) match {
+          case Some(x) => getTypeclasses(List(tc), tree(x._2), x._1)
+          case None => err(t, s"No configuration found for deriving typeclass `${showCode(tc)}` over a ${if (prod) "" else "co"}product")
+        }
+      case None => err(t, s"Invalid argument to deriving annotation: ${showCode(t)}"); Nil
+    })
+  }
+
   def mkStats[P <: Param](mkTree: Boolean => GenTree[P], mods: List[Tree]): List[Tree] = {
     val modArgs = mods.flatMap(_ match {
       case Apply(Select(New(_), termNames.CONSTRUCTOR), args) => args
       case _ => Nil
     })
-    setDebug(getDebug(modArgs))
     val (base, labelled) = (mkTree(false), mkTree(true))
-    val tcs = getTypeclasses(modArgs, base, labelled)
+    val tcs = parseArgs(modArgs, base, labelled)
     val res = List(q"""
       object andxor {
         ..${labels(labelled) :::

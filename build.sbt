@@ -60,7 +60,7 @@ lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   crossScalaVersions := scalaVersions,
   scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
-  version := "0.3.6",
+  version := "0.3.7",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -138,7 +138,7 @@ lazy val core = project.in(file("core"))
   .settings(testSettings)
   .settings(Seq(
     name := "andxor-core",
-    scalacOptions ++= enablePlugin((Keys.`package` in Compile in newtype).value)
+    scalacOptions ++= enablePlugin((Keys.`package` in Compile in newtype).value, Seq())
   ))
 
 lazy val argonaut = project.in(file("argonaut"))
@@ -172,27 +172,34 @@ lazy val scalacheck = project.in(file("scalacheck"))
   ))
   .dependsOn(core)
 
-lazy val pluginOptions = Seq(
+def pluginOptions(pluginOpts: Seq[String]) = Seq(
   scalacOptions -= "-Ywarn-unused:patvars",
-  scalacOptions in Test ++= enablePlugin((Keys.`package` in Compile).value),
+  scalacOptions in Test ++= enablePlugin((Keys.`package` in Compile).value, pluginOpts),
   libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
 )
 
-def enablePlugin(jar: File): Seq[String] = Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}")
+def enablePlugin(jar: File, extra: Seq[String]): Seq[String] =
+  Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}") ++ extra
 
-def compilerPlugin(proj: Project, nme: String) =
+def compilerPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
   proj
     .settings(baseSettings)
     .settings(publishSettings)
-    .settings(pluginOptions)
+    .settings(pluginOptions(pluginOpts))
     .settings(name := nme)
 
 lazy val deriving =
-  compilerPlugin(project.in(file("deriving")), "andxor-deriving")
+  compilerPlugin(project.in(file("deriving")), "andxor-deriving", Seq(
+    "-P:deriving:covariant:Arbitrary",
+    "-P:deriving:labelledCovariant:Decoder|DecodeJson|Read",
+    "-P:deriving:contravariant:Prod:Csv|Equal",
+    "-P:deriving:labelledContravariant:Cop:Csv|Equal",
+    "-P:deriving:labelledContravariant:Encoder|EncodeJson|Show"
+  ))
     .settings(testSettings)
     .dependsOn(argonaut % "test->test", circe % "test->test", scalacheck % "test->test")
 
-lazy val newtype = compilerPlugin(project.in(file("newtype")), "andxor-newtype")
+lazy val newtype = compilerPlugin(project.in(file("newtype")), "andxor-newtype", Seq())
 
 lazy val root = project.in(file("."))
   .settings(commonSettings)

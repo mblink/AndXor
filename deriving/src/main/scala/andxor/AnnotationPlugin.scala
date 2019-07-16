@@ -64,17 +64,19 @@ ${args.map { case (s, v) => if (v.isInstanceOf[Tree]) debugStr(s, v.asInstanceOf
   def triggers: List[String]
 
   def isImplicitVal(v: ValDef): Boolean = v.mods.isImplicit
-  def isImplicitVal(vs: List[ValDef]): Boolean = vs.forall(isImplicitVal(_))
+  def isImplicitVal(vs: List[ValDef]): Boolean = Some(vs).filter(_.nonEmpty).fold(false)(_.forall(isImplicitVal(_)))
 
   def ctorParams(klass: ClassDef): (List[List[ValDef]], Option[List[ValDef]]) =
     klass.impl.body.collect { case d@DefDef(_, termNames.CONSTRUCTOR, _, _, _, impl) => d } match {
-      case DefDef(_, _, _, vh :: vt, _, _) :: Nil if !isImplicitVal(vh) =>
-        vt.span(!isImplicitVal(_)) match {
-          case (e, i :: Nil) => (vh :: e, Some(i))
-          case (e, Nil) => (vh :: e, None)
+      case DefDef(_, _, _, vs, _, _) :: Nil if vs.headOption.fold(true)(!isImplicitVal(_)) =>
+        vs.span(!isImplicitVal(_)) match {
+          case (e, i :: Nil) => (e, Some(i))
+          case (e, Nil) => (e, None)
           case _ => abort(s"Found more than one implicit parameter group for ${klass.name}")
         }
-      case _ => abort(s"Failed to find exactly one constructor for ${klass.name}")
+      case ds =>
+        error(klass.pos, s"Failed to find exactly one constructor for class `${klass.name}`, ${ds.map(debugStr("d", _))}")
+        (Nil, None)
     }
 
   def freshName(prefix: String): String = currentFreshNameCreator.newName(prefix)
@@ -167,7 +169,6 @@ ${args.map { case (s, v) => if (v.isInstanceOf[Tree]) debugStr(s, v.asInstanceOf
         treeCopy.Template(obj.impl, obj.impl.parents, obj.impl.self, obj.impl.body ::: x))
     }
 
-
   private def phase = new PluginComponent with TypingTransformers {
     override val phaseName: String = AnnotationPlugin.this.name
     override val global: AnnotationPlugin.this.global.type =
@@ -189,7 +190,7 @@ ${args.map { case (s, v) => if (v.isInstanceOf[Tree]) debugStr(s, v.asInstanceOf
     private def hasTrigger(t: Tree): Boolean = t.exists {
       case c: ClassDef if hasTrigger(c.mods)  => true
       case m: ModuleDef if hasTrigger(m.mods) => true
-      case _                                    => false
+      case _                                  => false
     }
 
     private def hasTrigger(mods: Modifiers): Boolean = Triggers.exists(mods.hasAnnotationNamed)
