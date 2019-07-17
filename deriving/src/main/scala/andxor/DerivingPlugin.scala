@@ -181,25 +181,31 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     )
   }
 
-  def extendsTpe(tpeName: TypeName, parents: List[Tree]): Boolean =
-    parents.exists(_ match {
-      case Ident(TypeName(name)) if name == tpeName.decode => true
-      case _ => false
-    })
+  private def extendsTpe(tpeName: TypeName, parents: List[Tree]): Boolean =
+    parents.collectFirst { case Ident(TypeName(n)) if n == tpeName.decode => () }.nonEmpty
 
-  def childOfTpe(tpeName: TypeName, tree: Tree): Option[Either[ClassDef, ModuleDef]] =
+  private def concreteChildOfTpe(tpeName: TypeName, tree: Tree): Option[Either[ClassDef, ModuleDef]] =
     tree match {
       case o @ ModuleDef(_, _, Template(parents, _, _)) if extendsTpe(tpeName, parents) => Some(Right(o))
       case c @ ClassDef(_, _, _, Template(parents, _, _)) if extendsTpe(tpeName, parents) => Some(Left(c))
       case _ => None
     }
 
-  def getChildrenOfTpe(tpeName: TypeName, companion: ModuleDef): Reader[LocalScope, List[Either[ClassDef, ModuleDef]]] =
-    Reader(scope => (companion.get[List[Tree]] ++
-      scope.objects.values.toList ++
-      scope.classes.values.toList).flatMap(childOfTpe(tpeName, _)))
+  private def traitsExtendingTpe(tpeName: TypeName, allTraits: List[ClassDef]): List[ClassDef] =
+    allTraits.flatMap(_ match {
+      case t @ ClassDef(_, name, _, Template(parents, _, _)) if extendsTpe(tpeName, parents) =>
+        t :: traitsExtendingTpe(name, allTraits)
+      case _ => Nil
+    })
 
-  def getTypeNames(tpe: Tree): Set[TypeName] =
+  private def getChildrenOfTpe(tpeName: TypeName, companion: ModuleDef): Reader[LocalScope, List[Either[ClassDef, ModuleDef]]] =
+    Reader { scope =>
+      val tpeNames = tpeName :: traitsExtendingTpe(tpeName, scope.traits.values.toList).map(_.name)
+      (companion.get[List[Tree]] ++ scope.objects.values.toList ++ scope.classes.values.toList)
+        .flatMap(t => tpeNames.flatMap(concreteChildOfTpe(_, t)))
+    }
+
+  private def getTypeNames(tpe: Tree): Set[TypeName] =
     (tpe match {
       case Ident(t: TypeName) => Set(t)
       case _ => Set()

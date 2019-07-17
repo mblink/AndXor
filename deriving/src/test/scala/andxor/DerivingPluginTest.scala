@@ -125,6 +125,20 @@ object types {
   case class Baz(s: String) extends Foo
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  sealed trait Trait0
+  sealed trait Trait1 extends Trait0 { val value: Option[Int] }
+  sealed trait Trait2 extends Trait0
+  sealed trait Trait3 extends Trait1
+  case object Inst1 extends Trait0
+  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Inst2(value: Option[Int]) extends Trait1
+  case object Inst3 extends Trait1 { val value = Some(3) }
+  case object Inst4 extends Trait2
+  case object Inst5 extends Trait3 { val value = Some(5) }
+  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Inst6(x: String) extends Trait3 { val value = x.parseInt.toOption }
+
+  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
   case class Test1(
     x1: String
   )
@@ -966,6 +980,7 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
 
   proof[Foo]("Foo")
   proof[Baz]("Baz")
+  proof[Trait0]("Trait0")
   proof[Test1]("Test1")
   proof[Test2]("Test2")
   proof[Test3]("Test3")
