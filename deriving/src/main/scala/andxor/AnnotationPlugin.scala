@@ -49,10 +49,10 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     s"===\n$name ${tree.pos}:\n${show(tree)}\n${showTree(tree, pretty)}"
 
   protected def debug(args: (String, Any)*): Unit = if (debugMode) println(s"""
-********************************************************************************
-${args.map { case (s, v) => if (v.isInstanceOf[Tree]) debugStr(s, v.asInstanceOf[Tree]) else s"$s: $v" }.mkString("\n\n")}
-********************************************************************************
-""")
+    |********************************************************************************
+    |${args.map { case (s, v) => if (v.isInstanceOf[Tree]) debugStr(s, v.asInstanceOf[Tree]) else s"$s: $v" }.mkString("\n\n")}
+    |********************************************************************************
+    |""".stripMargin)
 
   protected def debug(name: String, tree: Tree, pretty: Boolean = true): Unit =
     println(debugStr(name, tree, pretty))
@@ -78,6 +78,12 @@ ${args.map { case (s, v) => if (v.isInstanceOf[Tree]) debugStr(s, v.asInstanceOf
         error(klass.pos, s"Failed to find exactly one constructor for class `${klass.name}`, ${ds.map(debugStr("d", _))}")
         (Nil, None)
     }
+
+  def isAnnotationNamed(t: Tree, name: TypeName): Boolean = t match {
+    case Apply(Select(New(Ident(`name`)), _), _)     => true
+    case Apply(Select(New(Select(_, `name`)), _), _) => true
+    case _                                           => false
+  }
 
   def freshName(prefix: String): String = currentFreshNameCreator.newName(prefix)
 
@@ -203,13 +209,7 @@ ${args.map { case (s, v) => if (v.isInstanceOf[Tree]) debugStr(s, v.asInstanceOf
     }
 
     private def getTriggers(anns: List[Tree]): (List[Tree], List[Tree]) =
-      anns.partition(a => Triggers.exists(isNamed(a, _)))
-
-    private def isNamed(t: Tree, name: TypeName) = t match {
-      case Apply(Select(New(Ident(`name`)), _), _)     => true
-      case Apply(Select(New(Select(_, `name`)), _), _) => true
-      case _                                           => false
-    }
+      anns.partition(a => Triggers.exists(isAnnotationNamed(a, _)))
 
     private def withAllPos[A <: Tree](tree: A, pos: Position): A = {
       tree.foreach { t =>

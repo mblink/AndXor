@@ -138,6 +138,7 @@ object types {
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
   case class Inst6(x: String) extends Trait3 { val value = x.parseInt.toOption }
 
+  @newtype
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
   case class Test1(
     x1: String

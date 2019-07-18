@@ -60,7 +60,7 @@ lazy val baseSettings = splainSettings ++ Seq(
   organization := "andxor",
   crossScalaVersions := scalaVersions,
   scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
-  version := "0.3.8",
+  version := "0.3.9",
   addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
   scalacOptions ++= Seq(
     "-deprecation",
@@ -150,7 +150,7 @@ lazy val argonaut = project.in(file("argonaut"))
   ))
   .dependsOn(core)
 
-lazy val circeVersion = "0.12.0-M3"
+lazy val circeVersion = "0.12.0-M4"
 lazy val circe = project.in(file("circe"))
   .settings(commonSettings)
   .settings(publishSettings)
@@ -197,6 +197,7 @@ lazy val deriving =
     "-P:deriving:labelledContravariant:Encoder|EncodeJson|Show"
   ))
     .settings(testSettings)
+    .settings(scalacOptions in Test ++= enablePlugin((Keys.`package` in Compile in newtype).value, Seq()))
     .dependsOn(argonaut % "test->test", circe % "test->test", scalacheck % "test->test")
 
 lazy val newtype = compilerPlugin(project.in(file("newtype")), "andxor-newtype", Seq())

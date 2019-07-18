@@ -282,12 +282,14 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => ${if (tpes.length <= 1) mkTuple else q"$reprObj[..$andxorTpes]($mkTuple)"},
-        (x: $reprTpe) => new $tpe(...$constructorArgs))
+        (x: $reprTpe) => ${if (isNewType) q"${klass.name.companionName}(...$constructorArgs)" else q"new $tpe(...$constructorArgs)"})
       """
 
     def mkValue(inst: Tree, param: Param): Tree =
       if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
       else          q"$inst.${param.termName}"
+
+    private def isNewType: Boolean = klass.mods.annotations.exists(isAnnotationNamed(_, TypeName("newtype")))
   }
 
   case class CopTree(
