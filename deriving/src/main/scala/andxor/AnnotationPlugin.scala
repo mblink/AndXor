@@ -196,6 +196,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     private def hasTrigger(t: Tree): Boolean = t.exists {
       case c: ClassDef if hasTrigger(c.mods)  => true
       case m: ModuleDef if hasTrigger(m.mods) => true
+      case t: TypeDef if hasTrigger(t.mods)   => true
       case _                                  => false
     }
 
