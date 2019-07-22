@@ -1,0 +1,35 @@
+@import andxor.syntax._
+
+@()
+
+import scalaz.Id.Id
+
+sealed trait Route[P <: AndXor, QS <: AndXor] {
+  def mkPath: P#Cop[Id] => Path
+  def mkQueryString: QS#Cop[Id] => QueryString
+
+  def apply(path: P#Prod[Id], queryString: QS#Prod[Id]): String
+}
+
+@mkRoute(ps: List[String], qs: List[String]) = {
+  sealed trait RouteP@{ps.length}QS@{qs.length}[@{(ps ++ qs).tpeParams}]
+  extends Route[@{ps.builtAndXor}, @{qs.builtAndXor}] {
+    @if(ps.length == maxLen - 1) {
+      def /[P <: Path](last: P): Route[@{(ps :+ "P").builtAndXor}, @{qs.builtAndXor}]
+    } else {
+      def /[P <: Path](next: P): RouteP@{ps.length + 1}QS@{qs.length}[@{((ps :+ "P") ++ qs).tpeParams}] =
+        new RouteP@{ps.length + 1}QS@{qs.length}[@{((ps :+ "P") ++ qs).tpeParams}] {}
+    }
+
+    @if(qs.length == maxLen - 1) {
+      def ?[QS <: QueryString](last: QS): Route[@{ps.builtAndXor}, @{(qs :+ "QS").builtAndXor}]
+    } else {
+      def ?[QS <: QueryString](next: QS): RouteP@{ps.length}QS@{qs.length + 1}[@{(ps ++ (qs :+ "QS")).tpeParams}] =
+        new RouteP@{ps.length}QS@{qs.length + 1}[@{(ps ++ (qs :+ "QS")).tpeParams}] {}
+    }
+  }
+}
+
+object Route {
+  @mkTpeList(1, maxLen - 1, "P").flatMap(ps => mkTpeList(0, maxLen - 1, "QS").map(mkRoute(ps, _)))
+}

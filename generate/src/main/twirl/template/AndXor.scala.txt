@@ -46,6 +46,18 @@ trait AndXor { self =>
   def derivingNestedProd[TC[_], F[_]](implicit dp: DerivingProd[Prod, F, TC]): DerivingProd[Prod, F, TC] = dp
 }
 
+trait AndXor0 extends AndXor {
+  type Cop[F[_]] = Unit
+  type Prod[F[_]] = Unit
+  object evidence extends AndXorEvidence[Cop, Prod] {
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.instance(identity _)
+    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = Inj.instance(identity _)
+    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = Inj.instance(identity _)
+    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = Inj.instance(Vector(_))
+  }
+}
+object AndXor0 extends AndXor0
+
 object AndXor {
   def apply[A]: AndXor1[A] = new AndXor1[A] {}
   def nest[A[_[_]]]: AndXorNested1[A] = new AndXorNested1[A] {}

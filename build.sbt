@@ -163,6 +163,17 @@ lazy val circe = project.in(file("circe"))
   ))
   .dependsOn(core)
 
+lazy val routes = project.in(file("routes"))
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(Seq(
+    name := "andxor-routes",
+    libraryDependencies += "com.softwaremill.tapir" %% "tapir-core" % "0.9.0",
+    scalacOptions ++= enablePlugin((newtype / Compile / Keys.`package`).value, Seq()) ++
+                      enablePlugin((deriving / Compile / Keys.`package`).value, Seq())
+  ))
+  .dependsOn(core)
+
 lazy val scalacheck = project.in(file("scalacheck"))
   .settings(commonSettings)
   .settings(publishSettings)

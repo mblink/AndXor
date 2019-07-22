@@ -5,7 +5,7 @@ import scalaz.syntax.comonad._
 import scalaz.syntax.std.boolean._
 
 object syntax {
-  val maxLen = 22
+  val maxLen = 4
 
   def range(start: Int, end: Int): List[Int] = start.to(end).toList
 
@@ -105,7 +105,7 @@ object syntax {
     def foldLen01[A](lteq1: => A)(gt1: => A): A = (tpes.length <= 1).fold(lteq1, gt1)
     def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)((tpes.length == 1).fold(eq1, gt1))
 
-    def builtAndXor: String = s"AndXor${tpes.length}[${tpes.tpeParams}]"
+    def builtAndXor: String = s"AndXor${tpes.length}${foldLen0("")(s"[${tpes.tpeParams}]")}"
   }
 
   implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {
