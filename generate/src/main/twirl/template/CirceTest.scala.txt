@@ -1,0 +1,33 @@
+@import andxor.syntax._
+
+@()
+
+import andxor.scalacheck._
+import io.circe.{Codec, Decoder, Encoder}
+import org.scalacheck.{Arbitrary, Properties}
+import org.scalacheck.Prop.{BooleanOperators, forAllNoShrink}
+
+@tpeLists = @{ mkTpeList(1, maxLen) }
+@ccName(ts: List[String]) = { Test@{ts.length} }
+@ccTpe(i: Int) = @{ List("Int", "String", "Boolean").apply(i % 3) }
+
+object CirceTest extends Properties("circe") {
+  @tpeLists.map { tpes =>
+  @@deriving(Arbitrary, Decoder, Encoder)
+  case class @{ccName(tpes)}(@{tpes.zipWithIndex.map(t => ccTpe(t._2)).paramSig("x")})
+
+  property("@{ccName(tpes)}") = forAllNoShrink { (t: @{ccName(tpes)}) =>
+    val axoCodec = Codec.from(Decoder[@{ccName(tpes)}], Encoder[@{ccName(tpes)}])
+    val circeCodec = Codec.forProduct@{tpes.length}(@{tpes.paramList("x").map(t => s""""$t"""").mkString(", ")})(@{ccName(tpes)}.apply)((@{ccName(tpes)}.unapply _).andThen(_.get))
+
+    val axoEncoded = axoCodec(t)
+    val circeEncoded = circeCodec(t)
+
+    val axoDecoded = axoCodec.decodeJson(axoEncoded)
+    val circeDecoded = circeCodec.decodeJson(axoEncoded)
+
+    ((axoEncoded == circeEncoded) :| "encoded json was different") &&
+      ((axoDecoded == circeDecoded) :| "decoded json was different")
+  }
+  }
+}

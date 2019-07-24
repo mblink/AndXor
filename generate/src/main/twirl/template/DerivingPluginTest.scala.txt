@@ -1,0 +1,218 @@
+@import andxor.syntax._
+
+@()
+
+@tpeLists = @{ mkTpeList(1, maxLen) }
+
+@testCCName(ts: List[String]) = { Test@{ts.length} }
+@tparamsCCName(ts: List[String]) = { TParams@{ts.length} }
+@hkCCName(ts: List[String]) = { HK@{ts.length} }
+
+@testCCValueTpe(i: Int) = @{ List("Int", "String", "Boolean").apply(i % 3) }
+
+import andxor.argonaut._
+import andxor.circe._
+import andxor.scalacheck._
+import andxor.types.ADTValue
+import _root_.argonaut.{DecodeJson, EncodeJson}
+import io.circe.{Decoder, Encoder}
+import org.scalacheck.{Arbitrary, Properties}
+import org.scalacheck.Prop.{BooleanOperators, forAllNoShrink}
+import scalaz.{~>, Apply, Cord, Equal, Show}
+import scalaz.Id.Id
+import scalaz.Isomorphism.IsoFunctor
+import scalaz.std.anyVal._
+import scalaz.std.list._
+import scalaz.std.option._
+import scalaz.std.string._
+import scalaz.syntax.apply._
+import scalaz.syntax.equal._
+import scalaz.syntax.std.string._
+
+object typeclasses {
+  implicit def showLabelled[A: Show, L <: Singleton with String]: Show[Labelled.Aux[A, L]] =
+    Show.shows(l => s"""${l.label} := ${Show[A].shows(l.value)}""" ++ "\n")
+
+  implicit def showAdtVal[A <: Singleton, L <: Singleton with String]: Show[Labelled.Aux[ADTValue[A], L]] =
+    Show.shows(a => s"""ADTValue := ${a.label}""" ++ "\n")
+
+  type ShowF[A] = A => Cord
+  implicit val showIso: IsoFunctor[Show, ShowF] =
+    IsoFunctor[Show, ShowF](Lambda[Show ~> ShowF](_.show _), Lambda[ShowF ~> Show](Show.show(_)))
+
+  implicit val showDecide: Decidable[Show] = Decidable.fromIso[Show, ShowF](showIso)
+  implicit val showDivide: Divide[Show] = Divide.fromIso[Show, ShowF](showIso)
+
+  trait Read[A] { def read(s: String): Option[A] }
+  object Read {
+    implicit def readLabelled[A, L <: Singleton with String](implicit l: L, r: Read[A]): Read[Labelled.Aux[A, L]] =
+      new Read[Labelled.Aux[A, L]] {
+        def read(s: String): Option[Labelled.Aux[A, L]] =
+          s.split("\n").toList.flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
+      }
+
+    implicit def readAdtVal[A <: Singleton, L <: Singleton with String](
+      implicit label: L,
+      value: Labelled.Aux[ADTValue[A], L]
+    ): Read[Labelled.Aux[ADTValue[A], L]] =
+      new Read[Labelled.Aux[ADTValue[A], L]] {
+        def read(s: String): Option[Labelled.Aux[ADTValue[A], L]] =
+          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
+      }
+
+    implicit def readList[A: Read]: Read[List[A]] = new Read[List[A]] {
+      def read(s: String): Option[List[A]] = Some(Nil)
+    }
+
+    implicit def readOption[A](implicit r: Read[A]): Read[Option[A]] = new Read[Option[A]] {
+      def read(s: String): Option[Option[A]] = r.read(s).map(Some(_))
+    }
+
+    implicit val readStr: Read[String] = new Read[String] {
+      def read(s: String): Option[String] =
+        if (s.headOption.exists(_ == '"') && s.lastOption.exists(_ == '"')) Some(s.drop(1).dropRight(1)) else None
+    }
+    implicit val readInt: Read[Int] = new Read[Int] { def read(s: String): Option[Int] = s.parseInt.toOption }
+    implicit val readBool: Read[Boolean] = new Read[Boolean] { def read(s: String): Option[Boolean] = s.parseBoolean.toOption }
+
+    trait ReadAp {
+      def ap[A, B](fa: => Read[A])(f: => Read[A => B]): Read[B] =
+        new Read[B] { def read(s: String): Option[B] = (f.read(s) |@@| fa.read(s))(_(_)) }
+    }
+
+    implicit val readApply: Apply[Read] = new Apply[Read] with ReadAp {
+      def map[A, B](fa: Read[A])(f: A => B): Read[B] = new Read[B] { def read(s: String): Option[B] = fa.read(s).map(f) }
+    }
+
+    implicit val readAlt: Alt[Read] = new Alt[Read] with ReadAp {
+      def point[A](a: => A): Read[A] = new Read[A] { def read(s: String): Option[A] = Some(a) }
+      def alt[A](a1: => Read[A], a2: => Read[A]): Read[A] =
+        new Read[A] { def read(s: String): Option[A] = a1.read(s).orElse(a2.read(s)) }
+    }
+  }
+
+  trait Csv[A] { def toCsv(a: A): List[String] }
+  object Csv {
+    implicit val csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
+    implicit val csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
+    implicit val csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
+    implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] =
+      new Csv[List[A]] { def toCsv(l: List[A]): List[String] = l.flatMap(c.toCsv(_)) }
+
+    implicit def csvOption[A](implicit c: Csv[A]): Csv[Option[A]] =
+      new Csv[Option[A]] { def toCsv(o: Option[A]): List[String] = o.fold(List[String](null))(c.toCsv(_)) }
+
+    implicit def csvLabelled[A: Csv, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled.Aux[A, L]] =
+      new Csv[Labelled.Aux[A, L]] {
+        def toCsv(a: Labelled.Aux[A, L]): List[String] = c.toCsv(a.value)
+      }
+
+    implicit def csvAdtVal[A <: Singleton, L <: Singleton with String]: Csv[Labelled.Aux[ADTValue[A], L]] =
+      new Csv[Labelled.Aux[ADTValue[A], L]] {
+        def toCsv(a: Labelled.Aux[ADTValue[A], L]): List[String] = List(a.label)
+      }
+
+    type CsvF[A] = A => List[String]
+    implicit val csvIso: IsoFunctor[Csv, CsvF] =
+      IsoFunctor[Csv, CsvF](Lambda[Csv ~> CsvF](_.toCsv _), new (CsvF ~> Csv) { def apply[A](f: CsvF[A]): Csv[A] =
+        new Csv[A] { def toCsv(a: A): List[String] = f(a) } })
+
+    implicit val csvDecide: Decidable[Csv] = Decidable.fromIso[Csv, CsvF](csvIso)
+    implicit val csvDivide: Divide[Csv] = Divide.fromIso[Csv, CsvF](csvIso)
+  }
+}
+
+object types {
+  import typeclasses._
+
+  @@deriving case class NoInstances(s: String)
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  sealed trait Foo
+  case object Bar extends Foo
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Baz(s: String) extends Foo
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  sealed trait Trait0
+  sealed trait Trait1 extends Trait0 { val value: Option[Int] }
+  sealed trait Trait2 extends Trait0
+  sealed trait Trait3 extends Trait1
+  case object Inst1 extends Trait0
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Inst2(value: Option[Int]) extends Trait1
+  case object Inst3 extends Trait1 { val value = Some(3) }
+  case object Inst4 extends Trait2
+  case object Inst5 extends Trait3 { val value = Some(5) }
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Inst6(x: String) extends Trait3 { val value = x.parseInt.toOption }
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Multi(str: String)(val int: Int)
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class HKFG[F[_[_]], G[_]](run: F[G])
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Covariant[+A](a: A)
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class Contravariant[-A](s: String, i: Int) {
+    def go(a: A): (String, Int) = (s"$s -- $a", i)
+  }
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class ErrorTest1[A](i: Int, a: A)
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class ErrorTest2[A](as: List[A], ints: List[Int], test1s: List[ErrorTest1[A]])
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class ErrorTest3[D[_], A](test1s: List[ErrorTest1[D[A]]], test2: ErrorTest2[A])
+  object ErrorTest3 {
+    def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
+      ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
+  }
+
+  @tpeLists.map { tpes =>
+    @if(tpes.length == 1) { @@newtype }
+    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+    case class @{testCCName(tpes)}(@{tpes.zipWithIndex.map(t => testCCValueTpe(t._2)).paramSig("x")})
+
+    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+    case class @{tparamsCCName(tpes)}[@{tpes.tpeParams}](@{tpes.paramSig("x")})
+
+    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+    case class @{hkCCName(tpes)}[F[@{tpes.map(_ => "_").tpeParams}], @{tpes.tpeParams}](run: F[@{tpes.tpeParams}])
+  }
+}
+
+object DerivingPluginTest extends Properties("DerivingPlugin") {
+  import typeclasses.{Csv, Read}
+  import types._
+
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Equal: Read: Show](label: String) =
+    property(label) = forAllNoShrink((a: A) => {
+      (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
+      ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not equal") &&
+      ((implicitly[Decoder[A]].decodeJson(implicitly[Encoder[A]].apply(a)) match {
+        case Right(res) => res === a
+        case _ => false
+      }) :| "circe was not equal") &&
+      // can't really test `Read` because the implementations don't work for nested values
+      (implicitly[Show[A]].shows(a).nonEmpty :| "show/read was not equal")
+    })
+
+  proof[Foo]("Foo")
+  proof[Baz]("Baz")
+  proof[Trait0]("Trait0")
+  proof[Multi]("Multi")
+  proof[HKFG[FConst[String]#T, Id]]("HKFG")
+  proof[Covariant[String]]("Covariant")
+  proof[Contravariant[String]]("Contravariant")
+  @tpeLists.map { tpes =>
+    proof[@{testCCName(tpes)}]("@{testCCName(tpes)}")
+    proof[@{tparamsCCName(tpes)}[@{tpes.map(_ => "String").tpeParams}]]("@{tparamsCCName(tpes)}")
+    proof[@{hkCCName(tpes)}[@{tparamsCCName(tpes)}, @{tpes.map(_ => "String").tpeParams}]]("@{hkCCName(tpes)}")
+  }
+}
