@@ -57,7 +57,7 @@ object syntax {
     def nestedCopTpe(F: String = "F"): String = nestedTpes(F).copTpeF("Id")
     def nestedBuiltAndXor: String = s"AndXorNested${tpes.length}[${tpes.tpeParams}]"
 
-    def ftraverseParams: LS = foldLen01[LS](Nil)(tpes.paramSigArgs("FTraverse", "ft"))
+    def ftraverseParams(tc: String): LS = foldLen01[LS](Nil)(tpes.map(t => s"FTraverse[$t, $tc]").paramSigArgs("ft"))
     def foldMapParams: LS = foldLen01[LS](Nil)(tpes.map(t => s"$t, $t").paramSigArgs("FoldMap", "fm"))
 
     def asImpls(otherImpls: Boolean): String =

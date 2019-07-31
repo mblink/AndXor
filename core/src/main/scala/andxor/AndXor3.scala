@@ -77,8 +77,8 @@ trait AndXorNested3[A1[_[_]], A2[_[_]], A3[_[_]]] extends AndXor {
   }
 
   object instances {
-    implicit def axoProd3Instance(implicit ft0: FTraverse[A1], ft1: FTraverse[A2], ft2: FTraverse[A3]): FFunctor[Prod] with FTraverse[Prod] =
-      new FFunctor[Prod] with FTraverse[Prod] {
+    implicit def axoProd3Instance(implicit ft0: FTraverse[A1, Applicative], ft1: FTraverse[A2, Applicative], ft2: FTraverse[A3, Applicative]): FFunctor[Prod] with FTraverseProd[Prod] =
+      new FFunctor[Prod] with FTraverseProd[Prod] {
         def map[F[_], G[_]](p: Prod3[Id, A1[F], A2[F], A3[F]])(nt: F ~> G): Prod3[Id, A1[G], A2[G], A3[G]] =
           Prod3[Id, A1[G], A2[G], A3[G]]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt)))
 
@@ -115,12 +115,12 @@ trait AndXorNested3[A1[_[_]], A2[_[_]], A3[_[_]]] extends AndXor {
           }
       }
 
-    implicit def axoCop3Instance(implicit ft0: FTraverse[A1], ft1: FTraverse[A2], ft2: FTraverse[A3]): FFunctor[Cop] with FTraverse[Cop] =
-      new FFunctor[Cop] with FTraverse[Cop] {
+    implicit def axoCop3Instance(implicit ft0: FTraverse[A1, Functor], ft1: FTraverse[A2, Functor], ft2: FTraverse[A3, Functor]): FFunctor[Cop] with FTraverseCop[Cop] =
+      new FFunctor[Cop] with FTraverseCop[Cop] {
         def map[F[_], G[_]](c: Cop3[Id, A1[F], A2[F], A3[F]])(nt: F ~> G): Cop3[Id, A1[G], A2[G], A3[G]] =
           Cop3[Id, A1[G], A2[G], A3[G]](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt))))
 
-        def traverse[F[_], G[_], A[_]: Applicative](c: Cop3[Id, A1[F], A2[F], A3[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop3[Id, A1[G], A2[G], A3[G]]] =
+        def traverse[F[_], G[_], A[_]: Functor](c: Cop3[Id, A1[F], A2[F], A3[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop3[Id, A1[G], A2[G], A3[G]]] =
           c.run match {
 
             case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop3[Id, A1[G], A2[G], A3[G]](-\/(y)))

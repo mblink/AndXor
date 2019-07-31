@@ -50,8 +50,8 @@ trait AndXorNested12[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]],
   }
 
   object instances {
-    implicit def axoProd12Instance(implicit ft0: FTraverse[A1], ft1: FTraverse[A2], ft2: FTraverse[A3], ft3: FTraverse[A4], ft4: FTraverse[A5], ft5: FTraverse[A6], ft6: FTraverse[A7], ft7: FTraverse[A8], ft8: FTraverse[A9], ft9: FTraverse[A10], ft10: FTraverse[A11], ft11: FTraverse[A12]): FFunctor[Prod] with FTraverse[Prod] =
-      new FFunctor[Prod] with FTraverse[Prod] {
+    implicit def axoProd12Instance(implicit ft0: FTraverse[A1, Applicative], ft1: FTraverse[A2, Applicative], ft2: FTraverse[A3, Applicative], ft3: FTraverse[A4, Applicative], ft4: FTraverse[A5, Applicative], ft5: FTraverse[A6, Applicative], ft6: FTraverse[A7, Applicative], ft7: FTraverse[A8, Applicative], ft8: FTraverse[A9, Applicative], ft9: FTraverse[A10, Applicative], ft10: FTraverse[A11, Applicative], ft11: FTraverse[A12, Applicative]): FFunctor[Prod] with FTraverseProd[Prod] =
+      new FFunctor[Prod] with FTraverseProd[Prod] {
         def map[F[_], G[_]](p: Prod12[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F]])(nt: F ~> G): Prod12[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G], A10[G], A11[G], A12[G]] =
           Prod12[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G], A10[G], A11[G], A12[G]]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt), ft9.map(p.t10)(nt), ft10.map(p.t11)(nt), ft11.map(p.t12)(nt)))
 
@@ -133,12 +133,12 @@ trait AndXorNested12[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]],
           }
       }
 
-    implicit def axoCop12Instance(implicit ft0: FTraverse[A1], ft1: FTraverse[A2], ft2: FTraverse[A3], ft3: FTraverse[A4], ft4: FTraverse[A5], ft5: FTraverse[A6], ft6: FTraverse[A7], ft7: FTraverse[A8], ft8: FTraverse[A9], ft9: FTraverse[A10], ft10: FTraverse[A11], ft11: FTraverse[A12]): FFunctor[Cop] with FTraverse[Cop] =
-      new FFunctor[Cop] with FTraverse[Cop] {
+    implicit def axoCop12Instance(implicit ft0: FTraverse[A1, Functor], ft1: FTraverse[A2, Functor], ft2: FTraverse[A3, Functor], ft3: FTraverse[A4, Functor], ft4: FTraverse[A5, Functor], ft5: FTraverse[A6, Functor], ft6: FTraverse[A7, Functor], ft7: FTraverse[A8, Functor], ft8: FTraverse[A9, Functor], ft9: FTraverse[A10, Functor], ft10: FTraverse[A11, Functor], ft11: FTraverse[A12, Functor]): FFunctor[Cop] with FTraverseCop[Cop] =
+      new FFunctor[Cop] with FTraverseCop[Cop] {
         def map[F[_], G[_]](c: Cop12[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F]])(nt: F ~> G): Cop12[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G], A10[G], A11[G], A12[G]] =
           Cop12[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G], A10[G], A11[G], A12[G]](c.run.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.bimap(_.map(nt), _.map(nt)))))))))))))
 
-        def traverse[F[_], G[_], A[_]: Applicative](c: Cop12[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop12[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G], A10[G], A11[G], A12[G]]] =
+        def traverse[F[_], G[_], A[_]: Functor](c: Cop12[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F], A10[F], A11[F], A12[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop12[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G], A10[G], A11[G], A12[G]]] =
           c.run match {
 
             case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop12[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G], A10[G], A11[G], A12[G]](-\/(y)))

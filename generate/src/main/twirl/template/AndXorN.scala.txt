@@ -54,8 +54,8 @@ trait AndXorNested@{tpes.length}[@{tpes.nestedTpeParams}] extends AndXor {
 
   @if(tpes.length > 1) {
     object instances {
-      implicit def axo@{tpes.prodName}Instance@{tpes.ftraverseParams.asImpls(false)}: FFunctor[Prod] with FTraverse[Prod] =
-        new FFunctor[Prod] with FTraverse[Prod] {
+      implicit def axo@{tpes.prodName}Instance@{tpes.ftraverseParams("Applicative").asImpls(false)}: FFunctor[Prod] with FTraverseProd[Prod] =
+        new FFunctor[Prod] with FTraverseProd[Prod] {
           def map[F[_], G[_]](p: @tpes.nestedProdTpe())(nt: F ~> G): @tpes.nestedProdTpe("G") =
             @{tpes.nestedProdTpe("G")}(@{tpes.paramListF(i =>
               tpes.foldLen01((s: String) => s"nt($s)")(s => s"ft$i.map($s)(nt)")(s"p${tpes.prodAccess(i + 1)}")).mkTuple})
@@ -81,13 +81,13 @@ trait AndXorNested@{tpes.length}[@{tpes.nestedTpeParams}] extends AndXor {
             }
         }
 
-      implicit def axo@{tpes.copName}Instance@{tpes.ftraverseParams.asImpls(false)}: FFunctor[Cop] with FTraverse[Cop] =
-        new FFunctor[Cop] with FTraverse[Cop] {
+      implicit def axo@{tpes.copName}Instance@{tpes.ftraverseParams("Functor").asImpls(false)}: FFunctor[Cop] with FTraverseCop[Cop] =
+        new FFunctor[Cop] with FTraverseCop[Cop] {
           def map[F[_], G[_]](c: @tpes.nestedCopTpe())(nt: F ~> G): @tpes.nestedCopTpe("G") =
             @{tpes.nestedCopTpe("G")}(@{tpes.foldLen01("nt(c.run)")(
               s"c.run${tpes.tail.foldRight("_.map(nt)")((_, a) => s"_.bimap(_.map(nt), $a)").tail}")})
 
-          def traverse[F[_], G[_], A[_]: Applicative](c: @tpes.nestedCopTpe())(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.nestedCopTpe("G")}] =
+          def traverse[F[_], G[_], A[_]: Functor](c: @tpes.nestedCopTpe())(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.nestedCopTpe("G")}] =
             c.run match {
               @tpes.zipper(SequenceC(_, true))
             }

@@ -71,9 +71,7 @@ package object argonaut extends LPArgonaut {
   }
 
   implicit val decodeJsonAlt: Alt[DecodeJson] = new Alt[DecodeJson] {
-    def point[A](a: => A): DecodeJson[A] = DecodeJson(_ => DecodeResult.ok(a))
-    def ap[A, B](fa: => DecodeJson[A])(f: => DecodeJson[A => B]): DecodeJson[B] =
-      DecodeJson(c => f(c).flatMap(g => fa(c).map(g(_))))
+    def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)
     def alt[A](a1: => DecodeJson[A], a2: => DecodeJson[A]): DecodeJson[A] = a1 ||| a2
   }
 }

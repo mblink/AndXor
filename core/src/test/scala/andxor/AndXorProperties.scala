@@ -11,10 +11,8 @@ import scalaz.syntax.apply._
 object AndXorProperties {
   object arbitrary {
     implicit val altArbitrary: Alt[Arbitrary] = new Alt[Arbitrary] {
+      def map[A, B](fa: Arbitrary[A])(f: A => B): Arbitrary[B] = Monad[Arbitrary].map(fa)(f)
       def alt[A](a1: => Arbitrary[A], a2: => Arbitrary[A]): Arbitrary[A] = Arbitrary(Gen.oneOf(a1.arbitrary, a2.arbitrary))
-      def point[A](a: => A): Arbitrary[A] = Arbitrary(Gen.const(a))
-      def ap[A, B](fa: => Arbitrary[A])(f: => Arbitrary[A => B]): Arbitrary[B] =
-        Monad[Arbitrary].ap(fa)(f)
     }
 
     implicit val optNtArb: Arbitrary[Option ~> Option] =
@@ -55,27 +53,34 @@ object AndXorProperties {
   }
 
   object ftraverse {
-    def identity[F[_[_]], X[_], Y[_]](implicit F: FTraverse[F], afx: Arbitrary[F[X]], axy: Arbitrary[X ~> Y], ef: Equal[F[Y]]): Prop =
+    def identity[F[_[_]], TC[_[_]], X[_], Y[_]](implicit F: FTraverse[F, TC], TCId: TC[Id], afx: Arbitrary[F[X]], axy: Arbitrary[X ~> Y], ef: Equal[F[Y]]): Prop =
       Prop.forAll(F.ftraverseLaw.identity[X, Y] _)
 
-    def purity[F[_[_]], G[_], X[_]](implicit F: FTraverse[F], afx: Arbitrary[F[X]], G: Applicative[G], ef: Equal[G[F[X]]]): Prop =
+    def purity[F[_[_]], TC[_[_]], G[_], X[_]](implicit F: FTraverse[F, TC], afx: Arbitrary[F[X]], G: TC[G], AG: Applicative[G], ef: Equal[G[F[X]]]): Prop =
       Prop.forAll(F.ftraverseLaw.purity[G, X] _)
 
-    def sequentialFusion[F[_[_]], N[_], M[_], A[_], B[_], C[_]](
+    def sequentialFusion[F[_[_]], TC[_[_]], N[_], M[_], A[_], B[_], C[_]](
         implicit fa: Arbitrary[F[A]], amb: Arbitrary[A ~> Lambda[a => M[B[a]]]], bnc: Arbitrary[B ~> Lambda[a => N[C[a]]]],
-        F: FTraverse[F], N: Applicative[N], M: Applicative[M], MN: Equal[M[N[F[C]]]]): Prop =
+        F: FTraverse[F, TC], N: TC[N], M: TC[M], MN: Equal[M[N[F[C]]]]): Prop =
       Prop.forAll(F.ftraverseLaw.sequentialFusion[N, M, A, B, C] _)
 
-    def naturality[F[_[_]], N[_], M[_], A[_]](nat: (M ~> N))
-        (implicit fma: Arbitrary[F[Lambda[a => M[A[a]]]]], F: FTraverse[F], N: Applicative[N], M: Applicative[M], NFA: Equal[N[F[A]]]): Prop =
+    def naturality[F[_[_]], TC[_[_]], N[_], M[_], A[_]](nat: (M ~> N))
+        (implicit fma: Arbitrary[F[Lambda[a => M[A[a]]]]], F: FTraverse[F, TC], N: TC[N], M: TC[M], NFA: Equal[N[F[A]]]): Prop =
       Prop.forAll(F.ftraverseLaw.naturality[N, M, A](nat) _)
 
-    def parallelFusion[F[_[_]], N[_], M[_], A[_], B[_]](
+    def parallelFusion[F[_[_]], TC[_[_]], N[_], M[_], A[_], B[_]](
         implicit fa: Arbitrary[F[A]], amb: Arbitrary[A ~> Lambda[a => M[B[a]]]], anb: Arbitrary[A ~> Lambda[a => N[B[a]]]],
-        F: FTraverse[F], N: Applicative[N], M: Applicative[M], MN: Equal[(M[F[B]], N[F[B]])]): Prop =
+        F: FTraverse[F, TC], N: TC[N], M: TC[M], MN: Equal[(M[F[B]], N[F[B]])]): Prop =
       Prop.forAll(F.ftraverseLaw.parallelFusion[N, M, A, B] _)
 
-    def laws[F[_[_]]](implicit fa: Arbitrary[F[Option]], F: FTraverse[F], EF: Equal[F[Option]]): Properties =
+    def laws[F[_[_]], TC[_[_]]](
+      implicit fa: Arbitrary[F[Option]],
+      F: FTraverse[F, TC],
+      TCL: TC[List],
+      TCV: TC[Vector],
+      TCId: TC[Id],
+      EF: Equal[F[Option]]
+    ): Properties =
       newProperties("ftraverse") { p =>
         import arbitrary._
         import scalaz.std.list._
@@ -83,13 +88,13 @@ object AndXorProperties {
         import scalaz.std.vector._
 
         p.include(ffunctor.laws[F])
-        p.property("identity") = identity[F, Option, Option]
-        p.property("purity.list") = purity[F, List, Option]
-        p.property("purity.stream") = purity[F, Vector, Option]
-        p.property("sequential fusion") = sequentialFusion[F, Id, Id, Option, Option, Option]
-        p.property("naturality") = naturality[F, Vector, List, Option](
+        p.property("identity") = identity[F, TC, Option, Option]
+        p.property("purity.list") = purity[F, TC, List, Option]
+        p.property("purity.stream") = purity[F, TC, Vector, Option]
+        p.property("sequential fusion") = sequentialFusion[F, TC, Id, Id, Option, Option, Option]
+        p.property("naturality") = naturality[F, TC, Vector, List, Option](
           new (List ~> Vector) { def apply[A](l: List[A]): Vector[A] = l.toVector })
-        p.property("parallel fusion") = parallelFusion[F, Id, Id, Option, Option]
+        p.property("parallel fusion") = parallelFusion[F, TC, Id, Id, Option, Option]
 
         ()
       }

@@ -3,11 +3,14 @@ package andxor
 import andxor.AndXorProperties.arbitrary._
 import andxor.types._
 import org.scalacheck.{Arbitrary, Properties}
-import scalaz.Equal
+import scalaz.{Applicative, Equal, Functor}
+import scalaz.scalacheck.ScalaCheckBinding._
 import scalaz.scalacheck.ScalazProperties.lens
 import scalaz.std.anyVal._
+import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.std.string._
+import scalaz.std.vector._
 
 object arbitrary {
 
@@ -268,7 +271,7 @@ object arbitrary {
 object Prod2Test extends Properties("Prod2") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod2[?[_], String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod2[?[_], String, Int], Applicative])
 
   include(lens.laws[Prod2[Option, String, Int], Option[String]](
     Prod2.Prod2Lens0[Option, String, Int]), "0.")
@@ -281,13 +284,13 @@ object Prod2Test extends Properties("Prod2") {
 object Cop2Test extends Properties("Cop2") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop2[?[_], String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop2[?[_], String, Int], Functor])
 }
 
 object Prod3Test extends Properties("Prod3") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod3[?[_], String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod3[?[_], String, Int, String], Applicative])
 
   include(lens.laws[Prod3[Option, String, Int, String], Option[String]](
     Prod3.Prod3Lens0[Option, String, Int, String]), "0.")
@@ -303,13 +306,13 @@ object Prod3Test extends Properties("Prod3") {
 object Cop3Test extends Properties("Cop3") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop3[?[_], String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop3[?[_], String, Int, String], Functor])
 }
 
 object Prod4Test extends Properties("Prod4") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod4[?[_], String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod4[?[_], String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod4[Option, String, Int, String, Int], Option[String]](
     Prod4.Prod4Lens0[Option, String, Int, String, Int]), "0.")
@@ -328,13 +331,13 @@ object Prod4Test extends Properties("Prod4") {
 object Cop4Test extends Properties("Cop4") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop4[?[_], String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop4[?[_], String, Int, String, Int], Functor])
 }
 
 object Prod5Test extends Properties("Prod5") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod5[?[_], String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod5[?[_], String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod5[Option, String, Int, String, Int, String], Option[String]](
     Prod5.Prod5Lens0[Option, String, Int, String, Int, String]), "0.")
@@ -356,13 +359,13 @@ object Prod5Test extends Properties("Prod5") {
 object Cop5Test extends Properties("Cop5") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop5[?[_], String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop5[?[_], String, Int, String, Int, String], Functor])
 }
 
 object Prod6Test extends Properties("Prod6") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod6[?[_], String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod6[?[_], String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod6[Option, String, Int, String, Int, String, Int], Option[String]](
     Prod6.Prod6Lens0[Option, String, Int, String, Int, String, Int]), "0.")
@@ -387,13 +390,13 @@ object Prod6Test extends Properties("Prod6") {
 object Cop6Test extends Properties("Cop6") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop6[?[_], String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop6[?[_], String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod7Test extends Properties("Prod7") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod7[?[_], String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod7[?[_], String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod7[Option, String, Int, String, Int, String, Int, String], Option[String]](
     Prod7.Prod7Lens0[Option, String, Int, String, Int, String, Int, String]), "0.")
@@ -421,13 +424,13 @@ object Prod7Test extends Properties("Prod7") {
 object Cop7Test extends Properties("Cop7") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop7[?[_], String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop7[?[_], String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod8Test extends Properties("Prod8") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod8[?[_], String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod8[?[_], String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod8[Option, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod8.Prod8Lens0[Option, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -458,13 +461,13 @@ object Prod8Test extends Properties("Prod8") {
 object Cop8Test extends Properties("Cop8") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop8[?[_], String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop8[?[_], String, Int, String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod9Test extends Properties("Prod9") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod9[?[_], String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod9[?[_], String, Int, String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod9[Option, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod9.Prod9Lens0[Option, String, Int, String, Int, String, Int, String, Int, String]), "0.")
@@ -498,13 +501,13 @@ object Prod9Test extends Properties("Prod9") {
 object Cop9Test extends Properties("Cop9") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop9[?[_], String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop9[?[_], String, Int, String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod10Test extends Properties("Prod10") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod10[?[_], String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod10[?[_], String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod10[Option, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod10.Prod10Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -541,13 +544,13 @@ object Prod10Test extends Properties("Prod10") {
 object Cop10Test extends Properties("Cop10") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop10[?[_], String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop10[?[_], String, Int, String, Int, String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod11Test extends Properties("Prod11") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod11[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod11[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod11[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod11.Prod11Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String]), "0.")
@@ -587,13 +590,13 @@ object Prod11Test extends Properties("Prod11") {
 object Cop11Test extends Properties("Cop11") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop11[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop11[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod12Test extends Properties("Prod12") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod12[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod12[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod12[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod12.Prod12Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -636,13 +639,13 @@ object Prod12Test extends Properties("Prod12") {
 object Cop12Test extends Properties("Cop12") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop12[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop12[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod13Test extends Properties("Prod13") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod13[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod13[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod13[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod13.Prod13Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]), "0.")
@@ -688,13 +691,13 @@ object Prod13Test extends Properties("Prod13") {
 object Cop13Test extends Properties("Cop13") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop13[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop13[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod14Test extends Properties("Prod14") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod14[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod14[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod14[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod14.Prod14Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -743,13 +746,13 @@ object Prod14Test extends Properties("Prod14") {
 object Cop14Test extends Properties("Cop14") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop14[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop14[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod15Test extends Properties("Prod15") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod15[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod15[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod15[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod15.Prod15Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]), "0.")
@@ -801,13 +804,13 @@ object Prod15Test extends Properties("Prod15") {
 object Cop15Test extends Properties("Cop15") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop15[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop15[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod16Test extends Properties("Prod16") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod16[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod16[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod16[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod16.Prod16Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -862,13 +865,13 @@ object Prod16Test extends Properties("Prod16") {
 object Cop16Test extends Properties("Cop16") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop16[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop16[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod17Test extends Properties("Prod17") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod17[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod17[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod17[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod17.Prod17Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]), "0.")
@@ -926,13 +929,13 @@ object Prod17Test extends Properties("Prod17") {
 object Cop17Test extends Properties("Cop17") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop17[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop17[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod18Test extends Properties("Prod18") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod18[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod18[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod18[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod18.Prod18Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -993,13 +996,13 @@ object Prod18Test extends Properties("Prod18") {
 object Cop18Test extends Properties("Cop18") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop18[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop18[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod19Test extends Properties("Prod19") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod19[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod19[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod19[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod19.Prod19Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]), "0.")
@@ -1063,13 +1066,13 @@ object Prod19Test extends Properties("Prod19") {
 object Cop19Test extends Properties("Cop19") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop19[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop19[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod20Test extends Properties("Prod20") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod20[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod20[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod20[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod20.Prod20Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -1136,13 +1139,13 @@ object Prod20Test extends Properties("Prod20") {
 object Cop20Test extends Properties("Cop20") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop20[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop20[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Functor])
 }
 
 object Prod21Test extends Properties("Prod21") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod21[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Prod21[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
 
   include(lens.laws[Prod21[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod21.Prod21Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]), "0.")
@@ -1212,13 +1215,13 @@ object Prod21Test extends Properties("Prod21") {
 object Cop21Test extends Properties("Cop21") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop21[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]])
+  include(AndXorProperties.ftraverse.laws[Cop21[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Functor])
 }
 
 object Prod22Test extends Properties("Prod22") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Prod22[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Prod22[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
 
   include(lens.laws[Prod22[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod22.Prod22Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]), "0.")
@@ -1291,6 +1294,6 @@ object Prod22Test extends Properties("Prod22") {
 object Cop22Test extends Properties("Cop22") {
   import arbitrary._
 
-  include(AndXorProperties.ftraverse.laws[Cop22[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]])
+  include(AndXorProperties.ftraverse.laws[Cop22[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Functor])
 }
 

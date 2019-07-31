@@ -70,8 +70,8 @@ package object circe extends LPCirce {
     def map[A, B](fa: Decoder[A])(f: A => B): Decoder[B] = fa.map(f)
   }
 
-  implicit val decoderAlt: Alt[Decoder] = new Alt[Decoder] with DecoderAp {
-    def point[A](a: => A): Decoder[A] = Decoder.instance(_ => Right(a))
+  implicit val decoderAlt: Alt[Decoder] = new Alt[Decoder] {
+    def map[A, B](fa: Decoder[A])(f: A => B): Decoder[B] = fa.map(f)
     def alt[A](a1: => Decoder[A], a2: => Decoder[A]): Decoder[A] = a1.or(a2)
   }
 }

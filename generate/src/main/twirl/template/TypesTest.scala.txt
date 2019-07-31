@@ -7,11 +7,14 @@
 import andxor.AndXorProperties.arbitrary._
 import andxor.types._
 import org.scalacheck.{Arbitrary, Properties}
-import scalaz.Equal
+import scalaz.{Applicative, Equal, Functor}
+import scalaz.scalacheck.ScalaCheckBinding._
 import scalaz.scalacheck.ScalazProperties.lens
 import scalaz.std.anyVal._
+import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.std.string._
+import scalaz.std.vector._
 
 object arbitrary {
   @tpeLists.map { tpes =>
@@ -33,7 +36,7 @@ object arbitrary {
   object @{tpes.prodName}Test extends Properties("@{tpes.prodName}") {
     import arbitrary._
 
-    include(AndXorProperties.ftraverse.laws[@tpes.prodTpeF("?[_]")])
+    include(AndXorProperties.ftraverse.laws[@tpes.prodTpeF("?[_]"), Applicative])
 
     @tpes.zipper { z =>
       include(lens.laws[@tpes.prodTpeF("Option"), Option[@{tpes(z.index)}]](
@@ -44,6 +47,6 @@ object arbitrary {
   object @{tpes.copName}Test extends Properties("@{tpes.copName}") {
     import arbitrary._
 
-    include(AndXorProperties.ftraverse.laws[@tpes.copTpeF("?[_]")])
+    include(AndXorProperties.ftraverse.laws[@tpes.copTpeF("?[_]"), Functor])
   }
 }}

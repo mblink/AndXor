@@ -33,8 +33,8 @@ object types {
   trait @{tpes.prodName}LP {
     @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Prod1[F, A] = Prod1[F, A](a) }
 
-    implicit def @{tpes.prodName}Instance[@{tpes.tpeParams}]: FFunctor[@{tpes.prodTpeF("?[_]")}] with FTraverse[@{tpes.prodTpeF("?[_]")}] =
-      new FFunctor[@{tpes.prodTpeF("?[_]")}] with FTraverse[@{tpes.prodTpeF("?[_]")}] {
+    implicit def @{tpes.prodName}Instance[@{tpes.tpeParams}]: FFunctor[@{tpes.prodTpeF("?[_]")}] with FTraverseProd[@{tpes.prodTpeF("?[_]")}] =
+      new FFunctor[@{tpes.prodTpeF("?[_]")}] with FTraverseProd[@{tpes.prodTpeF("?[_]")}] {
         def map[F[_], G[_]](p: @tpes.prodTpe)(nt: F ~> G): @tpes.prodTpeF("G") =
           @{tpes.prodTpeF("G")}(@{tpes.paramListF(i => s"nt(p${tpes.prodAccess(i + 1)})").mkTuple})
 
@@ -84,13 +84,13 @@ object types {
   trait @{tpes.copName}LP {
     @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Cop1[F, A] = Cop1[F, A](a) }
 
-    implicit def @{tpes.copName}Instance[@{tpes.tpeParams}]: FFunctor[@{tpes.copTpeF("?[_]")}] with FTraverse[@{tpes.copTpeF("?[_]")}] =
-      new FFunctor[@{tpes.copTpeF("?[_]")}] with FTraverse[@{tpes.copTpeF("?[_]")}] {
+    implicit def @{tpes.copName}Instance[@{tpes.tpeParams}]: FFunctor[@{tpes.copTpeF("?[_]")}] with FTraverseCop[@{tpes.copTpeF("?[_]")}] =
+      new FFunctor[@{tpes.copTpeF("?[_]")}] with FTraverseCop[@{tpes.copTpeF("?[_]")}] {
         def map[F[_], G[_]](c: @tpes.copTpe)(nt: F ~> G): @tpes.copTpeF("G") =
           @{tpes.copTpeF("G")}(@{tpes.foldLen01("nt(c.run)")(
             s"c.run${tpes.tail.foldRight("nt(_)")((_, a) => s"_.bimap(nt(_), $a)").tail}")})
 
-        def traverse[F[_], G[_], A[_]: Applicative](c: @tpes.copTpe)(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.copTpeF("G")}] =
+        def traverse[F[_], G[_], A[_]: Functor](c: @tpes.copTpe)(f: F ~> Lambda[a => A[G[a]]]): A[@{tpes.copTpeF("G")}] =
           c.run match {
             @tpes.zipper(SequenceC(_, false))
           }
