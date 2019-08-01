@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.{Contravariant, Equal, IsomorphismContravariant, Monoid, Semigroup}
+import scalaz.{Apply, Contravariant, Equal, IsomorphismContravariant, Kleisli, Monoid, Semigroup}
 import scalaz.Isomorphism.<~>
 
 trait Divide[F[_]] extends Contravariant[F] {
@@ -27,6 +27,22 @@ trait DivideLP {
   }
 
   implicit def divideFunction1[O](implicit S: Semigroup[O]): Divide[? => O] = new DivideFunction1[O] { val G = S }
+
+  trait DivideKleisli[F[_], O] extends Divide[Kleisli[F, ?, O]] {
+    def F: Apply[F]
+    def G: Semigroup[O]
+    override def contramap[A, B](fa: Kleisli[F, A, O])(f: B => A): Kleisli[F, B, O] = Kleisli(b => fa.run(f(b)))
+    def divide2[A1, A2, Z](a1: => Kleisli[F, A1, O], a2: => Kleisli[F, A2, O])(f: Z => (A1, A2)): Kleisli[F, Z, O] =
+      Kleisli { z =>
+        val (x1, x2) = f(z)
+        F.apply2(a1.run(x1), a2.run(x2))(G.append(_, _))
+      }
+  }
+
+  implicit def divideKleisli[F[_], O](implicit A: Apply[F], S: Semigroup[O]): Divide[Kleisli[F, ?, O]] = new DivideKleisli[F, O] {
+    val F = A
+    val G = S
+  }
 
   trait DivideEqual extends Divide[Equal] {
     override def contramap[A, B](fa: Equal[A])(f: B => A): Equal[B] = fa.contramap(f)
@@ -66,8 +82,13 @@ object Divisible extends DivideLP {
     }
 
   implicit def divisibleFunction1[O](implicit M: Monoid[O]): Divisible[? => O] = new Divisible[? => O] with DivideFunction1[O] {
-    def G: Semigroup[O] = M
+    val G: Semigroup[O] = M
     def conquer[A]: A => O = _ => M.zero
+  }
+
+  implicit def divisibleKleisli[F[_], O](implicit A: Apply[F], M: Monoid[O]): Divide[Kleisli[F, ?, O]] = new DivideKleisli[F, O] {
+    val F = A
+    val G: Semigroup[O] = M
   }
 
   implicit val divisibleEqual: Divisible[Equal] = new Divisible[Equal] with DivideEqual {

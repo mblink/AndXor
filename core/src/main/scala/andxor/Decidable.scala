@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.{\/, \/-, -\/, Contravariant, Equal, IsomorphismContravariant}
+import scalaz.{\/, \/-, -\/, Contravariant, Equal, IsomorphismContravariant, Kleisli}
 import scalaz.Isomorphism.<~>
 
 trait Decidable[F[_]] extends Contravariant[F] {
@@ -22,6 +22,12 @@ object Decidable {
   implicit def decidableFunction1[O]: Decidable[? => O] = new Decidable[? => O] {
     def contramap[A, B](fa: A => O)(f: B => A): B => O = b => fa(f(b))
     def choose2[Z, A1, A2](a1: => A1 => O, a2: => A2 => O)(f: Z => (A1 \/ A2)): Z => O = f(_).fold(a1(_), a2(_))
+  }
+
+  implicit def decidableKleisli[F[_], O]: Decidable[Kleisli[F, ?, O]] = new Decidable[Kleisli[F, ?, O]] {
+    def contramap[A, B](fa: Kleisli[F, A, O])(f: B => A): Kleisli[F, B, O] = Kleisli(b => fa.run(f(b)))
+    def choose2[Z, A1, A2](a1: => Kleisli[F, A1, O], a2: => Kleisli[F, A2, O])(f: Z => (A1 \/ A2)): Kleisli[F, Z, O] =
+      Kleisli(f(_).fold(a1.run(_), a2.run(_)))
   }
 
   implicit val decideEqual: Decidable[Equal] = new Decidable[Equal] {
