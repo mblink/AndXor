@@ -84,4 +84,12 @@ trait FTraverseProd[T[_[_]]] extends FTraverse[T, Applicative] with FTraverseApp
 object FTraverseProd extends FTraverse0Companion[FTraverseProd]
 
 trait FTraverseCop[T[_[_]]] extends FTraverse[T, Functor] with FTraverseFunctor[T]
-object FTraverseCop extends FTraverse0Companion[FTraverseCop]
+object FTraverseCop extends FTraverse0Companion[FTraverseCop] {
+  implicit def FConstFTraverseCop[X]: FTraverseCop[FConst[X]#T] = new FTraverseCop[FConst[X]#T] {
+    type T[F[_]] = FConst[X]#T[F]
+
+    def map[A[_], B[_]](fa: T[A])(f: A ~> B): T[B] = f(fa)
+    def traverse[F[_], G[_], A[_]: Functor](tf: T[F])(f: F ~> Lambda[a => A[G[a]]]): A[T[G]] =
+      map[F, Lambda[a => A[G[a]]]](tf)(f)
+  }
+}

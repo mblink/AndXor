@@ -1,21 +1,9 @@
-package andxor
-
 import andxor.MapN.syntax._
-import scalaz.{~>, Applicative, Functor}
+import scalaz.{~>, Applicative}
 
-trait FConst[A] { type T[F[_]] >: F[A] <: F[A] }
+package object andxor {
+  type FConst[A] = { type T[F[_]] >: F[A] <: F[A] }
 
-trait FConstLP {
-  implicit def FConstFTraverseCop[X]: FTraverseCop[FConst[X]#T] = new FTraverseCop[FConst[X]#T] {
-    type T[F[_]] = FConst[X]#T[F]
-
-    def map[A[_], B[_]](fa: T[A])(f: A ~> B): T[B] = f(fa)
-    def traverse[F[_], G[_], A[_]: Functor](tf: T[F])(f: F ~> Lambda[a => A[G[a]]]): A[T[G]] =
-      map[F, Lambda[a => A[G[a]]]](tf)(f)
-  }
-}
-
-object FConst extends FConstLP {
   implicit def FConstInstance[X]: FFunctor[FConst[X]#T] with FTraverseProd[FConst[X]#T] with FoldMap[FConst[X]#T, FConst[X]#T] =
     new FFunctor[FConst[X]#T] with FTraverseProd[FConst[X]#T] with FoldMap[FConst[X]#T, FConst[X]#T] {
       type T[F[_]] = FConst[X]#T[F]
