@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.{\/, \/-, -\/, Contravariant, Equal, IsomorphismContravariant, Kleisli}
+import scalaz.{\/, \/-, -\/, Contravariant, Equal, IsomorphismContravariant, Kleisli, Show}
 import scalaz.Isomorphism.<~>
 
 trait Decidable[F[_]] extends Contravariant[F] {
@@ -38,5 +38,11 @@ object Decidable {
         case (\/-(t1), \/-(t2)) => a2.equal(t1, t2)
         case (_, _) => false
       })
+  }
+
+  implicit val decideShow: Decidable[Show] = new Decidable[Show] {
+    def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
+    def choose2[Z, A1, A2](a1: => Show[A1], a2: => Show[A2])(f: Z => (A1 \/ A2)): Show[Z] =
+      Show.show(f(_).fold(a1.show(_), a2.show(_)))
   }
 }
