@@ -2,9 +2,10 @@ package andxor
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{PriorityQueue => PQ}
-import scalaz.Monoid
+import scalaz.{Monoid, PlusEmpty}
 
 trait FoldMap[Prod[_[_]], Cop[_[_]]] {
+  def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod[F]
   def unconsAll[F[_], G[_]](p: Prod[F])(implicit U: Uncons[F, G]): (List[Cop[G]], Prod[F])
   def unconsOne[F[_], G[_]](p: Prod[F], c: Cop[G])(implicit U: Uncons[F, G]): (Option[Cop[G]], Prod[F])
 
@@ -20,12 +21,12 @@ trait FoldMap[Prod[_[_]], Cop[_[_]]] {
   def foldMap[F[_], G[_], C](p: Prod[F])(map: Cop[G] => C)(
     implicit O: Ordering[Cop[G]],
     M: Monoid[C],
-    MP: Monoid[Prod[F]],
+    PE: PlusEmpty[F],
     U: Uncons[F, G]
   ): C = {
     @tailrec
     def go(prod: Prod[F], q: PQ[Cop[G]], out: C): C =
-      (prod == MP.zero) match {
+      (prod == emptyProd[F]) match {
         case true => appendAll(out, q, map)
         case false => q.isEmpty match {
           case true => {
@@ -54,7 +55,7 @@ object FoldMap {
     implicit class FoldMapOps[Prod[_[_]], Cop[_[_]], F[_], G[_]](prod: Prod[F])(
       implicit F: FoldMap[Prod, Cop],
       O: Ordering[Cop[G]],
-      MP: Monoid[Prod[F]],
+      PE: PlusEmpty[F],
       U: Uncons[F, G]
     ) {
       def foldMap[C](map: Cop[G] => C)(implicit M: Monoid[C]): C = F.foldMap(prod)(map)

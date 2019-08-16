@@ -66,13 +66,14 @@ object typeclasses {
     implicit val readInt: Read[Int] = new Read[Int] { def read(s: String): Option[Int] = s.parseInt.toOption }
     implicit val readBool: Read[Boolean] = new Read[Boolean] { def read(s: String): Option[Boolean] = s.parseBoolean.toOption }
 
-    trait ReadApply {
+    trait ReadApply extends Apply[Read] {
+      def map[A, B](fa: Read[A])(f: A => B): Read[B] =
+        new Read[B] { def read(s: String): Option[B] = fa.read(s).map(f) }
       def ap[A, B](fa: => Read[A])(f: => Read[A => B]): Read[B] =
         new Read[B] { def read(s: String): Option[B] = (f.read(s) |@| fa.read(s))(_(_)) }
-      def map[A, B](fa: Read[A])(f: A => B): Read[B] = new Read[B] { def read(s: String): Option[B] = fa.read(s).map(f) }
     }
 
-    implicit val readApply: Apply[Read] = new Apply[Read] with ReadApply {}
+    implicit val readApply: Apply[Read] = new ReadApply {}
 
     implicit val readAlt: Alt[Read] = new Alt[Read] with ReadApply {
       def alt[A](a1: => Read[A], a2: => Read[A]): Read[A] =

@@ -3,7 +3,7 @@
 
 @(tpeLists: List[List[String]])
 
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Equal, Functor, Lens, Monoid, PLens, StoreT}
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Equal, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 
@@ -47,6 +47,9 @@ object types {
 
     implicit def @{tpes.prodName}FoldMap[@{tpes.tpeParams}]: FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] =
       new FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): @{tpes.prodTpe} =
+          @{tpes.prodTpe}(@{tpes.map(t => s"PE.empty[$t]").mkTuple})
+
         def unconsAll[F[_], G[_]](p: @{tpes.prodTpe})(implicit U: Uncons[F, G]): (List[@{tpes.copTpeF("G")}], @{tpes.prodTpe}) = {
           @{1.to(tpes.length).toList.map(i => s"val (h$i, t$i) = U(p${tpes.prodAccess(i)})").mkString("\n      ")}
           (List(@{1.to(tpes.length).toList.map(i => s"h$i.map(Inj[${tpes.copTpeF("G")}, ${tpes.map(t => s"G[$t]").apply(i - 1)}].apply(_))").mkString(", ")}).flatten,

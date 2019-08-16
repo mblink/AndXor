@@ -29,5 +29,5 @@ lazy val root: Project = project.in(file("."))
     bintrayRelease := {}
   ))
   .dependsOn(core)
-  .aggregate(generate, core, argonaut, circe, deriving, newtype)
+  .aggregate(generate, core, argonaut, circe, scalacheck, deriving, newtype)
   .enablePlugins(TutPlugin)

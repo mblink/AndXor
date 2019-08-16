@@ -3,7 +3,7 @@
 @(tpes: List[String])
 
 @tpes.foldLen01("")("import andxor.syntax.ffunctor._\nimport andxor.syntax.ftraverse._\nimport andxor.types._")
-import scalaz.{@{(tpes.foldLen01(List[String]())(List("~>", "\\/, -\\/", "\\/-", "Applicative", "Functor")) ::: List("Apply", "Monoid")).mkString(", ")}}
+import scalaz.{@{(tpes.foldLen01(List[String]())(List("~>", "\\/, -\\/", "\\/-", "Applicative", "Functor", "PlusEmpty")) ::: List("Apply", "Monoid")).mkString(", ")}}
 import scalaz.Id.Id
 import scalaz.std.vector._
 
@@ -69,6 +69,9 @@ trait AndXorNested@{tpes.length}[@{tpes.nestedTpeParams}] extends AndXor {
 
       implicit def axo@{tpes.prodName}FoldMap@{tpes.foldMapParams.asImpls(false)}: FoldMap[Prod, Cop] =
         new FoldMap[Prod, Cop] {
+          def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod[F] =
+            Prod(@{tpes.zipWithIndex.map(t => s"fm${t._2}.emptyProd").mkTuple})
+
           def unconsAll[F[_], G[_]](p: @{tpes.nestedProdTpe()})(implicit U: Uncons[F, G]): (List[@{tpes.nestedCopTpe("G")}], @{tpes.nestedProdTpe()}) = {
             @{1.to(tpes.length).toList.map(i => s"val (h$i, t$i) = ${tpes.foldLen01("U")(s"fm${i - 1}.unconsAll")}(p${tpes.prodAccess(i)})").mkString("\n      ")}
             (List(@{1.to(tpes.length).toList.map(i => s"h$i.map(Inj[${tpes.nestedCopTpe("G")}, ${tpes.nestedTpes("G")(i - 1)}].apply(_))").mkString(", ")}).flatten,

@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Equal, Functor, Lens, Monoid, PLens, StoreT}
+import scalaz.{\/, -\/, \/-, ~>, Applicative, Equal, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 
@@ -70,6 +70,9 @@ object types {
 
     implicit def Prod2FoldMap[A1, A2]: FoldMap[Prod2[?[_], A1, A2], Cop2[?[_], A1, A2]] =
       new FoldMap[Prod2[?[_], A1, A2], Cop2[?[_], A1, A2]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod2[F, A1, A2] =
+          Prod2[F, A1, A2]((PE.empty[A1], PE.empty[A2]))
+
         def unconsAll[F[_], G[_]](p: Prod2[F, A1, A2])(implicit U: Uncons[F, G]): (List[Cop2[G, A1, A2]], Prod2[F, A1, A2]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -244,6 +247,9 @@ object types {
 
     implicit def Prod3FoldMap[A1, A2, A3]: FoldMap[Prod3[?[_], A1, A2, A3], Cop3[?[_], A1, A2, A3]] =
       new FoldMap[Prod3[?[_], A1, A2, A3], Cop3[?[_], A1, A2, A3]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod3[F, A1, A2, A3] =
+          Prod3[F, A1, A2, A3]((PE.empty[A1], PE.empty[A2], PE.empty[A3]))
+
         def unconsAll[F[_], G[_]](p: Prod3[F, A1, A2, A3])(implicit U: Uncons[F, G]): (List[Cop3[G, A1, A2, A3]], Prod3[F, A1, A2, A3]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -468,6 +474,9 @@ object types {
 
     implicit def Prod4FoldMap[A1, A2, A3, A4]: FoldMap[Prod4[?[_], A1, A2, A3, A4], Cop4[?[_], A1, A2, A3, A4]] =
       new FoldMap[Prod4[?[_], A1, A2, A3, A4], Cop4[?[_], A1, A2, A3, A4]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod4[F, A1, A2, A3, A4] =
+          Prod4[F, A1, A2, A3, A4]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4]))
+
         def unconsAll[F[_], G[_]](p: Prod4[F, A1, A2, A3, A4])(implicit U: Uncons[F, G]): (List[Cop4[G, A1, A2, A3, A4]], Prod4[F, A1, A2, A3, A4]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -742,6 +751,9 @@ object types {
 
     implicit def Prod5FoldMap[A1, A2, A3, A4, A5]: FoldMap[Prod5[?[_], A1, A2, A3, A4, A5], Cop5[?[_], A1, A2, A3, A4, A5]] =
       new FoldMap[Prod5[?[_], A1, A2, A3, A4, A5], Cop5[?[_], A1, A2, A3, A4, A5]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod5[F, A1, A2, A3, A4, A5] =
+          Prod5[F, A1, A2, A3, A4, A5]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5]))
+
         def unconsAll[F[_], G[_]](p: Prod5[F, A1, A2, A3, A4, A5])(implicit U: Uncons[F, G]): (List[Cop5[G, A1, A2, A3, A4, A5]], Prod5[F, A1, A2, A3, A4, A5]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -1066,6 +1078,9 @@ object types {
 
     implicit def Prod6FoldMap[A1, A2, A3, A4, A5, A6]: FoldMap[Prod6[?[_], A1, A2, A3, A4, A5, A6], Cop6[?[_], A1, A2, A3, A4, A5, A6]] =
       new FoldMap[Prod6[?[_], A1, A2, A3, A4, A5, A6], Cop6[?[_], A1, A2, A3, A4, A5, A6]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod6[F, A1, A2, A3, A4, A5, A6] =
+          Prod6[F, A1, A2, A3, A4, A5, A6]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6]))
+
         def unconsAll[F[_], G[_]](p: Prod6[F, A1, A2, A3, A4, A5, A6])(implicit U: Uncons[F, G]): (List[Cop6[G, A1, A2, A3, A4, A5, A6]], Prod6[F, A1, A2, A3, A4, A5, A6]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -1440,6 +1455,9 @@ object types {
 
     implicit def Prod7FoldMap[A1, A2, A3, A4, A5, A6, A7]: FoldMap[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
       new FoldMap[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod7[F, A1, A2, A3, A4, A5, A6, A7] =
+          Prod7[F, A1, A2, A3, A4, A5, A6, A7]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7]))
+
         def unconsAll[F[_], G[_]](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7])(implicit U: Uncons[F, G]): (List[Cop7[G, A1, A2, A3, A4, A5, A6, A7]], Prod7[F, A1, A2, A3, A4, A5, A6, A7]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -1864,6 +1882,9 @@ object types {
 
     implicit def Prod8FoldMap[A1, A2, A3, A4, A5, A6, A7, A8]: FoldMap[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] =
       new FoldMap[Prod8[?[_], A1, A2, A3, A4, A5, A6, A7, A8], Cop8[?[_], A1, A2, A3, A4, A5, A6, A7, A8]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8] =
+          Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8]))
+
         def unconsAll[F[_], G[_]](p: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8])(implicit U: Uncons[F, G]): (List[Cop8[G, A1, A2, A3, A4, A5, A6, A7, A8]], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -2338,6 +2359,9 @@ object types {
 
     implicit def Prod9FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9]: FoldMap[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
       new FoldMap[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
+          Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9]))
+
         def unconsAll[F[_], G[_]](p: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(implicit U: Uncons[F, G]): (List[Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]], Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -2862,6 +2886,9 @@ object types {
 
     implicit def Prod10FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]: FoldMap[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] =
       new FoldMap[Prod10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], Cop10[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] =
+          Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10]))
+
         def unconsAll[F[_], G[_]](p: Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])(implicit U: Uncons[F, G]): (List[Cop10[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]], Prod10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -3436,6 +3463,9 @@ object types {
 
     implicit def Prod11FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: FoldMap[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
       new FoldMap[Prod11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], Cop11[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
+          Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11]))
+
         def unconsAll[F[_], G[_]](p: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])(implicit U: Uncons[F, G]): (List[Cop11[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]], Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -4060,6 +4090,9 @@ object types {
 
     implicit def Prod12FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]: FoldMap[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] =
       new FoldMap[Prod12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], Cop12[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] =
+          Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12]))
+
         def unconsAll[F[_], G[_]](p: Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])(implicit U: Uncons[F, G]): (List[Cop12[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]], Prod12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -4734,6 +4767,9 @@ object types {
 
     implicit def Prod13FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]: FoldMap[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] =
       new FoldMap[Prod13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], Cop13[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] =
+          Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13]))
+
         def unconsAll[F[_], G[_]](p: Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])(implicit U: Uncons[F, G]): (List[Cop13[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]], Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -5458,6 +5494,9 @@ object types {
 
     implicit def Prod14FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]: FoldMap[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] =
       new FoldMap[Prod14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], Cop14[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] =
+          Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14]))
+
         def unconsAll[F[_], G[_]](p: Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])(implicit U: Uncons[F, G]): (List[Cop14[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]], Prod14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -6232,6 +6271,9 @@ object types {
 
     implicit def Prod15FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]: FoldMap[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] =
       new FoldMap[Prod15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], Cop15[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
+          Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15]))
+
         def unconsAll[F[_], G[_]](p: Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])(implicit U: Uncons[F, G]): (List[Cop15[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]], Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -7056,6 +7098,9 @@ object types {
 
     implicit def Prod16FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]: FoldMap[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] =
       new FoldMap[Prod16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], Cop16[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] =
+          Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15], PE.empty[A16]))
+
         def unconsAll[F[_], G[_]](p: Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])(implicit U: Uncons[F, G]): (List[Cop16[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]], Prod16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -7930,6 +7975,9 @@ object types {
 
     implicit def Prod17FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]: FoldMap[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] =
       new FoldMap[Prod17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], Cop17[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] =
+          Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15], PE.empty[A16], PE.empty[A17]))
+
         def unconsAll[F[_], G[_]](p: Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])(implicit U: Uncons[F, G]): (List[Cop17[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]], Prod17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -8854,6 +8902,9 @@ object types {
 
     implicit def Prod18FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]: FoldMap[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] =
       new FoldMap[Prod18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], Cop18[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] =
+          Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15], PE.empty[A16], PE.empty[A17], PE.empty[A18]))
+
         def unconsAll[F[_], G[_]](p: Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])(implicit U: Uncons[F, G]): (List[Cop18[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]], Prod18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -9828,6 +9879,9 @@ object types {
 
     implicit def Prod19FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]: FoldMap[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] =
       new FoldMap[Prod19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], Cop19[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] =
+          Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15], PE.empty[A16], PE.empty[A17], PE.empty[A18], PE.empty[A19]))
+
         def unconsAll[F[_], G[_]](p: Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])(implicit U: Uncons[F, G]): (List[Cop19[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]], Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -10852,6 +10906,9 @@ object types {
 
     implicit def Prod20FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]: FoldMap[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] =
       new FoldMap[Prod20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], Cop20[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] =
+          Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15], PE.empty[A16], PE.empty[A17], PE.empty[A18], PE.empty[A19], PE.empty[A20]))
+
         def unconsAll[F[_], G[_]](p: Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])(implicit U: Uncons[F, G]): (List[Cop20[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]], Prod20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -11926,6 +11983,9 @@ object types {
 
     implicit def Prod21FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]: FoldMap[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] =
       new FoldMap[Prod21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], Cop21[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] =
+          Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15], PE.empty[A16], PE.empty[A17], PE.empty[A18], PE.empty[A19], PE.empty[A20], PE.empty[A21]))
+
         def unconsAll[F[_], G[_]](p: Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])(implicit U: Uncons[F, G]): (List[Cop21[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]], Prod21[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)
@@ -13050,6 +13110,9 @@ object types {
 
     implicit def Prod22FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]: FoldMap[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
       new FoldMap[Prod22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22], Cop22[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] =
+          Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9], PE.empty[A10], PE.empty[A11], PE.empty[A12], PE.empty[A13], PE.empty[A14], PE.empty[A15], PE.empty[A16], PE.empty[A17], PE.empty[A18], PE.empty[A19], PE.empty[A20], PE.empty[A21], PE.empty[A22]))
+
         def unconsAll[F[_], G[_]](p: Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])(implicit U: Uncons[F, G]): (List[Cop22[G, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]], Prod22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]) = {
           val (h1, t1) = U(p.t1)
           val (h2, t2) = U(p.t2)

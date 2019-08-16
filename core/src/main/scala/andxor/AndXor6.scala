@@ -3,7 +3,7 @@ package andxor
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
 import andxor.types._
-import scalaz.{~>, \/, -\/, \/-, Applicative, Functor, Apply, Monoid}
+import scalaz.{~>, \/, -\/, \/-, Applicative, Functor, PlusEmpty, Apply, Monoid}
 import scalaz.Id.Id
 import scalaz.std.vector._
 
@@ -79,6 +79,9 @@ trait AndXorNested6[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]] 
 
     implicit def axoProd6FoldMap(implicit fm0: FoldMap[A1, A1], fm1: FoldMap[A2, A2], fm2: FoldMap[A3, A3], fm3: FoldMap[A4, A4], fm4: FoldMap[A5, A5], fm5: FoldMap[A6, A6]): FoldMap[Prod, Cop] =
       new FoldMap[Prod, Cop] {
+        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod[F] =
+          Prod((fm0.emptyProd, fm1.emptyProd, fm2.emptyProd, fm3.emptyProd, fm4.emptyProd, fm5.emptyProd))
+
         def unconsAll[F[_], G[_]](p: Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]])(implicit U: Uncons[F, G]): (List[Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]]], Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]) = {
           val (h1, t1) = fm0.unconsAll(p.t1)
           val (h2, t2) = fm1.unconsAll(p.t2)
