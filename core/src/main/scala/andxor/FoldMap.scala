@@ -10,24 +10,23 @@ trait FoldMap[Prod[_[_]], Cop[_[_]]] {
   def unconsOne[F[_], G[_]](p: Prod[F], c: Cop[G])(implicit U: Uncons[F, G]): (Option[Cop[G]], Prod[F])
 
   @tailrec
-  private def appendAll[G[_], C](out: C, q: PQ[Cop[G]], map: Cop[G] => C)(implicit M: Monoid[C]): C =
+  private def appendAll[G[_], C](out: C, q: PQ[Cop[G]], f: (C, Cop[G]) => C): C =
     q.isEmpty match {
       case true => out
       case false =>
-        val newOut = M.append(out, map(q.dequeue))
-        appendAll(newOut, q, map)
+        val newOut = f(out, q.dequeue)
+        appendAll(newOut, q, f)
     }
 
-  def foldMap[F[_], G[_], C](p: Prod[F])(map: Cop[G] => C)(
+  def fold[F[_], G[_], C](p: Prod[F], zero: C)(f: (C, Cop[G]) => C)(
     implicit O: Ordering[Cop[G]],
-    M: Monoid[C],
     PE: PlusEmpty[F],
     U: Uncons[F, G]
   ): C = {
     @tailrec
     def go(prod: Prod[F], q: PQ[Cop[G]], out: C): C =
       (prod == emptyProd[F]) match {
-        case true => appendAll(out, q, map)
+        case true => appendAll(out, q, f)
         case false => q.isEmpty match {
           case true => {
             val (hs, ts) = unconsAll(prod)
@@ -37,15 +36,22 @@ trait FoldMap[Prod[_[_]], Cop[_[_]]] {
           case false =>
             val cop = q.dequeue
             val (toAdd, newProd) = unconsOne[F, G](prod, cop)
-            go(newProd, q ++= toAdd, M.append(out, map(cop)))
+            go(newProd, q ++= toAdd, f(out, cop))
         }
       }
 
     val Q = new PQ[Cop[G]]()(O)
     val (hs, ts) = unconsAll(p)
     Q ++= hs
-    go(ts, Q, M.zero)
+    go(ts, Q, zero)
   }
+
+  def foldMap[F[_], G[_], C](p: Prod[F])(map: Cop[G] => C)(
+    implicit O: Ordering[Cop[G]],
+    M: Monoid[C],
+    PE: PlusEmpty[F],
+    U: Uncons[F, G]
+  ): C = fold(p, M.zero)((x, c: Cop[G]) => M.append(x, map(c)))
 }
 
 object FoldMap {

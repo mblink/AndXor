@@ -3,7 +3,7 @@
 @(tpes: List[String])
 
 import andxor.tuple._
-import andxor.types.dummy._
+import andxor.types._
 import scalaz.\/
 
 @range(2, tpes.length).map { n =>

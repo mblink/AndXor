@@ -1,7 +1,7 @@
 package andxor
 
 import andxor.tuple._
-import andxor.types.dummy._
+import andxor.types._
 import scalaz.\/
 
 trait Map2P[A1, A2] {
