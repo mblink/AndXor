@@ -56,8 +56,8 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     for {
       companion <- Reader((_: LocalScope) => companionO.getOrElse(genCompanion(c)))
       updatedCompanion <-
-        if (c.mods.isSealed) CopTree.klass(c, companion).map(f => regenObject(companion, mkStats(f, anns)))
-        else if (c.mods.isCase) Reader((_: LocalScope) => regenObject(companion, mkStats(ProdTree(c, _), anns)))
+        if (c.mods.isSealed) CopTree.klass(c, companion).map(f => regenObject(companion, mkStats(c, f, anns)))
+        else if (c.mods.isCase) Reader((_: LocalScope) => regenObject(companion, mkStats(c, ProdTree(c, _), anns)))
         else Reader((_: LocalScope) => companion)
     } yield (Some((c, Some(updatedCompanion))), Vector())
 
@@ -69,7 +69,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     for {
       companion <- Reader((_: LocalScope) => companionO.getOrElse(genCompanion(t)))
       updatedCompanion <-
-        if (t.mods.isSealed) CopTree.trait0(t, companion).map(f => regenObject(companion, mkStats(f, anns)))
+        if (t.mods.isSealed) CopTree.trait0(t, companion).map(f => regenObject(companion, mkStats(t, f, anns)))
         else Reader((_: LocalScope) => companion)
     } yield (Some((t, Some(updatedCompanion))), Vector())
 
@@ -239,7 +239,11 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
     final val reprName = s"${copOrProd}${arity}"
     final val reprObj: Tree = q"$andxorTpesPkg.${TermName(reprName)}"
-    final val reprTpe: Tree = if (tpes.length <= 1) tpes.head else tq"$andxorTpesPkg.${TypeName(reprName)}[..$andxorTpes]"
+    final val reprTpe: Tree = tpes match {
+      case Nil => tq"Unit"
+      case List(t) => t
+      case _ => tq"$andxorTpesPkg.${TypeName(reprName)}[..$andxorTpes]"
+    }
 
     def iso: Tree
 
@@ -268,21 +272,31 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
     private val mkTuple: Tree =
       params match {
-        case Nil      => error(klass.pos, "TODO - support 0 parameter case classes"); klass
+        case Nil      => q"()"
         case p :: Nil => mkValue(q"x", p)
         case ps       => q"$scalaPkg.${TermName(s"Tuple${ps.length}")}.apply(..${ps.map(mkValue(q"x", _))})"
       }
 
-    private val constructorArgs: List[List[Tree]] =
-      if (tpes.length <= 1) List(List(normalizeValue(q"x")))
-      else paramss.zipWithIndex.map { case (group, i) =>
+    private val constructorArgs: List[List[Tree]] = tpes match {
+      case Nil => List[List[Tree]]()
+      case List(t) => List(List(normalizeValue(q"x")))
+      case _ => paramss.zipWithIndex.map { case (group, i) =>
         group.zipWithIndex.map { case (_, j) => normalizeValue(q"x.${tupleAccess(i + j + 1)}") } }
+    }
+
+    private val newKlass: Tree = constructorArgs match {
+      case Nil | List(Nil) => q"new $tpe()"
+      case args if isNewType => q"${klass.name.companionName}(...$args)"
+      case args => q"new $tpe(...$args)"
+    }
+
+    private val isoParamName: TermName = TermName(if (params.nonEmpty) "x" else "_")
 
     final val iso: Tree =
       q"""
       $isoSetObj[$tpe, $reprTpe](
-        (x: $tpe) => ${if (tpes.length <= 1) mkTuple else q"$reprObj[..$andxorTpes]($mkTuple)"},
-        (x: $reprTpe) => ${if (isNewType) q"${klass.name.companionName}(...$constructorArgs)" else q"new $tpe(...$constructorArgs)"})
+        ($isoParamName: $tpe) => ${if (tpes.length <= 1) mkTuple else q"$reprObj[..$andxorTpes]($mkTuple)"},
+        ($isoParamName: $reprTpe) => $newKlass)
       """
 
     def mkValue(inst: Tree, param: Param): Tree =
@@ -313,7 +327,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     def injInst(param: Param): Tree =
       if (params.length <= 1) mkValue(q"inst", param) else q"$andxorName.inj(${mkValue(q"inst", param)})"
 
-    final val iso: Tree = q"""
+    final lazy val iso: Tree = q"""
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => x match {
           case ..${params.map(p => cq"inst: ${p.memberTpe} => ${injInst(p)}")}
@@ -347,8 +361,10 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
   def mkAndxor[P <: Param](tree: GenTree[P]): Tree = q"$andxorPkg.AndXor[..${tree.tpes}]"
 
-  def andxor[P <: Param](tree: GenTree[P]): Tree =
-    valOrDef(Modifiers(), tree.andxorName, tree.tparamsNoVariance, Nil, tree.andxorTpe, mkAndxor(tree))
+  def andxor[P <: Param](tree: GenTree[P]): List[Tree] = tree.params match {
+    case Nil => List[Tree]()
+    case _ => List(valOrDef(Modifiers(), tree.andxorName, tree.tparamsNoVariance, Nil, tree.andxorTpe, mkAndxor(tree)))
+  }
 
   def iso[P <: Param](tree: GenTree[P]): Tree =
     valOrDef(Modifiers(), tree.isoName, tree.tparamsNoVariance, Nil, tree.isoTpe, tree.iso)
@@ -369,10 +385,15 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     memberName: TermName
   )
 
+  def typeclassForRepr[P <: Param](tc: Typeclass[P]): Tree = tc.tree.params match {
+    case Nil => q"$scalaPkg.Predef.implicitly[${tc.typeclass}[Unit]]"
+    case _ => q"${Ident(tc.tree.andxorName)}[..${tc.tree.tparamNames}].derivingId[${tc.typeclass}].${tc.variance.derivationFunction}"
+  }
+
   def mkDerivedTypeclass[P <: Param](tc: Typeclass[P]): Tree =
     q"""
     $scalaPkg.Predef.implicitly[${tc.variance.typeclass}[${tc.typeclass}]].${tc.variance.mapFunction}(
-      ${Ident(tc.tree.andxorName)}[..${tc.tree.tparamNames}].derivingId[${tc.typeclass}].${tc.variance.derivationFunction}
+      ${typeclassForRepr(tc)}
     )(${Ident(tc.tree.isoName)}[..${tc.tree.tparamNames}].${tc.variance.isoFunction})
     """
 
@@ -421,21 +442,26 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     })
   }
 
-  def mkStats[P <: Param](mkTree: Boolean => GenTree[P], mods: List[Tree]): List[Tree] = {
+  def mkStats[P <: Param](trigger: Tree, mkTree: Boolean => GenTree[P], mods: List[Tree]): List[Tree] = {
     val modArgs = mods.flatMap(_ match {
       case Apply(Select(New(_), termNames.CONSTRUCTOR), args) => args
       case _ => Nil
     })
     val (base, labelled) = (mkTree(false), mkTree(true))
     val tcs = parseArgs(modArgs, base, labelled)
-    val res = List(q"""
-      object andxor {
-        ..${labels(labelled) :::
-            implicits(base) :::
-            implicits(labelled) :::
-            List(andxor(base), andxor(labelled), iso(base), iso(labelled))}
-      }
-    """) ::: Some(tcs).filter(_.nonEmpty).map(ts => q"import andxor._" :: ts.map(derivedTypeclass)).getOrElse(Nil)
-    res
+
+    (base, base.params) match {
+      case (t: CopTree, Nil) => warning(trigger.pos, "Unable to derive over a zero-member coproduct"); Nil
+      case _ => List(q"""
+        object andxor {
+          ..${labels(labelled) :::
+              implicits(base) :::
+              implicits(labelled) :::
+              andxor(base) :::
+              andxor(labelled) :::
+              List(iso(base), iso(labelled))}
+        }
+      """) ::: Some(tcs).filter(_.nonEmpty).map(ts => q"import andxor._" :: ts.map(derivedTypeclass)).getOrElse(Nil)
+    }
   }
 }

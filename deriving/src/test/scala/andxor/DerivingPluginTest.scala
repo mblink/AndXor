@@ -65,6 +65,7 @@ object typeclasses {
     }
     implicit val readInt: Read[Int] = new Read[Int] { def read(s: String): Option[Int] = s.parseInt.toOption }
     implicit val readBool: Read[Boolean] = new Read[Boolean] { def read(s: String): Option[Boolean] = s.parseBoolean.toOption }
+    implicit val readUnit: Read[Unit] = new Read[Unit] { def read(s: String): Option[Unit] = Some(()) }
 
     trait ReadApply extends Apply[Read] {
       def map[A, B](fa: Read[A])(f: A => B): Read[B] =
@@ -86,6 +87,8 @@ object typeclasses {
     implicit val csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
     implicit val csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
     implicit val csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
+    implicit val csvUnit: Csv[Unit] = new Csv[Unit] { def toCsv(u: Unit): List[String] = Nil }
+
     implicit def csvList[A](implicit c: Csv[A]): Csv[List[A]] =
       new Csv[List[A]] { def toCsv(l: List[A]): List[String] = l.flatMap(c.toCsv(_)) }
 
@@ -120,10 +123,17 @@ object types {
   @deriving case class NoInstances(s: String)
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  case class NoParams()
+
+  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
   sealed trait Foo
   case object Bar extends Foo
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
   case class Baz(s: String) extends Foo
+
+  // Uncomment below to test warnings on zero-member coproducts
+  // @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
+  // sealed trait NoMembers
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Equal, Read, Show)
   sealed trait Trait0
