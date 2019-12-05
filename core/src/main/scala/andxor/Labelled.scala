@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.Equal
+import scalaz.{Applicative, Equal, Traverse}
 import scalaz.std.string._
 import scalaz.std.tuple._
 
@@ -21,6 +21,11 @@ object Labelled {
     val value: A = value0
   }
 
-  implicit def equalLabelled[A: Equal, L <: Singleton with String]: Equal[Labelled.Aux[A, L]] =
+  implicit def traverseLabelled[L <: Singleton with String]: Traverse[Aux[?, L]] = new Traverse[Aux[?, L]] {
+    def traverseImpl[G[_]: Applicative, A, B](fa: Aux[A, L])(f: A => G[B]): G[Aux[B, L]] =
+      Applicative[G].map(f(fa.value))(Labelled(_, fa.label))
+  }
+
+  implicit def equalLabelled[A: Equal, L <: Singleton with String]: Equal[Aux[A, L]] =
     Equal.equalBy(l => ((l.label: String), l.value))
 }
