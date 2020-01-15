@@ -185,6 +185,7 @@ object Build {
   def pluginOptions(pluginOpts: Seq[String]) = Seq(
     scalacOptions -= "-Ywarn-unused:patvars",
     scalacOptions in Test ++= enablePlugin((Compile / Keys.`package`).value, pluginOpts),
+    addCompilerPlugin("com.thoughtworks.import" %% "import" % "latest.release"),
     libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   )
 

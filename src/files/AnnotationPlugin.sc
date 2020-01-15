@@ -1,12 +1,10 @@
-package andxor
-
 import scala.annotation.tailrec
 import scala.reflect.internal.util.TransparentPosition
 import scala.tools.nsc.{Global, Phase}
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.transform.TypingTransformers
 
-private[andxor] final case class Reader[A, B](run: A => B) {
+final case class Reader[A, B](run: A => B) {
   def map[C](f: B => C): Reader[A, C] = Reader(run.andThen(f))
   def flatMap[C](f: B => Reader[A, C]): Reader[A, C] = Reader(a => f(run(a)).run(a))
 }

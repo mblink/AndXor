@@ -1,5 +1,6 @@
 package andxor
 
+import $file.`..`.`..`.`..`.`..`.`..`.src.files.AnnotationPlugin, AnnotationPlugin._
 import andxor.compat.ParseNamedArg
 import scala.collection.mutable.{Map => MMap}
 import scala.tools.nsc.Global
