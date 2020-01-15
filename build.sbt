@@ -1,5 +1,7 @@
 import andxor.Build._
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 lazy val generate: Project = generateBase
 
 lazy val core: Project = coreBase

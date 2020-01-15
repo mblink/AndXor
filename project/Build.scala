@@ -134,7 +134,7 @@ object Build {
       resolvers += Resolver.sonatypeRepo("snapshots"),
       crossScalaVersions := Seq(),
       libraryDependencies ++= Seq(
-        "com.github.pathikrit" %% "better-files" % "3.5.0",
+        "com.github.pathikrit" %% "better-files" % "3.8.0",
         "org.scalariform" %% "scalariform" % "0.2.10",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ),
@@ -185,7 +185,6 @@ object Build {
   def pluginOptions(pluginOpts: Seq[String]) = Seq(
     scalacOptions -= "-Ywarn-unused:patvars",
     scalacOptions in Test ++= enablePlugin((Compile / Keys.`package`).value, pluginOpts),
-    addCompilerPlugin("com.thoughtworks.import" %% "import" % "latest.release"),
     libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   )
 
@@ -196,6 +195,12 @@ object Build {
       .settings(pluginOptions(pluginOpts))
       .settings(name := nme)
 
+  def annotationPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
+    compilerPlugin(proj, nme, pluginOpts)
+      .settings(sourceGenerators in Compile += Def.task {
+        Seq(baseDirectory.value / ".." / "src" / "files" / "AnnotationPlugin.scala")
+      })
+
   val derivingFlags = Seq(
     "-P:deriving:covariant:Arbitrary",
     "-P:deriving:labelledCovariant:Decoder|DecodeJson|Read",
@@ -204,7 +209,7 @@ object Build {
     "-P:deriving:labelledContravariant:Encoder|EncodeJson|Show"
   )
 
-  def derivingBase = compilerPlugin(Project("deriving", file("deriving")), "andxor-deriving", derivingFlags).settings(testSettings)
+  def derivingBase = annotationPlugin(Project("deriving", file("deriving")), "andxor-deriving", derivingFlags).settings(testSettings)
 
-  def newtypeBase = compilerPlugin(Project("newtype", file("newtype")), "andxor-newtype", Seq())
+  def newtypeBase = annotationPlugin(Project("newtype", file("newtype")), "andxor-newtype", Seq())
 }

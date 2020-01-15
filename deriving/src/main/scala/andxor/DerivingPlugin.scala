@@ -1,6 +1,6 @@
 package andxor
 
-import $file.`..`.`..`.`..`.`..`.`..`.src.files.AnnotationPlugin, AnnotationPlugin._
+import ann._
 import andxor.compat.ParseNamedArg
 import scala.collection.mutable.{Map => MMap}
 import scala.tools.nsc.Global
@@ -17,7 +17,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   case class ConfiguredTc(prod: (Variance[ProdParam], Boolean), cop: (Variance[CopParam], Boolean))
   val configuredTcs: MMap[String, ConfiguredTc] = MMap()
 
-  override def processOptions(opts: List[String], error: String => Unit): Unit = {
+  override def init(opts: List[String], error: String => Unit): Boolean = {
     def configure(tcs: String, copOrProd: Either[Unit, Unit], tpe: String): Unit = {
       def upd(labelled: Boolean, vs: (Variance[CopParam], Variance[ProdParam])): Unit = {
         val (p, c): ((Variance[ProdParam], Boolean), (Variance[CopParam], Boolean)) =
@@ -47,6 +47,8 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
         configure(tc, Right(()), tpe)
       case _ => error(s"deriving: invalid option `$opt`")
     })
+
+    true
   }
 
   override def updateClass(

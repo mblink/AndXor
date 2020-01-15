@@ -1,6 +1,6 @@
 package andxor
 
-import $file.`..`.`..`.`..`.`..`.`..`.src.files.AnnotationPlugin, AnnotationPlugin._
+import ann._
 import scala.tools.nsc.Global
 
 class NewtypePlugin(override val global: Global) extends AnnotationPlugin(global) { self =>
