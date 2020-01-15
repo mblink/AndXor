@@ -67,7 +67,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
   def isImplicitVal(vs: List[ValDef]): Boolean = Some(vs).filter(_.nonEmpty).fold(false)(_.forall(isImplicitVal(_)))
 
   def ctorParams(klass: ClassDef): (List[List[ValDef]], Option[List[ValDef]]) =
-    klass.impl.body.collect { case d@DefDef(_, termNames.CONSTRUCTOR, _, _, _, impl) => d } match {
+    klass.impl.body.collect { case d@DefDef(_, termNames.CONSTRUCTOR, _, _, _, _) => d } match {
       case DefDef(_, _, _, vs, _, _) :: Nil if vs.headOption.fold(true)(!isImplicitVal(_)) =>
         vs.span(!isImplicitVal(_)) match {
           case (e, i :: Nil) => (e, Some(i))
