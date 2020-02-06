@@ -2,7 +2,6 @@
 
 @(tpeLists: List[List[String]])
 
-import scalaz.Apply
 import scalaz.Isomorphism.<=>
 
 @tcs(tpes: List[String]) = @{ tpes.paramSig(List("TC", "F"), "t") }

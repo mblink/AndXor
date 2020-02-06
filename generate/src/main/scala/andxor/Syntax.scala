@@ -5,7 +5,7 @@ import scalaz.syntax.comonad._
 import scalaz.syntax.std.boolean._
 
 object syntax {
-  val maxLen = 22
+  val maxLen = 6
 
   def range(start: Int, end: Int): List[Int] = start.to(end).toList
 
@@ -32,7 +32,7 @@ object syntax {
     def wrapProdVal(v: String, F: String = "F"): String = foldLen01(v)(s"${prodTpeF(F)}($v)")
 
     def djBase(wrapTpe: String => String): String =
-      tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
+      tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"Either[${wrapTpe(e)}, $a]")
 
     def dj: String = djBase(identity _)
     def djK(F: String): String = djBase(t => s"$F[$t]")
@@ -116,7 +116,7 @@ object syntax {
     def toList: LS = z.toStream.toList
 
     def djVal(v: String): String =
-      z.lefts.foldLeft(Some(z.rights).filter(_.nonEmpty).map(_ => s"-\\/($v)").getOrElse(v))((a, _) => s"\\/-($a)")
+      z.lefts.foldLeft(Some(z.rights).filter(_.nonEmpty).map(_ => s"Left($v)").getOrElse(v))((a, _) => s"Right($a)")
 
     def djFold(v: String, fail: String => String, succ: String => String): String = {
       val init = z.rights.nonEmpty.fold((x: String) => s"$x.fold(l => ${succ("l")}, r => ${fail("r")})", fail)
@@ -134,7 +134,7 @@ object syntax {
       s"${cop.fold(s"${z.modify(_ => "B").toList.copTpe}(", "")}${inner}${cop.fold(")", "")}"
 
     def dummyImpl(used: Boolean): String =
-      s"(implicit ${used.fold("", "@scalaz.unused ")}d: Dummy${z.index + 1})"
+      s"(implicit ${used.fold("", "@unused ")}d: Dummy${z.index + 1})"
 
     def prodAccesses(v: String): LS =
       1.to(z.length).toList.map(i => s"${v}${z.toList.prodAccess(i)}")

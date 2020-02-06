@@ -2,7 +2,7 @@ package andxor
 
 import andxor.types.ADTValue
 import _root_.argonaut.{DecodeJson, DecodeResult, EncodeJson, HCursor, Json}
-import scalaz.{~>, Apply, Monoid}
+import scalaz.{~>, Monoid}
 import scalaz.Isomorphism.IsoFunctor
 
 trait LPArgonaut {
@@ -66,7 +66,7 @@ package object argonaut extends LPArgonaut {
 
   implicit val decodeJsonApply: Apply[DecodeJson] = new Apply[DecodeJson] {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)
-    def ap[A, B](fa: => DecodeJson[A])(f: => DecodeJson[A => B]): DecodeJson[B] =
+    def ap[A, B](fa: DecodeJson[A])(f: DecodeJson[A => B]): DecodeJson[B] =
       DecodeJson(c => f(c).flatMap(g => fa(c).map(g(_))))
   }
 

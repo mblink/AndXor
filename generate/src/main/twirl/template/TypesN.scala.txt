@@ -4,7 +4,7 @@
 @(tpes: List[String])
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
+import scalaz.{~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 

@@ -1,7 +1,7 @@
 package andxor.types
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
+import scalaz.{~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 
@@ -77,25 +77,25 @@ trait Types5 {
         def unconsOne[F[_], G[_]](p: Prod5[F, A1, A2, A3, A4, A5], c: Cop5[G, A1, A2, A3, A4, A5])(implicit U: Uncons[F, G]): (Option[Cop5[G, A1, A2, A3, A4, A5]], Prod5[F, A1, A2, A3, A4, A5]) =
           c.run match {
 
-            case -\/(_) =>
+            case Left(_) =>
               val (h, t) = U(p.t1)
-              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](-\/(v))), Prod5[F, A1, A2, A3, A4, A5]((t, p.t2, p.t3, p.t4, p.t5)))
+              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](Left(v))), Prod5[F, A1, A2, A3, A4, A5]((t, p.t2, p.t3, p.t4, p.t5)))
 
-            case \/-(-\/(_)) =>
+            case Right(Left(_)) =>
               val (h, t) = U(p.t2)
-              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(-\/(v)))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, t, p.t3, p.t4, p.t5)))
+              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](Right(Left(v)))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, t, p.t3, p.t4, p.t5)))
 
-            case \/-(\/-(-\/(_))) =>
+            case Right(Right(Left(_))) =>
               val (h, t) = U(p.t3)
-              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(-\/(v))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, t, p.t4, p.t5)))
+              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](Right(Right(Left(v))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, t, p.t4, p.t5)))
 
-            case \/-(\/-(\/-(-\/(_)))) =>
+            case Right(Right(Right(Left(_)))) =>
               val (h, t) = U(p.t4)
-              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(v)))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, t, p.t5)))
+              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](Right(Right(Right(Left(v)))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, t, p.t5)))
 
-            case \/-(\/-(\/-(\/-(_)))) =>
+            case Right(Right(Right(Right(_)))) =>
               val (h, t) = U(p.t5)
-              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(v)))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, p.t4, t)))
+              (h.map(v => Cop5[G, A1, A2, A3, A4, A5](Right(Right(Right(Right(v)))))), Prod5[F, A1, A2, A3, A4, A5]((p.t1, p.t2, p.t3, p.t4, t)))
 
           }
       }
@@ -187,7 +187,7 @@ trait Types5 {
 
   }
 
-  @newtype case class Cop5[F[_], A1, A2, A3, A4, A5](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5]))))) {
+  @newtype case class Cop5[F[_], A1, A2, A3, A4, A5](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], F[A5]]]]]) {
     private def mapN = new Map5C[F[A1], F[A2], F[A3], F[A4], F[A5]] {}
 
     def map1[B](f: F[A1] => F[B]): Cop5[F, B, A2, A3, A4, A5] =
@@ -232,61 +232,61 @@ trait Types5 {
         def traverse[F[_], G[_], A[_]: Functor](c: Cop5[F, A1, A2, A3, A4, A5])(f: F ~> Lambda[a => A[G[a]]]): A[Cop5[G, A1, A2, A3, A4, A5]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](-\/(y)))
+            case Left(x) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](Right(Left(y))))
 
-            case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(-\/(y)))))
+            case Right(Right(Left(x))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](Right(Right(Left(y)))))
 
-            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(y))))))
+            case Right(Right(Right(Left(x)))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](Right(Right(Right(Left(y))))))
 
-            case \/-(\/-(\/-(\/-(x)))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(y))))))
+            case Right(Right(Right(Right(x)))) => Functor[A].map(f(x))(y => Cop5[G, A1, A2, A3, A4, A5](Right(Right(Right(Right(y))))))
 
           }
       }
 
     implicit def inja0F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A1]] =
-      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](-\/(x)))
+      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](Left(x)))
 
     implicit def inja1F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A2]] =
-      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](\/-(-\/(x))))
+      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](Right(Left(x))))
 
     implicit def inja2F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A3]] =
-      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(-\/(x)))))
+      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Left(x)))))
 
     implicit def inja3F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A4]] =
-      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(x))))))
+      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Left(x))))))
 
     implicit def inja4F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A5]] =
-      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(x))))))
+      Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Right(x))))))
 
     implicit def Cop5PLens0[F[_], A1, A2, A3, A4, A5]: PLens[Cop5[F, A1, A2, A3, A4, A5], F[A1]] =
       PLens(c => c.run match {
-        case -\/(x) => Some(StoreT.store[F[A1], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](-\/(y))))
+        case Left(x) => Some(StoreT.store[F[A1], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](Left(y))))
         case _ => None
       })
 
     implicit def Cop5PLens1[F[_], A1, A2, A3, A4, A5]: PLens[Cop5[F, A1, A2, A3, A4, A5], F[A2]] =
       PLens(c => c.run match {
-        case \/-(-\/(x)) => Some(StoreT.store[F[A2], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(-\/(y)))))
+        case Right(Left(x)) => Some(StoreT.store[F[A2], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](Right(Left(y)))))
         case _ => None
       })
 
     implicit def Cop5PLens2[F[_], A1, A2, A3, A4, A5]: PLens[Cop5[F, A1, A2, A3, A4, A5], F[A3]] =
       PLens(c => c.run match {
-        case \/-(\/-(-\/(x))) => Some(StoreT.store[F[A3], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(-\/(y))))))
+        case Right(Right(Left(x))) => Some(StoreT.store[F[A3], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Left(y))))))
         case _ => None
       })
 
     implicit def Cop5PLens3[F[_], A1, A2, A3, A4, A5]: PLens[Cop5[F, A1, A2, A3, A4, A5], F[A4]] =
       PLens(c => c.run match {
-        case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[F[A4], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(\/-(-\/(y)))))))
+        case Right(Right(Right(Left(x)))) => Some(StoreT.store[F[A4], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Left(y)))))))
         case _ => None
       })
 
     implicit def Cop5PLens4[F[_], A1, A2, A3, A4, A5]: PLens[Cop5[F, A1, A2, A3, A4, A5], F[A5]] =
       PLens(c => c.run match {
-        case \/-(\/-(\/-(\/-(x)))) => Some(StoreT.store[F[A5], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](\/-(\/-(\/-(\/-(y)))))))
+        case Right(Right(Right(Right(x)))) => Some(StoreT.store[F[A5], Cop5[F, A1, A2, A3, A4, A5]](x)(y => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Right(y)))))))
         case _ => None
       })
 

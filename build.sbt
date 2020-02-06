@@ -24,7 +24,7 @@ lazy val deriving: Project = derivingBase
 lazy val newtype: Project = newtypeBase
 
 lazy val root: Project = project.in(file("."))
-  .settings(commonSettings)
+  .settings(baseSettings)
   .settings(Seq(
     tutTargetDirectory := file("."),
     scalacOptions in Tut := (scalacOptions in (Compile, console)).value,

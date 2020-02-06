@@ -3,7 +3,7 @@
 @(tpes: List[String])
 
 @tpes.foldLen01("")("import andxor.syntax.ffunctor._\nimport andxor.syntax.ftraverse._\nimport andxor.types._")
-import scalaz.{@{(tpes.foldLen01(List[String]())(List("~>", "\\/, -\\/", "\\/-", "Applicative", "Functor", "PlusEmpty")) ::: List("Apply", "Monoid")).mkString(", ")}}
+import scalaz.{@{(tpes.foldLen01(List[String]())(List("~>", "Applicative", "Functor", "PlusEmpty")) ::: List("Monoid")).mkString(", ")}}
 import scalaz.Id.Id
 import scalaz.std.vector._
 

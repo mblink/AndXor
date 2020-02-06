@@ -1,6 +1,6 @@
 @(tpeLists: List[List[String]])
 
-import scalaz.{Apply, Lens, Monoid, PLens}
+import scalaz.{Lens, Monoid, PLens}
 import scalaz.Id.Id
 
 trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {

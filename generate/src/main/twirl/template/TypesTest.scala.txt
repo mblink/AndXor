@@ -8,7 +8,6 @@ import andxor.AndXorProperties.arbitrary._
 import andxor.types._
 import org.scalacheck.{Arbitrary, Properties}
 import scalaz.{Applicative, Equal, Functor}
-import scalaz.scalacheck.ScalaCheckBinding._
 import scalaz.scalacheck.ScalazProperties.lens
 import scalaz.std.anyVal._
 import scalaz.std.list._

@@ -3,59 +3,11 @@ package andxor
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
 import andxor.types._
-import scalaz.{~>, \/, -\/, \/-, Applicative, Functor, PlusEmpty, Apply, Monoid}
+import scalaz.{~>, Applicative, Functor, PlusEmpty, Monoid}
 import scalaz.Id.Id
 import scalaz.std.vector._
 
 trait AndXorNested6[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]] extends AndXor {
-
-  def apply[B1]: AndXorNested7[A1, A2, A3, A4, A5, A6, FConst[B1]#T] = AndXorNested7[A1, A2, A3, A4, A5, A6, FConst[B1]#T]
-  def nest[B1[_[_]]]: AndXorNested7[A1, A2, A3, A4, A5, A6, B1] = AndXorNested7[A1, A2, A3, A4, A5, A6, B1]
-
-  def apply[B1, B2]: AndXorNested8[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T] = AndXorNested8[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T]
-  def nest[B1[_[_]], B2[_[_]]]: AndXorNested8[A1, A2, A3, A4, A5, A6, B1, B2] = AndXorNested8[A1, A2, A3, A4, A5, A6, B1, B2]
-
-  def apply[B1, B2, B3]: AndXorNested9[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T] = AndXorNested9[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]]]: AndXorNested9[A1, A2, A3, A4, A5, A6, B1, B2, B3] = AndXorNested9[A1, A2, A3, A4, A5, A6, B1, B2, B3]
-
-  def apply[B1, B2, B3, B4]: AndXorNested10[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T] = AndXorNested10[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]]]: AndXorNested10[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4] = AndXorNested10[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4]
-
-  def apply[B1, B2, B3, B4, B5]: AndXorNested11[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T] = AndXorNested11[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]]]: AndXorNested11[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5] = AndXorNested11[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5]
-
-  def apply[B1, B2, B3, B4, B5, B6]: AndXorNested12[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T] = AndXorNested12[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]]]: AndXorNested12[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6] = AndXorNested12[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7]: AndXorNested13[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T] = AndXorNested13[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]]]: AndXorNested13[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7] = AndXorNested13[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8]: AndXorNested14[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T] = AndXorNested14[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]]]: AndXorNested14[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8] = AndXorNested14[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9]: AndXorNested15[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T] = AndXorNested15[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]]]: AndXorNested15[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9] = AndXorNested15[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10]: AndXorNested16[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T] = AndXorNested16[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]]]: AndXorNested16[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10] = AndXorNested16[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11]: AndXorNested17[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T] = AndXorNested17[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]]]: AndXorNested17[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11] = AndXorNested17[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12]: AndXorNested18[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T] = AndXorNested18[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]]]: AndXorNested18[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12] = AndXorNested18[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13]: AndXorNested19[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T] = AndXorNested19[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]]]: AndXorNested19[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13] = AndXorNested19[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14]: AndXorNested20[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T] = AndXorNested20[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]]]: AndXorNested20[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14] = AndXorNested20[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15]: AndXorNested21[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T, FConst[B15]#T] = AndXorNested21[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T, FConst[B15]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]], B15[_[_]]]: AndXorNested21[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15] = AndXorNested21[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16]: AndXorNested22[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T, FConst[B15]#T, FConst[B16]#T] = AndXorNested22[A1, A2, A3, A4, A5, A6, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T, FConst[B15]#T, FConst[B16]#T]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]], B15[_[_]], B16[_[_]]]: AndXorNested22[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16] = AndXorNested22[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16]
 
   type Prod[F[_]] = Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]
   object Prod {
@@ -64,7 +16,7 @@ trait AndXorNested6[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]] 
 
   type Cop[F[_]] = Cop6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]
   object Cop {
-    def apply[F[_]](c: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ A6[F])))))): Cop[F] = Cop6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]](c)
+    def apply[F[_]](c: Either[A1[F], Either[A2[F], Either[A3[F], Either[A4[F], Either[A5[F], A6[F]]]]]]): Cop[F] = Cop6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]](c)
   }
 
   object instances {
@@ -97,29 +49,29 @@ trait AndXorNested6[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]] 
         def unconsOne[F[_], G[_]](p: Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]], c: Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]])(implicit U: Uncons[F, G]): (Option[Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]]], Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]) =
           c.run match {
 
-            case -\/(x) =>
+            case Left(x) =>
               val (h, t) = fm0.unconsOne(p.t1, x)
-              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](-\/(v))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((t, p.t2, p.t3, p.t4, p.t5, p.t6)))
+              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Left(v))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((t, p.t2, p.t3, p.t4, p.t5, p.t6)))
 
-            case \/-(-\/(x)) =>
+            case Right(Left(x)) =>
               val (h, t) = fm1.unconsOne(p.t2, x)
-              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(-\/(v)))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, t, p.t3, p.t4, p.t5, p.t6)))
+              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Left(v)))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, t, p.t3, p.t4, p.t5, p.t6)))
 
-            case \/-(\/-(-\/(x))) =>
+            case Right(Right(Left(x))) =>
               val (h, t) = fm2.unconsOne(p.t3, x)
-              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(-\/(v))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, t, p.t4, p.t5, p.t6)))
+              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Left(v))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, t, p.t4, p.t5, p.t6)))
 
-            case \/-(\/-(\/-(-\/(x)))) =>
+            case Right(Right(Right(Left(x)))) =>
               val (h, t) = fm3.unconsOne(p.t4, x)
-              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(\/-(-\/(v)))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, p.t3, t, p.t5, p.t6)))
+              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Right(Left(v)))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, p.t3, t, p.t5, p.t6)))
 
-            case \/-(\/-(\/-(\/-(-\/(x))))) =>
+            case Right(Right(Right(Right(Left(x))))) =>
               val (h, t) = fm4.unconsOne(p.t5, x)
-              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(\/-(\/-(-\/(v))))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, p.t3, p.t4, t, p.t6)))
+              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Right(Right(Left(v))))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, p.t3, p.t4, t, p.t6)))
 
-            case \/-(\/-(\/-(\/-(\/-(x))))) =>
+            case Right(Right(Right(Right(Right(x))))) =>
               val (h, t) = fm5.unconsOne(p.t6, x)
-              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(\/-(\/-(\/-(v))))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, t)))
+              (h.map(v => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Right(Right(Right(v))))))), Prod6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, t)))
 
           }
       }
@@ -132,17 +84,17 @@ trait AndXorNested6[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]]] 
         def traverse[F[_], G[_], A[_]: Functor](c: Cop6[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](-\/(y)))
+            case Left(x) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Left(y))))
 
-            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(-\/(y)))))
+            case Right(Right(Left(x))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Left(y)))))
 
-            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(\/-(-\/(y))))))
+            case Right(Right(Right(Left(x)))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Right(Left(y))))))
 
-            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case Right(Right(Right(Right(Left(x))))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Right(Right(Left(y)))))))
 
-            case \/-(\/-(\/-(\/-(\/-(x))))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](\/-(\/-(\/-(\/-(\/-(y)))))))
+            case Right(Right(Right(Right(Right(x))))) => Functor[A].map(x.traverse(f))(y => Cop6[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G]](Right(Right(Right(Right(Right(y)))))))
 
           }
       }
@@ -187,54 +139,6 @@ object AndXorNested6 {
 
 trait AndXor6[A1, A2, A3, A4, A5, A6] extends AndXor {
 
-  def apply[B1]: AndXor7[A1, A2, A3, A4, A5, A6, B1] = AndXor7[A1, A2, A3, A4, A5, A6, B1]
-  def nest[B1[_[_]]]: AndXorNested7[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1] = AndXorNested7[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1]
-
-  def apply[B1, B2]: AndXor8[A1, A2, A3, A4, A5, A6, B1, B2] = AndXor8[A1, A2, A3, A4, A5, A6, B1, B2]
-  def nest[B1[_[_]], B2[_[_]]]: AndXorNested8[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2] = AndXorNested8[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2]
-
-  def apply[B1, B2, B3]: AndXor9[A1, A2, A3, A4, A5, A6, B1, B2, B3] = AndXor9[A1, A2, A3, A4, A5, A6, B1, B2, B3]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]]]: AndXorNested9[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3] = AndXorNested9[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3]
-
-  def apply[B1, B2, B3, B4]: AndXor10[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4] = AndXor10[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]]]: AndXorNested10[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4] = AndXorNested10[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4]
-
-  def apply[B1, B2, B3, B4, B5]: AndXor11[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5] = AndXor11[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]]]: AndXorNested11[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5] = AndXorNested11[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5]
-
-  def apply[B1, B2, B3, B4, B5, B6]: AndXor12[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6] = AndXor12[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]]]: AndXorNested12[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6] = AndXorNested12[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7]: AndXor13[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7] = AndXor13[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]]]: AndXorNested13[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7] = AndXorNested13[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8]: AndXor14[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8] = AndXor14[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]]]: AndXorNested14[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8] = AndXorNested14[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9]: AndXor15[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9] = AndXor15[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]]]: AndXorNested15[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9] = AndXorNested15[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10]: AndXor16[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10] = AndXor16[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]]]: AndXorNested16[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10] = AndXorNested16[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11]: AndXor17[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11] = AndXor17[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]]]: AndXorNested17[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11] = AndXorNested17[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12]: AndXor18[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12] = AndXor18[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]]]: AndXorNested18[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12] = AndXorNested18[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13]: AndXor19[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13] = AndXor19[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]]]: AndXorNested19[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13] = AndXorNested19[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14]: AndXor20[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14] = AndXor20[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]]]: AndXorNested20[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14] = AndXorNested20[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15]: AndXor21[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15] = AndXor21[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]], B15[_[_]]]: AndXorNested21[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15] = AndXorNested21[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15]
-
-  def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16]: AndXor22[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16] = AndXor22[A1, A2, A3, A4, A5, A6, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16]
-  def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]], B15[_[_]], B16[_[_]]]: AndXorNested22[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16] = AndXorNested22[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16]
-
   type Prod[F[_]] = Prod6[F, A1, A2, A3, A4, A5, A6]
   object Prod {
     def apply[F[_]](p: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6])): Prod[F] = Prod6[F, A1, A2, A3, A4, A5, A6](p)
@@ -242,7 +146,7 @@ trait AndXor6[A1, A2, A3, A4, A5, A6] extends AndXor {
 
   type Cop[F[_]] = Cop6[F, A1, A2, A3, A4, A5, A6]
   object Cop {
-    def apply[F[_]](c: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ F[A6])))))): Cop[F] = Cop6[F, A1, A2, A3, A4, A5, A6](c)
+    def apply[F[_]](c: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], F[A6]]]]]]): Cop[F] = Cop6[F, A1, A2, A3, A4, A5, A6](c)
   }
 
   def deriving[TC[_], F[_]](implicit t0: TC[F[A1]], t1: TC[F[A2]], t2: TC[F[A3]], t3: TC[F[A4]], t4: TC[F[A5]], t5: TC[F[A6]]): AndXorDeriving[TC, Cop[F], Prod[F]] =

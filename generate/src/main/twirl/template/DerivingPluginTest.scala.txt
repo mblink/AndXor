@@ -18,7 +18,7 @@ import _root_.argonaut.{DecodeJson, EncodeJson}
 import io.circe.{Decoder, Encoder}
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop.{BooleanOperators, forAllNoShrink}
-import scalaz.{~>, Apply, Cord, Equal, Show}
+import scalaz.{~>, Cord, Equal, Show}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoFunctor
 import scalaz.std.anyVal._

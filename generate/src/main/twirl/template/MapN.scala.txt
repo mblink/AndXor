@@ -4,7 +4,6 @@
 
 import andxor.tuple._
 import andxor.types._
-import scalaz.\/
 
 @range(2, tpes.length).map { n =>
 trait Map@{n}P[@{tpes.take(n).tpeParams}] {

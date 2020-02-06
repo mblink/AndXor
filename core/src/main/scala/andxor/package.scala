@@ -1,7 +1,8 @@
 import andxor.MapN.syntax._
 import scalaz.{~>, Applicative, PlusEmpty}
 
-package object andxor {
+package object andxor
+extends andxor.syntax.EitherSyntax {
   type FConst[A] = { type T[F[_]] >: F[A] <: F[A] }
 
   implicit def FConstInstance[X]: FFunctor[FConst[X]#T] with FTraverseProd[FConst[X]#T] with FoldMap[FConst[X]#T, FConst[X]#T] =

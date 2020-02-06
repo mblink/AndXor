@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.{\/, Monoid, Semigroup}
+import scalaz.{Monoid, Semigroup}
 
 trait Inj[Cop, A] {
   def apply(a: A): Cop
@@ -30,7 +30,7 @@ object Inj extends InjLP {
   implicit def decidableInj[Cop]: Decidable[Inj[Cop, ?]] =
     new Decidable[Inj[Cop, ?]] {
       def contramap[A, B](fa: Inj[Cop, A])(f: B => A): Inj[Cop, B] = instance(b => fa(f(b)))
-      def choose2[Z, A1, A2](a1: => Inj[Cop, A1], a2: => Inj[Cop, A2])(f: Z => (A1 \/ A2)): Inj[Cop, Z] =
+      def choose2[Z, A1, A2](a1: => Inj[Cop, A1], a2: => Inj[Cop, A2])(f: Z => Either[A1, A2]): Inj[Cop, Z] =
         instance(f(_).fold(a1(_), a2(_)))
     }
 

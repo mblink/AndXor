@@ -9,7 +9,7 @@
 @unconsArgs = @{ if (nested) s"p${z.toList.prodAccess(z.index + 1)}, x" else s"p${z.toList.prodAccess(z.index + 1)}" }
 @bindVar = @{ if (nested) "x" else "_" }
 
-            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")(bindVar))(_ => s"-\\/($bindVar)"))((_, a) => s"\\/-(${a})")} =>
+            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")(bindVar))(_ => s"Left($bindVar)"))((_, a) => s"Right(${a})")} =>
               val (h, t) = @{unconsOne}(@unconsArgs)
               (h.map(v => @{copG}(@{z.djVal("v")})), @{prodF}(@{
                 z.prodAccesses("p").updated(z.index, "t").mkTuple}))

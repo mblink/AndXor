@@ -8,10 +8,10 @@ import sbt._
 import sbt.Keys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.12.8", "2.13.0")
+  lazy val scalaVersions = Seq("2.12.10", "2.13.1")
 
   val splainSettings = Seq(
-    addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
+    addCompilerPlugin("io.tryp" % "splain" % "0.5.0" cross CrossVersion.patch),
     scalacOptions ++= Seq(
       "-P:splain:all",
       "-P:splain:foundreq:false",
@@ -71,7 +71,7 @@ object Build {
     crossScalaVersions := scalaVersions,
     scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
     version := currentVersion,
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
+    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     scalacOptions ++= Seq(
       "-deprecation",
       "-encoding", "UTF-8",
@@ -102,11 +102,11 @@ object Build {
     sources in (Compile, doc) := Seq()
   )
 
-  val scalazVersion = "7.2.27"
-  val scalacheckVersion = "1.14.0"
-  val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
+  val scalazVersion = "7.2.28"
+  val scalaz = "org.scalaz" %% "scalaz-core" % scalazVersion
 
-  val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % scalazVersion)
+  val scalacheckVersion = "1.14.2"
+  val scalacheck = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
   val publishSettings = Seq(
     skip in publish := false,
@@ -118,7 +118,7 @@ object Build {
 
   val testSettings = Seq(
     libraryDependencies ++= Seq(
-      scalacheckDep % "test",
+      scalacheck % "test",
       "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-${scalacheckVersion.split('.').dropRight(1).mkString(".")}" % "test"
     ),
     testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2")) ++
@@ -128,7 +128,7 @@ object Build {
   )
 
   def generateBase = Project("generate", file("generate"))
-    .settings(commonSettings)
+    .settings(baseSettings)
     .settings(Seq(
       name := "andxor-generate",
       resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -136,30 +136,38 @@ object Build {
       libraryDependencies ++= Seq(
         "com.github.pathikrit" %% "better-files" % "3.8.0",
         "org.scalariform" %% "scalariform" % "0.2.10",
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+        scalaz
       ),
       TwirlKeys.templateImports := Seq(),
       bintrayRelease := {}
     )).enablePlugins(SbtTwirl)
 
   def coreBase = Project("core", file("core"))
-    .settings(commonSettings)
+    .settings(baseSettings)
     .settings(publishSettings)
     .settings(testSettings)
-    .settings(Seq(name := "andxor-core"))
+    .settings(Seq(
+      name := "andxor-core",
+      libraryDependencies ++= Seq(
+        "org.scalaz" %% "scalaz-core" % scalazVersion % Optional,
+        "org.typelevel" %% "cats-core" % "2.1.0" % Optional,
+        scalacheck % Optional
+      )
+    ))
 
   def argonautBase = Project("argonaut", file("argonaut"))
-    .settings(commonSettings)
+    .settings(baseSettings)
     .settings(publishSettings)
     .settings(testSettings)
     .settings(Seq(
       name := "andxor-argonaut",
-      libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.3"
+      libraryDependencies ++= Seq("io.argonaut" %% "argonaut" % "6.2.3", scalaz)
     ))
 
-  val circeVersion = "0.12.0-M4"
+  val circeVersion = "0.12.3"
   def circeBase = Project("circe", file("circe"))
-    .settings(commonSettings)
+    .settings(baseSettings)
     .settings(publishSettings)
     .settings(Seq(
       name := "andxor-circe",
@@ -172,11 +180,11 @@ object Build {
     ))
 
   def scalacheckBase = Project("scalacheck", file("scalacheck"))
-    .settings(commonSettings)
+    .settings(baseSettings)
     .settings(publishSettings)
     .settings(Seq(
       name := "andxor-scalacheck",
-      libraryDependencies += scalacheckDep
+      libraryDependencies += scalacheck
     ))
 
   def enablePlugin(jar: File, extra: Seq[String]): Seq[String] =

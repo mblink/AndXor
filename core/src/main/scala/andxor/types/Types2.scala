@@ -1,7 +1,7 @@
 package andxor.types
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
+import scalaz.{~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 
@@ -53,13 +53,13 @@ trait Types2 {
         def unconsOne[F[_], G[_]](p: Prod2[F, A1, A2], c: Cop2[G, A1, A2])(implicit U: Uncons[F, G]): (Option[Cop2[G, A1, A2]], Prod2[F, A1, A2]) =
           c.run match {
 
-            case -\/(_) =>
+            case Left(_) =>
               val (h, t) = U(p.t1)
-              (h.map(v => Cop2[G, A1, A2](-\/(v))), Prod2[F, A1, A2]((t, p.t2)))
+              (h.map(v => Cop2[G, A1, A2](Left(v))), Prod2[F, A1, A2]((t, p.t2)))
 
-            case \/-(_) =>
+            case Right(_) =>
               val (h, t) = U(p.t2)
-              (h.map(v => Cop2[G, A1, A2](\/-(v))), Prod2[F, A1, A2]((p.t1, t)))
+              (h.map(v => Cop2[G, A1, A2](Right(v))), Prod2[F, A1, A2]((p.t1, t)))
 
           }
       }
@@ -106,7 +106,7 @@ trait Types2 {
 
   }
 
-  @newtype case class Cop2[F[_], A1, A2](run: (F[A1] \/ F[A2])) {
+  @newtype case class Cop2[F[_], A1, A2](run: Either[F[A1], F[A2]]) {
     private def mapN = new Map2C[F[A1], F[A2]] {}
 
     def map1[B](f: F[A1] => F[B]): Cop2[F, B, A2] =
@@ -133,28 +133,28 @@ trait Types2 {
         def traverse[F[_], G[_], A[_]: Functor](c: Cop2[F, A1, A2])(f: F ~> Lambda[a => A[G[a]]]): A[Cop2[G, A1, A2]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(f(x))(y => Cop2[G, A1, A2](-\/(y)))
+            case Left(x) => Functor[A].map(f(x))(y => Cop2[G, A1, A2](Left(y)))
 
-            case \/-(x) => Functor[A].map(f(x))(y => Cop2[G, A1, A2](\/-(y)))
+            case Right(x) => Functor[A].map(f(x))(y => Cop2[G, A1, A2](Right(y)))
 
           }
       }
 
     implicit def inja0F[F[_], A1, A2]: Inj[Cop2[F, A1, A2], F[A1]] =
-      Inj.instance(x => Cop2[F, A1, A2](-\/(x)))
+      Inj.instance(x => Cop2[F, A1, A2](Left(x)))
 
     implicit def inja1F[F[_], A1, A2]: Inj[Cop2[F, A1, A2], F[A2]] =
-      Inj.instance(x => Cop2[F, A1, A2](\/-(x)))
+      Inj.instance(x => Cop2[F, A1, A2](Right(x)))
 
     implicit def Cop2PLens0[F[_], A1, A2]: PLens[Cop2[F, A1, A2], F[A1]] =
       PLens(c => c.run match {
-        case -\/(x) => Some(StoreT.store[F[A1], Cop2[F, A1, A2]](x)(y => Cop2[F, A1, A2](-\/(y))))
+        case Left(x) => Some(StoreT.store[F[A1], Cop2[F, A1, A2]](x)(y => Cop2[F, A1, A2](Left(y))))
         case _ => None
       })
 
     implicit def Cop2PLens1[F[_], A1, A2]: PLens[Cop2[F, A1, A2], F[A2]] =
       PLens(c => c.run match {
-        case \/-(x) => Some(StoreT.store[F[A2], Cop2[F, A1, A2]](x)(y => Cop2[F, A1, A2](\/-(y))))
+        case Right(x) => Some(StoreT.store[F[A2], Cop2[F, A1, A2]](x)(y => Cop2[F, A1, A2](Right(y))))
         case _ => None
       })
 

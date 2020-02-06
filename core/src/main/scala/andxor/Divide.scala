@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.{Apply, Contravariant, Equal, IsomorphismContravariant, Kleisli, Monoid, Semigroup}
+import scalaz.{Contravariant, Equal, IsomorphismContravariant, Kleisli, Monoid, Semigroup}
 import scalaz.Isomorphism.<~>
 
 trait Divide[F[_]] extends Contravariant[F] {
@@ -35,7 +35,7 @@ trait DivideLP {
     def divide2[A1, A2, Z](a1: => Kleisli[F, A1, O], a2: => Kleisli[F, A2, O])(f: Z => (A1, A2)): Kleisli[F, Z, O] =
       Kleisli { z =>
         val (x1, x2) = f(z)
-        F.apply2(a1.run(x1), a2.run(x2))(G.append(_, _))
+        F.ap(a2.run(x2))(F.map(a1.run(x1))(o1 => o2 => G.append(o1, o2)))
       }
   }
 

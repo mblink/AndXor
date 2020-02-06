@@ -1,7 +1,7 @@
 package andxor.types
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
+import scalaz.{~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 
@@ -69,21 +69,21 @@ trait Types4 {
         def unconsOne[F[_], G[_]](p: Prod4[F, A1, A2, A3, A4], c: Cop4[G, A1, A2, A3, A4])(implicit U: Uncons[F, G]): (Option[Cop4[G, A1, A2, A3, A4]], Prod4[F, A1, A2, A3, A4]) =
           c.run match {
 
-            case -\/(_) =>
+            case Left(_) =>
               val (h, t) = U(p.t1)
-              (h.map(v => Cop4[G, A1, A2, A3, A4](-\/(v))), Prod4[F, A1, A2, A3, A4]((t, p.t2, p.t3, p.t4)))
+              (h.map(v => Cop4[G, A1, A2, A3, A4](Left(v))), Prod4[F, A1, A2, A3, A4]((t, p.t2, p.t3, p.t4)))
 
-            case \/-(-\/(_)) =>
+            case Right(Left(_)) =>
               val (h, t) = U(p.t2)
-              (h.map(v => Cop4[G, A1, A2, A3, A4](\/-(-\/(v)))), Prod4[F, A1, A2, A3, A4]((p.t1, t, p.t3, p.t4)))
+              (h.map(v => Cop4[G, A1, A2, A3, A4](Right(Left(v)))), Prod4[F, A1, A2, A3, A4]((p.t1, t, p.t3, p.t4)))
 
-            case \/-(\/-(-\/(_))) =>
+            case Right(Right(Left(_))) =>
               val (h, t) = U(p.t3)
-              (h.map(v => Cop4[G, A1, A2, A3, A4](\/-(\/-(-\/(v))))), Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, t, p.t4)))
+              (h.map(v => Cop4[G, A1, A2, A3, A4](Right(Right(Left(v))))), Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, t, p.t4)))
 
-            case \/-(\/-(\/-(_))) =>
+            case Right(Right(Right(_))) =>
               val (h, t) = U(p.t4)
-              (h.map(v => Cop4[G, A1, A2, A3, A4](\/-(\/-(\/-(v))))), Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, p.t3, t)))
+              (h.map(v => Cop4[G, A1, A2, A3, A4](Right(Right(Right(v))))), Prod4[F, A1, A2, A3, A4]((p.t1, p.t2, p.t3, t)))
 
           }
       }
@@ -160,7 +160,7 @@ trait Types4 {
 
   }
 
-  @newtype case class Cop4[F[_], A1, A2, A3, A4](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ F[A4])))) {
+  @newtype case class Cop4[F[_], A1, A2, A3, A4](run: Either[F[A1], Either[F[A2], Either[F[A3], F[A4]]]]) {
     private def mapN = new Map4C[F[A1], F[A2], F[A3], F[A4]] {}
 
     def map1[B](f: F[A1] => F[B]): Cop4[F, B, A2, A3, A4] =
@@ -199,50 +199,50 @@ trait Types4 {
         def traverse[F[_], G[_], A[_]: Functor](c: Cop4[F, A1, A2, A3, A4])(f: F ~> Lambda[a => A[G[a]]]): A[Cop4[G, A1, A2, A3, A4]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](-\/(y)))
+            case Left(x) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](Right(Left(y))))
 
-            case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](\/-(\/-(-\/(y)))))
+            case Right(Right(Left(x))) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](Right(Right(Left(y)))))
 
-            case \/-(\/-(\/-(x))) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](\/-(\/-(\/-(y)))))
+            case Right(Right(Right(x))) => Functor[A].map(f(x))(y => Cop4[G, A1, A2, A3, A4](Right(Right(Right(y)))))
 
           }
       }
 
     implicit def inja0F[F[_], A1, A2, A3, A4]: Inj[Cop4[F, A1, A2, A3, A4], F[A1]] =
-      Inj.instance(x => Cop4[F, A1, A2, A3, A4](-\/(x)))
+      Inj.instance(x => Cop4[F, A1, A2, A3, A4](Left(x)))
 
     implicit def inja1F[F[_], A1, A2, A3, A4]: Inj[Cop4[F, A1, A2, A3, A4], F[A2]] =
-      Inj.instance(x => Cop4[F, A1, A2, A3, A4](\/-(-\/(x))))
+      Inj.instance(x => Cop4[F, A1, A2, A3, A4](Right(Left(x))))
 
     implicit def inja2F[F[_], A1, A2, A3, A4]: Inj[Cop4[F, A1, A2, A3, A4], F[A3]] =
-      Inj.instance(x => Cop4[F, A1, A2, A3, A4](\/-(\/-(-\/(x)))))
+      Inj.instance(x => Cop4[F, A1, A2, A3, A4](Right(Right(Left(x)))))
 
     implicit def inja3F[F[_], A1, A2, A3, A4]: Inj[Cop4[F, A1, A2, A3, A4], F[A4]] =
-      Inj.instance(x => Cop4[F, A1, A2, A3, A4](\/-(\/-(\/-(x)))))
+      Inj.instance(x => Cop4[F, A1, A2, A3, A4](Right(Right(Right(x)))))
 
     implicit def Cop4PLens0[F[_], A1, A2, A3, A4]: PLens[Cop4[F, A1, A2, A3, A4], F[A1]] =
       PLens(c => c.run match {
-        case -\/(x) => Some(StoreT.store[F[A1], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](-\/(y))))
+        case Left(x) => Some(StoreT.store[F[A1], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](Left(y))))
         case _ => None
       })
 
     implicit def Cop4PLens1[F[_], A1, A2, A3, A4]: PLens[Cop4[F, A1, A2, A3, A4], F[A2]] =
       PLens(c => c.run match {
-        case \/-(-\/(x)) => Some(StoreT.store[F[A2], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](\/-(-\/(y)))))
+        case Right(Left(x)) => Some(StoreT.store[F[A2], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](Right(Left(y)))))
         case _ => None
       })
 
     implicit def Cop4PLens2[F[_], A1, A2, A3, A4]: PLens[Cop4[F, A1, A2, A3, A4], F[A3]] =
       PLens(c => c.run match {
-        case \/-(\/-(-\/(x))) => Some(StoreT.store[F[A3], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](\/-(\/-(-\/(y))))))
+        case Right(Right(Left(x))) => Some(StoreT.store[F[A3], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](Right(Right(Left(y))))))
         case _ => None
       })
 
     implicit def Cop4PLens3[F[_], A1, A2, A3, A4]: PLens[Cop4[F, A1, A2, A3, A4], F[A4]] =
       PLens(c => c.run match {
-        case \/-(\/-(\/-(x))) => Some(StoreT.store[F[A4], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](\/-(\/-(\/-(y))))))
+        case Right(Right(Right(x))) => Some(StoreT.store[F[A4], Cop4[F, A1, A2, A3, A4]](x)(y => Cop4[F, A1, A2, A3, A4](Right(Right(Right(y))))))
         case _ => None
       })
 

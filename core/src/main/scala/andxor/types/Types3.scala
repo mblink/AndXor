@@ -1,7 +1,7 @@
 package andxor.types
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
+import scalaz.{~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
 import scalaz.Id.Id
 import scalaz.Isomorphism.IsoSet
 
@@ -61,17 +61,17 @@ trait Types3 {
         def unconsOne[F[_], G[_]](p: Prod3[F, A1, A2, A3], c: Cop3[G, A1, A2, A3])(implicit U: Uncons[F, G]): (Option[Cop3[G, A1, A2, A3]], Prod3[F, A1, A2, A3]) =
           c.run match {
 
-            case -\/(_) =>
+            case Left(_) =>
               val (h, t) = U(p.t1)
-              (h.map(v => Cop3[G, A1, A2, A3](-\/(v))), Prod3[F, A1, A2, A3]((t, p.t2, p.t3)))
+              (h.map(v => Cop3[G, A1, A2, A3](Left(v))), Prod3[F, A1, A2, A3]((t, p.t2, p.t3)))
 
-            case \/-(-\/(_)) =>
+            case Right(Left(_)) =>
               val (h, t) = U(p.t2)
-              (h.map(v => Cop3[G, A1, A2, A3](\/-(-\/(v)))), Prod3[F, A1, A2, A3]((p.t1, t, p.t3)))
+              (h.map(v => Cop3[G, A1, A2, A3](Right(Left(v)))), Prod3[F, A1, A2, A3]((p.t1, t, p.t3)))
 
-            case \/-(\/-(_)) =>
+            case Right(Right(_)) =>
               val (h, t) = U(p.t3)
-              (h.map(v => Cop3[G, A1, A2, A3](\/-(\/-(v)))), Prod3[F, A1, A2, A3]((p.t1, p.t2, t)))
+              (h.map(v => Cop3[G, A1, A2, A3](Right(Right(v)))), Prod3[F, A1, A2, A3]((p.t1, p.t2, t)))
 
           }
       }
@@ -133,7 +133,7 @@ trait Types3 {
 
   }
 
-  @newtype case class Cop3[F[_], A1, A2, A3](run: (F[A1] \/ (F[A2] \/ F[A3]))) {
+  @newtype case class Cop3[F[_], A1, A2, A3](run: Either[F[A1], Either[F[A2], F[A3]]]) {
     private def mapN = new Map3C[F[A1], F[A2], F[A3]] {}
 
     def map1[B](f: F[A1] => F[B]): Cop3[F, B, A2, A3] =
@@ -166,39 +166,39 @@ trait Types3 {
         def traverse[F[_], G[_], A[_]: Functor](c: Cop3[F, A1, A2, A3])(f: F ~> Lambda[a => A[G[a]]]): A[Cop3[G, A1, A2, A3]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](-\/(y)))
+            case Left(x) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](Right(Left(y))))
 
-            case \/-(\/-(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](\/-(\/-(y))))
+            case Right(Right(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](Right(Right(y))))
 
           }
       }
 
     implicit def inja0F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A1]] =
-      Inj.instance(x => Cop3[F, A1, A2, A3](-\/(x)))
+      Inj.instance(x => Cop3[F, A1, A2, A3](Left(x)))
 
     implicit def inja1F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A2]] =
-      Inj.instance(x => Cop3[F, A1, A2, A3](\/-(-\/(x))))
+      Inj.instance(x => Cop3[F, A1, A2, A3](Right(Left(x))))
 
     implicit def inja2F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A3]] =
-      Inj.instance(x => Cop3[F, A1, A2, A3](\/-(\/-(x))))
+      Inj.instance(x => Cop3[F, A1, A2, A3](Right(Right(x))))
 
     implicit def Cop3PLens0[F[_], A1, A2, A3]: PLens[Cop3[F, A1, A2, A3], F[A1]] =
       PLens(c => c.run match {
-        case -\/(x) => Some(StoreT.store[F[A1], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](-\/(y))))
+        case Left(x) => Some(StoreT.store[F[A1], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](Left(y))))
         case _ => None
       })
 
     implicit def Cop3PLens1[F[_], A1, A2, A3]: PLens[Cop3[F, A1, A2, A3], F[A2]] =
       PLens(c => c.run match {
-        case \/-(-\/(x)) => Some(StoreT.store[F[A2], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](\/-(-\/(y)))))
+        case Right(Left(x)) => Some(StoreT.store[F[A2], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](Right(Left(y)))))
         case _ => None
       })
 
     implicit def Cop3PLens2[F[_], A1, A2, A3]: PLens[Cop3[F, A1, A2, A3], F[A3]] =
       PLens(c => c.run match {
-        case \/-(\/-(x)) => Some(StoreT.store[F[A3], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](\/-(\/-(y)))))
+        case Right(Right(x)) => Some(StoreT.store[F[A3], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](Right(Right(y)))))
         case _ => None
       })
 
