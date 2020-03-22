@@ -25,11 +25,10 @@ lazy val newtype: Project = newtypeBase
 
 lazy val root: Project = project.in(file("."))
   .settings(commonSettings)
-  .settings(Seq(
-    tutTargetDirectory := file("."),
-    scalacOptions in Tut := (scalacOptions in (Compile, console)).value,
-    bintrayRelease := {}
-  ))
   .dependsOn(core)
   .aggregate(generate, core, argonaut, circe, scalacheck, deriving, newtype)
-  .enablePlugins(TutPlugin)
+
+lazy val docs = project.in(file("andxor-docs"))
+  .settings(mdocOut := file("."))
+  .dependsOn(root)
+  .enablePlugins(MdocPlugin)
