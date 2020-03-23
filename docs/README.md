@@ -55,17 +55,17 @@ val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Op
 ```scala mdoc
 // `Decidable[Show]` is provided for derivation over coproducts
 implicit val showCop = SIS.derivingId[Show].choose
-List(cop1, cop2, cop3).show
+List(cop1, cop2, cop3).shows
 
 // define a `Divide[Show]` for derivation over products
 implicit val divideShow: Divide[Show] = new Divide[Show] {
   def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
   def divide2[A1, A2, Z](a1: => Show[A1], a2: => Show[A2])(f: Z => (A1, A2)): Show[Z] =
-    Show.show(z => f(z) |> { case (x, y) => a1.show(x) ++ a2.show(y) })
+    Show.shows(z => f(z) |> { case (x, y) => a1.shows(x) ++ ", " ++ a2.shows(y) })
 }
 implicit val showListProd = SIS.deriving[Show, List].divide
 implicit val showOptionProd = SIS.deriving[Show, Option].divide
-(listProd.show, optionProd.show)
+(listProd.shows, optionProd.shows)
 ```
 
 #### Convert between `F[_]`s using a `~>`

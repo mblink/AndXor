@@ -33,7 +33,7 @@ import scalaz.syntax.show._
 
 ```scala
 val SIS = AndXor[String, Int, List[String]]
-// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@6b9b42dc
+// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@378564ef
 ```
 
 #### Lift values into a coproduct
@@ -61,25 +61,25 @@ val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Op
 ```scala
 // `Decidable[Show]` is provided for derivation over coproducts
 implicit val showCop = SIS.derivingId[Show].choose
-// showCop: Show[SIS.Cop[Id]] = scalaz.Show$$anon$5@7a8ad02c
-List(cop1, cop2, cop3).show
-// res0: scalaz.Cord = Cord(23 [[[,",foo], ?, [",],]]])
+// showCop: Show[SIS.Cop[Id]] = scalaz.Show$$anon$5@3cec797c
+List(cop1, cop2, cop3).shows
+// res0: String = "[\"foo\",2,[\"bar\",\"baz\"]]"
 
 // define a `Divide[Show]` for derivation over products
 implicit val divideShow: Divide[Show] = new Divide[Show] {
   def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
   def divide2[A1, A2, Z](a1: => Show[A1], a2: => Show[A2])(f: Z => (A1, A2)): Show[Z] =
-    Show.show(z => f(z) |> { case (x, y) => a1.show(x) ++ a2.show(y) })
+    Show.shows(z => f(z) |> { case (x, y) => a1.shows(x) ++ ", " ++ a2.shows(y) })
 }
-// divideShow: Divide[Show] = repl.Session$App$$anon$1@2261dac7
+// divideShow: Divide[Show] = repl.Session$App$$anon$1@6b6c01a0
 implicit val showListProd = SIS.deriving[Show, List].divide
-// showListProd: Show[SIS.Prod[List]] = scalaz.Show$$anon$5@4d3f786a
+// showListProd: Show[SIS.Prod[List]] = scalaz.Show$$anon$6@3d621e3a
 implicit val showOptionProd = SIS.deriving[Show, Option].divide
-// showOptionProd: Show[SIS.Prod[Option]] = scalaz.Show$$anon$5@26db2ffe
-(listProd.show, optionProd.show)
-// res1: (scalaz.Cord, scalaz.Cord) = (
-//   Cord(19 [[[,",foo], ?, [",],]]]),
-//   Cord(31 [[Some(,",foo], ?, [",],)]])
+// showOptionProd: Show[SIS.Prod[Option]] = scalaz.Show$$anon$6@2cb93619
+(listProd.shows, optionProd.shows)
+// res1: (String, String) = (
+//   "[\"foo\"], [4], [[\"bar\"]]",
+//   "Some(\"foo\"), Some(4), Some([\"bar\"])"
 // )
 ```
 
