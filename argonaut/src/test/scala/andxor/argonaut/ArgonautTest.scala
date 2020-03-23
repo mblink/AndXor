@@ -5,7 +5,7 @@ import andxor.scalacheck._
 import _root_.argonaut._
 import _root_.argonaut.Argonaut._
 import org.scalacheck.{Arbitrary, Properties}
-import org.scalacheck.Prop.{BooleanOperators, forAllNoShrink}
+import org.scalacheck.Prop.{forAllNoShrink, propBoolean}
 
 object ArgonautTest extends Properties("argonaut") {
 

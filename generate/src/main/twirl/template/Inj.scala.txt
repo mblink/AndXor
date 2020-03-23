@@ -1,5 +1,5 @@
+@import andxor.Zipper
 @import andxor.syntax._
-@import scalaz.Zipper
 
 @(z: Zipper[String], isId: Boolean)
 

@@ -1,8 +1,8 @@
 package andxor
 
-import scalaz.{Applicative, Equal, Traverse}
-import scalaz.std.string._
-import scalaz.std.tuple._
+import cats.{Applicative, Eq, Eval, Traverse}
+import cats.instances.string._
+import cats.instances.tuple._
 
 trait Labelled[A] {
   type L <: Singleton with String
@@ -22,10 +22,12 @@ object Labelled {
   }
 
   implicit def traverseLabelled[L <: Singleton with String]: Traverse[Aux[?, L]] = new Traverse[Aux[?, L]] {
-    def traverseImpl[G[_]: Applicative, A, B](fa: Aux[A, L])(f: A => G[B]): G[Aux[B, L]] =
-      Applicative[G].map(f(fa.value))(Labelled(_, fa.label))
+    def foldLeft[A, B](fa: Aux[A, L], b: B)(f: (B, A) => B): B = f(b, fa.value)
+    def foldRight[A, B](fa: Aux[A, L], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = f(fa.value, lb)
+    def traverse[G[_], A, B](fa: Aux[A, L])(f: A => G[B])(implicit G: Applicative[G]): G[Aux[B, L]] =
+      G.map(f(fa.value))(Labelled(_, fa.label))
   }
 
-  implicit def equalLabelled[A: Equal, L <: Singleton with String]: Equal[Aux[A, L]] =
-    Equal.equalBy(l => ((l.label: String), l.value))
+  implicit def eqLabelled[A: Eq, L <: Singleton with String]: Eq[Aux[A, L]] =
+    Eq.by(l => ((l.label: String), l.value))
 }

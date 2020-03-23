@@ -4,7 +4,7 @@ package circe
 import andxor.scalacheck._
 import io.circe.{Codec, Decoder, Encoder}
 import org.scalacheck.{Arbitrary, Properties}
-import org.scalacheck.Prop.{BooleanOperators, forAllNoShrink}
+import org.scalacheck.Prop.{forAllNoShrink, propBoolean}
 
 object CirceTest extends Properties("circe") {
 

@@ -3,9 +3,9 @@ package andxor
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
 import andxor.types._
-import scalaz.{~>, \/, -\/, \/-, Applicative, Functor, PlusEmpty, Apply, Monoid}
-import scalaz.Id.Id
-import scalaz.std.vector._
+import cats.syntax.either._
+import cats.{Applicative, Apply, Functor, Id, Monoid, MonoidK, ~>}
+import cats.instances.vector._
 
 trait AndXorNested5[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]] extends AndXor {
 
@@ -67,7 +67,7 @@ trait AndXorNested5[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]] extends An
 
   type Cop[F[_]] = Cop5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]
   object Cop {
-    def apply[F[_]](c: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ A5[F]))))): Cop[F] = Cop5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]](c)
+    def apply[F[_]](c: Either[A1[F], Either[A2[F], Either[A3[F], Either[A4[F], A5[F]]]]]): Cop[F] = Cop5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]](c)
   }
 
   object instances {
@@ -77,12 +77,12 @@ trait AndXorNested5[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]] extends An
           Prod5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt)))
 
         def traverse[F[_], G[_], A[_]: Applicative](p: Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Prod5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]]] =
-          Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1[G]) => (i1: A2[G]) => (i2: A3[G]) => (i3: A4[G]) => (i4: A5[G]) => Prod5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]]((i0, i1, i2, i3, i4)))))))
+          Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1[G]) => (i1: A2[G]) => (i2: A3[G]) => (i3: A4[G]) => (i4: A5[G]) => Prod5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]]((i0, i1, i2, i3, i4))))(ft1.traverse(p.t2)(f)))(ft2.traverse(p.t3)(f)))(ft3.traverse(p.t4)(f)))(ft4.traverse(p.t5)(f))
       }
 
     implicit def axoProd5FoldMap(implicit fm0: FoldMap[A1, A1], fm1: FoldMap[A2, A2], fm2: FoldMap[A3, A3], fm3: FoldMap[A4, A4], fm4: FoldMap[A5, A5]): FoldMap[Prod, Cop] =
       new FoldMap[Prod, Cop] {
-        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod[F] =
+        def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod[F] =
           Prod((fm0.emptyProd, fm1.emptyProd, fm2.emptyProd, fm3.emptyProd, fm4.emptyProd))
 
         def unconsAll[F[_], G[_]](p: Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]])(implicit U: Uncons[F, G]): (List[Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]]], Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]) = {
@@ -99,25 +99,25 @@ trait AndXorNested5[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]] extends An
         def unconsOne[F[_], G[_]](p: Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]], c: Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]])(implicit U: Uncons[F, G]): (Option[Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]]], Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]) =
           c.run match {
 
-            case -\/(x) =>
+            case Left(x) =>
               val (h, t) = fm0.unconsOne(p.t1, x)
-              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](-\/(v))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((t, p.t2, p.t3, p.t4, p.t5)))
+              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Left(v))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((t, p.t2, p.t3, p.t4, p.t5)))
 
-            case \/-(-\/(x)) =>
+            case Right(Left(x)) =>
               val (h, t) = fm1.unconsOne(p.t2, x)
-              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(-\/(v)))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, t, p.t3, p.t4, p.t5)))
+              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Left(v)))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, t, p.t3, p.t4, p.t5)))
 
-            case \/-(\/-(-\/(x))) =>
+            case Right(Right(Left(x))) =>
               val (h, t) = fm2.unconsOne(p.t3, x)
-              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(\/-(-\/(v))))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, p.t2, t, p.t4, p.t5)))
+              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Right(Left(v))))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, p.t2, t, p.t4, p.t5)))
 
-            case \/-(\/-(\/-(-\/(x)))) =>
+            case Right(Right(Right(Left(x)))) =>
               val (h, t) = fm3.unconsOne(p.t4, x)
-              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(\/-(\/-(-\/(v)))))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, p.t2, p.t3, t, p.t5)))
+              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Right(Right(Left(v)))))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, p.t2, p.t3, t, p.t5)))
 
-            case \/-(\/-(\/-(\/-(x)))) =>
+            case Right(Right(Right(Right(x)))) =>
               val (h, t) = fm4.unconsOne(p.t5, x)
-              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(\/-(\/-(\/-(v)))))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, p.t2, p.t3, p.t4, t)))
+              (h.map(v => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Right(Right(Right(v)))))), Prod5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]]((p.t1, p.t2, p.t3, p.t4, t)))
 
           }
       }
@@ -130,15 +130,15 @@ trait AndXorNested5[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]] extends An
         def traverse[F[_], G[_], A[_]: Functor](c: Cop5[Id, A1[F], A2[F], A3[F], A4[F], A5[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](-\/(y)))
+            case Left(x) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Left(y))))
 
-            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(\/-(-\/(y)))))
+            case Right(Right(Left(x))) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Right(Left(y)))))
 
-            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(\/-(\/-(-\/(y))))))
+            case Right(Right(Right(Left(x)))) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Right(Right(Left(y))))))
 
-            case \/-(\/-(\/-(\/-(x)))) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](\/-(\/-(\/-(\/-(y))))))
+            case Right(Right(Right(Right(x)))) => Functor[A].map(x.traverse(f))(y => Cop5[Id, A1[G], A2[G], A3[G], A4[G], A5[G]](Right(Right(Right(Right(y))))))
 
           }
       }
@@ -241,7 +241,7 @@ trait AndXor5[A1, A2, A3, A4, A5] extends AndXor {
 
   type Cop[F[_]] = Cop5[F, A1, A2, A3, A4, A5]
   object Cop {
-    def apply[F[_]](c: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ F[A5]))))): Cop[F] = Cop5[F, A1, A2, A3, A4, A5](c)
+    def apply[F[_]](c: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], F[A5]]]]]): Cop[F] = Cop5[F, A1, A2, A3, A4, A5](c)
   }
 
   def deriving[TC[_], F[_]](implicit t0: TC[F[A1]], t1: TC[F[A2]], t2: TC[F[A3]], t3: TC[F[A4]], t4: TC[F[A5]]): AndXorDeriving[TC, Cop[F], Prod[F]] =

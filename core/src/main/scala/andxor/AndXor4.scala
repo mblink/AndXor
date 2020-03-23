@@ -3,9 +3,9 @@ package andxor
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
 import andxor.types._
-import scalaz.{~>, \/, -\/, \/-, Applicative, Functor, PlusEmpty, Apply, Monoid}
-import scalaz.Id.Id
-import scalaz.std.vector._
+import cats.syntax.either._
+import cats.{Applicative, Apply, Functor, Id, Monoid, MonoidK, ~>}
+import cats.instances.vector._
 
 trait AndXorNested4[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]] extends AndXor {
 
@@ -70,7 +70,7 @@ trait AndXorNested4[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]] extends AndXor {
 
   type Cop[F[_]] = Cop4[Id, A1[F], A2[F], A3[F], A4[F]]
   object Cop {
-    def apply[F[_]](c: (A1[F] \/ (A2[F] \/ (A3[F] \/ A4[F])))): Cop[F] = Cop4[Id, A1[F], A2[F], A3[F], A4[F]](c)
+    def apply[F[_]](c: Either[A1[F], Either[A2[F], Either[A3[F], A4[F]]]]): Cop[F] = Cop4[Id, A1[F], A2[F], A3[F], A4[F]](c)
   }
 
   object instances {
@@ -80,12 +80,12 @@ trait AndXorNested4[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]] extends AndXor {
           Prod4[Id, A1[G], A2[G], A3[G], A4[G]]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt)))
 
         def traverse[F[_], G[_], A[_]: Applicative](p: Prod4[Id, A1[F], A2[F], A3[F], A4[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Prod4[Id, A1[G], A2[G], A3[G], A4[G]]] =
-          Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1[G]) => (i1: A2[G]) => (i2: A3[G]) => (i3: A4[G]) => Prod4[Id, A1[G], A2[G], A3[G], A4[G]]((i0, i1, i2, i3))))))
+          Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1[G]) => (i1: A2[G]) => (i2: A3[G]) => (i3: A4[G]) => Prod4[Id, A1[G], A2[G], A3[G], A4[G]]((i0, i1, i2, i3))))(ft1.traverse(p.t2)(f)))(ft2.traverse(p.t3)(f)))(ft3.traverse(p.t4)(f))
       }
 
     implicit def axoProd4FoldMap(implicit fm0: FoldMap[A1, A1], fm1: FoldMap[A2, A2], fm2: FoldMap[A3, A3], fm3: FoldMap[A4, A4]): FoldMap[Prod, Cop] =
       new FoldMap[Prod, Cop] {
-        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod[F] =
+        def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod[F] =
           Prod((fm0.emptyProd, fm1.emptyProd, fm2.emptyProd, fm3.emptyProd))
 
         def unconsAll[F[_], G[_]](p: Prod4[Id, A1[F], A2[F], A3[F], A4[F]])(implicit U: Uncons[F, G]): (List[Cop4[Id, A1[G], A2[G], A3[G], A4[G]]], Prod4[Id, A1[F], A2[F], A3[F], A4[F]]) = {
@@ -101,21 +101,21 @@ trait AndXorNested4[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]] extends AndXor {
         def unconsOne[F[_], G[_]](p: Prod4[Id, A1[F], A2[F], A3[F], A4[F]], c: Cop4[Id, A1[G], A2[G], A3[G], A4[G]])(implicit U: Uncons[F, G]): (Option[Cop4[Id, A1[G], A2[G], A3[G], A4[G]]], Prod4[Id, A1[F], A2[F], A3[F], A4[F]]) =
           c.run match {
 
-            case -\/(x) =>
+            case Left(x) =>
               val (h, t) = fm0.unconsOne(p.t1, x)
-              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](-\/(v))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((t, p.t2, p.t3, p.t4)))
+              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Left(v))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((t, p.t2, p.t3, p.t4)))
 
-            case \/-(-\/(x)) =>
+            case Right(Left(x)) =>
               val (h, t) = fm1.unconsOne(p.t2, x)
-              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](\/-(-\/(v)))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((p.t1, t, p.t3, p.t4)))
+              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Right(Left(v)))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((p.t1, t, p.t3, p.t4)))
 
-            case \/-(\/-(-\/(x))) =>
+            case Right(Right(Left(x))) =>
               val (h, t) = fm2.unconsOne(p.t3, x)
-              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](\/-(\/-(-\/(v))))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((p.t1, p.t2, t, p.t4)))
+              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Right(Right(Left(v))))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((p.t1, p.t2, t, p.t4)))
 
-            case \/-(\/-(\/-(x))) =>
+            case Right(Right(Right(x))) =>
               val (h, t) = fm3.unconsOne(p.t4, x)
-              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](\/-(\/-(\/-(v))))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((p.t1, p.t2, p.t3, t)))
+              (h.map(v => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Right(Right(Right(v))))), Prod4[Id, A1[F], A2[F], A3[F], A4[F]]((p.t1, p.t2, p.t3, t)))
 
           }
       }
@@ -128,13 +128,13 @@ trait AndXorNested4[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]]] extends AndXor {
         def traverse[F[_], G[_], A[_]: Functor](c: Cop4[Id, A1[F], A2[F], A3[F], A4[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop4[Id, A1[G], A2[G], A3[G], A4[G]]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](-\/(y)))
+            case Left(x) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Right(Left(y))))
 
-            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](\/-(\/-(-\/(y)))))
+            case Right(Right(Left(x))) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Right(Right(Left(y)))))
 
-            case \/-(\/-(\/-(x))) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](\/-(\/-(\/-(y)))))
+            case Right(Right(Right(x))) => Functor[A].map(x.traverse(f))(y => Cop4[Id, A1[G], A2[G], A3[G], A4[G]](Right(Right(Right(y)))))
 
           }
       }
@@ -240,7 +240,7 @@ trait AndXor4[A1, A2, A3, A4] extends AndXor {
 
   type Cop[F[_]] = Cop4[F, A1, A2, A3, A4]
   object Cop {
-    def apply[F[_]](c: (F[A1] \/ (F[A2] \/ (F[A3] \/ F[A4])))): Cop[F] = Cop4[F, A1, A2, A3, A4](c)
+    def apply[F[_]](c: Either[F[A1], Either[F[A2], Either[F[A3], F[A4]]]]): Cop[F] = Cop4[F, A1, A2, A3, A4](c)
   }
 
   def deriving[TC[_], F[_]](implicit t0: TC[F[A1]], t1: TC[F[A2]], t2: TC[F[A3]], t3: TC[F[A4]]): AndXorDeriving[TC, Cop[F], Prod[F]] =

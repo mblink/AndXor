@@ -8,7 +8,7 @@ import sbt._
 import sbt.Keys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.12.8", "2.13.0")
+  lazy val scalaVersions = Seq("2.12.11", "2.13.1")
 
   val splainSettings = Seq(
     addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
@@ -18,45 +18,6 @@ object Build {
       "-P:splain:keepmodules:500",
       "-P:splain:rewrite:^((([^\\.]+\\.)*)([^\\.]+))\\.Type$/$1"
     )
-  )
-
-  val scala212_opts = Seq(
-    "-Xfuture",
-    "-Xlint:by-name-right-associative",
-    "-Xlint:unsound-match",
-    "-Yno-adapted-args",
-    "-Ypartial-unification",
-    "-Ywarn-inaccessible",
-    "-Ywarn-infer-any",
-    "-Ywarn-nullary-override",
-    "-Ywarn-nullary-unit"
-  )
-
-  val scala212_213_opts = Seq(
-    "-Xlint:adapted-args",
-    "-Xlint:constant",
-    "-Xlint:delayedinit-select",
-    "-Xlint:doc-detached",
-    "-Xlint:inaccessible",
-    "-Xlint:infer-any",
-    "-Xlint:missing-interpolator",
-    "-Xlint:nullary-override",
-    "-Xlint:nullary-unit",
-    "-Xlint:option-implicit",
-    "-Xlint:package-object-classes",
-    "-Xlint:poly-implicit-overload",
-    "-Xlint:private-shadow",
-    "-Xlint:stars-align",
-    "-Xlint:type-parameter-shadow",
-    "-Ywarn-unused:implicits",
-    "-Ywarn-unused:imports",
-    "-Ywarn-unused:locals",
-    "-Ywarn-unused:params",
-    "-Ywarn-unused:patvars",
-    "-Ywarn-unused:privates",
-    "-Ywarn-extra-implicit",
-    "-Ycache-plugin-class-loader:last-modified",
-    "-Ycache-macro-class-loader:last-modified"
   )
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
@@ -69,31 +30,9 @@ object Build {
   val baseSettings = splainSettings ++ Seq(
     organization := "andxor",
     crossScalaVersions := scalaVersions,
-    scalaVersion := scalaVersions.find(_.startsWith("2.12")).get,
+    scalaVersion := scalaVersions.find(_.startsWith("2.13")).get,
     version := currentVersion,
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
-    scalacOptions ++= Seq(
-      "-deprecation",
-      "-encoding", "UTF-8",
-      "-explaintypes",
-      "-feature",
-      "-language:higherKinds",
-      "-language:implicitConversions",
-      "-unchecked",
-      "-Xcheckinit",
-      "-Xfatal-warnings",
-      "-Yrangepos",
-      "-Ywarn-dead-code",
-      "-Ywarn-numeric-widen",
-      "-Ywarn-value-discard"
-    ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 12)) => scala212_opts ++ scala212_213_opts
-      case Some((2, 13)) => scala212_213_opts
-      case _ => Seq()
-    }),
-    scalacOptions in (Compile, console) := scalacOptions.value.filterNot(x =>
-      x.startsWith("-Ywarn-unused") || x.startsWith("-Xlint") || x.startsWith("-P:splain")),
-    scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value,
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
     unmanagedSourceDirectories in Compile ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     unmanagedSourceDirectories in Test ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
     skip in publish := true,
@@ -102,11 +41,24 @@ object Build {
     sources in (Compile, doc) := Seq()
   )
 
-  val scalazVersion = "7.2.27"
-  val scalacheckVersion = "1.14.0"
+  val catsVersion = "2.1.1"
+  val monocleVersion = "2.0.3"
+  val silencerVersion = "1.6.0"
+  val scalacheckVersion = "1.14.3"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
-  val commonSettings = baseSettings ++ Seq(libraryDependencies += "org.scalaz" %% "scalaz-core" % scalazVersion)
+  val silencerSettings = Seq(
+    addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+    libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
+  )
+
+  val commonSettings = baseSettings ++ silencerSettings ++ Seq(
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-core" % catsVersion,
+      "com.github.julien-truffaut" %% "monocle-core" % monocleVersion,
+      "com.github.julien-truffaut" %% "monocle-law" % monocleVersion % "test"
+    )
+  )
 
   val publishSettings = Seq(
     skip in publish := false,
@@ -116,16 +68,7 @@ object Build {
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
   )
 
-  val testSettings = Seq(
-    libraryDependencies ++= Seq(
-      scalacheckDep % "test",
-      "org.scalaz" %% "scalaz-scalacheck-binding" % s"$scalazVersion-scalacheck-${scalacheckVersion.split('.').dropRight(1).mkString(".")}" % "test"
-    ),
-    testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2")) ++
-      Option(System.getProperty("testIterations")).map(_.toInt)
-        .map(n => Seq(Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", n.toString)))
-        .getOrElse(Seq())
-  )
+  val testSettings = Seq(libraryDependencies += scalacheckDep % "test")
 
   def generateBase = Project("generate", file("generate"))
     .settings(commonSettings)
@@ -157,7 +100,7 @@ object Build {
       libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.3"
     ))
 
-  val circeVersion = "0.12.0-M4"
+  val circeVersion = "0.13.0"
   def circeBase = Project("circe", file("circe"))
     .settings(commonSettings)
     .settings(publishSettings)
@@ -191,6 +134,7 @@ object Build {
   def compilerPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
     proj
       .settings(baseSettings)
+      .settings(silencerSettings)
       .settings(publishSettings)
       .settings(pluginOptions(pluginOpts))
       .settings(name := nme)
@@ -204,8 +148,8 @@ object Build {
   val derivingFlags = Seq(
     "-P:deriving:covariant:Arbitrary",
     "-P:deriving:labelledCovariant:Decoder|DecodeJson|Read",
-    "-P:deriving:contravariant:Prod:Csv|Equal",
-    "-P:deriving:labelledContravariant:Cop:Csv|Equal",
+    "-P:deriving:contravariant:Prod:Csv|Eq",
+    "-P:deriving:labelledContravariant:Cop:Csv|Eq",
     "-P:deriving:labelledContravariant:Encoder|EncodeJson|Show"
   )
 

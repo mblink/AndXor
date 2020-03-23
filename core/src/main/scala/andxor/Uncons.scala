@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.Id.Id
+import cats.Id
 
 trait Uncons[F[_], G[_]] {
   def apply[A](fa: F[A]): (Option[G[A]], F[A])

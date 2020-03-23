@@ -5,7 +5,7 @@
 import andxor.scalacheck._
 import io.circe.{Codec, Decoder, Encoder}
 import org.scalacheck.{Arbitrary, Properties}
-import org.scalacheck.Prop.{BooleanOperators, forAllNoShrink}
+import org.scalacheck.Prop.{forAllNoShrink, propBoolean}
 
 @tpeLists = @{ mkTpeList(1, maxLen) }
 @ccName(ts: List[String]) = { Test@{ts.length} }

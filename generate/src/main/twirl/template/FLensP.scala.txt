@@ -1,5 +1,5 @@
+@import andxor.Zipper
 @import andxor.syntax._
-@import scalaz.Zipper
 
 @(z: Zipper[String], isId: Boolean)
 @tpes = @{ z.toList }
@@ -10,6 +10,6 @@
     @{tpes.prodName}Lens@{z.index}[Id, @{tpes.tpeParams}]
 } else {
   implicit def @{tpes.prodName}Lens@{z.index}[F[_], @{tpes.tpeParams}]: Lens[@tpes.prodTpe, F[@z.focus]] =
-    Lens(p => StoreT.store[@{aT}, @{tpes.prodTpe}](p@{tpes.prodAccess(z.index + 1)})(x =>
-      @{tpes.prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple})))
+    Lens[@{tpes.prodTpe}, @aT](p => p@{tpes.prodAccess(z.index + 1)})(x => p =>
+      @{tpes.prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple}))
 }

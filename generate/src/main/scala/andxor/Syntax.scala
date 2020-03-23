@@ -1,8 +1,6 @@
 package andxor
 
-import scalaz.Zipper
-import scalaz.syntax.comonad._
-import scalaz.syntax.std.boolean._
+import cats.syntax.coflatMap._
 
 object syntax {
   val maxLen = 22
@@ -15,6 +13,10 @@ object syntax {
 
   def mkTpeList(start: Int, end: Int, a: String = "A"): List[LS] =
     start.to(end).toList.map(1.to(_).toList.map(x => s"${a}${x}"))
+
+  implicit class BooleanOps(b: Boolean) {
+    def fold[A](t: => A, f: => A): A = if (b) t else f
+  }
 
   implicit class TpesOps(tpes: LS) {
     def copName = s"Cop${tpes.length}"
@@ -32,7 +34,7 @@ object syntax {
     def wrapProdVal(v: String, F: String = "F"): String = foldLen01(v)(s"${prodTpeF(F)}($v)")
 
     def djBase(wrapTpe: String => String): String =
-      tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"(${wrapTpe(e)} \\/ $a)")
+      tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"Either[${wrapTpe(e)}, $a]")
 
     def dj: String = djBase(identity _)
     def djK(F: String): String = djBase(t => s"$F[$t]")
@@ -61,7 +63,9 @@ object syntax {
     def foldMapParams: LS = foldLen01[LS](Nil)(tpes.map(t => s"$t, $t").paramSigArgs("FoldMap", "fm"))
 
     def asImpls(otherImpls: Boolean): String =
-      tpes.isEmpty.fold("", otherImpls.fold(s", ${tpes.mkString(", ")}", s"(implicit ${tpes.mkString(", ")})"))
+      if (tpes.isEmpty) ""
+      else if (otherImpls) s", ${tpes.mkString(", ")}"
+      else s"(implicit ${tpes.mkString(", ")})"
 
     def const: LS = tpes.map(t => s"FConst[$t]#T")
 
@@ -90,10 +94,10 @@ object syntax {
       paramList(a, sIx).mkString(", ")
 
     def toZipper: Zipper[String] =
-      Zipper.zipper(Stream.empty[String], tpes.head, tpes.tail.toStream)
+      Zipper.zipper(LazyList.empty[String], tpes.head, tpes.tail.to(LazyList))
 
     def zipper[A](fn: Zipper[String] => A): List[A] =
-      toZipper.cobind(fn).toStream.toList
+      toZipper.coflatMap(fn).toStream.toList
 
     def tupleAccess(idx: Int): String = foldLen01("")(s".t$idx")
     def prodAccess(idx: Int): String = foldLen01(".run")(tupleAccess(idx))
@@ -101,9 +105,9 @@ object syntax {
 
     def tupleAccessNoSyntax(idx: Int): String = foldLen01("")(s"._$idx")
 
-    def foldLen0[A](eq0: => A)(gt0: => A): A = (tpes.length == 0).fold(eq0, gt0)
-    def foldLen01[A](lteq1: => A)(gt1: => A): A = (tpes.length <= 1).fold(lteq1, gt1)
-    def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)((tpes.length == 1).fold(eq1, gt1))
+    def foldLen0[A](eq0: => A)(gt0: => A): A = if (tpes.length == 0) eq0 else gt0
+    def foldLen01[A](lteq1: => A)(gt1: => A): A = if (tpes.length <= 1) lteq1 else gt1
+    def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)(if (tpes.length == 1) eq1 else gt1)
 
     def builtAndXor: String = s"AndXor${tpes.length}[${tpes.tpeParams}]"
   }
@@ -116,10 +120,10 @@ object syntax {
     def toList: LS = z.toStream.toList
 
     def djVal(v: String): String =
-      z.lefts.foldLeft(Some(z.rights).filter(_.nonEmpty).map(_ => s"-\\/($v)").getOrElse(v))((a, _) => s"\\/-($a)")
+      z.lefts.foldLeft(Some(z.rights).filter(_.nonEmpty).map(_ => s"Left($v)").getOrElse(v))((a, _) => s"Right($a)")
 
     def djFold(v: String, fail: String => String, succ: String => String): String = {
-      val init = z.rights.nonEmpty.fold((x: String) => s"$x.fold(l => ${succ("l")}, r => ${fail("r")})", fail)
+      val init = if (z.rights.nonEmpty) ((x: String) => s"$x.fold(l => ${succ("l")}, r => ${fail("r")})") else fail
       val folds = 0.to(z.lefts.length - 1).foldLeft(init) { (acc, i) =>
         val (l, r) = (s"a$i", s"a${i + 1}")
         (x: String) => s"$x.fold($l => ${fail(l)}, $r => ${acc(r)})"
@@ -128,13 +132,13 @@ object syntax {
     }
 
     def wrapProdOrTuple(prod: Boolean)(inner: String): String =
-      s"${prod.fold(s"${z.modify(_ => "B").toList.prodTpe}(", "")}${inner}${prod.fold(")", "")}"
+      s"${if (prod) s"${z.modify(_ => "B").toList.prodTpe}(" else ""}${inner}${if (prod) ")" else ""}"
 
     def wrapCopOrTuple(cop: Boolean)(inner: String): String =
-      s"${cop.fold(s"${z.modify(_ => "B").toList.copTpe}(", "")}${inner}${cop.fold(")", "")}"
+      s"${if (cop) s"${z.modify(_ => "B").toList.copTpe}(" else ""}${inner}${if (cop) ")" else ""}"
 
     def dummyImpl(used: Boolean): String =
-      s"(implicit ${used.fold("", "@scalaz.unused ")}d: Dummy${z.index + 1})"
+      s"(implicit ${if (used) "" else "@unused "}d: Dummy${z.index + 1})"
 
     def prodAccesses(v: String): LS =
       1.to(z.length).toList.map(i => s"${v}${z.toList.prodAccess(i)}")

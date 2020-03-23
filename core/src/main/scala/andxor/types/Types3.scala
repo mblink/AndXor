@@ -1,9 +1,10 @@
 package andxor.types
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
-import scalaz.Id.Id
-import scalaz.Isomorphism.IsoSet
+import monocle.{Lens, Optional}
+import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
+import cats.syntax.either._
+import monocle.Iso
 
 trait Types3 {
   @newtype case class Prod3[F[_], A1, A2, A3](run: (F[A1], F[A2], F[A3])) { self =>
@@ -41,12 +42,12 @@ trait Types3 {
           Prod3[G, A1, A2, A3]((nt(p.t1), nt(p.t2), nt(p.t3)))
 
         def traverse[F[_], G[_], A[_]: Applicative](p: Prod3[F, A1, A2, A3])(f: F ~> Lambda[a => A[G[a]]]): A[Prod3[G, A1, A2, A3]] =
-          Applicative[A].ap(f(p.t3))(Applicative[A].ap(f(p.t2))(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => Prod3[G, A1, A2, A3]((i0, i1, i2)))))
+          Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => Prod3[G, A1, A2, A3]((i0, i1, i2))))(f(p.t2)))(f(p.t3))
       }
 
     implicit def Prod3FoldMap[A1, A2, A3]: FoldMap[Prod3[?[_], A1, A2, A3], Cop3[?[_], A1, A2, A3]] =
       new FoldMap[Prod3[?[_], A1, A2, A3], Cop3[?[_], A1, A2, A3]] {
-        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod3[F, A1, A2, A3] =
+        def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod3[F, A1, A2, A3] =
           Prod3[F, A1, A2, A3]((PE.empty[A1], PE.empty[A2], PE.empty[A3]))
 
         def unconsAll[F[_], G[_]](p: Prod3[F, A1, A2, A3])(implicit U: Uncons[F, G]): (List[Cop3[G, A1, A2, A3]], Prod3[F, A1, A2, A3]) = {
@@ -61,53 +62,58 @@ trait Types3 {
         def unconsOne[F[_], G[_]](p: Prod3[F, A1, A2, A3], c: Cop3[G, A1, A2, A3])(implicit U: Uncons[F, G]): (Option[Cop3[G, A1, A2, A3]], Prod3[F, A1, A2, A3]) =
           c.run match {
 
-            case -\/(_) =>
+            case Left(_) =>
               val (h, t) = U(p.t1)
-              (h.map(v => Cop3[G, A1, A2, A3](-\/(v))), Prod3[F, A1, A2, A3]((t, p.t2, p.t3)))
+              (h.map(v => Cop3[G, A1, A2, A3](Left(v))), Prod3[F, A1, A2, A3]((t, p.t2, p.t3)))
 
-            case \/-(-\/(_)) =>
+            case Right(Left(_)) =>
               val (h, t) = U(p.t2)
-              (h.map(v => Cop3[G, A1, A2, A3](\/-(-\/(v)))), Prod3[F, A1, A2, A3]((p.t1, t, p.t3)))
+              (h.map(v => Cop3[G, A1, A2, A3](Right(Left(v)))), Prod3[F, A1, A2, A3]((p.t1, t, p.t3)))
 
-            case \/-(\/-(_)) =>
+            case Right(Right(_)) =>
               val (h, t) = U(p.t3)
-              (h.map(v => Cop3[G, A1, A2, A3](\/-(\/-(v)))), Prod3[F, A1, A2, A3]((p.t1, p.t2, t)))
+              (h.map(v => Cop3[G, A1, A2, A3](Right(Right(v)))), Prod3[F, A1, A2, A3]((p.t1, p.t2, t)))
 
           }
       }
 
-    def Prod3TupleIso[F[_], A1, A2, A3]: IsoSet[Prod3[F, A1, A2, A3], (F[A1], F[A2], F[A3])] =
-      IsoSet((_: Prod3[F, A1, A2, A3]).run, Prod3[F, A1, A2, A3](_: (F[A1], F[A2], F[A3])))
+    def Prod3TupleIso[F[_], A1, A2, A3]: Iso[Prod3[F, A1, A2, A3], (F[A1], F[A2], F[A3])] =
+      Iso((_: Prod3[F, A1, A2, A3]).run)(Prod3[F, A1, A2, A3](_: (F[A1], F[A2], F[A3])))
 
     implicit def Prod3Monoid[F[_], A1, A2, A3](implicit M: Monoid[(F[A1], F[A2], F[A3])]): Monoid[Prod3[F, A1, A2, A3]] =
-      Monoid.fromIso(Prod3TupleIso[F, A1, A2, A3])(M)
+      new Monoid[Prod3[F, A1, A2, A3]] {
+        lazy val iso = Prod3TupleIso[F, A1, A2, A3]
+        def empty: Prod3[F, A1, A2, A3] = iso.reverseGet(M.empty)
+        def combine(p1: Prod3[F, A1, A2, A3], p2: Prod3[F, A1, A2, A3]): Prod3[F, A1, A2, A3] =
+          iso.reverseGet(M.combine(iso.get(p1), iso.get(p2)))
+      }
 
     implicit def lifta0F[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], F[A1]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod3[F, A1, A2, A3]((x, t.t2, t.t3)))
     }
 
     implicit def lifta1F[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], F[A2]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod3[F, A1, A2, A3]((t.t1, x, t.t3)))
     }
 
     implicit def lifta2F[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], F[A3]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod3[F, A1, A2, A3]((t.t1, t.t2, x)))
     }
 
     implicit def Prod3Lens0[F[_], A1, A2, A3]: Lens[Prod3[F, A1, A2, A3], F[A1]] =
-      Lens(p => StoreT.store[F[A1], Prod3[F, A1, A2, A3]](p.t1)(x =>
-        Prod3[F, A1, A2, A3]((x, p.t2, p.t3))))
+      Lens[Prod3[F, A1, A2, A3], F[A1]](p => p.t1)(x => p =>
+        Prod3[F, A1, A2, A3]((x, p.t2, p.t3)))
 
     implicit def Prod3Lens1[F[_], A1, A2, A3]: Lens[Prod3[F, A1, A2, A3], F[A2]] =
-      Lens(p => StoreT.store[F[A2], Prod3[F, A1, A2, A3]](p.t2)(x =>
-        Prod3[F, A1, A2, A3]((p.t1, x, p.t3))))
+      Lens[Prod3[F, A1, A2, A3], F[A2]](p => p.t2)(x => p =>
+        Prod3[F, A1, A2, A3]((p.t1, x, p.t3)))
 
     implicit def Prod3Lens2[F[_], A1, A2, A3]: Lens[Prod3[F, A1, A2, A3], F[A3]] =
-      Lens(p => StoreT.store[F[A3], Prod3[F, A1, A2, A3]](p.t3)(x =>
-        Prod3[F, A1, A2, A3]((p.t1, p.t2, x))))
+      Lens[Prod3[F, A1, A2, A3], F[A3]](p => p.t3)(x => p =>
+        Prod3[F, A1, A2, A3]((p.t1, p.t2, x)))
 
   }
 
@@ -133,7 +139,7 @@ trait Types3 {
 
   }
 
-  @newtype case class Cop3[F[_], A1, A2, A3](run: (F[A1] \/ (F[A2] \/ F[A3]))) {
+  @newtype case class Cop3[F[_], A1, A2, A3](run: Either[F[A1], Either[F[A2], F[A3]]]) {
     private def mapN = new Map3C[F[A1], F[A2], F[A3]] {}
 
     def map1[B](f: F[A1] => F[B]): Cop3[F, B, A2, A3] =
@@ -166,41 +172,41 @@ trait Types3 {
         def traverse[F[_], G[_], A[_]: Functor](c: Cop3[F, A1, A2, A3])(f: F ~> Lambda[a => A[G[a]]]): A[Cop3[G, A1, A2, A3]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](-\/(y)))
+            case Left(x) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](Right(Left(y))))
 
-            case \/-(\/-(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](\/-(\/-(y))))
+            case Right(Right(x)) => Functor[A].map(f(x))(y => Cop3[G, A1, A2, A3](Right(Right(y))))
 
           }
       }
 
     implicit def inja0F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A1]] =
-      Inj.instance(x => Cop3[F, A1, A2, A3](-\/(x)))
+      Inj.instance(x => Cop3[F, A1, A2, A3](Left(x)))
 
     implicit def inja1F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A2]] =
-      Inj.instance(x => Cop3[F, A1, A2, A3](\/-(-\/(x))))
+      Inj.instance(x => Cop3[F, A1, A2, A3](Right(Left(x))))
 
     implicit def inja2F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A3]] =
-      Inj.instance(x => Cop3[F, A1, A2, A3](\/-(\/-(x))))
+      Inj.instance(x => Cop3[F, A1, A2, A3](Right(Right(x))))
 
-    implicit def Cop3PLens0[F[_], A1, A2, A3]: PLens[Cop3[F, A1, A2, A3], F[A1]] =
-      PLens(c => c.run match {
-        case -\/(x) => Some(StoreT.store[F[A1], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](-\/(y))))
+    implicit def Cop3Optional0[F[_], A1, A2, A3]: Optional[Cop3[F, A1, A2, A3], F[A1]] =
+      Optional[Cop3[F, A1, A2, A3], F[A1]](c => c.run match {
+        case Left(x) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop3[F, A1, A2, A3](Left(x)))
 
-    implicit def Cop3PLens1[F[_], A1, A2, A3]: PLens[Cop3[F, A1, A2, A3], F[A2]] =
-      PLens(c => c.run match {
-        case \/-(-\/(x)) => Some(StoreT.store[F[A2], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](\/-(-\/(y)))))
+    implicit def Cop3Optional1[F[_], A1, A2, A3]: Optional[Cop3[F, A1, A2, A3], F[A2]] =
+      Optional[Cop3[F, A1, A2, A3], F[A2]](c => c.run match {
+        case Right(Left(x)) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop3[F, A1, A2, A3](Right(Left(x))))
 
-    implicit def Cop3PLens2[F[_], A1, A2, A3]: PLens[Cop3[F, A1, A2, A3], F[A3]] =
-      PLens(c => c.run match {
-        case \/-(\/-(x)) => Some(StoreT.store[F[A3], Cop3[F, A1, A2, A3]](x)(y => Cop3[F, A1, A2, A3](\/-(\/-(y)))))
+    implicit def Cop3Optional2[F[_], A1, A2, A3]: Optional[Cop3[F, A1, A2, A3], F[A3]] =
+      Optional[Cop3[F, A1, A2, A3], F[A3]](c => c.run match {
+        case Right(Right(x)) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop3[F, A1, A2, A3](Right(Right(x))))
 
   }
 
@@ -215,14 +221,14 @@ trait Types3 {
     implicit def inja2Id[A1, A2, A3]: Inj[Cop3[Id, A1, A2, A3], A3] =
       inja2F[Id, A1, A2, A3]
 
-    implicit def Cop3PLens0Id[A1, A2, A3]: PLens[Cop3[Id, A1, A2, A3], A1] =
-      Cop3PLens0[Id, A1, A2, A3]
+    implicit def Cop3Optional0Id[A1, A2, A3]: Optional[Cop3[Id, A1, A2, A3], A1] =
+      Cop3Optional0[Id, A1, A2, A3]
 
-    implicit def Cop3PLens1Id[A1, A2, A3]: PLens[Cop3[Id, A1, A2, A3], A2] =
-      Cop3PLens1[Id, A1, A2, A3]
+    implicit def Cop3Optional1Id[A1, A2, A3]: Optional[Cop3[Id, A1, A2, A3], A2] =
+      Cop3Optional1[Id, A1, A2, A3]
 
-    implicit def Cop3PLens2Id[A1, A2, A3]: PLens[Cop3[Id, A1, A2, A3], A3] =
-      Cop3PLens2[Id, A1, A2, A3]
+    implicit def Cop3Optional2Id[A1, A2, A3]: Optional[Cop3[Id, A1, A2, A3], A3] =
+      Cop3Optional2[Id, A1, A2, A3]
 
   }
 }

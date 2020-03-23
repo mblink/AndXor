@@ -2,8 +2,8 @@
 
 @(tpeLists: List[List[String]])
 
-import scalaz.Apply
-import scalaz.Isomorphism.<=>
+import cats.Apply
+import monocle.Iso
 
 @tcs(tpes: List[String]) = @{ tpes.paramSig(List("TC", "F"), "t") }
 
@@ -12,27 +12,27 @@ object derivation {
   trait Derivation@{tpes.length}C[@{tpes.tpeParams}] {
     val axo = AndXor@{tpes.length}[@{tpes.tpeParams}]
 
-    def deriveCovariant[TC[_], F[_], A](iso: A <=> axo.Cop[F])(implicit F: Alt[TC], @tcs(tpes)): TC[A] =
-      F.map(axo.deriving[TC, F].alt)(iso.from(_))
+    def deriveCovariant[TC[_], F[_], A](iso: Iso[A, axo.Cop[F]])(implicit F: Alt[TC], @tcs(tpes)): TC[A] =
+      F.map(axo.deriving[TC, F].alt)(iso.reverseGet(_))
 
-    def deriveContravariant[TC[_], F[_], A](iso: A <=> axo.Cop[F])(implicit F: Decidable[TC], @tcs(tpes)): TC[A] =
-      F.contramap(axo.deriving[TC, F].choose)(iso.to(_))
+    def deriveContravariant[TC[_], F[_], A](iso: Iso[A, axo.Cop[F]])(implicit F: Decidable[TC], @tcs(tpes)): TC[A] =
+      F.contramap(axo.deriving[TC, F].choose)(iso.get(_))
   }
 
   trait Derivation@{tpes.length}P[@{tpes.tpeParams}] {
     val axo = AndXor@{tpes.length}[@{tpes.tpeParams}]
 
-    def deriveCovariant[TC[_], F[_], A](iso: A <=> axo.Prod[F])(implicit F: Apply[TC], @tcs(tpes)): TC[A] =
-      F.map(axo.deriving[TC, F].apply)(iso.from(_))
+    def deriveCovariant[TC[_], F[_], A](iso: Iso[A, axo.Prod[F]])(implicit F: Apply[TC], @tcs(tpes)): TC[A] =
+      F.map(axo.deriving[TC, F].apply)(iso.reverseGet(_))
 
-    def deriveContravariant[TC[_], F[_], A](iso: A <=> axo.Prod[F])(implicit F: Divide[TC], @tcs(tpes)): TC[A] =
-      F.contramap(axo.deriving[TC, F].divide)(iso.to(_))
+    def deriveContravariant[TC[_], F[_], A](iso: Iso[A, axo.Prod[F]])(implicit F: Divide[TC], @tcs(tpes)): TC[A] =
+      F.contramap(axo.deriving[TC, F].divide)(iso.get(_))
   }
   }
 
   object ops {
     @tpeLists.map { tpes =>
-    implicit class Derivation@{tpes.length}COps[A, @{tpes.tpeParams}, F[_]](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Cop[F]) {
+    implicit class Derivation@{tpes.length}COps[A, @{tpes.tpeParams}, F[_]](iso: Iso[A, AndXor@{tpes.length}[@{tpes.tpeParams}]#Cop[F]]) {
       val derive = new Derivation@{tpes.length}C[@{tpes.tpeParams}] {}
 
       def deriveCovariant[TC[_]](implicit F: Alt[TC], @tcs(tpes)): TC[A] =
@@ -42,7 +42,7 @@ object derivation {
         derive.deriveContravariant[TC, F, A](iso)
     }
 
-    implicit class Derivation@{tpes.length}POps[A, @{tpes.tpeParams}, F[_]](iso: A <=> AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[F]) {
+    implicit class Derivation@{tpes.length}POps[A, @{tpes.tpeParams}, F[_]](iso: Iso[A, AndXor@{tpes.length}[@{tpes.tpeParams}]#Prod[F]]) {
       val derive = new Derivation@{tpes.length}P[@{tpes.tpeParams}] {}
 
       def deriveCovariant[TC[_]](implicit F: Apply[TC], @tcs(tpes)): TC[A] =
