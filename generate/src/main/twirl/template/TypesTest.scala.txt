@@ -11,7 +11,9 @@ import cats.instances.int._
 import cats.instances.list._
 import cats.instances.option._
 import cats.instances.string._
+import cats.instances.tuple._
 import cats.instances.vector._
+import cats.kernel.laws.discipline.MonoidTests
 import monocle.law.discipline.LensTests
 
 object arbitrary {
@@ -35,6 +37,8 @@ object arbitrary {
     import arbitrary._
 
     include(AndXorProperties.ftraverse.laws[@tpes.prodTpeF("?[_]"), Applicative])
+
+    include(MonoidTests[@tpes.prodTpeF("Option")].monoid.all)
 
     @tpes.zipper { z =>
       include(LensTests[@tpes.prodTpeF("Option"), Option[@{tpes(z.index)}]](

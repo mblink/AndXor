@@ -55,6 +55,7 @@ object Build {
   val commonSettings = baseSettings ++ silencerSettings ++ Seq(
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
+      "org.typelevel" %% "cats-laws" % catsVersion % "test",
       "com.github.julien-truffaut" %% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %% "monocle-law" % monocleVersion % "test"
     )

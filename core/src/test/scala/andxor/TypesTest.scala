@@ -8,7 +8,9 @@ import cats.instances.int._
 import cats.instances.list._
 import cats.instances.option._
 import cats.instances.string._
+import cats.instances.tuple._
 import cats.instances.vector._
+import cats.kernel.laws.discipline.MonoidTests
 import monocle.law.discipline.LensTests
 
 object arbitrary {
@@ -272,6 +274,8 @@ object Prod2Test extends Properties("Prod2") {
 
   include(AndXorProperties.ftraverse.laws[Prod2[?[_], String, Int], Applicative])
 
+  include(MonoidTests[Prod2[Option, String, Int]].monoid.all)
+
   include(LensTests[Prod2[Option, String, Int], Option[String]](
     Prod2.Prod2Lens0[Option, String, Int]).all, "0.")
 
@@ -290,6 +294,8 @@ object Prod3Test extends Properties("Prod3") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod3[?[_], String, Int, String], Applicative])
+
+  include(MonoidTests[Prod3[Option, String, Int, String]].monoid.all)
 
   include(LensTests[Prod3[Option, String, Int, String], Option[String]](
     Prod3.Prod3Lens0[Option, String, Int, String]).all, "0.")
@@ -312,6 +318,8 @@ object Prod4Test extends Properties("Prod4") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod4[?[_], String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod4[Option, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod4[Option, String, Int, String, Int], Option[String]](
     Prod4.Prod4Lens0[Option, String, Int, String, Int]).all, "0.")
@@ -337,6 +345,8 @@ object Prod5Test extends Properties("Prod5") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod5[?[_], String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod5[Option, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod5[Option, String, Int, String, Int, String], Option[String]](
     Prod5.Prod5Lens0[Option, String, Int, String, Int, String]).all, "0.")
@@ -365,6 +375,8 @@ object Prod6Test extends Properties("Prod6") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod6[?[_], String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod6[Option, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod6[Option, String, Int, String, Int, String, Int], Option[String]](
     Prod6.Prod6Lens0[Option, String, Int, String, Int, String, Int]).all, "0.")
@@ -396,6 +408,8 @@ object Prod7Test extends Properties("Prod7") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod7[?[_], String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod7[Option, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod7[Option, String, Int, String, Int, String, Int, String], Option[String]](
     Prod7.Prod7Lens0[Option, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -430,6 +444,8 @@ object Prod8Test extends Properties("Prod8") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod8[?[_], String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod8[Option, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod8[Option, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod8.Prod8Lens0[Option, String, Int, String, Int, String, Int, String, Int]).all, "0.")
@@ -467,6 +483,8 @@ object Prod9Test extends Properties("Prod9") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod9[?[_], String, Int, String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod9[Option, String, Int, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod9[Option, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod9.Prod9Lens0[Option, String, Int, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -507,6 +525,8 @@ object Prod10Test extends Properties("Prod10") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod10[?[_], String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod10[Option, String, Int, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod10[Option, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod10.Prod10Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int]).all, "0.")
@@ -550,6 +570,8 @@ object Prod11Test extends Properties("Prod11") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod11[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod11[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod11[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod11.Prod11Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -596,6 +618,8 @@ object Prod12Test extends Properties("Prod12") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod12[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod12[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod12[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod12.Prod12Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]).all, "0.")
@@ -645,6 +669,8 @@ object Prod13Test extends Properties("Prod13") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod13[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod13[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod13[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod13.Prod13Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -697,6 +723,8 @@ object Prod14Test extends Properties("Prod14") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod14[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod14[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod14[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod14.Prod14Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]).all, "0.")
@@ -752,6 +780,8 @@ object Prod15Test extends Properties("Prod15") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod15[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod15[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod15[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod15.Prod15Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -810,6 +840,8 @@ object Prod16Test extends Properties("Prod16") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod16[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod16[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod16[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod16.Prod16Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]).all, "0.")
@@ -871,6 +903,8 @@ object Prod17Test extends Properties("Prod17") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod17[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod17[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod17[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod17.Prod17Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -935,6 +969,8 @@ object Prod18Test extends Properties("Prod18") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod18[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod18[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod18[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod18.Prod18Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]).all, "0.")
@@ -1002,6 +1038,8 @@ object Prod19Test extends Properties("Prod19") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod19[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod19[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod19[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod19.Prod19Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -1072,6 +1110,8 @@ object Prod20Test extends Properties("Prod20") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod20[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod20[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod20[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod20.Prod20Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]).all, "0.")
@@ -1145,6 +1185,8 @@ object Prod21Test extends Properties("Prod21") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod21[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Applicative])
+
+  include(MonoidTests[Prod21[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]].monoid.all)
 
   include(LensTests[Prod21[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String], Option[String]](
     Prod21.Prod21Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String]).all, "0.")
@@ -1221,6 +1263,8 @@ object Prod22Test extends Properties("Prod22") {
   import arbitrary._
 
   include(AndXorProperties.ftraverse.laws[Prod22[?[_], String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Applicative])
+
+  include(MonoidTests[Prod22[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]].monoid.all)
 
   include(LensTests[Prod22[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int], Option[String]](
     Prod22.Prod22Lens0[Option, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int, String, Int]).all, "0.")
