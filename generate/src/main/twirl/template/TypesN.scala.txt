@@ -6,6 +6,7 @@ import andxor._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
+import cats.syntax.invariant._
 import monocle.Iso
 
 trait Types@{tpes.length} {
@@ -53,13 +54,10 @@ trait Types@{tpes.length} {
     def @{tpes.prodName}TupleIso[F[_], @{tpes.tpeParams}]: Iso[@{tpes.prodTpe}, @{tpes.prodK("F")}] =
       Iso((_: @{tpes.prodTpe}).run)(@{tpes.prodTpe}(_: @{tpes.prodK("F")}))
 
-    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
-      new Monoid[@{tpes.prodTpe}] {
-        lazy val iso = @{tpes.prodName}TupleIso[F, @{tpes.tpeParams}]
-        def empty: @{tpes.prodTpe} = iso.reverseGet(M.empty)
-        def combine(p1: @{tpes.prodTpe}, p2: @{tpes.prodTpe}): @{tpes.prodTpe} =
-          iso.reverseGet(M.combine(iso.get(p1), iso.get(p2)))
-      }
+    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] = {
+      val iso = @{tpes.prodName}TupleIso[F, @{tpes.tpeParams}]
+      M.imap(iso.reverseGet)(iso.get)
+    }
 
     @tpes.zipper(template.txt.Lift(_, false))
     @tpes.zipper(template.txt.FLensP(_, false))

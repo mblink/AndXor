@@ -4,6 +4,7 @@ import andxor._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
+import cats.syntax.invariant._
 import monocle.Iso
 
 trait Types8 {
@@ -140,13 +141,10 @@ trait Types8 {
     def Prod8TupleIso[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Iso[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])] =
       Iso((_: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]).run)(Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8](_: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])))
 
-    implicit def Prod8Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])]): Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
-      new Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] {
-        lazy val iso = Prod8TupleIso[F, A1, A2, A3, A4, A5, A6, A7, A8]
-        def empty: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8] = iso.reverseGet(M.empty)
-        def combine(p1: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], p2: Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]): Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8] =
-          iso.reverseGet(M.combine(iso.get(p1), iso.get(p2)))
-      }
+    implicit def Prod8Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8])]): Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = {
+      val iso = Prod8TupleIso[F, A1, A2, A3, A4, A5, A6, A7, A8]
+      M.imap(iso.reverseGet)(iso.get)
+    }
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] = {
       val t = M.empty

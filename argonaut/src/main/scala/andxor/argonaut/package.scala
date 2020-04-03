@@ -42,10 +42,7 @@ trait LPArgonaut {
 }
 
 package object argonaut extends LPArgonaut {
-  implicit val jsonMonoid: Monoid[Json] = new Monoid[Json] {
-    lazy val empty = Json()
-    def combine(j1: Json, j2: Json): Json = j1.deepmerge(j2)
-  }
+  implicit val jsonMonoid: Monoid[Json] = Monoid.instance(Json(), _.deepmerge(_))
 
   implicit def encodeJsonLabelled[L <: Singleton with String, A](implicit ej: EncodeJson[A]): EncodeJson[Labelled.Aux[A, L]] =
     EncodeJson(l => Json(l.label -> ej(l.value)))

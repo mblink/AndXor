@@ -43,10 +43,7 @@ trait LPCirce {
 }
 
 package object circe extends LPCirce {
-  implicit val jsonMonoid: Monoid[Json] = new Monoid[Json] {
-    lazy val empty = Json.obj()
-    def combine(j1: Json, j2: Json): Json = j1.deepMerge(j2)
-  }
+  implicit val jsonMonoid: Monoid[Json] = Monoid.instance(Json.obj(), _.deepMerge(_))
 
   implicit def encoderLabelled[L <: Singleton with String, A](implicit e: Encoder[A]): Encoder[Labelled.Aux[A, L]] =
     Encoder.instance(l => Json.obj(l.label -> e(l.value)))

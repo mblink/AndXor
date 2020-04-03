@@ -4,6 +4,7 @@ import andxor._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
+import cats.syntax.invariant._
 import monocle.Iso
 
 trait Types11 {
@@ -176,13 +177,10 @@ trait Types11 {
     def Prod11TupleIso[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]: Iso[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])] =
       Iso((_: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]).run)(Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](_: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])))
 
-    implicit def Prod11Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])]): Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] =
-      new Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
-        lazy val iso = Prod11TupleIso[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
-        def empty: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] = iso.reverseGet(M.empty)
-        def combine(p1: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], p2: Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]): Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] =
-          iso.reverseGet(M.combine(iso.get(p1), iso.get(p2)))
-      }
+    implicit def Prod11Monoid[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11])]): Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = {
+      val iso = Prod11TupleIso[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]
+      M.imap(iso.reverseGet)(iso.get)
+    }
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](implicit M: Monoid[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]): Inj[Prod11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], F[A1]] = {
       val t = M.empty
