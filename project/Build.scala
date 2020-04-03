@@ -76,7 +76,6 @@ object Build {
     .settings(Seq(
       name := "andxor-generate",
       resolvers += Resolver.sonatypeRepo("snapshots"),
-      crossScalaVersions := crossScalaVersions.value.filter(_.startsWith("2.13")),
       libraryDependencies ++= Seq(
         "com.github.pathikrit" %% "better-files" % "3.8.0",
         "org.scalariform" %% "scalariform" % "0.2.10",

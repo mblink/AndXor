@@ -1,4 +1,4 @@
-@import andxor.Zipper
+@import andxor.{LazyList, Zipper}
 @import andxor.syntax._
 
 @(z: Zipper[String], isId: Boolean)

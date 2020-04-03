@@ -1,3 +1,4 @@
+@import andxor.LazyList
 @import andxor.syntax._
 
 @(vName: String, tpes: List[String])

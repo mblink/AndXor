@@ -94,7 +94,7 @@ object syntax {
       paramList(a, sIx).mkString(", ")
 
     def toZipper: Zipper[String] =
-      Zipper.zipper(LazyList.empty[String], tpes.head, tpes.tail.to(LazyList))
+      Zipper.zipper(LazyList.empty[String], tpes.head, LazyList.from(tpes.tail))
 
     def zipper[A](fn: Zipper[String] => A): List[A] =
       toZipper.coflatMap(fn).toStream.toList
