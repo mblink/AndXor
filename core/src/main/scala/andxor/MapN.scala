@@ -5,7 +5,7 @@ import andxor.types._
 import cats.syntax.either._
 
 trait Map2P[A1, A2] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2))(f: A1 => B): (B, A2) = {
 
@@ -32,7 +32,7 @@ trait Map2P[A1, A2] {
 }
 
 trait Map2C[A1, A2] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, A2])(f: A1 => B): Either[B, A2] =
 
@@ -51,7 +51,7 @@ trait Map2C[A1, A2] {
 }
 
 trait Map3P[A1, A2, A3] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3))(f: A1 => B): (B, A2, A3) = {
 
@@ -92,7 +92,7 @@ trait Map3P[A1, A2, A3] {
 }
 
 trait Map3C[A1, A2, A3] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, A3]])(f: A1 => B): Either[B, Either[A2, A3]] =
 
@@ -118,7 +118,7 @@ trait Map3C[A1, A2, A3] {
 }
 
 trait Map4P[A1, A2, A3, A4] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4))(f: A1 => B): (B, A2, A3, A4) = {
 
@@ -175,7 +175,7 @@ trait Map4P[A1, A2, A3, A4] {
 }
 
 trait Map4C[A1, A2, A3, A4] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, A4]]])(f: A1 => B): Either[B, Either[A2, Either[A3, A4]]] =
 
@@ -208,7 +208,7 @@ trait Map4C[A1, A2, A3, A4] {
 }
 
 trait Map5P[A1, A2, A3, A4, A5] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5))(f: A1 => B): (B, A2, A3, A4, A5) = {
 
@@ -283,7 +283,7 @@ trait Map5P[A1, A2, A3, A4, A5] {
 }
 
 trait Map5C[A1, A2, A3, A4, A5] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, A5]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, A5]]]] =
 
@@ -323,7 +323,7 @@ trait Map5C[A1, A2, A3, A4, A5] {
 }
 
 trait Map6P[A1, A2, A3, A4, A5, A6] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6))(f: A1 => B): (B, A2, A3, A4, A5, A6) = {
 
@@ -418,7 +418,7 @@ trait Map6P[A1, A2, A3, A4, A5, A6] {
 }
 
 trait Map6C[A1, A2, A3, A4, A5, A6] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, A6]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, A6]]]]] =
 
@@ -465,7 +465,7 @@ trait Map6C[A1, A2, A3, A4, A5, A6] {
 }
 
 trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7) = {
 
@@ -582,7 +582,7 @@ trait Map7P[A1, A2, A3, A4, A5, A6, A7] {
 }
 
 trait Map7C[A1, A2, A3, A4, A5, A6, A7] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, A7]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, A7]]]]]] =
 
@@ -636,7 +636,7 @@ trait Map7C[A1, A2, A3, A4, A5, A6, A7] {
 }
 
 trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8) = {
 
@@ -777,7 +777,7 @@ trait Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {
 }
 
 trait Map8C[A1, A2, A3, A4, A5, A6, A7, A8] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, A8]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, A8]]]]]]] =
 
@@ -838,7 +838,7 @@ trait Map8C[A1, A2, A3, A4, A5, A6, A7, A8] {
 }
 
 trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9) = {
 
@@ -1005,7 +1005,7 @@ trait Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
 }
 
 trait Map9C[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, A9]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, A9]]]]]]]] =
 
@@ -1073,7 +1073,7 @@ trait Map9C[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
 }
 
 trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10) = {
 
@@ -1268,7 +1268,7 @@ trait Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
 }
 
 trait Map10C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, A10]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, A10]]]]]]]]] =
 
@@ -1343,7 +1343,7 @@ trait Map10C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
 }
 
 trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11) = {
 
@@ -1568,7 +1568,7 @@ trait Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
 }
 
 trait Map11C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, A11]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, A11]]]]]]]]]] =
 
@@ -1650,7 +1650,7 @@ trait Map11C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
 }
 
 trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) = {
 
@@ -1907,7 +1907,7 @@ trait Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
 }
 
 trait Map12C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, A12]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, A12]]]]]]]]]]] =
 
@@ -1996,7 +1996,7 @@ trait Map12C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
 }
 
 trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) = {
 
@@ -2287,7 +2287,7 @@ trait Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
 }
 
 trait Map13C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, A13]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, A13]]]]]]]]]]]] =
 
@@ -2383,7 +2383,7 @@ trait Map13C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
 }
 
 trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) = {
 
@@ -2710,7 +2710,7 @@ trait Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
 }
 
 trait Map14C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, A14]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, A14]]]]]]]]]]]]] =
 
@@ -2813,7 +2813,7 @@ trait Map14C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
 }
 
 trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) = {
 
@@ -3178,7 +3178,7 @@ trait Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
 }
 
 trait Map15C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, A15]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, A15]]]]]]]]]]]]]] =
 
@@ -3288,7 +3288,7 @@ trait Map15C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
 }
 
 trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) = {
 
@@ -3693,7 +3693,7 @@ trait Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map16C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, A16]]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, A16]]]]]]]]]]]]]]] =
 
@@ -3810,7 +3810,7 @@ trait Map16C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) = {
 
@@ -4257,7 +4257,7 @@ trait Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map17C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, A17]]]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, A17]]]]]]]]]]]]]]]] =
 
@@ -4381,7 +4381,7 @@ trait Map17C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) = {
 
@@ -4872,7 +4872,7 @@ trait Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map18C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, A18]]]]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, A18]]]]]]]]]]]]]]]]] =
 
@@ -5003,7 +5003,7 @@ trait Map18C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) = {
 
@@ -5540,7 +5540,7 @@ trait Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map19C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, A19]]]]]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, A19]]]]]]]]]]]]]]]]]] =
 
@@ -5678,7 +5678,7 @@ trait Map19C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) = {
 
@@ -6263,7 +6263,7 @@ trait Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map20C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, A20]]]]]]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, A20]]]]]]]]]]]]]]]]]]] =
 
@@ -6408,7 +6408,7 @@ trait Map20C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) = {
 
@@ -7043,7 +7043,7 @@ trait Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map21C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, A21]]]]]]]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, A21]]]]]]]]]]]]]]]]]]]] =
 
@@ -7195,7 +7195,7 @@ trait Map21C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22))(f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) = {
 
@@ -7882,7 +7882,7 @@ trait Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 trait Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] {
-  val mapN = this
+  private val mapN = this
 
   def map1[B](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, Either[A21, A22]]]]]]]]]]]]]]]]]]]]])(f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, Either[A21, A22]]]]]]]]]]]]]]]]]]]]] =
 
@@ -8044,7 +8044,7 @@ object MapN {
   object syntax {
 
     implicit class Map2POps[A1, A2](p: (A1, A2)) {
-      val mapN = new Map2P[A1, A2] {}
+      private val mapN = new Map2P[A1, A2] {}
 
       def map1[B](f: A1 => B): (B, A2) =
         mapN.map1(p)(f)
@@ -8061,7 +8061,7 @@ object MapN {
     }
 
     implicit class Map2COps[A1, A2](c: Either[A1, A2]) {
-      val mapN = new Map2C[A1, A2] {}
+      private val mapN = new Map2C[A1, A2] {}
 
       def map1[B](f: A1 => B): Either[B, A2] =
         mapN.map1(c)(f)
@@ -8078,7 +8078,7 @@ object MapN {
     }
 
     implicit class Map3POps[A1, A2, A3](p: (A1, A2, A3)) {
-      val mapN = new Map3P[A1, A2, A3] {}
+      private val mapN = new Map3P[A1, A2, A3] {}
 
       def map1[B](f: A1 => B): (B, A2, A3) =
         mapN.map1(p)(f)
@@ -8101,7 +8101,7 @@ object MapN {
     }
 
     implicit class Map3COps[A1, A2, A3](c: Either[A1, Either[A2, A3]]) {
-      val mapN = new Map3C[A1, A2, A3] {}
+      private val mapN = new Map3C[A1, A2, A3] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, A3]] =
         mapN.map1(c)(f)
@@ -8124,7 +8124,7 @@ object MapN {
     }
 
     implicit class Map4POps[A1, A2, A3, A4](p: (A1, A2, A3, A4)) {
-      val mapN = new Map4P[A1, A2, A3, A4] {}
+      private val mapN = new Map4P[A1, A2, A3, A4] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4) =
         mapN.map1(p)(f)
@@ -8153,7 +8153,7 @@ object MapN {
     }
 
     implicit class Map4COps[A1, A2, A3, A4](c: Either[A1, Either[A2, Either[A3, A4]]]) {
-      val mapN = new Map4C[A1, A2, A3, A4] {}
+      private val mapN = new Map4C[A1, A2, A3, A4] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, A4]]] =
         mapN.map1(c)(f)
@@ -8182,7 +8182,7 @@ object MapN {
     }
 
     implicit class Map5POps[A1, A2, A3, A4, A5](p: (A1, A2, A3, A4, A5)) {
-      val mapN = new Map5P[A1, A2, A3, A4, A5] {}
+      private val mapN = new Map5P[A1, A2, A3, A4, A5] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5) =
         mapN.map1(p)(f)
@@ -8217,7 +8217,7 @@ object MapN {
     }
 
     implicit class Map5COps[A1, A2, A3, A4, A5](c: Either[A1, Either[A2, Either[A3, Either[A4, A5]]]]) {
-      val mapN = new Map5C[A1, A2, A3, A4, A5] {}
+      private val mapN = new Map5C[A1, A2, A3, A4, A5] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, A5]]]] =
         mapN.map1(c)(f)
@@ -8252,7 +8252,7 @@ object MapN {
     }
 
     implicit class Map6POps[A1, A2, A3, A4, A5, A6](p: (A1, A2, A3, A4, A5, A6)) {
-      val mapN = new Map6P[A1, A2, A3, A4, A5, A6] {}
+      private val mapN = new Map6P[A1, A2, A3, A4, A5, A6] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6) =
         mapN.map1(p)(f)
@@ -8293,7 +8293,7 @@ object MapN {
     }
 
     implicit class Map6COps[A1, A2, A3, A4, A5, A6](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, A6]]]]]) {
-      val mapN = new Map6C[A1, A2, A3, A4, A5, A6] {}
+      private val mapN = new Map6C[A1, A2, A3, A4, A5, A6] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, A6]]]]] =
         mapN.map1(c)(f)
@@ -8334,7 +8334,7 @@ object MapN {
     }
 
     implicit class Map7POps[A1, A2, A3, A4, A5, A6, A7](p: (A1, A2, A3, A4, A5, A6, A7)) {
-      val mapN = new Map7P[A1, A2, A3, A4, A5, A6, A7] {}
+      private val mapN = new Map7P[A1, A2, A3, A4, A5, A6, A7] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7) =
         mapN.map1(p)(f)
@@ -8381,7 +8381,7 @@ object MapN {
     }
 
     implicit class Map7COps[A1, A2, A3, A4, A5, A6, A7](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, A7]]]]]]) {
-      val mapN = new Map7C[A1, A2, A3, A4, A5, A6, A7] {}
+      private val mapN = new Map7C[A1, A2, A3, A4, A5, A6, A7] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, A7]]]]]] =
         mapN.map1(c)(f)
@@ -8428,7 +8428,7 @@ object MapN {
     }
 
     implicit class Map8POps[A1, A2, A3, A4, A5, A6, A7, A8](p: (A1, A2, A3, A4, A5, A6, A7, A8)) {
-      val mapN = new Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {}
+      private val mapN = new Map8P[A1, A2, A3, A4, A5, A6, A7, A8] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8) =
         mapN.map1(p)(f)
@@ -8481,7 +8481,7 @@ object MapN {
     }
 
     implicit class Map8COps[A1, A2, A3, A4, A5, A6, A7, A8](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, A8]]]]]]]) {
-      val mapN = new Map8C[A1, A2, A3, A4, A5, A6, A7, A8] {}
+      private val mapN = new Map8C[A1, A2, A3, A4, A5, A6, A7, A8] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, A8]]]]]]] =
         mapN.map1(c)(f)
@@ -8534,7 +8534,7 @@ object MapN {
     }
 
     implicit class Map9POps[A1, A2, A3, A4, A5, A6, A7, A8, A9](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9)) {
-      val mapN = new Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {}
+      private val mapN = new Map9P[A1, A2, A3, A4, A5, A6, A7, A8, A9] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9) =
         mapN.map1(p)(f)
@@ -8593,7 +8593,7 @@ object MapN {
     }
 
     implicit class Map9COps[A1, A2, A3, A4, A5, A6, A7, A8, A9](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, A9]]]]]]]]) {
-      val mapN = new Map9C[A1, A2, A3, A4, A5, A6, A7, A8, A9] {}
+      private val mapN = new Map9C[A1, A2, A3, A4, A5, A6, A7, A8, A9] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, A9]]]]]]]] =
         mapN.map1(c)(f)
@@ -8652,7 +8652,7 @@ object MapN {
     }
 
     implicit class Map10POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) {
-      val mapN = new Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {}
+      private val mapN = new Map10P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10) =
         mapN.map1(p)(f)
@@ -8717,7 +8717,7 @@ object MapN {
     }
 
     implicit class Map10COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, A10]]]]]]]]]) {
-      val mapN = new Map10C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {}
+      private val mapN = new Map10C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, A10]]]]]]]]] =
         mapN.map1(c)(f)
@@ -8782,7 +8782,7 @@ object MapN {
     }
 
     implicit class Map11POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)) {
-      val mapN = new Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+      private val mapN = new Map11P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11) =
         mapN.map1(p)(f)
@@ -8853,7 +8853,7 @@ object MapN {
     }
 
     implicit class Map11COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, A11]]]]]]]]]]) {
-      val mapN = new Map11C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
+      private val mapN = new Map11C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, A11]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -8924,7 +8924,7 @@ object MapN {
     }
 
     implicit class Map12POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)) {
-      val mapN = new Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {}
+      private val mapN = new Map12P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12) =
         mapN.map1(p)(f)
@@ -9001,7 +9001,7 @@ object MapN {
     }
 
     implicit class Map12COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, A12]]]]]]]]]]]) {
-      val mapN = new Map12C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {}
+      private val mapN = new Map12C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, A12]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -9078,7 +9078,7 @@ object MapN {
     }
 
     implicit class Map13POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)) {
-      val mapN = new Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {}
+      private val mapN = new Map13P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13) =
         mapN.map1(p)(f)
@@ -9161,7 +9161,7 @@ object MapN {
     }
 
     implicit class Map13COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, A13]]]]]]]]]]]]) {
-      val mapN = new Map13C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {}
+      private val mapN = new Map13C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, A13]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -9244,7 +9244,7 @@ object MapN {
     }
 
     implicit class Map14POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)) {
-      val mapN = new Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {}
+      private val mapN = new Map14P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14) =
         mapN.map1(p)(f)
@@ -9333,7 +9333,7 @@ object MapN {
     }
 
     implicit class Map14COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, A14]]]]]]]]]]]]]) {
-      val mapN = new Map14C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {}
+      private val mapN = new Map14C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, A14]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -9422,7 +9422,7 @@ object MapN {
     }
 
     implicit class Map15POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)) {
-      val mapN = new Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {}
+      private val mapN = new Map15P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15) =
         mapN.map1(p)(f)
@@ -9517,7 +9517,7 @@ object MapN {
     }
 
     implicit class Map15COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, A15]]]]]]]]]]]]]]) {
-      val mapN = new Map15C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {}
+      private val mapN = new Map15C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, A15]]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -9612,7 +9612,7 @@ object MapN {
     }
 
     implicit class Map16POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)) {
-      val mapN = new Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {}
+      private val mapN = new Map16P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16) =
         mapN.map1(p)(f)
@@ -9713,7 +9713,7 @@ object MapN {
     }
 
     implicit class Map16COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, A16]]]]]]]]]]]]]]]) {
-      val mapN = new Map16C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {}
+      private val mapN = new Map16C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, A16]]]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -9814,7 +9814,7 @@ object MapN {
     }
 
     implicit class Map17POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)) {
-      val mapN = new Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {}
+      private val mapN = new Map17P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17) =
         mapN.map1(p)(f)
@@ -9921,7 +9921,7 @@ object MapN {
     }
 
     implicit class Map17COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, A17]]]]]]]]]]]]]]]]) {
-      val mapN = new Map17C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {}
+      private val mapN = new Map17C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, A17]]]]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -10028,7 +10028,7 @@ object MapN {
     }
 
     implicit class Map18POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)) {
-      val mapN = new Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {}
+      private val mapN = new Map18P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18) =
         mapN.map1(p)(f)
@@ -10141,7 +10141,7 @@ object MapN {
     }
 
     implicit class Map18COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, A18]]]]]]]]]]]]]]]]]) {
-      val mapN = new Map18C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {}
+      private val mapN = new Map18C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, A18]]]]]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -10254,7 +10254,7 @@ object MapN {
     }
 
     implicit class Map19POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)) {
-      val mapN = new Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {}
+      private val mapN = new Map19P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19) =
         mapN.map1(p)(f)
@@ -10373,7 +10373,7 @@ object MapN {
     }
 
     implicit class Map19COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, A19]]]]]]]]]]]]]]]]]]) {
-      val mapN = new Map19C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {}
+      private val mapN = new Map19C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, A19]]]]]]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -10492,7 +10492,7 @@ object MapN {
     }
 
     implicit class Map20POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)) {
-      val mapN = new Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {}
+      private val mapN = new Map20P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20) =
         mapN.map1(p)(f)
@@ -10617,7 +10617,7 @@ object MapN {
     }
 
     implicit class Map20COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, A20]]]]]]]]]]]]]]]]]]]) {
-      val mapN = new Map20C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {}
+      private val mapN = new Map20C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, A20]]]]]]]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -10742,7 +10742,7 @@ object MapN {
     }
 
     implicit class Map21POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)) {
-      val mapN = new Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {}
+      private val mapN = new Map21P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21) =
         mapN.map1(p)(f)
@@ -10873,7 +10873,7 @@ object MapN {
     }
 
     implicit class Map21COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, A21]]]]]]]]]]]]]]]]]]]]) {
-      val mapN = new Map21C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {}
+      private val mapN = new Map21C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, A21]]]]]]]]]]]]]]]]]]]] =
         mapN.map1(c)(f)
@@ -11004,7 +11004,7 @@ object MapN {
     }
 
     implicit class Map22POps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](p: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)) {
-      val mapN = new Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] {}
+      private val mapN = new Map22P[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] {}
 
       def map1[B](f: A1 => B): (B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22) =
         mapN.map1(p)(f)
@@ -11141,7 +11141,7 @@ object MapN {
     }
 
     implicit class Map22COps[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](c: Either[A1, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, Either[A21, A22]]]]]]]]]]]]]]]]]]]]]) {
-      val mapN = new Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] {}
+      private val mapN = new Map22C[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22] {}
 
       def map1[B](f: A1 => B): Either[B, Either[A2, Either[A3, Either[A4, Either[A5, Either[A6, Either[A7, Either[A8, Either[A9, Either[A10, Either[A11, Either[A12, Either[A13, Either[A14, Either[A15, Either[A16, Either[A17, Either[A18, Either[A19, Either[A20, Either[A21, A22]]]]]]]]]]]]]]]]]]]]] =
         mapN.map1(c)(f)

@@ -11,7 +11,7 @@ object Build {
   lazy val scalaVersions = Seq("2.12.11", "2.13.1")
 
   val splainSettings = Seq(
-    addCompilerPlugin("io.tryp" % "splain" % "0.4.1" cross CrossVersion.patch),
+    addCompilerPlugin("io.tryp" % "splain" % "0.5.1" cross CrossVersion.patch),
     scalacOptions ++= Seq(
       "-P:splain:all",
       "-P:splain:foundreq:false",
@@ -75,7 +75,7 @@ object Build {
     .settings(Seq(
       name := "andxor-generate",
       resolvers += Resolver.sonatypeRepo("snapshots"),
-      crossScalaVersions := Seq(),
+      crossScalaVersions := crossScalaVersions.value.filter(_.startsWith("2.13")),
       libraryDependencies ++= Seq(
         "com.github.pathikrit" %% "better-files" % "3.8.0",
         "org.scalariform" %% "scalariform" % "0.2.10",
