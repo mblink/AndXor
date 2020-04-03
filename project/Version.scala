@@ -1,3 +1,3 @@
 package object andxor {
-  val currentVersion = "0.4.0-RC1"
+  val currentVersion = "0.4.0-RC2"
 }
