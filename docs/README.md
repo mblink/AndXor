@@ -17,16 +17,14 @@ provides an instance for the corresponding Coproduct, or Product respectively.
 
 ```scala mdoc:silent
 import andxor._
-import scalaz.{Show, ~>}
-import scalaz.Id.Id
-import scalaz.std.anyVal._
-import scalaz.std.list._
-import scalaz.std.option._
-import scalaz.std.string._
-import scalaz.std.tuple._
-import scalaz.syntax.monoid._
-import scalaz.syntax.id._
-import scalaz.syntax.show._
+import cats.{~>, Id, Show}
+import cats.instances.int._
+import cats.instances.list._
+import cats.instances.option._
+import cats.instances.string._
+import cats.instances.tuple._
+import cats.syntax.semigroup._
+import cats.syntax.show._
 ```
 
 #### Construct an AndXor
@@ -55,17 +53,20 @@ val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Op
 ```scala mdoc
 // `Decidable[Show]` is provided for derivation over coproducts
 implicit val showCop = SIS.derivingId[Show].choose
-List(cop1, cop2, cop3).shows
+List(cop1, cop2, cop3).show
 
 // define a `Divide[Show]` for derivation over products
 implicit val divideShow: Divide[Show] = new Divide[Show] {
   def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
-  def divide2[A1, A2, Z](a1: => Show[A1], a2: => Show[A2])(f: Z => (A1, A2)): Show[Z] =
-    Show.shows(z => f(z) |> { case (x, y) => a1.shows(x) ++ ", " ++ a2.shows(y) })
+  def divide2[A1, A2, Z](a1: Show[A1], a2: Show[A2])(f: Z => (A1, A2)): Show[Z] =
+    Show.show { z =>
+      val (x, y) = f(z)
+      a1.show(x) + ", " + a2.show(y)
+    }
 }
 implicit val showListProd = SIS.deriving[Show, List].divide
 implicit val showOptionProd = SIS.deriving[Show, Option].divide
-(listProd.shows, optionProd.shows)
+(listProd.show, optionProd.show)
 ```
 
 #### Convert between `F[_]`s using a `~>`
@@ -90,15 +91,15 @@ FTraverseProd[SIS.Prod].sequence[Id, Option](SIS.Prod((Option("foo"), Option(1),
 
 ```scala mdoc
 import andxor.MapN.syntax._
-SIS.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
-SIS.lift(Option("foo")).run.map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
+SIS.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString + "!"))
+SIS.lift(Option("foo")).run.map2(_.map(_.toString + "!")).map1(_.map(_.length))
 ```
 
 #### Map a unique type at an arbitrary index of a Cop or Prod
 
 ```scala mdoc
 SIS.lift(2).run.mapAt((_: Int) + 3)
-SIS.inj(List("Hello ", "Goodbye cruel ")).run.mapAt((_: List[String]).map(_ ++ "world"))
+SIS.inj(List("Hello ", "Goodbye cruel ")).run.mapAt((_: List[String]).map(_ + "world"))
 ```
 
 #### Extract specific type from Cop or Prod
