@@ -1,17 +1,17 @@
+@import andxor.Zipper
 @import andxor.syntax._
-@import scalaz.Zipper
 
 @(z: Zipper[String], isId: Boolean)
 @tpes = @{ z.toList }
 @aT = { F[@z.focus] }
 
 @if(isId) {
-  implicit def @{tpes.copName}PLens@{z.index}Id[@{tpes.tpeParams}]: PLens[@tpes.copTpeF("Id"), @z.focus] =
-    @{tpes.copName}PLens@{z.index}[Id, @{tpes.tpeParams}]
+  implicit def @{tpes.copName}Optional@{z.index}Id[@{tpes.tpeParams}]: Optional[@tpes.copTpeF("Id"), @z.focus] =
+    @{tpes.copName}Optional@{z.index}[Id, @{tpes.tpeParams}]
 } else {
-  implicit def @{tpes.copName}PLens@{z.index}[F[_], @{tpes.tpeParams}]: PLens[@tpes.copTpe, F[@z.focus]] =
-    PLens(c => @tpes.foldLen01 { () => Some(StoreT.store[@{aT}, @{tpes.copTpe}](c.run)(y => @{tpes.copTpe}(@z.djVal("y")))) } { () => c.run match {
-      case @z.djVal("x") => Some(StoreT.store[@{aT}, @{tpes.copTpe}](x)(y => @{tpes.copTpe}(@z.djVal("y"))))
+  implicit def @{tpes.copName}Optional@{z.index}[F[_], @{tpes.tpeParams}]: Optional[@tpes.copTpe, F[@z.focus]] =
+    Optional[@{tpes.copTpe}, @aT](c => c.run match {
+      case @z.djVal("x") => Some(x)
       case _ => None
-    } }())
+    })(x => _ => @{tpes.copTpe}(@z.djVal("x")))
 }

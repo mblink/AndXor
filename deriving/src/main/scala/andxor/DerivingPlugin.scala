@@ -84,11 +84,12 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   // Scala types
   private val scalaPkg = q"_root_.scala"
 
-  // Scalaz types
-  private val scalazPkg = q"_root_.scalaz"
-  private val id = tq"$scalazPkg.Id.Id"
-  private val isoSetObj = q"$scalazPkg.Isomorphism.IsoSet"
-  private val isoSetTpe = tq"$scalazPkg.Isomorphism.IsoSet"
+  // Cats/monocle types
+  private val catsPkg = q"_root_.cats"
+  private val id = tq"$catsPkg.Id"
+  private val monoclePkg = q"_root_.monocle"
+  private val isoSetObj = q"$monoclePkg.Iso"
+  private val isoSetTpe = tq"$monoclePkg.Iso"
   private def mkAdtVal(inst: Tree): Tree = q"$andxorPkg.types.ADTValue($inst)"
   private def adtValTpe(tpe: Tree): Tree = tq"$andxorPkg.types.ADTValue[$tpe]"
 
@@ -121,10 +122,10 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   }
   sealed abstract class Covariant[+P <: Param] extends Variance[P] {
     val mapFunction = TermName("map")
-    val isoFunction = TermName("from")
+    val isoFunction = TermName("reverseGet")
   }
   case object CovariantProduct extends Covariant[ProdParam] {
-    val typeclass = tq"_root_.scalaz.Apply"
+    val typeclass = tq"_root_.cats.Apply"
     val derivationFunction = TermName("apply")
   }
   case object CovariantCoproduct extends Covariant[CopParam] {
@@ -133,7 +134,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   }
   sealed trait Contravariant[+P <: Param] extends Variance[P] {
     val mapFunction = TermName("contramap")
-    val isoFunction = TermName("to")
+    val isoFunction = TermName("get")
   }
   case object ContravariantProduct extends Contravariant[ProdParam] {
     val typeclass = tq"_root_.andxor.Divide"
@@ -146,8 +147,8 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
   def identOrSelect(term: Tree): Option[Either[Ident, Select]] =
     term match {
-      case i@Ident(name) => Some(Left(i))
-      case s@Select(qual, name) => Some(Right(s))
+      case i@Ident(_) => Some(Left(i))
+      case s@Select(_, _) => Some(Right(s))
       case _ => None
     }
 
@@ -282,7 +283,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
     private val constructorArgs: List[List[Tree]] = tpes match {
       case Nil => List[List[Tree]]()
-      case List(t) => List(List(normalizeValue(q"x")))
+      case List(_) => List(List(normalizeValue(q"x")))
       case _ => paramss.zipWithIndex.map { case (group, i) =>
         group.zipWithIndex.map { case (_, j) => normalizeValue(q"x.${tupleAccess(i + j + 1)}") } }
     }
@@ -298,7 +299,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     final val iso: Tree =
       q"""
       $isoSetObj[$tpe, $reprTpe](
-        ($isoParamName: $tpe) => ${if (tpes.length <= 1) mkTuple else q"$reprObj[..$andxorTpes]($mkTuple)"},
+        ($isoParamName: $tpe) => ${if (tpes.length <= 1) mkTuple else q"$reprObj[..$andxorTpes]($mkTuple)"})(
         ($isoParamName: $reprTpe) => $newKlass)
       """
 
@@ -334,8 +335,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       $isoSetObj[$tpe, $reprTpe](
         (x: $tpe) => x match {
           case ..${params.map(p => cq"inst: ${p.memberTpe} => ${injInst(p)}")}
-        },
-        (repr: $reprTpe) => {
+        })((repr: $reprTpe) => {
           val x = ${if (params.length <= 1) q"repr" else q"repr.run"}
           ${params.zipWithIndex.tail.foldRight[Tree](maybeUnwrap(normalizeValue(q"x"), Some(params.length - 1)))(
             (t, acc) => q"""x.fold[$tpe](
@@ -378,7 +378,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
         List(valOrDef(Modifiers(Flag.IMPLICIT), TermName(s"andxor_${o.name.decode}${if (c.labelled) "_labelled" else ""}_inst"),
           Nil, Nil, c.tpes(i), c.mkValue(Ident(o.name), c.params(i)))))
       }
-      case p: ProdTree => Nil
+      case _: ProdTree => Nil
     }
 
   case class Typeclass[P <: Param](
@@ -409,6 +409,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   def getTypeclasses[P <: Param](tcs: List[Tree], tree: GenTree[P], variance: Variance[P]): List[Typeclass[P]] =
     tcs.map(tc => Typeclass(tree, termToType(tc), variance, memberName(tc)))
 
+  @com.github.ghik.silencer.silent("never used")
   def parseArgs[P <: Param](args: List[Tree], base: GenTree[P], labelled: GenTree[P]): List[Typeclass[Param]] = {
     val prod = Some(base).collect { case _: ProdTree => true }.getOrElse(false)
     val (co, contra) = if (prod) (CovariantProduct, ContravariantProduct) else  (CovariantCoproduct, ContravariantCoproduct)
@@ -454,7 +455,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     val tcs = parseArgs(modArgs, base, labelled)
 
     (base, base.params) match {
-      case (t: CopTree, Nil) => warning(trigger.pos, "Unable to derive over a zero-member coproduct"); Nil
+      case (_: CopTree, Nil) => warning(trigger.pos, "Unable to derive over a zero-member coproduct"); Nil
       case _ => List(q"""
         object andxor {
           ..${labels(labelled) :::

@@ -25,10 +25,10 @@ lazy val newtype: Project = newtypeBase
 
 lazy val root: Project = project.in(file("."))
   .settings(commonSettings)
-  .dependsOn(core)
+  .settings(crossScalaVersions := Seq())
   .aggregate(generate, core, argonaut, circe, scalacheck, deriving, newtype)
 
 lazy val docs = project.in(file("andxor-docs"))
-  .settings(mdocOut := file("."))
-  .dependsOn(root)
+  .settings(mdocOut := file("."), scalaVersion := "2.12.11")
+  .dependsOn(core)
   .enablePlugins(MdocPlugin)

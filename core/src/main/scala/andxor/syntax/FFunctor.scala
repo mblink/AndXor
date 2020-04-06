@@ -1,7 +1,7 @@
 package andxor
 package syntax
 
-import scalaz.~>
+import cats.~>
 
 object ffunctor {
   implicit class FFunctorOps[F[_[_]], A[_]](fa: F[A])(implicit F: FFunctor[F]) {

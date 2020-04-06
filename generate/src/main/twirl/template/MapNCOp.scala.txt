@@ -1,6 +1,5 @@
+@import andxor.Zipper
 @import andxor.syntax._
-@import scalaz.Zipper
-@import scalaz.syntax.std.boolean._
 
 @(z: Zipper[String], cop: Boolean)
 @tpes = @{ z.toList }

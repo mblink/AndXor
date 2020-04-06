@@ -1,8 +1,7 @@
 package andxor
 
-import scalaz.{Apply, Monoid}
-import scalaz.Id.Id
-import scalaz.std.vector._
+import cats.{Apply, Id, Monoid}
+import cats.instances.vector._
 
 trait AndXorNested1[A1[_[_]]] extends AndXor {
 

@@ -4,16 +4,16 @@
 
 import andxor.tuple._
 import andxor.types._
-import scalaz.\/
+import cats.syntax.either._
 
 @range(2, tpes.length).map { n =>
 trait Map@{n}P[@{tpes.take(n).tpeParams}] {
-  val mapN = this
+  private val mapN = this
   @{tpes.take(n).zipper(template.txt.MapNP(_, false)).mkString("\n")}
 }
 
 trait Map@{n}C[@{tpes.take(n).tpeParams}] {
-  val mapN = this
+  private val mapN = this
   @{tpes.take(n).zipper(template.txt.MapNC(_, false)).mkString("\n")}
 }
 }
@@ -22,12 +22,12 @@ object MapN {
   object syntax {
     @range(2, tpes.length).map { n =>
     implicit class Map@{n}POps[@{tpes.take(n).tpeParams}](p: @{tpes.take(n).prod}) {
-      val mapN = new Map@{n}P[@{tpes.take(n).tpeParams}] {}
+      private val mapN = new Map@{n}P[@{tpes.take(n).tpeParams}] {}
       @{tpes.take(n).zipper(template.txt.MapNPOp(_, false)).mkString("\n")}
     }
 
     implicit class Map@{n}COps[@{tpes.take(n).tpeParams}](c: @{tpes.take(n).dj}) {
-      val mapN = new Map@{n}C[@{tpes.take(n).tpeParams}] {}
+      private val mapN = new Map@{n}C[@{tpes.take(n).tpeParams}] {}
       @{tpes.take(n).zipper(template.txt.MapNCOp(_, false)).mkString("\n")}
     }
     }

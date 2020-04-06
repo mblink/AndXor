@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.Apply
+import cats.Apply
 
 sealed trait Deriving[T[_[_]], F[_], TC[_], Co[_[_]], Contra[_[_]]] {
   def mkCovariant[A](f: T[F] => A)(implicit F: Co[TC]): TC[A]

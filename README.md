@@ -17,34 +17,32 @@ provides an instance for the corresponding Coproduct, or Product respectively.
 
 ```scala
 import andxor._
-import scalaz.{Show, ~>}
-import scalaz.Id.Id
-import scalaz.std.anyVal._
-import scalaz.std.list._
-import scalaz.std.option._
-import scalaz.std.string._
-import scalaz.std.tuple._
-import scalaz.syntax.monoid._
-import scalaz.syntax.id._
-import scalaz.syntax.show._
+import cats.{~>, Id, Show}
+import cats.instances.int._
+import cats.instances.list._
+import cats.instances.option._
+import cats.instances.string._
+import cats.instances.tuple._
+import cats.syntax.semigroup._
+import cats.syntax.show._
 ```
 
 #### Construct an AndXor
 
 ```scala
 val SIS = AndXor[String, Int, List[String]]
-// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@378564ef
+// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@1db08002
 ```
 
 #### Lift values into a coproduct
 
 ```scala
 val cop1 = SIS.inj("foo")
-// cop1: SIS.Cop[Id] = -\/("foo")
+// cop1: SIS.Cop[Id] = Left("foo")
 val cop2 = SIS.inj(2)
-// cop2: SIS.Cop[Id] = \/-(-\/(2))
+// cop2: SIS.Cop[Id] = Right(Left(2))
 val cop3 = SIS.inj(List("bar", "baz"))
-// cop3: SIS.Cop[Id] = \/-(\/-(List("bar", "baz")))
+// cop3: SIS.Cop[Id] = Right(Right(List("bar", "baz")))
 ```
 
 #### Lift values into a product
@@ -61,25 +59,28 @@ val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Op
 ```scala
 // `Decidable[Show]` is provided for derivation over coproducts
 implicit val showCop = SIS.derivingId[Show].choose
-// showCop: Show[SIS.Cop[Id]] = scalaz.Show$$anon$5@3cec797c
-List(cop1, cop2, cop3).shows
-// res0: String = "[\"foo\",2,[\"bar\",\"baz\"]]"
+// showCop: Show[SIS.Cop[Id]] = cats.Show$$anon$2@c599fb7
+List(cop1, cop2, cop3).show
+// res0: String = "List(foo, 2, List(bar, baz))"
 
 // define a `Divide[Show]` for derivation over products
 implicit val divideShow: Divide[Show] = new Divide[Show] {
   def contramap[A, B](fa: Show[A])(f: B => A): Show[B] = Show.show(b => fa.show(f(b)))
-  def divide2[A1, A2, Z](a1: => Show[A1], a2: => Show[A2])(f: Z => (A1, A2)): Show[Z] =
-    Show.shows(z => f(z) |> { case (x, y) => a1.shows(x) ++ ", " ++ a2.shows(y) })
+  def divide2[A1, A2, Z](a1: Show[A1], a2: Show[A2])(f: Z => (A1, A2)): Show[Z] =
+    Show.show { z =>
+      val (x, y) = f(z)
+      a1.show(x) + ", " + a2.show(y)
+    }
 }
-// divideShow: Divide[Show] = repl.Session$App$$anon$1@6b6c01a0
+// divideShow: Divide[Show] = repl.Session$App$$anon$1@30da373d
 implicit val showListProd = SIS.deriving[Show, List].divide
-// showListProd: Show[SIS.Prod[List]] = scalaz.Show$$anon$6@3d621e3a
+// showListProd: Show[SIS.Prod[List]] = cats.Show$$anon$2@499d523e
 implicit val showOptionProd = SIS.deriving[Show, Option].divide
-// showOptionProd: Show[SIS.Prod[Option]] = scalaz.Show$$anon$6@2cb93619
-(listProd.shows, optionProd.shows)
+// showOptionProd: Show[SIS.Prod[Option]] = cats.Show$$anon$2@c8c946
+(listProd.show, optionProd.show)
 // res1: (String, String) = (
-//   "[\"foo\"], [4], [[\"bar\"]]",
-//   "Some(\"foo\"), Some(4), Some([\"bar\"])"
+//   "List(foo), List(4), List(List(bar))",
+//   "Some(foo), Some(4), Some(List(bar))"
 // )
 ```
 
@@ -100,7 +101,7 @@ FFunctor[SIS.Prod].map(optionProd)(new (Option ~> List) {
 
 ```scala
 FTraverseCop[SIS.Cop].sequence[Id, Option](SIS.inj(Option("foo")))
-// res4: Option[SIS.Cop[Id]] = Some(-\/("foo"))
+// res4: Option[SIS.Cop[Id]] = Some(Left("foo"))
 FTraverseProd[SIS.Prod].sequence[Id, Option](SIS.Prod((Option("foo"), Option(1), Option(List("bar")))))
 // res5: Option[SIS.Prod[Id]] = Some(("foo", 1, List("bar")))
 ```
@@ -109,11 +110,11 @@ FTraverseProd[SIS.Prod].sequence[Id, Option](SIS.Prod((Option("foo"), Option(1),
 
 ```scala
 import andxor.MapN.syntax._
-SIS.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString ++ "!"))
-// res6: scalaz.\/[Option[Int], scalaz.\/[Option[String], Option[List[String]]]] = \/-(
-//   -\/(Some("2!"))
+SIS.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString + "!"))
+// res6: Either[Option[Int], Either[Option[String], Option[List[String]]]] = Right(
+//   Left(Some("2!"))
 // )
-SIS.lift(Option("foo")).run.map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
+SIS.lift(Option("foo")).run.map2(_.map(_.toString + "!")).map1(_.map(_.length))
 // res7: (Option[Int], Option[String], Option[List[String]]) = (
 //   Some(3),
 //   None,
@@ -126,9 +127,9 @@ SIS.lift(Option("foo")).run.map2(_.map(_.toString ++ "!")).map1(_.map(_.length))
 ```scala
 SIS.lift(2).run.mapAt((_: Int) + 3)
 // res8: (Id[String], Int, Id[List[String]]) = ("", 5, List())
-SIS.inj(List("Hello ", "Goodbye cruel ")).run.mapAt((_: List[String]).map(_ ++ "world"))
-// res9: scalaz.\/[Id[String], scalaz.\/[Id[Int], List[String]]] = \/-(
-//   \/-(List("Hello world", "Goodbye cruel world"))
+SIS.inj(List("Hello ", "Goodbye cruel ")).run.mapAt((_: List[String]).map(_ + "world"))
+// res9: Either[Id[String], Either[Id[Int], List[String]]] = Right(
+//   Right(List("Hello world", "Goodbye cruel world"))
 // )
 ```
 

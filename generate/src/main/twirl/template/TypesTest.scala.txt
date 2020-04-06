@@ -1,20 +1,20 @@
 @import andxor.syntax._
 @import play.twirl.api.TwirlFeatureImports.defining
-@import scalaz.syntax.std.boolean._
 
 @(tpeLists: List[List[String]])
 
 import andxor.AndXorProperties.arbitrary._
 import andxor.types._
 import org.scalacheck.{Arbitrary, Properties}
-import scalaz.{Applicative, Equal, Functor}
-import scalaz.scalacheck.ScalaCheckBinding._
-import scalaz.scalacheck.ScalazProperties.lens
-import scalaz.std.anyVal._
-import scalaz.std.list._
-import scalaz.std.option._
-import scalaz.std.string._
-import scalaz.std.vector._
+import cats.{Applicative, Eq, Functor}
+import cats.instances.int._
+import cats.instances.list._
+import cats.instances.option._
+import cats.instances.string._
+import cats.instances.tuple._
+import cats.instances.vector._
+import cats.kernel.laws.discipline.MonoidTests
+import monocle.law.discipline.LensTests
 
 object arbitrary {
   @tpeLists.map { tpes =>
@@ -24,23 +24,25 @@ object arbitrary {
     implicit def cop@{tpes.length}Arb[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Arbitrary", "F"), "a")}): Arbitrary[@tpes.copTpe] =
       AndXor[@tpes.tpeParams].deriving[Arbitrary, F].alt
 
-    implicit def prod@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Equal", "F"), "e")}): Equal[@tpes.prodTpe] =
-      AndXor[@tpes.tpeParams].deriving[Equal, F].divide
+    implicit def prod@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Eq", "F"), "e")}): Eq[@tpes.prodTpe] =
+      AndXor[@tpes.tpeParams].deriving[Eq, F].divide
 
-    implicit def cop@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Equal", "F"), "e")}): Equal[@tpes.copTpe] =
-      AndXor[@tpes.tpeParams].deriving[Equal, F].choose
+    implicit def cop@{tpes.length}Eq[F[_], @tpes.tpeParams](implicit @{tpes.paramSig(List("Eq", "F"), "e")}): Eq[@tpes.copTpe] =
+      AndXor[@tpes.tpeParams].deriving[Eq, F].choose
   }
 }
 
-@tpeLists.map { _tpes => @defining(_tpes.zipWithIndex.map(t => (t._2 % 2 == 0).fold("String", "Int"))) { tpes =>
+@tpeLists.map { _tpes => @defining(_tpes.zipWithIndex.map(t => if (t._2 % 2 == 0) "String" else "Int")) { tpes =>
   object @{tpes.prodName}Test extends Properties("@{tpes.prodName}") {
     import arbitrary._
 
     include(AndXorProperties.ftraverse.laws[@tpes.prodTpeF("?[_]"), Applicative])
 
+    include(MonoidTests[@tpes.prodTpeF("Option")].monoid.all)
+
     @tpes.zipper { z =>
-      include(lens.laws[@tpes.prodTpeF("Option"), Option[@{tpes(z.index)}]](
-        @{tpes.prodName}.@{tpes.prodName}Lens@{z.index}[Option, @{tpes.tpeParams}]), "@{z.index}.")
+      include(LensTests[@tpes.prodTpeF("Option"), Option[@{tpes(z.index)}]](
+        @{tpes.prodName}.@{tpes.prodName}Lens@{z.index}[Option, @{tpes.tpeParams}]).all, "@{z.index}.")
     }
   }
 

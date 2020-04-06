@@ -1,12 +1,13 @@
 @import andxor.syntax._
-@import scalaz.syntax.std.boolean._
 
 @(tpes: List[String])
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
-import scalaz.Id.Id
-import scalaz.Isomorphism.IsoSet
+import monocle.{Lens, Optional}
+import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
+import cats.syntax.either._
+import cats.syntax.invariant._
+import monocle.Iso
 
 trait Types@{tpes.length} {
   @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) { self =>
@@ -30,12 +31,12 @@ trait Types@{tpes.length} {
           @tpes.paramListF(i => s"f(p${tpes.prodAccess(i + 1)})").tail.foldLeft(
             s"Applicative[A].map(${tpes.foldLen01(s"f(p${tpes.prodAccess(1)})")(s"f(p${tpes.prodAccess(1)})")})(${tpes.map(t => s"G[$t]").paramSigArgs("i")
               .map(parens).mkString(" => ")} => ${tpes.prodTpeF("G")}(${tpes.paramList("i").mkTuple}))")(
-                (a, e) => s"Applicative[A].ap($e)($a)")
+                (a, e) => s"Applicative[A].ap($a)($e)")
       }
 
     implicit def @{tpes.prodName}FoldMap[@{tpes.tpeParams}]: FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] =
       new FoldMap[@{tpes.prodTpeF("?[_]")}, @{tpes.copTpeF("?[_]")}] {
-        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): @{tpes.prodTpe} =
+        def emptyProd[F[_]](implicit PE: MonoidK[F]): @{tpes.prodTpe} =
           @{tpes.prodTpe}(@{tpes.map(t => s"PE.empty[$t]").mkTuple})
 
         def unconsAll[F[_], G[_]](p: @{tpes.prodTpe})(implicit U: Uncons[F, G]): (List[@{tpes.copTpeF("G")}], @{tpes.prodTpe}) = {
@@ -50,11 +51,13 @@ trait Types@{tpes.length} {
           }
       }
 
-    def @{tpes.prodName}TupleIso[F[_], @{tpes.tpeParams}]: IsoSet[@{tpes.prodTpe}, @{tpes.prodK("F")}] =
-      IsoSet((_: @{tpes.prodTpe}).run, @{tpes.prodTpe}(_: @{tpes.prodK("F")}))
+    def @{tpes.prodName}TupleIso[F[_], @{tpes.tpeParams}]: Iso[@{tpes.prodTpe}, @{tpes.prodK("F")}] =
+      Iso((_: @{tpes.prodTpe}).run)(@{tpes.prodTpe}(_: @{tpes.prodK("F")}))
 
-    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] =
-      Monoid.fromIso(@{tpes.prodName}TupleIso[F, @{tpes.tpeParams}])(M)
+    implicit def @{tpes.prodName}Monoid[F[_], @{tpes.tpeParams}](implicit M: Monoid[@{tpes.prodK("F")}]): Monoid[@{tpes.prodTpe}] = {
+      val iso = @{tpes.prodName}TupleIso[F, @{tpes.tpeParams}]
+      M.imap(iso.reverseGet)(iso.get)
+    }
 
     @tpes.zipper(template.txt.Lift(_, false))
     @tpes.zipper(template.txt.FLensP(_, false))
@@ -67,10 +70,10 @@ trait Types@{tpes.length} {
     @tpes.zipper(template.txt.FLensP(_, true))
   }
 
-  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{(tpes.length <= 1).fold("", s""" {
+  @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{if (tpes.length <= 1) "" else s""" {
     private def mapN = new Map${tpes.length}C[${tpes.map(t => s"F[$t]").tpeParams}] {}
     ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
-  }""")}
+  }"""}
 
   trait @{tpes.copName}LP {
     @if(tpes.length == 1) { implicit def conv[F[_], A](a: F[A]): Cop1[F, A] = Cop1[F, A](a) }

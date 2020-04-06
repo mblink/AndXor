@@ -1,6 +1,6 @@
 package andxor
 
-import scalaz.~>
+import cats.~>
 
 trait FContravariant[F[_[_]]] {
   def contramap[A[_], B[_]](fa: F[A])(f: B ~> A): F[B]

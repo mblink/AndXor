@@ -3,9 +3,9 @@ package andxor
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
 import andxor.types._
-import scalaz.{~>, \/, -\/, \/-, Applicative, Functor, PlusEmpty, Apply, Monoid}
-import scalaz.Id.Id
-import scalaz.std.vector._
+import cats.syntax.either._
+import cats.{Applicative, Apply, Functor, Id, Monoid, MonoidK, ~>}
+import cats.instances.vector._
 
 trait AndXorNested9[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]], A9[_[_]]] extends AndXor {
 
@@ -55,7 +55,7 @@ trait AndXorNested9[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], 
 
   type Cop[F[_]] = Cop9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]
   object Cop {
-    def apply[F[_]](c: (A1[F] \/ (A2[F] \/ (A3[F] \/ (A4[F] \/ (A5[F] \/ (A6[F] \/ (A7[F] \/ (A8[F] \/ A9[F]))))))))): Cop[F] = Cop9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]](c)
+    def apply[F[_]](c: Either[A1[F], Either[A2[F], Either[A3[F], Either[A4[F], Either[A5[F], Either[A6[F], Either[A7[F], Either[A8[F], A9[F]]]]]]]]]): Cop[F] = Cop9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]](c)
   }
 
   object instances {
@@ -65,12 +65,12 @@ trait AndXorNested9[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], 
           Prod9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]]((ft0.map(p.t1)(nt), ft1.map(p.t2)(nt), ft2.map(p.t3)(nt), ft3.map(p.t4)(nt), ft4.map(p.t5)(nt), ft5.map(p.t6)(nt), ft6.map(p.t7)(nt), ft7.map(p.t8)(nt), ft8.map(p.t9)(nt)))
 
         def traverse[F[_], G[_], A[_]: Applicative](p: Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Prod9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]]] =
-          Applicative[A].ap(ft8.traverse(p.t9)(f))(Applicative[A].ap(ft7.traverse(p.t8)(f))(Applicative[A].ap(ft6.traverse(p.t7)(f))(Applicative[A].ap(ft5.traverse(p.t6)(f))(Applicative[A].ap(ft4.traverse(p.t5)(f))(Applicative[A].ap(ft3.traverse(p.t4)(f))(Applicative[A].ap(ft2.traverse(p.t3)(f))(Applicative[A].ap(ft1.traverse(p.t2)(f))(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1[G]) => (i1: A2[G]) => (i2: A3[G]) => (i3: A4[G]) => (i4: A5[G]) => (i5: A6[G]) => (i6: A7[G]) => (i7: A8[G]) => (i8: A9[G]) => Prod9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]]((i0, i1, i2, i3, i4, i5, i6, i7, i8)))))))))))
+          Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(ft0.traverse(p.t1)(f))((i0: A1[G]) => (i1: A2[G]) => (i2: A3[G]) => (i3: A4[G]) => (i4: A5[G]) => (i5: A6[G]) => (i6: A7[G]) => (i7: A8[G]) => (i8: A9[G]) => Prod9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]]((i0, i1, i2, i3, i4, i5, i6, i7, i8))))(ft1.traverse(p.t2)(f)))(ft2.traverse(p.t3)(f)))(ft3.traverse(p.t4)(f)))(ft4.traverse(p.t5)(f)))(ft5.traverse(p.t6)(f)))(ft6.traverse(p.t7)(f)))(ft7.traverse(p.t8)(f)))(ft8.traverse(p.t9)(f))
       }
 
     implicit def axoProd9FoldMap(implicit fm0: FoldMap[A1, A1], fm1: FoldMap[A2, A2], fm2: FoldMap[A3, A3], fm3: FoldMap[A4, A4], fm4: FoldMap[A5, A5], fm5: FoldMap[A6, A6], fm6: FoldMap[A7, A7], fm7: FoldMap[A8, A8], fm8: FoldMap[A9, A9]): FoldMap[Prod, Cop] =
       new FoldMap[Prod, Cop] {
-        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod[F] =
+        def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod[F] =
           Prod((fm0.emptyProd, fm1.emptyProd, fm2.emptyProd, fm3.emptyProd, fm4.emptyProd, fm5.emptyProd, fm6.emptyProd, fm7.emptyProd, fm8.emptyProd))
 
         def unconsAll[F[_], G[_]](p: Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]])(implicit U: Uncons[F, G]): (List[Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]]], Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]) = {
@@ -91,41 +91,41 @@ trait AndXorNested9[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], 
         def unconsOne[F[_], G[_]](p: Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]], c: Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]])(implicit U: Uncons[F, G]): (Option[Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]]], Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]) =
           c.run match {
 
-            case -\/(x) =>
+            case Left(x) =>
               val (h, t) = fm0.unconsOne(p.t1, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](-\/(v))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Left(v))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
 
-            case \/-(-\/(x)) =>
+            case Right(Left(x)) =>
               val (h, t) = fm1.unconsOne(p.t2, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(-\/(v)))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Left(v)))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
 
-            case \/-(\/-(-\/(x))) =>
+            case Right(Right(Left(x))) =>
               val (h, t) = fm2.unconsOne(p.t3, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(-\/(v))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Left(v))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7, p.t8, p.t9)))
 
-            case \/-(\/-(\/-(-\/(x)))) =>
+            case Right(Right(Right(Left(x)))) =>
               val (h, t) = fm3.unconsOne(p.t4, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(-\/(v)))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Left(v)))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7, p.t8, p.t9)))
 
-            case \/-(\/-(\/-(\/-(-\/(x))))) =>
+            case Right(Right(Right(Right(Left(x))))) =>
               val (h, t) = fm4.unconsOne(p.t5, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(-\/(v))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Left(v))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7, p.t8, p.t9)))
 
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) =>
+            case Right(Right(Right(Right(Right(Left(x)))))) =>
               val (h, t) = fm5.unconsOne(p.t6, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Left(v)))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7, p.t8, p.t9)))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) =>
+            case Right(Right(Right(Right(Right(Right(Left(x))))))) =>
               val (h, t) = fm6.unconsOne(p.t7, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(\/-(-\/(v))))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Right(Left(v))))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t, p.t8, p.t9)))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) =>
+            case Right(Right(Right(Right(Right(Right(Right(Left(x)))))))) =>
               val (h, t) = fm7.unconsOne(p.t8, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(v)))))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Right(Right(Left(v)))))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, t, p.t9)))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))) =>
+            case Right(Right(Right(Right(Right(Right(Right(Right(x)))))))) =>
               val (h, t) = fm8.unconsOne(p.t9, x)
-              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(v)))))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t)))
+              (h.map(v => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Right(Right(Right(v)))))))))), Prod9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8, t)))
 
           }
       }
@@ -138,23 +138,23 @@ trait AndXorNested9[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], 
         def traverse[F[_], G[_], A[_]: Functor](c: Cop9[Id, A1[F], A2[F], A3[F], A4[F], A5[F], A6[F], A7[F], A8[F], A9[F]])(f: F ~> Lambda[a => A[G[a]]]): A[Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](-\/(y)))
+            case Left(x) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Left(y))))
 
-            case \/-(\/-(-\/(x))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(-\/(y)))))
+            case Right(Right(Left(x))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Left(y)))))
 
-            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(-\/(y))))))
+            case Right(Right(Right(Left(x)))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Left(y))))))
 
-            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case Right(Right(Right(Right(Left(x))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Left(y)))))))
 
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case Right(Right(Right(Right(Right(Left(x)))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Left(y))))))))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(-\/(x))))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+            case Right(Right(Right(Right(Right(Right(Left(x))))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Right(Left(y)))))))))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(\/-(\/-(-\/(y))))))))))
+            case Right(Right(Right(Right(Right(Right(Right(Left(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Right(Right(Left(y))))))))))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](\/-(\/-(\/-(\/-(\/-(\/-(\/-(\/-(y))))))))))
+            case Right(Right(Right(Right(Right(Right(Right(Right(x)))))))) => Functor[A].map(x.traverse(f))(y => Cop9[Id, A1[G], A2[G], A3[G], A4[G], A5[G], A6[G], A7[G], A8[G], A9[G]](Right(Right(Right(Right(Right(Right(Right(Right(y))))))))))
 
           }
       }
@@ -245,7 +245,7 @@ trait AndXor9[A1, A2, A3, A4, A5, A6, A7, A8, A9] extends AndXor {
 
   type Cop[F[_]] = Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]
   object Cop {
-    def apply[F[_]](c: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ (F[A7] \/ (F[A8] \/ F[A9]))))))))): Cop[F] = Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](c)
+    def apply[F[_]](c: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], Either[F[A6], Either[F[A7], Either[F[A8], F[A9]]]]]]]]]): Cop[F] = Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9](c)
   }
 
   def deriving[TC[_], F[_]](implicit t0: TC[F[A1]], t1: TC[F[A2]], t2: TC[F[A3]], t3: TC[F[A4]], t4: TC[F[A5]], t5: TC[F[A6]], t6: TC[F[A7]], t7: TC[F[A8]], t8: TC[F[A9]]): AndXorDeriving[TC, Cop[F], Prod[F]] =

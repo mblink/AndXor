@@ -39,7 +39,7 @@ object types {
   }
 
   trait Map2P[A1, A2] {
-    val mapN = this
+    private val mapN = this
 
     def map1[B](p: (A1, A2))(f: A1 => B): (B, A2) = {
       val a0 = p._1

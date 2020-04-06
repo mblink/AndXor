@@ -2,8 +2,7 @@ package andxor
 
 import andxor.types.ADTValue
 import _root_.argonaut.{DecodeJson, DecodeResult, EncodeJson, HCursor, Json}
-import scalaz.{~>, Apply, Monoid}
-import scalaz.Isomorphism.IsoFunctor
+import cats.{~>, Apply, Monoid}
 
 trait LPArgonaut {
   trait JsonSumCodec[A] {
@@ -43,7 +42,7 @@ trait LPArgonaut {
 }
 
 package object argonaut extends LPArgonaut {
-  implicit val jsonMonoid: Monoid[Json] = Monoid.instance[Json](_.deepmerge(_), Json())
+  implicit val jsonMonoid: Monoid[Json] = Monoid.instance(Json(), _.deepmerge(_))
 
   implicit def encodeJsonLabelled[L <: Singleton with String, A](implicit ej: EncodeJson[A]): EncodeJson[Labelled.Aux[A, L]] =
     EncodeJson(l => Json(l.label -> ej(l.value)))
@@ -53,25 +52,23 @@ package object argonaut extends LPArgonaut {
 
   type EncodeJsonF[A] = A => Json
 
-  implicit val encodeJsonIso: IsoFunctor[EncodeJson, EncodeJsonF] =
-    IsoFunctor[EncodeJson, EncodeJsonF](
-      Lambda[EncodeJson ~> EncodeJsonF](_.encode _),
-      Lambda[EncodeJsonF ~> EncodeJson](EncodeJson(_)))
+  implicit val encodeJsonToEncodeJsonF: EncodeJson ~> EncodeJsonF = Lambda[EncodeJson ~> EncodeJsonF](_.encode _)
+  implicit val encodeJsonFToEncodeJson: EncodeJsonF ~> EncodeJson = Lambda[EncodeJsonF ~> EncodeJson](EncodeJson(_))
 
-  implicit val encodeJsonDivide: Divide[EncodeJson] = Divide.fromIso(encodeJsonIso)
-  implicit val encodeJsonDecide: Decidable[EncodeJson] = Decidable.fromIso(encodeJsonIso)
+  implicit val encodeJsonDivide: Divide[EncodeJson] = Divide.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
+  implicit val encodeJsonDecide: Decidable[EncodeJson] = Decidable.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
 
   implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit label: L): DecodeJson[Labelled.Aux[A, L]] =
     DecodeJson(_.get[A](label).map(Labelled(_, label)))
 
   implicit val decodeJsonApply: Apply[DecodeJson] = new Apply[DecodeJson] {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)
-    def ap[A, B](fa: => DecodeJson[A])(f: => DecodeJson[A => B]): DecodeJson[B] =
+    def ap[A, B](f: DecodeJson[A => B])(fa: DecodeJson[A]): DecodeJson[B] =
       DecodeJson(c => f(c).flatMap(g => fa(c).map(g(_))))
   }
 
   implicit val decodeJsonAlt: Alt[DecodeJson] = new Alt[DecodeJson] {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)
-    def alt[A](a1: => DecodeJson[A], a2: => DecodeJson[A]): DecodeJson[A] = a1 ||| a2
+    def alt[A](a1: DecodeJson[A], a2: DecodeJson[A]): DecodeJson[A] = a1 ||| a2
   }
 }

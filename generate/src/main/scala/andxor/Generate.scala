@@ -6,7 +6,6 @@ import better.files.Dsl._
 import play.twirl.api.Txt
 import scalariform.formatter.ScalaFormatter
 import scalariform.formatter.preferences._
-import scalaz.syntax.std.boolean._
 
 object Generate extends App {
   val conf = FormattingPreferences()
@@ -30,10 +29,10 @@ object Generate extends App {
     println(s"Generating $f...")
     val code = s"${pkgs.map(p => s"package $p").mkString("\n")}\n\n$txt"
     if (f.notExists || noWs(f.contentAsString) != noWs(code)) {
-      val toWrite = format.fold({
+      val toWrite = if (format) {
         println("    formatting...")
         ScalaFormatter.format(code, conf)
-      }, code)
+      } else code
       println("    writing...")
       f.overwrite(toWrite)
       ()

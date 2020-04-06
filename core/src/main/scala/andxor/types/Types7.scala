@@ -1,9 +1,11 @@
 package andxor.types
 
 import andxor._
-import scalaz.{\/, -\/, \/-, ~>, Applicative, Functor, Lens, Monoid, PLens, PlusEmpty, StoreT}
-import scalaz.Id.Id
-import scalaz.Isomorphism.IsoSet
+import monocle.{Lens, Optional}
+import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
+import cats.syntax.either._
+import cats.syntax.invariant._
+import monocle.Iso
 
 trait Types7 {
   @newtype case class Prod7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])) { self =>
@@ -69,12 +71,12 @@ trait Types7 {
           Prod7[G, A1, A2, A3, A4, A5, A6, A7]((nt(p.t1), nt(p.t2), nt(p.t3), nt(p.t4), nt(p.t5), nt(p.t6), nt(p.t7)))
 
         def traverse[F[_], G[_], A[_]: Applicative](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7])(f: F ~> Lambda[a => A[G[a]]]): A[Prod7[G, A1, A2, A3, A4, A5, A6, A7]] =
-          Applicative[A].ap(f(p.t7))(Applicative[A].ap(f(p.t6))(Applicative[A].ap(f(p.t5))(Applicative[A].ap(f(p.t4))(Applicative[A].ap(f(p.t3))(Applicative[A].ap(f(p.t2))(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => (i3: G[A4]) => (i4: G[A5]) => (i5: G[A6]) => (i6: G[A7]) => Prod7[G, A1, A2, A3, A4, A5, A6, A7]((i0, i1, i2, i3, i4, i5, i6)))))))))
+          Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => (i3: G[A4]) => (i4: G[A5]) => (i5: G[A6]) => (i6: G[A7]) => Prod7[G, A1, A2, A3, A4, A5, A6, A7]((i0, i1, i2, i3, i4, i5, i6))))(f(p.t2)))(f(p.t3)))(f(p.t4)))(f(p.t5)))(f(p.t6)))(f(p.t7))
       }
 
     implicit def Prod7FoldMap[A1, A2, A3, A4, A5, A6, A7]: FoldMap[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
       new FoldMap[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
-        def emptyProd[F[_]](implicit PE: PlusEmpty[F]): Prod7[F, A1, A2, A3, A4, A5, A6, A7] =
+        def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod7[F, A1, A2, A3, A4, A5, A6, A7] =
           Prod7[F, A1, A2, A3, A4, A5, A6, A7]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7]))
 
         def unconsAll[F[_], G[_]](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7])(implicit U: Uncons[F, G]): (List[Cop7[G, A1, A2, A3, A4, A5, A6, A7]], Prod7[F, A1, A2, A3, A4, A5, A6, A7]) = {
@@ -93,105 +95,107 @@ trait Types7 {
         def unconsOne[F[_], G[_]](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7], c: Cop7[G, A1, A2, A3, A4, A5, A6, A7])(implicit U: Uncons[F, G]): (Option[Cop7[G, A1, A2, A3, A4, A5, A6, A7]], Prod7[F, A1, A2, A3, A4, A5, A6, A7]) =
           c.run match {
 
-            case -\/(_) =>
+            case Left(_) =>
               val (h, t) = U(p.t1)
-              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](-\/(v))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7)))
+              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Left(v))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7)))
 
-            case \/-(-\/(_)) =>
+            case Right(Left(_)) =>
               val (h, t) = U(p.t2)
-              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(v)))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7)))
+              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Left(v)))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, t, p.t3, p.t4, p.t5, p.t6, p.t7)))
 
-            case \/-(\/-(-\/(_))) =>
+            case Right(Right(Left(_))) =>
               val (h, t) = U(p.t3)
-              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(v))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7)))
+              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Left(v))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, t, p.t4, p.t5, p.t6, p.t7)))
 
-            case \/-(\/-(\/-(-\/(_)))) =>
+            case Right(Right(Right(Left(_)))) =>
               val (h, t) = U(p.t4)
-              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(v)))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7)))
+              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Left(v)))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, t, p.t5, p.t6, p.t7)))
 
-            case \/-(\/-(\/-(\/-(-\/(_))))) =>
+            case Right(Right(Right(Right(Left(_))))) =>
               val (h, t) = U(p.t5)
-              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(v))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7)))
+              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Left(v))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, t, p.t6, p.t7)))
 
-            case \/-(\/-(\/-(\/-(\/-(-\/(_)))))) =>
+            case Right(Right(Right(Right(Right(Left(_)))))) =>
               val (h, t) = U(p.t6)
-              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(v)))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7)))
+              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Left(v)))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, t, p.t7)))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(_)))))) =>
+            case Right(Right(Right(Right(Right(Right(_)))))) =>
               val (h, t) = U(p.t7)
-              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(v)))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t)))
+              (h.map(v => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Right(v)))))))), Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, t)))
 
           }
       }
 
-    def Prod7TupleIso[F[_], A1, A2, A3, A4, A5, A6, A7]: IsoSet[Prod7[F, A1, A2, A3, A4, A5, A6, A7], (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])] =
-      IsoSet((_: Prod7[F, A1, A2, A3, A4, A5, A6, A7]).run, Prod7[F, A1, A2, A3, A4, A5, A6, A7](_: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])))
+    def Prod7TupleIso[F[_], A1, A2, A3, A4, A5, A6, A7]: Iso[Prod7[F, A1, A2, A3, A4, A5, A6, A7], (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])] =
+      Iso((_: Prod7[F, A1, A2, A3, A4, A5, A6, A7]).run)(Prod7[F, A1, A2, A3, A4, A5, A6, A7](_: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])))
 
-    implicit def Prod7Monoid[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])]): Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] =
-      Monoid.fromIso(Prod7TupleIso[F, A1, A2, A3, A4, A5, A6, A7])(M)
+    implicit def Prod7Monoid[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[(F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7])]): Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]] = {
+      val iso = Prod7TupleIso[F, A1, A2, A3, A4, A5, A6, A7]
+      M.imap(iso.reverseGet)(iso.get)
+    }
 
     implicit def lifta0F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((x, t.t2, t.t3, t.t4, t.t5, t.t6, t.t7)))
     }
 
     implicit def lifta1F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, x, t.t3, t.t4, t.t5, t.t6, t.t7)))
     }
 
     implicit def lifta2F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, t.t2, x, t.t4, t.t5, t.t6, t.t7)))
     }
 
     implicit def lifta3F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, t.t2, t.t3, x, t.t5, t.t6, t.t7)))
     }
 
     implicit def lifta4F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, t.t2, t.t3, t.t4, x, t.t6, t.t7)))
     }
 
     implicit def lifta5F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, t.t2, t.t3, t.t4, t.t5, x, t.t7)))
     }
 
     implicit def lifta6F[F[_], A1, A2, A3, A4, A5, A6, A7](implicit M: Monoid[Prod7[F, A1, A2, A3, A4, A5, A6, A7]]): Inj[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] = {
-      val t = M.zero
+      val t = M.empty
       Inj.instance(x => Prod7[F, A1, A2, A3, A4, A5, A6, A7]((t.t1, t.t2, t.t3, t.t4, t.t5, t.t6, x)))
     }
 
     implicit def Prod7Lens0[F[_], A1, A2, A3, A4, A5, A6, A7]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] =
-      Lens(p => StoreT.store[F[A1], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t1)(x =>
-        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7))))
+      Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]](p => p.t1)(x => p =>
+        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7)))
 
     implicit def Prod7Lens1[F[_], A1, A2, A3, A4, A5, A6, A7]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]] =
-      Lens(p => StoreT.store[F[A2], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t2)(x =>
-        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7))))
+      Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]](p => p.t2)(x => p =>
+        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, x, p.t3, p.t4, p.t5, p.t6, p.t7)))
 
     implicit def Prod7Lens2[F[_], A1, A2, A3, A4, A5, A6, A7]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]] =
-      Lens(p => StoreT.store[F[A3], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t3)(x =>
-        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7))))
+      Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]](p => p.t3)(x => p =>
+        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, x, p.t4, p.t5, p.t6, p.t7)))
 
     implicit def Prod7Lens3[F[_], A1, A2, A3, A4, A5, A6, A7]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]] =
-      Lens(p => StoreT.store[F[A4], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t4)(x =>
-        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7))))
+      Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]](p => p.t4)(x => p =>
+        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, x, p.t5, p.t6, p.t7)))
 
     implicit def Prod7Lens4[F[_], A1, A2, A3, A4, A5, A6, A7]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]] =
-      Lens(p => StoreT.store[F[A5], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t5)(x =>
-        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7))))
+      Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]](p => p.t5)(x => p =>
+        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, x, p.t6, p.t7)))
 
     implicit def Prod7Lens5[F[_], A1, A2, A3, A4, A5, A6, A7]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]] =
-      Lens(p => StoreT.store[F[A6], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t6)(x =>
-        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7))))
+      Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]](p => p.t6)(x => p =>
+        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, x, p.t7)))
 
     implicit def Prod7Lens6[F[_], A1, A2, A3, A4, A5, A6, A7]: Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] =
-      Lens(p => StoreT.store[F[A7], Prod7[F, A1, A2, A3, A4, A5, A6, A7]](p.t7)(x =>
-        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x))))
+      Lens[Prod7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]](p => p.t7)(x => p =>
+        Prod7[F, A1, A2, A3, A4, A5, A6, A7]((p.t1, p.t2, p.t3, p.t4, p.t5, p.t6, x)))
 
   }
 
@@ -241,7 +245,7 @@ trait Types7 {
 
   }
 
-  @newtype case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: (F[A1] \/ (F[A2] \/ (F[A3] \/ (F[A4] \/ (F[A5] \/ (F[A6] \/ F[A7]))))))) {
+  @newtype case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], Either[F[A6], F[A7]]]]]]]) {
     private def mapN = new Map7C[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7]] {}
 
     def map1[B](f: F[A1] => F[B]): Cop7[F, B, A2, A3, A4, A5, A6, A7] =
@@ -298,85 +302,85 @@ trait Types7 {
         def traverse[F[_], G[_], A[_]: Functor](c: Cop7[F, A1, A2, A3, A4, A5, A6, A7])(f: F ~> Lambda[a => A[G[a]]]): A[Cop7[G, A1, A2, A3, A4, A5, A6, A7]] =
           c.run match {
 
-            case -\/(x) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](-\/(y)))
+            case Left(x) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Left(y)))
 
-            case \/-(-\/(x)) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(y))))
+            case Right(Left(x)) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Left(y))))
 
-            case \/-(\/-(-\/(x))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(y)))))
+            case Right(Right(Left(x))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Left(y)))))
 
-            case \/-(\/-(\/-(-\/(x)))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(y))))))
+            case Right(Right(Right(Left(x)))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Left(y))))))
 
-            case \/-(\/-(\/-(\/-(-\/(x))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(y)))))))
+            case Right(Right(Right(Right(Left(x))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Left(y)))))))
 
-            case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(y))))))))
+            case Right(Right(Right(Right(Right(Left(x)))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Left(y))))))))
 
-            case \/-(\/-(\/-(\/-(\/-(\/-(x)))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(y))))))))
+            case Right(Right(Right(Right(Right(Right(x)))))) => Functor[A].map(f(x))(y => Cop7[G, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Right(y))))))))
 
           }
       }
 
     implicit def inja0F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] =
-      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](-\/(x)))
+      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Left(x)))
 
     implicit def inja1F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]] =
-      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(x))))
+      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Left(x))))
 
     implicit def inja2F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]] =
-      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(x)))))
+      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Left(x)))))
 
     implicit def inja3F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]] =
-      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(x))))))
+      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Left(x))))))
 
     implicit def inja4F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]] =
-      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(x)))))))
+      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Left(x)))))))
 
     implicit def inja5F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]] =
-      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(x))))))))
+      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Left(x))))))))
 
     implicit def inja6F[F[_], A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] =
-      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(x))))))))
+      Inj.instance(x => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Right(x))))))))
 
-    implicit def Cop7PLens0[F[_], A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] =
-      PLens(c => c.run match {
-        case -\/(x) => Some(StoreT.store[F[A1], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](-\/(y))))
+    implicit def Cop7Optional0[F[_], A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]] =
+      Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A1]](c => c.run match {
+        case Left(x) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Left(x)))
 
-    implicit def Cop7PLens1[F[_], A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]] =
-      PLens(c => c.run match {
-        case \/-(-\/(x)) => Some(StoreT.store[F[A2], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(-\/(y)))))
+    implicit def Cop7Optional1[F[_], A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]] =
+      Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A2]](c => c.run match {
+        case Right(Left(x)) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Left(x))))
 
-    implicit def Cop7PLens2[F[_], A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]] =
-      PLens(c => c.run match {
-        case \/-(\/-(-\/(x))) => Some(StoreT.store[F[A3], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(-\/(y))))))
+    implicit def Cop7Optional2[F[_], A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]] =
+      Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A3]](c => c.run match {
+        case Right(Right(Left(x))) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Left(x)))))
 
-    implicit def Cop7PLens3[F[_], A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]] =
-      PLens(c => c.run match {
-        case \/-(\/-(\/-(-\/(x)))) => Some(StoreT.store[F[A4], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(-\/(y)))))))
+    implicit def Cop7Optional3[F[_], A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]] =
+      Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A4]](c => c.run match {
+        case Right(Right(Right(Left(x)))) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Left(x))))))
 
-    implicit def Cop7PLens4[F[_], A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]] =
-      PLens(c => c.run match {
-        case \/-(\/-(\/-(\/-(-\/(x))))) => Some(StoreT.store[F[A5], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(-\/(y))))))))
+    implicit def Cop7Optional4[F[_], A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]] =
+      Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A5]](c => c.run match {
+        case Right(Right(Right(Right(Left(x))))) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Left(x)))))))
 
-    implicit def Cop7PLens5[F[_], A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]] =
-      PLens(c => c.run match {
-        case \/-(\/-(\/-(\/-(\/-(-\/(x)))))) => Some(StoreT.store[F[A6], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(-\/(y)))))))))
+    implicit def Cop7Optional5[F[_], A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]] =
+      Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A6]](c => c.run match {
+        case Right(Right(Right(Right(Right(Left(x)))))) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Left(x))))))))
 
-    implicit def Cop7PLens6[F[_], A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] =
-      PLens(c => c.run match {
-        case \/-(\/-(\/-(\/-(\/-(\/-(x)))))) => Some(StoreT.store[F[A7], Cop7[F, A1, A2, A3, A4, A5, A6, A7]](x)(y => Cop7[F, A1, A2, A3, A4, A5, A6, A7](\/-(\/-(\/-(\/-(\/-(\/-(y)))))))))
+    implicit def Cop7Optional6[F[_], A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]] =
+      Optional[Cop7[F, A1, A2, A3, A4, A5, A6, A7], F[A7]](c => c.run match {
+        case Right(Right(Right(Right(Right(Right(x)))))) => Some(x)
         case _ => None
-      })
+      })(x => _ => Cop7[F, A1, A2, A3, A4, A5, A6, A7](Right(Right(Right(Right(Right(Right(x))))))))
 
   }
 
@@ -403,26 +407,26 @@ trait Types7 {
     implicit def inja6Id[A1, A2, A3, A4, A5, A6, A7]: Inj[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A7] =
       inja6F[Id, A1, A2, A3, A4, A5, A6, A7]
 
-    implicit def Cop7PLens0Id[A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A1] =
-      Cop7PLens0[Id, A1, A2, A3, A4, A5, A6, A7]
+    implicit def Cop7Optional0Id[A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A1] =
+      Cop7Optional0[Id, A1, A2, A3, A4, A5, A6, A7]
 
-    implicit def Cop7PLens1Id[A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A2] =
-      Cop7PLens1[Id, A1, A2, A3, A4, A5, A6, A7]
+    implicit def Cop7Optional1Id[A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A2] =
+      Cop7Optional1[Id, A1, A2, A3, A4, A5, A6, A7]
 
-    implicit def Cop7PLens2Id[A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A3] =
-      Cop7PLens2[Id, A1, A2, A3, A4, A5, A6, A7]
+    implicit def Cop7Optional2Id[A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A3] =
+      Cop7Optional2[Id, A1, A2, A3, A4, A5, A6, A7]
 
-    implicit def Cop7PLens3Id[A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A4] =
-      Cop7PLens3[Id, A1, A2, A3, A4, A5, A6, A7]
+    implicit def Cop7Optional3Id[A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A4] =
+      Cop7Optional3[Id, A1, A2, A3, A4, A5, A6, A7]
 
-    implicit def Cop7PLens4Id[A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A5] =
-      Cop7PLens4[Id, A1, A2, A3, A4, A5, A6, A7]
+    implicit def Cop7Optional4Id[A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A5] =
+      Cop7Optional4[Id, A1, A2, A3, A4, A5, A6, A7]
 
-    implicit def Cop7PLens5Id[A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A6] =
-      Cop7PLens5[Id, A1, A2, A3, A4, A5, A6, A7]
+    implicit def Cop7Optional5Id[A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A6] =
+      Cop7Optional5[Id, A1, A2, A3, A4, A5, A6, A7]
 
-    implicit def Cop7PLens6Id[A1, A2, A3, A4, A5, A6, A7]: PLens[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A7] =
-      Cop7PLens6[Id, A1, A2, A3, A4, A5, A6, A7]
+    implicit def Cop7Optional6Id[A1, A2, A3, A4, A5, A6, A7]: Optional[Cop7[Id, A1, A2, A3, A4, A5, A6, A7], A7] =
+      Cop7Optional6[Id, A1, A2, A3, A4, A5, A6, A7]
 
   }
 }

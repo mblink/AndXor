@@ -1,7 +1,7 @@
 package andxor
 
-import scalaz.{Apply, Lens, Monoid, PLens}
-import scalaz.Id.Id
+import cats.{Apply, Id, Monoid}
+import monocle.{Lens, Optional}
 
 trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
   implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]]
@@ -39,7 +39,7 @@ trait AndXor { self =>
   def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
   def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
   def liftId[A](a: A)(implicit inj: Inj[Prod[Id], Id[A]]): Prod[Id] = inj(a)
-  def extractC[F[_], B](c: Cop[F])(implicit l: PLens[Cop[F], B]): Option[B] = l.get(c)
+  def extractC[F[_], B](c: Cop[F])(implicit l: Optional[Cop[F], B]): Option[B] = l.getOption(c)
   def extractP[F[_], B](p: Prod[F])(implicit l: Lens[Prod[F], B]): B = l.get(p)
 
   def derivingNestedCop[TC[_], F[_]](implicit dc: DerivingCop[Cop, F, TC]): DerivingCop[Cop, F, TC] = dc

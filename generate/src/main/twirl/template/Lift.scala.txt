@@ -1,12 +1,11 @@
+@import andxor.{LazyList, Zipper}
 @import andxor.syntax._
-@import scalaz.Zipper
-@import scalaz.syntax.std.boolean._
 
 @(z: Zipper[String], isId: Boolean)
 
-@prodAccesses(l: List[String], i: Int) = @{ l.zip(Stream.from(i)).map(t => s"t${z.toList.prodAccess(t._2 + 1)}") }
+@prodAccesses(l: List[String], i: Int) = @{ l.zip(LazyList.from(i)).map(t => s"t${z.toList.prodAccess(t._2 + 1)}") }
 @tpes = @{ z.toList }
-@F = @{ isId.fold("Id", "F") }
+@F = @{ if (isId) "Id" else "F" }
 @monoid(others: Boolean, ts: List[String] = tpes) = @{
   ts.foldLen01("")(others.fold[String => String](x => s", $x", x => s"(implicit $x)")(s" M: Monoid[${ts.prodTpeF(F)}]"))
 }
@@ -16,7 +15,7 @@
     lifta@{z.index}F[Id, @{tpes.tpeParams}]
 } else {
   implicit def lifta@{z.index}F[F[_], @{tpes.tpeParams}]@{monoid(false)}: Inj[@tpes.prodTpe, F[@z.focus]] = {
-    @tpes.foldLen01("")("val t = M.zero\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
+    @tpes.foldLen01("")("val t = M.empty\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
       prodAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
   }
 }

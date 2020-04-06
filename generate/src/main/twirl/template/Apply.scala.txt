@@ -1,9 +1,5 @@
 @import andxor.syntax._
 
 @(tpes: List[String])
-  def apply@{tpes.length}[F[_], @{tpes.tpeParams}, R](@{tpes.paramSig("=> F", "fa")})(
-      f: @{tpes.prod} => R)(
-      implicit A: Apply[F]): F[R] = {
-    import A._
-    @{tpes.paramList("fa").tail.foldLeft(s"map(fa0)(${tpes.paramList("a").mkString(" => ")} => f${tpes.paramList("a").mkTuple})")((a, e) => s"ap($e)($a)")}
-  }
+  def apply@{tpes.length}[F[_], @{tpes.tpeParams}, R](@{tpes.paramSig("=> F", "fa")})(f: @{tpes.prod} => R)(implicit A: Apply[F]): F[R] =
+    (@tpes.params("fa")).mapN(f)
