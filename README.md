@@ -31,27 +31,27 @@ import cats.syntax.show._
 
 ```scala
 val SIS = AndXor[String, Int, List[String]]
-// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@1db08002
+// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@2777e06b
 ```
 
 #### Lift values into a coproduct
 
 ```scala
 val cop1 = SIS.inj("foo")
-// cop1: SIS.Cop[Id] = Left("foo")
+// cop1: SIS.Cop[Id[A]] = Left("foo")
 val cop2 = SIS.inj(2)
-// cop2: SIS.Cop[Id] = Right(Left(2))
+// cop2: SIS.Cop[Id[A]] = Right(Left(2))
 val cop3 = SIS.inj(List("bar", "baz"))
-// cop3: SIS.Cop[Id] = Right(Right(List("bar", "baz")))
+// cop3: SIS.Cop[Id[A]] = Right(Right(List("bar", "baz")))
 ```
 
 #### Lift values into a product
 
 ```scala
 val listProd = SIS.lift(List(4)) |+| SIS.lift(List("foo")) |+| SIS.lift(List(List("bar")))
-// listProd: SIS.Prod[List] = (List("foo"), List(4), List(List("bar")))
+// listProd: SIS.Prod[List[A]] = (List("foo"), List(4), List(List("bar")))
 val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Option(List("bar")))
-// optionProd: SIS.Prod[Option] = (Some("foo"), Some(4), Some(List("bar")))
+// optionProd: SIS.Prod[Option[A]] = (Some("foo"), Some(4), Some(List("bar")))
 ```
 
 #### Derive typeclasses
@@ -59,7 +59,7 @@ val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Op
 ```scala
 // `Decidable[Show]` is provided for derivation over coproducts
 implicit val showCop = SIS.derivingId[Show].choose
-// showCop: Show[SIS.Cop[Id]] = cats.Show$$anon$2@c599fb7
+// showCop: Show[SIS.Cop[Id]] = cats.Show$$anon$2@1104171d
 List(cop1, cop2, cop3).show
 // res0: String = "List(foo, 2, List(bar, baz))"
 
@@ -72,11 +72,11 @@ implicit val divideShow: Divide[Show] = new Divide[Show] {
       a1.show(x) + ", " + a2.show(y)
     }
 }
-// divideShow: Divide[Show] = repl.Session$App$$anon$1@30da373d
+// divideShow: Divide[Show] = repl.Session$App$$anon$1@742465d4
 implicit val showListProd = SIS.deriving[Show, List].divide
-// showListProd: Show[SIS.Prod[List]] = cats.Show$$anon$2@499d523e
+// showListProd: Show[SIS.Prod[List]] = cats.Show$$anon$2@5ddfcba0
 implicit val showOptionProd = SIS.deriving[Show, Option].divide
-// showOptionProd: Show[SIS.Prod[Option]] = cats.Show$$anon$2@c8c946
+// showOptionProd: Show[SIS.Prod[Option]] = cats.Show$$anon$2@6aa09551
 (listProd.show, optionProd.show)
 // res1: (String, String) = (
 //   "List(foo), List(4), List(List(bar))",
@@ -90,11 +90,11 @@ implicit val showOptionProd = SIS.deriving[Show, Option].divide
 FFunctor[SIS.Prod].map(listProd)(new (List ~> Option) {
   def apply[A](l: List[A]): Option[A] = l.headOption
 })
-// res2: SIS.Prod[Option] = (Some("foo"), Some(4), Some(List("bar")))
+// res2: SIS.Prod[Option[A]] = (Some("foo"), Some(4), Some(List("bar")))
 FFunctor[SIS.Prod].map(optionProd)(new (Option ~> List) {
   def apply[A](o: Option[A]): List[A] = o.toList
 })
-// res3: SIS.Prod[List] = (List("foo"), List(4), List(List("bar")))
+// res3: SIS.Prod[List[A]] = (List("foo"), List(4), List(List("bar")))
 ```
 
 #### Sequence a `Prod` or `Cop` into `Id`

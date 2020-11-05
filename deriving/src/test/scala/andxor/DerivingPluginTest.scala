@@ -35,19 +35,19 @@ object typeclasses {
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
-    implicit def readLabelled[A, L <: Singleton with String](implicit l: L, r: Read[A]): Read[Labelled.Aux[A, L]] =
+    implicit def readLabelled[A, L <: Singleton with String](implicit l: ValueOf[L], r: Read[A]): Read[Labelled.Aux[A, L]] =
       new Read[Labelled.Aux[A, L]] {
         def read(s: String): Option[Labelled.Aux[A, L]] =
-          s.split("\n").toList.flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
+          s.split("\n").toList.flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l.value))
       }
 
     implicit def readAdtVal[A <: Singleton, L <: Singleton with String](
-      implicit
-      label: L,
-      value: Labelled.Aux[ADTValue[A], L]): Read[Labelled.Aux[ADTValue[A], L]] =
+      implicit label: ValueOf[L],
+      value: Labelled.Aux[ADTValue[A], L]
+    ): Read[Labelled.Aux[ADTValue[A], L]] =
       new Read[Labelled.Aux[ADTValue[A], L]] {
         def read(s: String): Option[Labelled.Aux[ADTValue[A], L]] =
-          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
+          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label.value)).headOption.map(_ => value)
       }
 
     implicit def readList[A: Read]: Read[List[A]] = new Read[List[A]] {
@@ -117,6 +117,11 @@ object types {
 
   @deriving case class NoInstances(s: String)
 
+  // Test that zero-member coproduct warning is triggered
+  // The nowarn annotation will cause a "does not suppress any warnings" error if not
+  @annotation.nowarn("msg=zero-member coproduct")
+  @deriving sealed trait EmptyCop
+
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed trait Foo
   case object Bar extends Foo
@@ -170,6 +175,9 @@ object types {
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams1[A1](x0: A1)
+
+  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  case class TParamsDup[A](a1: A, a2: A)
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK1[F[_], A1](run: F[A1])
@@ -388,93 +396,94 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
+  proof[TParamsDup[String]]("TParamsDup")
 
-  proof[Test1](" Test1 ")
-  proof[TParams1[String]](" TParams1 ")
-  proof[HK1[TParams1, String]](" HK1 ")
+  proof[Test1]("Test1")
+  proof[TParams1[String]]("TParams1")
+  proof[HK1[TParams1, String]]("HK1")
 
-  proof[Test2](" Test2 ")
-  proof[TParams2[String, String]](" TParams2 ")
-  proof[HK2[TParams2, String, String]](" HK2 ")
+  proof[Test2]("Test2")
+  proof[TParams2[String, String]]("TParams2")
+  proof[HK2[TParams2, String, String]]("HK2")
 
-  proof[Test3](" Test3 ")
-  proof[TParams3[String, String, String]](" TParams3 ")
-  proof[HK3[TParams3, String, String, String]](" HK3 ")
+  proof[Test3]("Test3")
+  proof[TParams3[String, String, String]]("TParams3")
+  proof[HK3[TParams3, String, String, String]]("HK3")
 
-  proof[Test4](" Test4 ")
-  proof[TParams4[String, String, String, String]](" TParams4 ")
-  proof[HK4[TParams4, String, String, String, String]](" HK4 ")
+  proof[Test4]("Test4")
+  proof[TParams4[String, String, String, String]]("TParams4")
+  proof[HK4[TParams4, String, String, String, String]]("HK4")
 
-  proof[Test5](" Test5 ")
-  proof[TParams5[String, String, String, String, String]](" TParams5 ")
-  proof[HK5[TParams5, String, String, String, String, String]](" HK5 ")
+  proof[Test5]("Test5")
+  proof[TParams5[String, String, String, String, String]]("TParams5")
+  proof[HK5[TParams5, String, String, String, String, String]]("HK5")
 
-  proof[Test6](" Test6 ")
-  proof[TParams6[String, String, String, String, String, String]](" TParams6 ")
-  proof[HK6[TParams6, String, String, String, String, String, String]](" HK6 ")
+  proof[Test6]("Test6")
+  proof[TParams6[String, String, String, String, String, String]]("TParams6")
+  proof[HK6[TParams6, String, String, String, String, String, String]]("HK6")
 
-  proof[Test7](" Test7 ")
-  proof[TParams7[String, String, String, String, String, String, String]](" TParams7 ")
-  proof[HK7[TParams7, String, String, String, String, String, String, String]](" HK7 ")
+  proof[Test7]("Test7")
+  proof[TParams7[String, String, String, String, String, String, String]]("TParams7")
+  proof[HK7[TParams7, String, String, String, String, String, String, String]]("HK7")
 
-  proof[Test8](" Test8 ")
-  proof[TParams8[String, String, String, String, String, String, String, String]](" TParams8 ")
-  proof[HK8[TParams8, String, String, String, String, String, String, String, String]](" HK8 ")
+  proof[Test8]("Test8")
+  proof[TParams8[String, String, String, String, String, String, String, String]]("TParams8")
+  proof[HK8[TParams8, String, String, String, String, String, String, String, String]]("HK8")
 
-  proof[Test9](" Test9 ")
-  proof[TParams9[String, String, String, String, String, String, String, String, String]](" TParams9 ")
-  proof[HK9[TParams9, String, String, String, String, String, String, String, String, String]](" HK9 ")
+  proof[Test9]("Test9")
+  proof[TParams9[String, String, String, String, String, String, String, String, String]]("TParams9")
+  proof[HK9[TParams9, String, String, String, String, String, String, String, String, String]]("HK9")
 
-  proof[Test10](" Test10 ")
-  proof[TParams10[String, String, String, String, String, String, String, String, String, String]](" TParams10 ")
-  proof[HK10[TParams10, String, String, String, String, String, String, String, String, String, String]](" HK10 ")
+  proof[Test10]("Test10")
+  proof[TParams10[String, String, String, String, String, String, String, String, String, String]]("TParams10")
+  proof[HK10[TParams10, String, String, String, String, String, String, String, String, String, String]]("HK10")
 
-  proof[Test11](" Test11 ")
-  proof[TParams11[String, String, String, String, String, String, String, String, String, String, String]](" TParams11 ")
-  proof[HK11[TParams11, String, String, String, String, String, String, String, String, String, String, String]](" HK11 ")
+  proof[Test11]("Test11")
+  proof[TParams11[String, String, String, String, String, String, String, String, String, String, String]]("TParams11")
+  proof[HK11[TParams11, String, String, String, String, String, String, String, String, String, String, String]]("HK11")
 
-  proof[Test12](" Test12 ")
-  proof[TParams12[String, String, String, String, String, String, String, String, String, String, String, String]](" TParams12 ")
-  proof[HK12[TParams12, String, String, String, String, String, String, String, String, String, String, String, String]](" HK12 ")
+  proof[Test12]("Test12")
+  proof[TParams12[String, String, String, String, String, String, String, String, String, String, String, String]]("TParams12")
+  proof[HK12[TParams12, String, String, String, String, String, String, String, String, String, String, String, String]]("HK12")
 
-  proof[Test13](" Test13 ")
-  proof[TParams13[String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams13 ")
-  proof[HK13[TParams13, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK13 ")
+  proof[Test13]("Test13")
+  proof[TParams13[String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams13")
+  proof[HK13[TParams13, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK13")
 
-  proof[Test14](" Test14 ")
-  proof[TParams14[String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams14 ")
-  proof[HK14[TParams14, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK14 ")
+  proof[Test14]("Test14")
+  proof[TParams14[String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams14")
+  proof[HK14[TParams14, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK14")
 
-  proof[Test15](" Test15 ")
-  proof[TParams15[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams15 ")
-  proof[HK15[TParams15, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK15 ")
+  proof[Test15]("Test15")
+  proof[TParams15[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams15")
+  proof[HK15[TParams15, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK15")
 
-  proof[Test16](" Test16 ")
-  proof[TParams16[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams16 ")
-  proof[HK16[TParams16, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK16 ")
+  proof[Test16]("Test16")
+  proof[TParams16[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams16")
+  proof[HK16[TParams16, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK16")
 
-  proof[Test17](" Test17 ")
-  proof[TParams17[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams17 ")
-  proof[HK17[TParams17, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK17 ")
+  proof[Test17]("Test17")
+  proof[TParams17[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams17")
+  proof[HK17[TParams17, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK17")
 
-  proof[Test18](" Test18 ")
-  proof[TParams18[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams18 ")
-  proof[HK18[TParams18, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK18 ")
+  proof[Test18]("Test18")
+  proof[TParams18[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams18")
+  proof[HK18[TParams18, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK18")
 
-  proof[Test19](" Test19 ")
-  proof[TParams19[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams19 ")
-  proof[HK19[TParams19, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK19 ")
+  proof[Test19]("Test19")
+  proof[TParams19[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams19")
+  proof[HK19[TParams19, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK19")
 
-  proof[Test20](" Test20 ")
-  proof[TParams20[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams20 ")
-  proof[HK20[TParams20, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK20 ")
+  proof[Test20]("Test20")
+  proof[TParams20[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams20")
+  proof[HK20[TParams20, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK20")
 
-  proof[Test21](" Test21 ")
-  proof[TParams21[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams21 ")
-  proof[HK21[TParams21, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK21 ")
+  proof[Test21]("Test21")
+  proof[TParams21[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams21")
+  proof[HK21[TParams21, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK21")
 
-  proof[Test22](" Test22 ")
-  proof[TParams22[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" TParams22 ")
-  proof[HK22[TParams22, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]](" HK22 ")
+  proof[Test22]("Test22")
+  proof[TParams22[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams22")
+  proof[HK22[TParams22, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK22")
 
 }

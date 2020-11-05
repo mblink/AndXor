@@ -1,3 +1,3 @@
 package andxor
 
-private[andxor] class unused extends com.github.ghik.silencer.silent("unused")
+private[andxor] class unused extends annotation.nowarn("msg=unused")

@@ -14,7 +14,7 @@ trait FoldMap[Prod[_[_]], Cop[_[_]]] {
     q.isEmpty match {
       case true => out
       case false =>
-        val newOut = f(out, q.dequeue)
+        val newOut = f(out, q.dequeue())
         appendAll(newOut, q, f)
     }
 
@@ -34,7 +34,7 @@ trait FoldMap[Prod[_[_]], Cop[_[_]]] {
             go(ts, q, out)
           }
           case false =>
-            val cop = q.dequeue
+            val cop = q.dequeue()
             val (toAdd, newProd) = unconsOne[F, G](prod, cop)
             go(newProd, q ++= toAdd, f(out, cop))
         }

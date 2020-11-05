@@ -58,8 +58,8 @@ package object argonaut extends LPArgonaut {
   implicit val encodeJsonDivide: Divide[EncodeJson] = Divide.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
   implicit val encodeJsonDecide: Decidable[EncodeJson] = Decidable.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
 
-  implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit label: L): DecodeJson[Labelled.Aux[A, L]] =
-    DecodeJson(_.get[A](label).map(Labelled(_, label)))
+  implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit label: ValueOf[L]): DecodeJson[Labelled.Aux[A, L]] =
+    DecodeJson(_.get[A](label.value).map(Labelled(_, label.value)))
 
   implicit val decodeJsonApply: Apply[DecodeJson] = new Apply[DecodeJson] {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)

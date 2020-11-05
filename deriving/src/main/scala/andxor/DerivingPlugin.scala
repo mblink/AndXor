@@ -3,7 +3,7 @@ package andxor
 import ann._
 import andxor.compat.ParseNamedArg
 import scala.collection.mutable.{Map => MMap}
-import scala.tools.nsc.Global
+import scala.tools.nsc.{Global, Reporting}
 
 class DerivingPlugin(override val global: Global) extends AnnotationPlugin(global) with ParseNamedArg { self =>
   import global._
@@ -177,11 +177,9 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   case class Label(paramName: Name) {
     // Don't use `freshName` because label name needs to be deterministic
     final val valName = TermName(s"andxor_label_${paramName.decode}")
-    final val singletonTpe: SingletonTypeTree = SingletonTypeTree(Ident(valName))
-    private val implValName = TermName(s"${valName}_impl")
+    final val singletonTpe: ConstantType = ConstantType(Constant(paramName.decode))
     final val defns: List[Tree] = List(
-      q"val $valName: String = ${Literal(Constant(paramName.decode))}",
-      q"implicit val $implValName: $singletonTpe = $valName"
+      q"val $valName: $singletonTpe = ${Literal(Constant(paramName.decode))}"
     )
   }
 
@@ -400,16 +398,25 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     )(${Ident(tc.tree.isoName)}[..${tc.tree.tparamNames}].${tc.variance.isoFunction})
     """
 
+  class ParamTpe(val param: Param) {
+    val tpe = param.tpe
+    override def equals(other: Any): Boolean = other match {
+      case t: ParamTpe => param.tpe.equalsStructure(t.param.tpe)
+      case _ => false
+    }
+  }
+
   def derivedTypeclass[P <: Param](tc: Typeclass[P]): Tree =
     valOrDef(Modifiers(Flag.IMPLICIT), tc.memberName, tc.tree.tparamsNoVariance,
       Some(tc.tree.abstractParams).filter(_.nonEmpty).fold(List[List[ValDef]]())(
-        ps => List(ps.map(p => q"${Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC)} val ${TermName(freshName("ev"))}: ${tc.typeclass}[${p.tpe}]"))),
+        ps => List(Set(ps.map(new ParamTpe(_)):_*).toList.map(p =>
+          q"${Modifiers(Flag.IMPLICIT | Flag.PARAM | Flag.SYNTHETIC)} val ${TermName(freshName("ev"))}: ${tc.typeclass}[${p.tpe}]"))),
       tq"${tc.typeclass}[${tc.tree.tpe}]", mkDerivedTypeclass(tc))
 
   def getTypeclasses[P <: Param](tcs: List[Tree], tree: GenTree[P], variance: Variance[P]): List[Typeclass[P]] =
     tcs.map(tc => Typeclass(tree, termToType(tc), variance, memberName(tc)))
 
-  @com.github.ghik.silencer.silent("never used")
+  @annotation.nowarn("msg=never used")
   def parseArgs[P <: Param](args: List[Tree], base: GenTree[P], labelled: GenTree[P]): List[Typeclass[Param]] = {
     val prod = Some(base).collect { case _: ProdTree => true }.getOrElse(false)
     val (co, contra) = if (prod) (CovariantProduct, ContravariantProduct) else  (CovariantCoproduct, ContravariantCoproduct)
@@ -455,7 +462,15 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     val tcs = parseArgs(modArgs, base, labelled)
 
     (base, base.params) match {
-      case (_: CopTree, Nil) => warning(trigger.pos, "Unable to derive over a zero-member coproduct"); Nil
+      case (_: CopTree, Nil) =>
+        runReporting.warning(
+          trigger.pos,
+          "Unable to derive over a zero-member coproduct",
+          Reporting.WarningCategory.Other,
+          "")
+
+        Nil
+
       case _ => List(q"""
         object andxor {
           ..${labels(labelled) :::

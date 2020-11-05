@@ -8,10 +8,10 @@ import sbt._
 import sbt.Keys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.12.11", "2.13.1")
+  lazy val scalaVersions = Seq("2.13.3")
 
   val splainSettings = Seq(
-    addCompilerPlugin("io.tryp" % "splain" % "0.5.1" cross CrossVersion.patch),
+    addCompilerPlugin("io.tryp" % "splain" % "0.5.7" cross CrossVersion.patch),
     scalacOptions ++= Seq(
       "-P:splain:all",
       "-P:splain:foundreq:false",
@@ -22,7 +22,6 @@ object Build {
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
-      case Some((2, 12)) => Seq(srcBaseDir / srcName / "scala-2.12")
       case Some((2, 13)) => Seq(srcBaseDir / srcName / "scala-2.13")
       case _ => Seq()
     }
@@ -41,18 +40,12 @@ object Build {
     sources in (Compile, doc) := Seq()
   )
 
-  val catsVersion = "2.1.1"
-  val monocleVersion = "2.0.3"
-  val silencerVersion = "1.6.0"
+  val catsVersion = "2.2.0"
+  val monocleVersion = "2.1.0"
   val scalacheckVersion = "1.14.3"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
-  val silencerSettings = Seq(
-    addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-    libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
-  )
-
-  val commonSettings = baseSettings ++ silencerSettings ++ Seq(
+  val commonSettings = baseSettings ++ Seq(
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
       "org.typelevel" %% "cats-laws" % catsVersion % "test",
@@ -134,7 +127,6 @@ object Build {
   def compilerPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
     proj
       .settings(baseSettings)
-      .settings(silencerSettings)
       .settings(publishSettings)
       .settings(pluginOptions(pluginOpts))
       .settings(name := nme)

@@ -29,6 +29,10 @@ lazy val root: Project = project.in(file("."))
   .aggregate(generate, core, argonaut, circe, scalacheck, deriving, newtype)
 
 lazy val docs = project.in(file("andxor-docs"))
-  .settings(mdocOut := file("."), scalaVersion := "2.12.11")
+  .settings(commonSettings)
+  .settings(
+    mdocOut := file("."),
+    scalacOptions += "-Wconf:msg=any2stringadd:s"
+  )
   .dependsOn(core)
   .enablePlugins(MdocPlugin)

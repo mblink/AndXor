@@ -59,9 +59,9 @@ package object circe extends LPCirce {
   implicit val encoderDivide: Divide[Encoder] = Divide.fromIso(encoderToEncoderF, encoderFToEncoder)
   implicit val encoderDecide: Decidable[Encoder] = Decidable.fromIso(encoderToEncoderF, encoderFToEncoder)
 
-  implicit def decoderLabelled[L <: Singleton with String, A: Decoder](implicit label: L): Decoder[Labelled.Aux[A, L]] =
-    Decoder.instance(_.get[A](label) match {
-      case Right(x) => Right(Labelled(x, label))
+  implicit def decoderLabelled[L <: Singleton with String, A: Decoder](implicit label: ValueOf[L]): Decoder[Labelled.Aux[A, L]] =
+    Decoder.instance(_.get[A](label.value) match {
+      case Right(x) => Right(Labelled(x, label.value))
       case Left(f) => Left(f)
     })
 
