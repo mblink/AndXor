@@ -4,9 +4,9 @@
 
 @tpeLists = @{ mkTpeList(1, maxLen) }
 
-@testCCName(ts: List[String]) = { Test@{ts.length} }
-@tparamsCCName(ts: List[String]) = { TParams@{ts.length} }
-@hkCCName(ts: List[String]) = { HK@{ts.length} }
+@testCCName(ts: List[String]) = @{ s"Test${ts.length}" }
+@tparamsCCName(ts: List[String]) = @{ s"TParams${ts.length}" }
+@hkCCName(ts: List[String]) = @{ s"HK${ts.length}" }
 
 @testCCValueTpe(i: Int) = @{ List("Int", "String", "Boolean").apply(i % 3) }
 
@@ -44,19 +44,19 @@ object typeclasses {
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
-    implicit def readLabelled[A, L <: Singleton with String](implicit l: L, r: Read[A]): Read[Labelled.Aux[A, L]] =
+    implicit def readLabelled[A, L <: Singleton with String](implicit l: ValueOf[L], r: Read[A]): Read[Labelled.Aux[A, L]] =
       new Read[Labelled.Aux[A, L]] {
         def read(s: String): Option[Labelled.Aux[A, L]] =
-          s.split("\n").toList.flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l))
+          s.split("\n").toList.flatMap(_.split(s"${l.value} := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l.value))
       }
 
     implicit def readAdtVal[A <: Singleton, L <: Singleton with String](
-      implicit label: L,
+      implicit label: ValueOf[L],
       value: Labelled.Aux[ADTValue[A], L]
     ): Read[Labelled.Aux[ADTValue[A], L]] =
       new Read[Labelled.Aux[ADTValue[A], L]] {
         def read(s: String): Option[Labelled.Aux[ADTValue[A], L]] =
-          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label)).headOption.map(_ => value)
+          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label.value)).headOption.map(_ => value)
       }
 
     implicit def readList[A: Read]: Read[List[A]] = new Read[List[A]] {
@@ -126,6 +126,11 @@ object types {
 
   @@deriving case class NoInstances(s: String)
 
+  // Test that zero-member coproduct warning is triggered
+  // The nowarn annotation will cause a "does not suppress any warnings" error if not
+  @@annotation.nowarn("msg=zero-member coproduct")
+  @@deriving sealed trait EmptyCop
+
   @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed trait Foo
   case object Bar extends Foo
@@ -145,6 +150,16 @@ object types {
   case object Inst5 extends Trait3 { val value = Some(5) }
   @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Inst6(x: String) extends Trait3 { val value = Try(x.toInt).toOption }
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  sealed abstract class AbstractClass(val i: Int)
+  object AbstractClass {
+    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    case class Foo(s: String, b: Boolean) extends AbstractClass(1)
+    case object Bar extends AbstractClass(2)
+    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    case class Baz(override val i: Int) extends AbstractClass(3)
+  }
 
   @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Multi(str: String)(val int: Int)
@@ -172,6 +187,9 @@ object types {
     def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
       ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
   }
+
+  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  case class TParamsDup[A](a1: A, a2: A)
 
   @tpeLists.map { tpes =>
     @if(tpes.length == 1) { @@newtype }
@@ -205,6 +223,7 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[Foo]("Foo")
   proof[Baz]("Baz")
   proof[Trait0]("Trait0")
+  proof[AbstractClass]("AbstractClass")
   proof[Multi]("Multi")
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
   proof[Covariant[String]]("Covariant")

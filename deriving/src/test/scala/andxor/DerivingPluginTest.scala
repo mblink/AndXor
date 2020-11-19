@@ -38,13 +38,13 @@ object typeclasses {
     implicit def readLabelled[A, L <: Singleton with String](implicit l: ValueOf[L], r: Read[A]): Read[Labelled.Aux[A, L]] =
       new Read[Labelled.Aux[A, L]] {
         def read(s: String): Option[Labelled.Aux[A, L]] =
-          s.split("\n").toList.flatMap(_.split(s"$l := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l.value))
+          s.split("\n").toList.flatMap(_.split(s"${l.value} := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l.value))
       }
 
     implicit def readAdtVal[A <: Singleton, L <: Singleton with String](
-      implicit label: ValueOf[L],
-      value: Labelled.Aux[ADTValue[A], L]
-    ): Read[Labelled.Aux[ADTValue[A], L]] =
+      implicit
+      label: ValueOf[L],
+      value: Labelled.Aux[ADTValue[A], L]): Read[Labelled.Aux[ADTValue[A], L]] =
       new Read[Labelled.Aux[ADTValue[A], L]] {
         def read(s: String): Option[Labelled.Aux[ADTValue[A], L]] =
           s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label.value)).headOption.map(_ => value)
@@ -143,6 +143,16 @@ object types {
   case class Inst6(x: String) extends Trait3 { val value = Try(x.toInt).toOption }
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  sealed abstract class AbstractClass(val i: Int)
+  object AbstractClass {
+    @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    case class Foo(s: String, b: Boolean) extends AbstractClass(1)
+    case object Bar extends AbstractClass(2)
+    @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    case class Baz(override val i: Int) extends AbstractClass(3)
+  }
+
+  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Multi(str: String)(val int: Int)
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -169,15 +179,15 @@ object types {
       ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
   }
 
+  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  case class TParamsDup[A](a1: A, a2: A)
+
   @newtype
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test1(x0: Int)
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams1[A1](x0: A1)
-
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
-  case class TParamsDup[A](a1: A, a2: A)
 
   @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK1[F[_], A1](run: F[A1])
@@ -392,11 +402,11 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[Foo]("Foo")
   proof[Baz]("Baz")
   proof[Trait0]("Trait0")
+  proof[AbstractClass]("AbstractClass")
   proof[Multi]("Multi")
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
-  proof[TParamsDup[String]]("TParamsDup")
 
   proof[Test1]("Test1")
   proof[TParams1[String]]("TParams1")

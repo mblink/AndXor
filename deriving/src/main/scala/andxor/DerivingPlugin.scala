@@ -184,7 +184,11 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   }
 
   private def extendsTpe(tpeName: TypeName, parents: List[Tree]): Boolean =
-    parents.collectFirst { case Ident(TypeName(n)) if n == tpeName.decode => () }.nonEmpty
+    parents.exists(_ match {
+      case Ident(TypeName(n)) if n == tpeName.decode => true
+      case Apply(Ident(TypeName(n)), _) if n == tpeName.decode => true
+      case _ => false
+    })
 
   private def concreteChildOfTpe(tpeName: TypeName, tree: Tree): Option[Either[ClassDef, ModuleDef]] =
     tree match {
