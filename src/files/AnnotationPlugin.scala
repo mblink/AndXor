@@ -229,7 +229,6 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
         companion <- Reader((_: LocalScope).objects.get(tree.name.decode))
         t = extractTrigger(tree)
         updated <- updF(t._1, t._2, companion)
-        upd = (ts: Vector[Tree], p: Position) => ts.map(withAllPos(_, p))
         updA = updated._1.map(_._1).map(withAllPos(_, tree.pos))
         updCompanion = updated._1.flatMap(_._2).map(withAllPos(_, companion.getOrElse(tree).pos))
         updExtra = updated._2.map(withAllPos(_, tree.pos))
