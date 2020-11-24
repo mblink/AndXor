@@ -8,7 +8,7 @@ import sbt._
 import sbt.Keys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.13.3")
+  lazy val scalaVersions = Seq("2.13.4")
 
   val splainSettings = Seq(
     addCompilerPlugin("io.tryp" % "splain" % "0.5.7" cross CrossVersion.patch),
@@ -31,7 +31,7 @@ object Build {
     crossScalaVersions := scalaVersions,
     scalaVersion := scalaVersions.find(_.startsWith("2.13")).get,
     version := currentVersion,
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.1" cross CrossVersion.full),
     unmanagedSourceDirectories in Compile ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     unmanagedSourceDirectories in Test ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
     skip in publish := true,

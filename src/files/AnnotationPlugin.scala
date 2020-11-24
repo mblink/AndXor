@@ -282,8 +282,6 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       @tailrec
       def go(queue: Vector[Tree], out: Vector[Tree]): Vector[Tree] =
         queue match {
-          case Vector() => out
-
           case (c: ClassDef) +: tail if hasTrigger(c.mods) =>
             val (updC, companion, extras) =
               (if (isTrait(c)) updateTreeAndCompanion(c, updateTrait)
@@ -303,6 +301,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
               out ++ processResult("type", updT, companion, extras))
 
           case t +: tail => go(tail, out :+ t)
+
+          case _ => out
         }
 
       go(trees.toVector, Vector()).toList

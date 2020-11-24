@@ -441,7 +441,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
             case Some((q"Seq(..$xs)", (v, l))) => (remArgs, tcs ++ getTypeclasses[Param](xs, tree(l), v))
             case Some((q"Set(..$xs)", (v, l))) => (remArgs, tcs ++ getTypeclasses[Param](xs, tree(l), v))
             case Some((q"Vector(..$xs)", (v, l))) => (remArgs, tcs ++ getTypeclasses[Param](xs, tree(l), v))
-            case None => (remArgs :+ t, tcs)
+            case Some(_) | None => (remArgs :+ t, tcs)
           }
       }
     }
