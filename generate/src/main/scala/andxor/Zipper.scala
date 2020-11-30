@@ -38,16 +38,16 @@ final case class Zipper[+A](lefts: LazyList[A], focus: A, rights: LazyList[A]) {
    * Possibly moves to next element to the right of focus.
    */
   def next: Option[Zipper[A]] = rights match {
-    case LazyList() => None
-    case r #:: rs     => Some(zipper(LazyList.cons(focus, lefts), r, rs))
+    case r #:: rs => Some(zipper(LazyList.cons(focus, lefts), r, rs))
+    case _ => None
   }
 
   /**
    * Possibly moves to the previous element to the left of focus.
    */
   def previous: Option[Zipper[A]] = lefts match {
-    case LazyList() => None
-    case l #:: ls     => Some(zipper(ls, l, LazyList.cons(focus, rights)))
+    case l #:: ls => Some(zipper(ls, l, LazyList.cons(focus, rights)))
+    case _ => None
   }
 
   def foldLeft[B](b: B)(f: (B, A) => B): B =
