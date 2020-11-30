@@ -98,6 +98,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     implicit lazy val getClassStats: Get[ClassDef, List[Tree]] = Get(_.impl.body.flatMap(_ match {
       case v: ValDef => if (v.mods.isCaseAccessor || v.mods.isParamAccessor) Nil else List(v)
       case d: DefDef => if (d.name == termNames.CONSTRUCTOR) Nil else List(d)
+      case _ => Nil
     }))
     implicit lazy val getObjStats: Get[ModuleDef, List[Tree]] = Get(_.impl.body)
   }

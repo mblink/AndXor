@@ -30,6 +30,7 @@ object Build {
     organization := "andxor",
     crossScalaVersions := scalaVersions,
     scalaVersion := scalaVersions.find(_.startsWith("2.13")).get,
+    scalacOptions += "-Xlint:strict-unsealed-patmat",
     version := currentVersion,
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.1" cross CrossVersion.full),
     unmanagedSourceDirectories in Compile ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
