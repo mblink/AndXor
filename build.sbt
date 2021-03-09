@@ -25,7 +25,10 @@ lazy val newtype: Project = newtypeBase
 
 lazy val root: Project = project.in(file("."))
   .settings(commonSettings)
-  .settings(crossScalaVersions := Seq())
+  .settings(
+    crossScalaVersions := Seq(),
+    gitRelease := {}
+  )
   .aggregate(generate, core, argonaut, circe, scalacheck, deriving, newtype)
 
 lazy val docs = project.in(file("andxor-docs"))
