@@ -1,11 +1,11 @@
 package andxor
 
-import bintray.BintrayKeys._
 import java.io.File
 import play.twirl.sbt.Import.TwirlKeys
 import play.twirl.sbt.SbtTwirl
 import sbt._
 import sbt.Keys._
+import sbtgitpublish.GitPublishKeys._
 
 object Build {
   lazy val scalaVersions = Seq("2.13.4")
@@ -41,9 +41,9 @@ object Build {
     sources in (Compile, doc) := Seq()
   )
 
-  val catsVersion = "2.2.0"
+  val catsVersion = "2.4.2"
   val monocleVersion = "2.1.0"
-  val scalacheckVersion = "1.14.3"
+  val scalacheckVersion = "1.15.3"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
   val commonSettings = baseSettings ++ Seq(
@@ -57,9 +57,7 @@ object Build {
 
   val publishSettings = Seq(
     skip in publish := false,
-    bintrayOrganization := Some("bondlink"),
-    bintrayRepository := "andxor",
-    bintrayReleaseOnPublish in ThisBuild := false,
+    gitPublishDir := file("/src/maven-repo"),
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
   )
 
@@ -71,12 +69,12 @@ object Build {
       name := "andxor-generate",
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
-        "com.github.pathikrit" %% "better-files" % "3.8.0",
+        "com.github.pathikrit" %% "better-files" % "3.9.1",
         "org.scalariform" %% "scalariform" % "0.2.10",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ),
       TwirlKeys.templateImports := Seq(),
-      bintrayRelease := {}
+      gitRelease := {}
     )).enablePlugins(SbtTwirl)
 
   def coreBase = Project("core", file("core"))
@@ -91,10 +89,10 @@ object Build {
     .settings(testSettings)
     .settings(Seq(
       name := "andxor-argonaut",
-      libraryDependencies += "io.argonaut" %% "argonaut" % "6.2.3"
+      libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.3"
     ))
 
-  val circeVersion = "0.13.0"
+  val circeVersion = "0.14.0-M4"
   def circeBase = Project("circe", file("circe"))
     .settings(commonSettings)
     .settings(publishSettings)
@@ -104,7 +102,7 @@ object Build {
         "io.circe" %% "circe-core" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "io.circe" %% "circe-generic" % circeVersion % "test",
-        "io.circe" %% "circe-generic-extras" % circeVersion % "test"
+        "io.circe" %% "circe-generic-extras" % "0.13.1-M4" % "test"
       )
     ))
 

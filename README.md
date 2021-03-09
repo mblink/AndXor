@@ -31,7 +31,7 @@ import cats.syntax.show._
 
 ```scala
 val SIS = AndXor[String, Int, List[String]]
-// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@2777e06b
+// SIS: AndXor3[String, Int, List[String]] = andxor.AndXor3$$anon$7@55d4df03
 ```
 
 #### Lift values into a coproduct
@@ -59,7 +59,7 @@ val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Op
 ```scala
 // `Decidable[Show]` is provided for derivation over coproducts
 implicit val showCop = SIS.derivingId[Show].choose
-// showCop: Show[SIS.Cop[Id]] = cats.Show$$anon$2@1104171d
+// showCop: Show[SIS.Cop[Id]] = cats.Show$$anon$2@3b13bb31
 List(cop1, cop2, cop3).show
 // res0: String = "List(foo, 2, List(bar, baz))"
 
@@ -72,11 +72,11 @@ implicit val divideShow: Divide[Show] = new Divide[Show] {
       a1.show(x) + ", " + a2.show(y)
     }
 }
-// divideShow: Divide[Show] = repl.Session$App$$anon$1@742465d4
+// divideShow: Divide[Show] = repl.Session$App$$anon$1@7e2e57cf
 implicit val showListProd = SIS.deriving[Show, List].divide
-// showListProd: Show[SIS.Prod[List]] = cats.Show$$anon$2@5ddfcba0
+// showListProd: Show[SIS.Prod[List]] = cats.Show$$anon$2@627181eb
 implicit val showOptionProd = SIS.deriving[Show, Option].divide
-// showOptionProd: Show[SIS.Prod[Option]] = cats.Show$$anon$2@6aa09551
+// showOptionProd: Show[SIS.Prod[Option]] = cats.Show$$anon$2@68efacf4
 (listProd.show, optionProd.show)
 // res1: (String, String) = (
 //   "List(foo), List(4), List(List(bar))",
