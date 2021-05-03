@@ -10,15 +10,15 @@ lazy val core: Project = coreBase
 lazy val scalacheck = scalacheckBase.dependsOn(core)
 
 lazy val argonaut: Project = argonautBase
-  .settings(scalacOptions in Test ++= enablePlugin((derivingBase / Compile / Keys.`package`).value, derivingFlags))
+  .settings(Test / scalacOptions ++= enablePlugin((derivingBase / Compile / Keys.`package`).value, derivingFlags))
   .dependsOn(core, scalacheck % "test")
 
 lazy val circe: Project = circeBase
-  .settings(scalacOptions in Test ++= enablePlugin((derivingBase / Compile / Keys.`package`).value, derivingFlags))
+  .settings(Test / scalacOptions ++= enablePlugin((derivingBase / Compile / Keys.`package`).value, derivingFlags))
   .dependsOn(core, scalacheck % "test")
 
 lazy val deriving: Project = derivingBase
-  .settings(scalacOptions in Test ++= enablePlugin((newtype / Compile / Keys.`package`).value, Seq()))
+  .settings(Test / scalacOptions ++= enablePlugin((newtype / Compile / Keys.`package`).value, Seq()))
   .dependsOn(argonaut % "test", circe % "test", scalacheck % "test")
 
 lazy val newtype: Project = newtypeBase

@@ -36,7 +36,7 @@ object arbitrary {
   object @{tpes.prodName}Test extends Properties("@{tpes.prodName}") {
     import arbitrary._
 
-    include(AndXorProperties.ftraverse.laws[@tpes.prodTpeF("?[_]"), Applicative])
+    include(AndXorProperties.ftraverse.laws[@tpes.prodTpeF("*[_]"), Applicative])
 
     include(MonoidTests[@tpes.prodTpeF("Option")].monoid.all)
 
@@ -49,6 +49,6 @@ object arbitrary {
   object @{tpes.copName}Test extends Properties("@{tpes.copName}") {
     import arbitrary._
 
-    include(AndXorProperties.ftraverse.laws[@tpes.copTpeF("?[_]"), Functor])
+    include(AndXorProperties.ftraverse.laws[@tpes.copTpeF("*[_]"), Functor])
   }
 }}

@@ -44,8 +44,8 @@ trait Types4 {
 
   trait Prod4LP {
 
-    implicit def Prod4Instance[A1, A2, A3, A4]: FFunctor[Prod4[?[_], A1, A2, A3, A4]] with FTraverseProd[Prod4[?[_], A1, A2, A3, A4]] =
-      new FFunctor[Prod4[?[_], A1, A2, A3, A4]] with FTraverseProd[Prod4[?[_], A1, A2, A3, A4]] {
+    implicit def Prod4Instance[A1, A2, A3, A4]: FFunctor[Prod4[*[_], A1, A2, A3, A4]] with FTraverseProd[Prod4[*[_], A1, A2, A3, A4]] =
+      new FFunctor[Prod4[*[_], A1, A2, A3, A4]] with FTraverseProd[Prod4[*[_], A1, A2, A3, A4]] {
         def map[F[_], G[_]](p: Prod4[F, A1, A2, A3, A4])(nt: F ~> G): Prod4[G, A1, A2, A3, A4] =
           Prod4[G, A1, A2, A3, A4]((nt(p.t1), nt(p.t2), nt(p.t3), nt(p.t4)))
 
@@ -53,8 +53,8 @@ trait Types4 {
           Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => (i3: G[A4]) => Prod4[G, A1, A2, A3, A4]((i0, i1, i2, i3))))(f(p.t2)))(f(p.t3)))(f(p.t4))
       }
 
-    implicit def Prod4FoldMap[A1, A2, A3, A4]: FoldMap[Prod4[?[_], A1, A2, A3, A4], Cop4[?[_], A1, A2, A3, A4]] =
-      new FoldMap[Prod4[?[_], A1, A2, A3, A4], Cop4[?[_], A1, A2, A3, A4]] {
+    implicit def Prod4FoldMap[A1, A2, A3, A4]: FoldMap[Prod4[*[_], A1, A2, A3, A4], Cop4[*[_], A1, A2, A3, A4]] =
+      new FoldMap[Prod4[*[_], A1, A2, A3, A4], Cop4[*[_], A1, A2, A3, A4]] {
         def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod4[F, A1, A2, A3, A4] =
           Prod4[F, A1, A2, A3, A4]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4]))
 
@@ -195,8 +195,8 @@ trait Types4 {
 
   trait Cop4LP {
 
-    implicit def Cop4Instance[A1, A2, A3, A4]: FFunctor[Cop4[?[_], A1, A2, A3, A4]] with FTraverseCop[Cop4[?[_], A1, A2, A3, A4]] =
-      new FFunctor[Cop4[?[_], A1, A2, A3, A4]] with FTraverseCop[Cop4[?[_], A1, A2, A3, A4]] {
+    implicit def Cop4Instance[A1, A2, A3, A4]: FFunctor[Cop4[*[_], A1, A2, A3, A4]] with FTraverseCop[Cop4[*[_], A1, A2, A3, A4]] =
+      new FFunctor[Cop4[*[_], A1, A2, A3, A4]] with FTraverseCop[Cop4[*[_], A1, A2, A3, A4]] {
         def map[F[_], G[_]](c: Cop4[F, A1, A2, A3, A4])(nt: F ~> G): Cop4[G, A1, A2, A3, A4] =
           Cop4[G, A1, A2, A3, A4](c.run.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_)))))
 

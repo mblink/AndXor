@@ -1,4 +1,4 @@
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.5.1")
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.1.5")
 addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.16")
 

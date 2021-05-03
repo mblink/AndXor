@@ -155,7 +155,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
   ): Reader[LocalScope, (Option[(TypeDef, Option[ModuleDef])], Vector[Tree])] =
     Reader(_ => (Some((tpe, companion)), Vector()))
 
-  def genCompanion[A <: NameTree: Get[?, Modifiers]](tree: A): ModuleDef = {
+  def genCompanion[A <: NameTree: Get[*, Modifiers]](tree: A): ModuleDef = {
     val (name, mods) = (tree.name, tree.get[Modifiers])
     val objMods = Option(Modifiers(Flag.PRIVATE)).filter(_ => mods.isPrivate)
       .orElse(Option(Modifiers(Flag.PROTECTED)).filter(_ => mods.isProtected))
@@ -203,7 +203,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
 
     private def hasTrigger(mods: Modifiers): Boolean = Triggers.exists(mods.hasAnnotationNamed)
 
-    private def extractTrigger[A <: Tree: Get[?, Modifiers]: Set0[?, Modifiers]](tree: A): (List[Tree], A) = {
+    private def extractTrigger[A <: Tree: Get[*, Modifiers]: Set0[*, Modifiers]](tree: A): (List[Tree], A) = {
       val mods = tree.get[Modifiers]
       val (triggers, rest) = getTriggers(mods.annotations)
       val update = tree.set(mods.mapAnnotations(_ => rest))
@@ -222,7 +222,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
       tree
     }
 
-    private def updateTreeAndCompanion[A <: NameTree: Get[?, Modifiers]: Set0[?, Modifiers]](
+    private def updateTreeAndCompanion[A <: NameTree: Get[*, Modifiers]: Set0[*, Modifiers]](
       tree: A,
       updF: (List[Tree], A, Option[ModuleDef]) => Reader[LocalScope, (Option[(A, Option[ModuleDef])], Vector[Tree])]
     ): Reader[LocalScope, (Option[A], Option[ModuleDef], Vector[Tree])] =
@@ -261,7 +261,7 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
 
     private def isTrait(c: ClassDef): Boolean = c.mods.isTrait
 
-    private def processResult[A <: NameTree: Get[?, Modifiers]](tpe: String, a: Option[A], companion: Option[ModuleDef], extras: Vector[Tree]): Vector[Tree] = {
+    private def processResult[A <: NameTree: Get[*, Modifiers]](tpe: String, a: Option[A], companion: Option[ModuleDef], extras: Vector[Tree]): Vector[Tree] = {
       if (debugMode) {
         val prefix = s"${a.fold("")(x => s"${x.get[Modifiers].flagString} $tpe ${x.name.decode}")}"
         a.map(x => debug(prefix -> x))

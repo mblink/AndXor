@@ -19,7 +19,7 @@ trait DivideLP {
     def divide2[A1, A2, Z](a1: F[A1], a2: F[A2])(f: Z => (A1, A2)): F[Z] = from(G.divide2(to(a1), to(a2))(f))
   }
 
-  trait DivideFunction1[O] extends Divide[? => O] {
+  trait DivideFunction1[O] extends Divide[* => O] {
     def G: Semigroup[O]
     override def contramap[A, B](r: A => O)(f: B => A): B => O = b => r(f(b))
     def divide2[A1, A2, Z](a1: A1 => O, a2: A2 => O)(f: Z => (A1, A2)): Z => O = z => {
@@ -28,9 +28,9 @@ trait DivideLP {
     }
   }
 
-  implicit def divideFunction1[O](implicit S: Semigroup[O]): Divide[? => O] = new DivideFunction1[O] { val G = S }
+  implicit def divideFunction1[O](implicit S: Semigroup[O]): Divide[* => O] = new DivideFunction1[O] { val G = S }
 
-  trait DivideKleisli[F[_], O] extends Divide[Kleisli[F, ?, O]] {
+  trait DivideKleisli[F[_], O] extends Divide[Kleisli[F, *, O]] {
     def F: Apply[F]
     def G: Semigroup[O]
     override def contramap[A, B](fa: Kleisli[F, A, O])(f: B => A): Kleisli[F, B, O] = Kleisli(b => fa.run(f(b)))
@@ -41,7 +41,7 @@ trait DivideLP {
       }
   }
 
-  implicit def divideKleisli[F[_], O](implicit A: Apply[F], S: Semigroup[O]): Divide[Kleisli[F, ?, O]] = new DivideKleisli[F, O] {
+  implicit def divideKleisli[F[_], O](implicit A: Apply[F], S: Semigroup[O]): Divide[Kleisli[F, *, O]] = new DivideKleisli[F, O] {
     val F = A
     val G = S
   }
@@ -85,12 +85,12 @@ object Divisible extends DivideLP {
       def conquer[A]: F[A] = from(D.conquer[A])
     }
 
-  implicit def divisibleFunction1[O](implicit M: Monoid[O]): Divisible[? => O] = new Divisible[? => O] with DivideFunction1[O] {
+  implicit def divisibleFunction1[O](implicit M: Monoid[O]): Divisible[* => O] = new Divisible[* => O] with DivideFunction1[O] {
     val G: Semigroup[O] = M
     def conquer[A]: A => O = _ => M.empty
   }
 
-  implicit def divisibleKleisli[F[_], O](implicit A: Apply[F], M: Monoid[O]): Divide[Kleisli[F, ?, O]] = new DivideKleisli[F, O] {
+  implicit def divisibleKleisli[F[_], O](implicit A: Apply[F], M: Monoid[O]): Divide[Kleisli[F, *, O]] = new DivideKleisli[F, O] {
     val F = A
     val G: Semigroup[O] = M
   }

@@ -90,7 +90,7 @@ class NewtypePlugin(override val global: Global) extends AnnotationPlugin(global
     case ts => q"type Type[..$ts] <: Base with Tag[..${tparamNames()}]"
   }
 
-  private def genNewType[A <: NameTree: Get[?, Modifiers]: Get[?, List[Tree]]](defn: A, companionO: Option[ModuleDef])(
+  private def genNewType[A <: NameTree: Get[*, Modifiers]: Get[*, List[Tree]]](defn: A, companionO: Option[ModuleDef])(
     getName: A => TypeName,
     getParam: A => ValDef,
     getTparams: A => List[TypeDef]

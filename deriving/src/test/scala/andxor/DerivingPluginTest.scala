@@ -50,7 +50,7 @@ object typeclasses {
           s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label.value)).headOption.map(_ => value)
       }
 
-    implicit def readList[A: Read]: Read[List[A]] = new Read[List[A]] {
+    implicit def readList[A](implicit @annotation.nowarn("msg=never used") a: Read[A]): Read[List[A]] = new Read[List[A]] {
       def read(s: String): Option[List[A]] = Some(Nil)
     }
 
@@ -91,7 +91,7 @@ object typeclasses {
     implicit def csvOption[A](implicit c: Csv[A]): Csv[Option[A]] =
       new Csv[Option[A]] { def toCsv(o: Option[A]): List[String] = o.fold(List[String](null))(c.toCsv(_)) }
 
-    implicit def csvLabelled[A: Csv, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled.Aux[A, L]] =
+    implicit def csvLabelled[A, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled.Aux[A, L]] =
       new Csv[Labelled.Aux[A, L]] {
         def toCsv(a: Labelled.Aux[A, L]): List[String] = c.toCsv(a.value)
       }
@@ -387,7 +387,11 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   import typeclasses.{Csv, Read}
   import types._
 
-  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Read: Show](label: String) =
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String)(
+    // can't really test `Read` because the implementations don't work for nested values
+    // but we still want to verify that all types have an instance defined
+    implicit @annotation.nowarn("msg=never used") r: Read[A]
+  ) =
     property(label) = forAllNoShrink((a: A) => {
       (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
         ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not Eq") &&
@@ -395,7 +399,6 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
           case Right(res) => res === a
           case _ => false
         }) :| "circe was not Eq") &&
-        // can't really test `Read` because the implementations don't work for nested values
         (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     })
 
