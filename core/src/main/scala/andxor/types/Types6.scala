@@ -58,8 +58,8 @@ trait Types6 {
 
   trait Prod6LP {
 
-    implicit def Prod6Instance[A1, A2, A3, A4, A5, A6]: FFunctor[Prod6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverseProd[Prod6[?[_], A1, A2, A3, A4, A5, A6]] =
-      new FFunctor[Prod6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverseProd[Prod6[?[_], A1, A2, A3, A4, A5, A6]] {
+    implicit def Prod6Instance[A1, A2, A3, A4, A5, A6]: FFunctor[Prod6[*[_], A1, A2, A3, A4, A5, A6]] with FTraverseProd[Prod6[*[_], A1, A2, A3, A4, A5, A6]] =
+      new FFunctor[Prod6[*[_], A1, A2, A3, A4, A5, A6]] with FTraverseProd[Prod6[*[_], A1, A2, A3, A4, A5, A6]] {
         def map[F[_], G[_]](p: Prod6[F, A1, A2, A3, A4, A5, A6])(nt: F ~> G): Prod6[G, A1, A2, A3, A4, A5, A6] =
           Prod6[G, A1, A2, A3, A4, A5, A6]((nt(p.t1), nt(p.t2), nt(p.t3), nt(p.t4), nt(p.t5), nt(p.t6)))
 
@@ -67,8 +67,8 @@ trait Types6 {
           Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => (i3: G[A4]) => (i4: G[A5]) => (i5: G[A6]) => Prod6[G, A1, A2, A3, A4, A5, A6]((i0, i1, i2, i3, i4, i5))))(f(p.t2)))(f(p.t3)))(f(p.t4)))(f(p.t5)))(f(p.t6))
       }
 
-    implicit def Prod6FoldMap[A1, A2, A3, A4, A5, A6]: FoldMap[Prod6[?[_], A1, A2, A3, A4, A5, A6], Cop6[?[_], A1, A2, A3, A4, A5, A6]] =
-      new FoldMap[Prod6[?[_], A1, A2, A3, A4, A5, A6], Cop6[?[_], A1, A2, A3, A4, A5, A6]] {
+    implicit def Prod6FoldMap[A1, A2, A3, A4, A5, A6]: FoldMap[Prod6[*[_], A1, A2, A3, A4, A5, A6], Cop6[*[_], A1, A2, A3, A4, A5, A6]] =
+      new FoldMap[Prod6[*[_], A1, A2, A3, A4, A5, A6], Cop6[*[_], A1, A2, A3, A4, A5, A6]] {
         def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod6[F, A1, A2, A3, A4, A5, A6] =
           Prod6[F, A1, A2, A3, A4, A5, A6]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6]))
 
@@ -261,8 +261,8 @@ trait Types6 {
 
   trait Cop6LP {
 
-    implicit def Cop6Instance[A1, A2, A3, A4, A5, A6]: FFunctor[Cop6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverseCop[Cop6[?[_], A1, A2, A3, A4, A5, A6]] =
-      new FFunctor[Cop6[?[_], A1, A2, A3, A4, A5, A6]] with FTraverseCop[Cop6[?[_], A1, A2, A3, A4, A5, A6]] {
+    implicit def Cop6Instance[A1, A2, A3, A4, A5, A6]: FFunctor[Cop6[*[_], A1, A2, A3, A4, A5, A6]] with FTraverseCop[Cop6[*[_], A1, A2, A3, A4, A5, A6]] =
+      new FFunctor[Cop6[*[_], A1, A2, A3, A4, A5, A6]] with FTraverseCop[Cop6[*[_], A1, A2, A3, A4, A5, A6]] {
         def map[F[_], G[_]](c: Cop6[F, A1, A2, A3, A4, A5, A6])(nt: F ~> G): Cop6[G, A1, A2, A3, A4, A5, A6] =
           Cop6[G, A1, A2, A3, A4, A5, A6](c.run.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_)))))))
 

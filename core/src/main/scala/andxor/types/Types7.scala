@@ -65,8 +65,8 @@ trait Types7 {
 
   trait Prod7LP {
 
-    implicit def Prod7Instance[A1, A2, A3, A4, A5, A6, A7]: FFunctor[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseProd[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
-      new FFunctor[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseProd[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
+    implicit def Prod7Instance[A1, A2, A3, A4, A5, A6, A7]: FFunctor[Prod7[*[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseProd[Prod7[*[_], A1, A2, A3, A4, A5, A6, A7]] =
+      new FFunctor[Prod7[*[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseProd[Prod7[*[_], A1, A2, A3, A4, A5, A6, A7]] {
         def map[F[_], G[_]](p: Prod7[F, A1, A2, A3, A4, A5, A6, A7])(nt: F ~> G): Prod7[G, A1, A2, A3, A4, A5, A6, A7] =
           Prod7[G, A1, A2, A3, A4, A5, A6, A7]((nt(p.t1), nt(p.t2), nt(p.t3), nt(p.t4), nt(p.t5), nt(p.t6), nt(p.t7)))
 
@@ -74,8 +74,8 @@ trait Types7 {
           Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => (i3: G[A4]) => (i4: G[A5]) => (i5: G[A6]) => (i6: G[A7]) => Prod7[G, A1, A2, A3, A4, A5, A6, A7]((i0, i1, i2, i3, i4, i5, i6))))(f(p.t2)))(f(p.t3)))(f(p.t4)))(f(p.t5)))(f(p.t6)))(f(p.t7))
       }
 
-    implicit def Prod7FoldMap[A1, A2, A3, A4, A5, A6, A7]: FoldMap[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
-      new FoldMap[Prod7[?[_], A1, A2, A3, A4, A5, A6, A7], Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
+    implicit def Prod7FoldMap[A1, A2, A3, A4, A5, A6, A7]: FoldMap[Prod7[*[_], A1, A2, A3, A4, A5, A6, A7], Cop7[*[_], A1, A2, A3, A4, A5, A6, A7]] =
+      new FoldMap[Prod7[*[_], A1, A2, A3, A4, A5, A6, A7], Cop7[*[_], A1, A2, A3, A4, A5, A6, A7]] {
         def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod7[F, A1, A2, A3, A4, A5, A6, A7] =
           Prod7[F, A1, A2, A3, A4, A5, A6, A7]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7]))
 
@@ -294,8 +294,8 @@ trait Types7 {
 
   trait Cop7LP {
 
-    implicit def Cop7Instance[A1, A2, A3, A4, A5, A6, A7]: FFunctor[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseCop[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] =
-      new FFunctor[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseCop[Cop7[?[_], A1, A2, A3, A4, A5, A6, A7]] {
+    implicit def Cop7Instance[A1, A2, A3, A4, A5, A6, A7]: FFunctor[Cop7[*[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseCop[Cop7[*[_], A1, A2, A3, A4, A5, A6, A7]] =
+      new FFunctor[Cop7[*[_], A1, A2, A3, A4, A5, A6, A7]] with FTraverseCop[Cop7[*[_], A1, A2, A3, A4, A5, A6, A7]] {
         def map[F[_], G[_]](c: Cop7[F, A1, A2, A3, A4, A5, A6, A7])(nt: F ~> G): Cop7[G, A1, A2, A3, A4, A5, A6, A7] =
           Cop7[G, A1, A2, A3, A4, A5, A6, A7](c.run.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))))))
 

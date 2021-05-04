@@ -37,8 +37,8 @@ trait Types3 {
 
   trait Prod3LP {
 
-    implicit def Prod3Instance[A1, A2, A3]: FFunctor[Prod3[?[_], A1, A2, A3]] with FTraverseProd[Prod3[?[_], A1, A2, A3]] =
-      new FFunctor[Prod3[?[_], A1, A2, A3]] with FTraverseProd[Prod3[?[_], A1, A2, A3]] {
+    implicit def Prod3Instance[A1, A2, A3]: FFunctor[Prod3[*[_], A1, A2, A3]] with FTraverseProd[Prod3[*[_], A1, A2, A3]] =
+      new FFunctor[Prod3[*[_], A1, A2, A3]] with FTraverseProd[Prod3[*[_], A1, A2, A3]] {
         def map[F[_], G[_]](p: Prod3[F, A1, A2, A3])(nt: F ~> G): Prod3[G, A1, A2, A3] =
           Prod3[G, A1, A2, A3]((nt(p.t1), nt(p.t2), nt(p.t3)))
 
@@ -46,8 +46,8 @@ trait Types3 {
           Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => Prod3[G, A1, A2, A3]((i0, i1, i2))))(f(p.t2)))(f(p.t3))
       }
 
-    implicit def Prod3FoldMap[A1, A2, A3]: FoldMap[Prod3[?[_], A1, A2, A3], Cop3[?[_], A1, A2, A3]] =
-      new FoldMap[Prod3[?[_], A1, A2, A3], Cop3[?[_], A1, A2, A3]] {
+    implicit def Prod3FoldMap[A1, A2, A3]: FoldMap[Prod3[*[_], A1, A2, A3], Cop3[*[_], A1, A2, A3]] =
+      new FoldMap[Prod3[*[_], A1, A2, A3], Cop3[*[_], A1, A2, A3]] {
         def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod3[F, A1, A2, A3] =
           Prod3[F, A1, A2, A3]((PE.empty[A1], PE.empty[A2], PE.empty[A3]))
 
@@ -162,8 +162,8 @@ trait Types3 {
 
   trait Cop3LP {
 
-    implicit def Cop3Instance[A1, A2, A3]: FFunctor[Cop3[?[_], A1, A2, A3]] with FTraverseCop[Cop3[?[_], A1, A2, A3]] =
-      new FFunctor[Cop3[?[_], A1, A2, A3]] with FTraverseCop[Cop3[?[_], A1, A2, A3]] {
+    implicit def Cop3Instance[A1, A2, A3]: FFunctor[Cop3[*[_], A1, A2, A3]] with FTraverseCop[Cop3[*[_], A1, A2, A3]] =
+      new FFunctor[Cop3[*[_], A1, A2, A3]] with FTraverseCop[Cop3[*[_], A1, A2, A3]] {
         def map[F[_], G[_]](c: Cop3[F, A1, A2, A3])(nt: F ~> G): Cop3[G, A1, A2, A3] =
           Cop3[G, A1, A2, A3](c.run.bimap(nt(_), _.bimap(nt(_), nt(_))))
 

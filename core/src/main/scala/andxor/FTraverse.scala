@@ -83,8 +83,8 @@ trait FTraverse[T[_[_]], TC[_[_]]] extends FTraverse0[T, TC] {
       def apply[a](a: A[F[a]]): A[F[a]] = a
     })
 }
-object FTraverse extends FTraverse0Companion[FTraverse[?[_[_]], Applicative]]
-object FTraverseFunctor extends FTraverse0Companion[FTraverse[?[_[_]], Functor]]
+object FTraverse extends FTraverse0Companion[FTraverse[*[_[_]], Applicative]]
+object FTraverseFunctor extends FTraverse0Companion[FTraverse[*[_[_]], Functor]]
 
 trait FTraverseProd[T[_[_]]] extends FTraverse[T, Applicative] with FTraverseApplicative[T]
 object FTraverseProd extends FTraverse0Companion[FTraverseProd]

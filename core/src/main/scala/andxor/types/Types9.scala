@@ -79,8 +79,8 @@ trait Types9 {
 
   trait Prod9LP {
 
-    implicit def Prod9Instance[A1, A2, A3, A4, A5, A6, A7, A8, A9]: FFunctor[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseProd[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-      new FFunctor[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseProd[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
+    implicit def Prod9Instance[A1, A2, A3, A4, A5, A6, A7, A8, A9]: FFunctor[Prod9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseProd[Prod9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      new FFunctor[Prod9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseProd[Prod9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
         def map[F[_], G[_]](p: Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(nt: F ~> G): Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
           Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]((nt(p.t1), nt(p.t2), nt(p.t3), nt(p.t4), nt(p.t5), nt(p.t6), nt(p.t7), nt(p.t8), nt(p.t9)))
 
@@ -88,8 +88,8 @@ trait Types9 {
           Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => (i3: G[A4]) => (i4: G[A5]) => (i5: G[A6]) => (i6: G[A7]) => (i7: G[A8]) => (i8: G[A9]) => Prod9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9]((i0, i1, i2, i3, i4, i5, i6, i7, i8))))(f(p.t2)))(f(p.t3)))(f(p.t4)))(f(p.t5)))(f(p.t6)))(f(p.t7)))(f(p.t8)))(f(p.t9))
       }
 
-    implicit def Prod9FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9]: FoldMap[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-      new FoldMap[Prod9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
+    implicit def Prod9FoldMap[A1, A2, A3, A4, A5, A6, A7, A8, A9]: FoldMap[Prod9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Cop9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      new FoldMap[Prod9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9], Cop9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
         def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
           Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5], PE.empty[A6], PE.empty[A7], PE.empty[A8], PE.empty[A9]))
 
@@ -360,8 +360,8 @@ trait Types9 {
 
   trait Cop9LP {
 
-    implicit def Cop9Instance[A1, A2, A3, A4, A5, A6, A7, A8, A9]: FFunctor[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseCop[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
-      new FFunctor[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseCop[Cop9[?[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
+    implicit def Cop9Instance[A1, A2, A3, A4, A5, A6, A7, A8, A9]: FFunctor[Cop9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseCop[Cop9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] =
+      new FFunctor[Cop9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] with FTraverseCop[Cop9[*[_], A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
         def map[F[_], G[_]](c: Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9])(nt: F ~> G): Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9] =
           Cop9[G, A1, A2, A3, A4, A5, A6, A7, A8, A9](c.run.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))))))))
 

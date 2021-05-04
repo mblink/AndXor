@@ -51,8 +51,8 @@ trait Types5 {
 
   trait Prod5LP {
 
-    implicit def Prod5Instance[A1, A2, A3, A4, A5]: FFunctor[Prod5[?[_], A1, A2, A3, A4, A5]] with FTraverseProd[Prod5[?[_], A1, A2, A3, A4, A5]] =
-      new FFunctor[Prod5[?[_], A1, A2, A3, A4, A5]] with FTraverseProd[Prod5[?[_], A1, A2, A3, A4, A5]] {
+    implicit def Prod5Instance[A1, A2, A3, A4, A5]: FFunctor[Prod5[*[_], A1, A2, A3, A4, A5]] with FTraverseProd[Prod5[*[_], A1, A2, A3, A4, A5]] =
+      new FFunctor[Prod5[*[_], A1, A2, A3, A4, A5]] with FTraverseProd[Prod5[*[_], A1, A2, A3, A4, A5]] {
         def map[F[_], G[_]](p: Prod5[F, A1, A2, A3, A4, A5])(nt: F ~> G): Prod5[G, A1, A2, A3, A4, A5] =
           Prod5[G, A1, A2, A3, A4, A5]((nt(p.t1), nt(p.t2), nt(p.t3), nt(p.t4), nt(p.t5)))
 
@@ -60,8 +60,8 @@ trait Types5 {
           Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => (i2: G[A3]) => (i3: G[A4]) => (i4: G[A5]) => Prod5[G, A1, A2, A3, A4, A5]((i0, i1, i2, i3, i4))))(f(p.t2)))(f(p.t3)))(f(p.t4)))(f(p.t5))
       }
 
-    implicit def Prod5FoldMap[A1, A2, A3, A4, A5]: FoldMap[Prod5[?[_], A1, A2, A3, A4, A5], Cop5[?[_], A1, A2, A3, A4, A5]] =
-      new FoldMap[Prod5[?[_], A1, A2, A3, A4, A5], Cop5[?[_], A1, A2, A3, A4, A5]] {
+    implicit def Prod5FoldMap[A1, A2, A3, A4, A5]: FoldMap[Prod5[*[_], A1, A2, A3, A4, A5], Cop5[*[_], A1, A2, A3, A4, A5]] =
+      new FoldMap[Prod5[*[_], A1, A2, A3, A4, A5], Cop5[*[_], A1, A2, A3, A4, A5]] {
         def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod5[F, A1, A2, A3, A4, A5] =
           Prod5[F, A1, A2, A3, A4, A5]((PE.empty[A1], PE.empty[A2], PE.empty[A3], PE.empty[A4], PE.empty[A5]))
 
@@ -228,8 +228,8 @@ trait Types5 {
 
   trait Cop5LP {
 
-    implicit def Cop5Instance[A1, A2, A3, A4, A5]: FFunctor[Cop5[?[_], A1, A2, A3, A4, A5]] with FTraverseCop[Cop5[?[_], A1, A2, A3, A4, A5]] =
-      new FFunctor[Cop5[?[_], A1, A2, A3, A4, A5]] with FTraverseCop[Cop5[?[_], A1, A2, A3, A4, A5]] {
+    implicit def Cop5Instance[A1, A2, A3, A4, A5]: FFunctor[Cop5[*[_], A1, A2, A3, A4, A5]] with FTraverseCop[Cop5[*[_], A1, A2, A3, A4, A5]] =
+      new FFunctor[Cop5[*[_], A1, A2, A3, A4, A5]] with FTraverseCop[Cop5[*[_], A1, A2, A3, A4, A5]] {
         def map[F[_], G[_]](c: Cop5[F, A1, A2, A3, A4, A5])(nt: F ~> G): Cop5[G, A1, A2, A3, A4, A5] =
           Cop5[G, A1, A2, A3, A4, A5](c.run.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), _.bimap(nt(_), nt(_))))))
 

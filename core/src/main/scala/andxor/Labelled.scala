@@ -21,7 +21,7 @@ object Labelled {
     val value: A = value0
   }
 
-  implicit def traverseLabelled[L <: Singleton with String]: Traverse[Aux[?, L]] = new Traverse[Aux[?, L]] {
+  implicit def traverseLabelled[L <: Singleton with String]: Traverse[Aux[*, L]] = new Traverse[Aux[*, L]] {
     def foldLeft[A, B](fa: Aux[A, L], b: B)(f: (B, A) => B): B = f(b, fa.value)
     def foldRight[A, B](fa: Aux[A, L], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = f(fa.value, lb)
     def traverse[G[_], A, B](fa: Aux[A, L])(f: A => G[B])(implicit G: Applicative[G]): G[Aux[B, L]] =

@@ -30,8 +30,8 @@ trait Types2 {
 
   trait Prod2LP {
 
-    implicit def Prod2Instance[A1, A2]: FFunctor[Prod2[?[_], A1, A2]] with FTraverseProd[Prod2[?[_], A1, A2]] =
-      new FFunctor[Prod2[?[_], A1, A2]] with FTraverseProd[Prod2[?[_], A1, A2]] {
+    implicit def Prod2Instance[A1, A2]: FFunctor[Prod2[*[_], A1, A2]] with FTraverseProd[Prod2[*[_], A1, A2]] =
+      new FFunctor[Prod2[*[_], A1, A2]] with FTraverseProd[Prod2[*[_], A1, A2]] {
         def map[F[_], G[_]](p: Prod2[F, A1, A2])(nt: F ~> G): Prod2[G, A1, A2] =
           Prod2[G, A1, A2]((nt(p.t1), nt(p.t2)))
 
@@ -39,8 +39,8 @@ trait Types2 {
           Applicative[A].ap(Applicative[A].map(f(p.t1))((i0: G[A1]) => (i1: G[A2]) => Prod2[G, A1, A2]((i0, i1))))(f(p.t2))
       }
 
-    implicit def Prod2FoldMap[A1, A2]: FoldMap[Prod2[?[_], A1, A2], Cop2[?[_], A1, A2]] =
-      new FoldMap[Prod2[?[_], A1, A2], Cop2[?[_], A1, A2]] {
+    implicit def Prod2FoldMap[A1, A2]: FoldMap[Prod2[*[_], A1, A2], Cop2[*[_], A1, A2]] =
+      new FoldMap[Prod2[*[_], A1, A2], Cop2[*[_], A1, A2]] {
         def emptyProd[F[_]](implicit PE: MonoidK[F]): Prod2[F, A1, A2] =
           Prod2[F, A1, A2]((PE.empty[A1], PE.empty[A2]))
 
@@ -129,8 +129,8 @@ trait Types2 {
 
   trait Cop2LP {
 
-    implicit def Cop2Instance[A1, A2]: FFunctor[Cop2[?[_], A1, A2]] with FTraverseCop[Cop2[?[_], A1, A2]] =
-      new FFunctor[Cop2[?[_], A1, A2]] with FTraverseCop[Cop2[?[_], A1, A2]] {
+    implicit def Cop2Instance[A1, A2]: FFunctor[Cop2[*[_], A1, A2]] with FTraverseCop[Cop2[*[_], A1, A2]] =
+      new FFunctor[Cop2[*[_], A1, A2]] with FTraverseCop[Cop2[*[_], A1, A2]] {
         def map[F[_], G[_]](c: Cop2[F, A1, A2])(nt: F ~> G): Cop2[G, A1, A2] =
           Cop2[G, A1, A2](c.run.bimap(nt(_), nt(_)))
 

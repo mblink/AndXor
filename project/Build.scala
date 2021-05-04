@@ -8,10 +8,10 @@ import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.13.4")
+  lazy val scalaVersions = Seq("2.13.5")
 
   val splainSettings = Seq(
-    addCompilerPlugin("io.tryp" % "splain" % "0.5.7" cross CrossVersion.patch),
+    addCompilerPlugin("io.tryp" % "splain" % "0.5.8" cross CrossVersion.patch),
     scalacOptions ++= Seq(
       "-P:splain:all",
       "-P:splain:foundreq:false",
@@ -32,16 +32,16 @@ object Build {
     scalaVersion := scalaVersions.find(_.startsWith("2.13")).get,
     scalacOptions += "-Xlint:strict-unsealed-patmat",
     version := currentVersion,
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.1" cross CrossVersion.full),
-    unmanagedSourceDirectories in Compile ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
-    unmanagedSourceDirectories in Test ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
-    skip in publish := true,
-    publishArtifact in (Compile, packageDoc) := false,
-    publishArtifact in packageDoc := false,
-    sources in (Compile, doc) := Seq()
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
+    Compile / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
+    Test / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
+    publish / skip  := true,
+    Compile / packageDoc / publishArtifact := false,
+    packageDoc / publishArtifact := false,
+    Compile / doc / sources := Seq()
   )
 
-  val catsVersion = "2.4.2"
+  val catsVersion = "2.6.0"
   val monocleVersion = "2.1.0"
   val scalacheckVersion = "1.15.3"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
@@ -56,7 +56,7 @@ object Build {
   )
 
   val publishSettings = Seq(
-    skip in publish := false,
+    publish / skip := false,
     gitPublishDir := file("/src/maven-repo"),
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
   )
@@ -92,7 +92,7 @@ object Build {
       libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.3"
     ))
 
-  val circeVersion = "0.14.0-M4"
+  val circeVersion = "0.14.0-M6"
   def circeBase = Project("circe", file("circe"))
     .settings(commonSettings)
     .settings(publishSettings)
@@ -101,8 +101,6 @@ object Build {
       libraryDependencies ++= Seq(
         "io.circe" %% "circe-core" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
-        "io.circe" %% "circe-generic" % circeVersion % "test",
-        "io.circe" %% "circe-generic-extras" % "0.13.1-M4" % "test"
       )
     ))
 
@@ -119,7 +117,7 @@ object Build {
 
   def pluginOptions(pluginOpts: Seq[String]) = Seq(
     scalacOptions -= "-Ywarn-unused:patvars",
-    scalacOptions in Test ++= enablePlugin((Compile / Keys.`package`).value, pluginOpts),
+    Test / scalacOptions ++= enablePlugin((Compile / Keys.`package`).value, pluginOpts),
     libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
   )
 
@@ -132,7 +130,7 @@ object Build {
 
   def annotationPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
     compilerPlugin(proj, nme, pluginOpts)
-      .settings(sourceGenerators in Compile += Def.task {
+      .settings(Compile / sourceGenerators += Def.task {
         Seq(baseDirectory.value / ".." / "src" / "files" / "AnnotationPlugin.scala")
       })
 
