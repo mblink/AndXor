@@ -4,7 +4,6 @@ package test
 import andxor.argonaut._
 import andxor.circe._
 import andxor.scalacheck._
-import andxor.types.ADTValue
 import _root_.argonaut.{DecodeJson, EncodeJson}
 import cats.{~>, Apply, Eq, Id, Show}
 import cats.instances.boolean._
@@ -20,10 +19,10 @@ import org.scalacheck.Prop.{forAllNoShrink, propBoolean}
 import scala.util.Try
 
 object typeclasses {
-  implicit def showLabelled[A: Show, L <: Singleton with String]: Show[Labelled.Aux[A, L]] =
+  implicit def showLabelled[A: Show, L <: Singleton with String](implicit lv: ValueOf[L]): Show[Labelled[A, L]] =
     Show.show(l => s"""${l.label} := ${Show[A].show(l.value)}""" ++ "\n")
 
-  implicit def showAdtVal[A <: Singleton, L <: Singleton with String]: Show[Labelled.Aux[ADTValue[A], L]] =
+  implicit def showAdtVal[A <: Singleton, L <: Singleton with String](implicit lv: ValueOf[L]): Show[Labelled[A, L]] =
     Show.show(a => s"""ADTValue := ${a.label}""" ++ "\n")
 
   type ShowF[A] = A => String
@@ -35,22 +34,22 @@ object typeclasses {
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
-    implicit def readLabelled[A, L <: Singleton with String](implicit l: ValueOf[L], r: Read[A]): Read[Labelled.Aux[A, L]] =
-      new Read[Labelled.Aux[A, L]] {
-        def read(s: String): Option[Labelled.Aux[A, L]] =
-          s.split("\n").toList.flatMap(_.split(s"${l.value} := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_, l.value))
+    implicit def readLabelled[A, L <: Singleton with String](implicit l: ValueOf[L], r: Read[A]): Read[Labelled[A, L]] =
+      new Read[Labelled[A, L]] {
+        def read(s: String): Option[Labelled[A, L]] =
+          s.split("\n").toList.flatMap(_.split(s"${l.value} := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_))
       }
 
     implicit def readAdtVal[A <: Singleton, L <: Singleton with String](
       implicit
       label: ValueOf[L],
-      value: Labelled.Aux[ADTValue[A], L]): Read[Labelled.Aux[ADTValue[A], L]] =
-      new Read[Labelled.Aux[ADTValue[A], L]] {
-        def read(s: String): Option[Labelled.Aux[ADTValue[A], L]] =
-          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label.value)).headOption.map(_ => value)
+      value: ValueOf[Labelled[A, L]]): Read[Labelled[A, L]] =
+      new Read[Labelled[A, L]] {
+        def read(s: String): Option[Labelled[A, L]] =
+          s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label.value)).headOption.map(_ => value.value)
       }
 
-    implicit def readList[A](implicit @annotation.nowarn("msg=never used") a: Read[A]): Read[List[A]] = new Read[List[A]] {
+    implicit def readList[A](implicit @unused r: Read[A]): Read[List[A]] = new Read[List[A]] {
       def read(s: String): Option[List[A]] = Some(Nil)
     }
 
@@ -91,14 +90,14 @@ object typeclasses {
     implicit def csvOption[A](implicit c: Csv[A]): Csv[Option[A]] =
       new Csv[Option[A]] { def toCsv(o: Option[A]): List[String] = o.fold(List[String](null))(c.toCsv(_)) }
 
-    implicit def csvLabelled[A, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled.Aux[A, L]] =
-      new Csv[Labelled.Aux[A, L]] {
-        def toCsv(a: Labelled.Aux[A, L]): List[String] = c.toCsv(a.value)
+    implicit def csvLabelled[A, L <: Singleton with String](implicit c: Csv[A]): Csv[Labelled[A, L]] =
+      new Csv[Labelled[A, L]] {
+        def toCsv(a: Labelled[A, L]): List[String] = c.toCsv(a.value)
       }
 
-    implicit def csvAdtVal[A <: Singleton, L <: Singleton with String]: Csv[Labelled.Aux[ADTValue[A], L]] =
-      new Csv[Labelled.Aux[ADTValue[A], L]] {
-        def toCsv(a: Labelled.Aux[ADTValue[A], L]): List[String] = List(a.label)
+    implicit def csvAdtVal[A <: Singleton, L <: Singleton with String](implicit l: ValueOf[L]): Csv[Labelled[A, L]] =
+      new Csv[Labelled[A, L]] {
+        def toCsv(a: Labelled[A, L]): List[String] = List(a.label)
       }
 
     type CsvF[A] = A => List[String]
@@ -387,11 +386,7 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   import typeclasses.{Csv, Read}
   import types._
 
-  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String)(
-    // can't really test `Read` because the implementations don't work for nested values
-    // but we still want to verify that all types have an instance defined
-    implicit @annotation.nowarn("msg=never used") r: Read[A]
-  ) =
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String)(implicit @unused r: Read[A]) =
     property(label) = forAllNoShrink((a: A) => {
       (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
         ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not Eq") &&
@@ -399,6 +394,7 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
           case Right(res) => res === a
           case _ => false
         }) :| "circe was not Eq") &&
+        // can't really test `Read` because the implementations don't work for nested values
         (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     })
 

@@ -19,4 +19,7 @@ package object andxor {
 
       def unconsOne[F[_], G[_]](p: T[F], c: T[G])(implicit U: Uncons[F, G]): (Option[T[G]], T[F]) = U(p)
     }
+
+  type Labelled[A, L] = labelled.Labelled[A, L]
+  val Labelled: labelled.Labelled.type = labelled.Labelled
 }

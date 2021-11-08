@@ -1,8 +1,7 @@
 package andxor
 
 package object types
-  extends ADT
-  with Dummy
+  extends Dummy
   with Types2
   with Types3
   with Types4

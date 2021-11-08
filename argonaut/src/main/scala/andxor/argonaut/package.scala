@@ -1,6 +1,5 @@
 package andxor
 
-import andxor.types.ADTValue
 import _root_.argonaut.{DecodeJson, DecodeResult, EncodeJson, HCursor, Json}
 import cats.{~>, Apply, Monoid}
 
@@ -31,24 +30,35 @@ trait LPArgonaut {
     implicit def default[A]: JsonSumCodec[A] = new ObjectCodec[A]
   }
 
-  implicit def encodeJsonBaseAdtVal[A <: Singleton, L <: Singleton with String](implicit codec: JsonSumCodec[A]): EncodeJson[Labelled.Aux[ADTValue[A], L]] =
+  implicit def encodeJsonBaseAdtVal[A <: Singleton, L <: Singleton with String](
+    implicit codec: JsonSumCodec[A],
+    label: ValueOf[L]
+  ): EncodeJson[Labelled[A, L]] =
     EncodeJson(a => codec.encodeField(a.label, Json()))
 
   implicit def decodeJsonBaseAdtVal[A <: Singleton, L <: Singleton with String](
-    implicit value: Labelled.Aux[ADTValue[A], L],
-    codec: JsonSumCodec[Labelled.Aux[ADTValue[A], L]]
-  ): DecodeJson[Labelled.Aux[ADTValue[A], L]] =
-    DecodeJson(codec.decodeField(value.label, _, DecodeJson(_ => DecodeResult.ok(value))))
+    implicit value: ValueOf[Labelled[A, L]],
+    codec: JsonSumCodec[Labelled[A, L]],
+    label: ValueOf[L]
+  ): DecodeJson[Labelled[A, L]] =
+    DecodeJson(codec.decodeField(value.value.label, _, DecodeJson(_ => DecodeResult.ok(value.value))))
 }
 
 package object argonaut extends LPArgonaut {
   implicit val jsonMonoid: Monoid[Json] = Monoid.instance(Json(), _.deepmerge(_))
 
-  implicit def encodeJsonLabelled[L <: Singleton with String, A](implicit ej: EncodeJson[A]): EncodeJson[Labelled.Aux[A, L]] =
+  implicit def encodeJsonLabelled[L <: Singleton with String, A](
+    implicit ej: EncodeJson[A],
+    label: ValueOf[L]
+  ): EncodeJson[Labelled[A, L]] =
     EncodeJson(l => Json(l.label -> ej(l.value)))
 
-  implicit def encodeJsonAdtVal[A <: Singleton, L <: Singleton with String](implicit ej: EncodeJson[A], codec: JsonSumCodec[A]): EncodeJson[Labelled.Aux[ADTValue[A], L]] =
-    EncodeJson(a => codec.encodeField(a.label, ej.encode(a.value.value)))
+  implicit def encodeJsonAdtVal[A <: Singleton, L <: Singleton with String](
+    implicit ej: EncodeJson[A],
+    codec: JsonSumCodec[A],
+    label: ValueOf[L]
+  ): EncodeJson[Labelled[A, L]] =
+    EncodeJson(a => codec.encodeField(a.label, ej.encode(a.value)))
 
   type EncodeJsonF[A] = A => Json
 
@@ -58,8 +68,8 @@ package object argonaut extends LPArgonaut {
   implicit val encodeJsonDivide: Divide[EncodeJson] = Divide.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
   implicit val encodeJsonDecide: Decidable[EncodeJson] = Decidable.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
 
-  implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit label: ValueOf[L]): DecodeJson[Labelled.Aux[A, L]] =
-    DecodeJson(_.get[A](label.value).map(Labelled(_, label.value)))
+  implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit label: ValueOf[L]): DecodeJson[Labelled[A, L]] =
+    DecodeJson(_.get[A](label.value).map(Labelled[A, L](_)))
 
   implicit val decodeJsonApply: Apply[DecodeJson] = new Apply[DecodeJson] {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)

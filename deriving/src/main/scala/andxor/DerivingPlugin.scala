@@ -83,6 +83,8 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
   // Scala types
   private val scalaPkg = q"_root_.scala"
+  private val eitherLeftObj = q"$scalaPkg.util.Left"
+  private val eitherRightObj = q"$scalaPkg.util.Right"
 
   // Cats/monocle types
   private val catsPkg = q"_root_.cats"
@@ -90,28 +92,27 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   private val monoclePkg = q"_root_.monocle"
   private val isoSetObj = q"$monoclePkg.Iso"
   private val isoSetTpe = tq"$monoclePkg.Iso"
-  private def mkAdtVal(inst: Tree): Tree = q"$andxorPkg.types.ADTValue($inst)"
-  private def adtValTpe(tpe: Tree): Tree = tq"$andxorPkg.types.ADTValue[$tpe]"
 
   sealed trait Param {
     val name: Name
     val tpe: Tree
+    val position: Int
     final lazy val label: Label = Label(name)
-    final lazy val labelledTpe: Tree = tq"_root_.andxor.Labelled.Aux[$tpe, ${label.singletonTpe}]"
+    final lazy val labelledTpe: Tree = tq"_root_.andxor.Labelled[$tpe, ${label.singletonTpe}]"
     final lazy val termName: TermName = TermName(name.decode)
   }
 
-  case class ProdParam(name: Name, tpeF: () => Tree) extends Param {
+  case class ProdParam(name: Name, position: Int, tpeF: () => Tree) extends Param {
     final val tpe: Tree = tpeF().duplicate
   }
   object ProdParam {
-    def apply(p: ValDef): ProdParam = ProdParam(p.name, () => p.tpt)
+    def apply(p: ValDef, pos: Int): ProdParam = ProdParam(p.name, pos, () => p.tpt)
   }
 
-  case class CopParam(member: Either[ClassDef, ModuleDef]) extends Param {
+  case class CopParam(member: Either[ClassDef, ModuleDef], position: Int) extends Param {
     final val name: Name = member.fold(_.name, _.name)
     final val memberTpe: Tree = member.fold(ProdTree(_, false).tpe, o => SingletonTypeTree(Ident(o.name)))
-    final val tpe: Tree = member.fold(_ => memberTpe, _ => adtValTpe(memberTpe))
+    final val tpe: Tree = memberTpe
   }
 
   sealed abstract class Variance[+P <: Param] {
@@ -175,12 +176,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   private[andxor] val labelledIsoName = TermName("labelledIso")
 
   case class Label(paramName: Name) {
-    // Don't use `freshName` because label name needs to be deterministic
-    final val valName = TermName(s"andxor_label_${paramName.decode}")
     final val singletonTpe: ConstantType = ConstantType(Constant(paramName.decode))
-    final val defns: List[Tree] = List(
-      q"val $valName: $singletonTpe = ${Literal(Constant(paramName.decode))}"
-    )
   }
 
   private def extendsTpe(tpeName: TypeName, parents: List[Tree]): Boolean =
@@ -267,7 +263,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
   case class ProdTree(klass: ClassDef, override val labelled: Boolean) extends GenTree[ProdParam](
     labelled,
-    ctorParams(klass)._1.flatMap(_.map(ProdParam(_))),
+    ctorParams(klass)._1.flatten.zip(LazyList.from(1)).map { case (p, i) => ProdParam(p, i) },
     klass.name,
     klass.tparams,
     "Prod"
@@ -306,7 +302,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
       """
 
     def mkValue(inst: Tree, param: Param): Tree =
-      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName}, ${param.label.valName})"
+      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst.${param.termName})"
       else          q"$inst.${param.termName}"
 
     private def isNewType: Boolean = klass.mods.annotations.exists(isAnnotationNamed(_, TypeName("newtype")))
@@ -317,21 +313,25 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
     override val name: TypeName,
     override val tparams0:  List[TypeDef],
     override val labelled: Boolean
-  ) extends GenTree[CopParam](labelled, children.map(CopParam(_)), name, tparams0, "Cop") {
-    def mkValue(inst: Tree, param: Param): Tree = {
-      val v = param.asInstanceOf[CopParam].member.fold(_ => inst, _ => mkAdtVal(inst))
-      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($v, ${param.label.valName})"
-      else v
+  ) extends GenTree[CopParam](
+    labelled,
+    children.zip(LazyList.from(1)).map { case (p, i) => CopParam(p, i) },
+    name,
+    tparams0,
+    "Cop"
+  ) {
+    def mkValue(inst: Tree, param: Param): Tree =
+      if (labelled) q"$labelledObj[${param.tpe}, ${param.label.singletonTpe}]($inst)"
+      else inst
+
+    def injInst(param: Param): Tree = {
+      val instVal = mkValue(q"inst", param)
+
+      if (params.length <= 1) instVal
+      else q"$reprObj[..$andxorTpes](${1.to(param.position - 1).foldRight(
+        if (param.position == params.length) instVal else q"$eitherLeftObj($instVal)"
+      )((_, acc) => q"$eitherRightObj($acc)")})"
     }
-
-    def maybeUnwrap(inst: Tree, paramIdx: Option[Int]): Tree =
-      paramIdx.flatMap(children.lift(_) match {
-        case Some(Right(x)) => Some(x)
-        case _ => None
-      }).fold(inst)(_ => q"$inst.value")
-
-    def injInst(param: Param): Tree =
-      if (params.length <= 1) mkValue(q"inst", param) else q"$andxorName.inj(${mkValue(q"inst", param)})"
 
     final lazy val iso: Tree = q"""
       $isoSetObj[$tpe, $reprTpe](
@@ -339,9 +339,9 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
           case ..${params.map(p => cq"inst: ${p.memberTpe} => ${injInst(p)}")}
         })((repr: $reprTpe) => {
           val x = ${if (params.length <= 1) q"repr" else q"repr.run"}
-          ${params.zipWithIndex.tail.foldRight[Tree](maybeUnwrap(normalizeValue(q"x"), Some(params.length - 1)))(
+          ${params.zipWithIndex.tail.foldRight[Tree](normalizeValue(q"x"))(
             (t, acc) => q"""x.fold[$tpe](
-              (x: ${tpes(t._2 - 1)}) => ${maybeUnwrap(normalizeValue(q"x"), Some(t._2 - 1))},
+              (x: ${tpes(t._2 - 1)}) => ${normalizeValue(q"x")},
               x => $acc)""")}
         })
     """
@@ -361,9 +361,6 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
   def memberName(t: Tree): TermName =
     TermName(freshName(s"andxor_${t.toString.toLowerCase.replace(".", "_")}"))
 
-  def labels[P <: Param](tree: GenTree[P]): List[Tree] =
-    tree.params.flatMap(_.label.defns)
-
   def mkAndxor[P <: Param](tree: GenTree[P]): Tree = q"$andxorPkg.AndXor[..${tree.tpes}]"
 
   def andxor[P <: Param](tree: GenTree[P]): List[Tree] = tree.params match {
@@ -373,15 +370,6 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
   def iso[P <: Param](tree: GenTree[P]): Tree =
     valOrDef(Modifiers(), tree.isoName, tree.tparamsNoVariance, Nil, tree.isoTpe, tree.iso)
-
-  def implicits[P <: Param](tree: GenTree[P]): List[Tree] =
-    tree match {
-      case c: CopTree => c.children.zipWithIndex.flatMap { case (x, i) => x.fold(_ => Nil, o =>
-        List(valOrDef(Modifiers(Flag.IMPLICIT), TermName(s"andxor_${o.name.decode}${if (c.labelled) "_labelled" else ""}_inst"),
-          Nil, Nil, c.tpes(i), c.mkValue(Ident(o.name), c.params(i)))))
-      }
-      case _: ProdTree => Nil
-    }
 
   case class Typeclass[P <: Param](
     tree: GenTree[P],
@@ -477,10 +465,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
 
       case _ => List(q"""
         object andxor {
-          ..${labels(labelled) :::
-              implicits(base) :::
-              implicits(labelled) :::
-              andxor(base) :::
+          ..${andxor(base) :::
               andxor(labelled) :::
               List(iso(base), iso(labelled))}
         }

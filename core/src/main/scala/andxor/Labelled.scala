@@ -1,33 +1,29 @@
 package andxor
 
 import cats.{Applicative, Eq, Eval, Traverse}
-import cats.instances.string._
-import cats.instances.tuple._
 
-trait Labelled[A] {
-  type L <: Singleton with String
-  val label: L
-  val value: A
-
-  override def toString: String = s"Labelled($label, $value)"
-}
-
-object Labelled {
-  type Aux[A, L0 <: Singleton with String] = Labelled[A] { type L = L0 }
-
-  def apply[A, L0 <: Singleton with String](value0: A, label0: L0): Labelled.Aux[A, L0] = new Labelled[A] {
-    type L = L0
-    val label: L = label0
-    val value: A = value0
+object labelled {
+  @newtype case class Labelled[A, L](value: A) {
+    def label(implicit l: ValueOf[L]): L = l.value
   }
 
-  implicit def traverseLabelled[L <: Singleton with String]: Traverse[Aux[*, L]] = new Traverse[Aux[*, L]] {
-    def foldLeft[A, B](fa: Aux[A, L], b: B)(f: (B, A) => B): B = f(b, fa.value)
-    def foldRight[A, B](fa: Aux[A, L], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = f(fa.value, lb)
-    def traverse[G[_], A, B](fa: Aux[A, L])(f: A => G[B])(implicit G: Applicative[G]): G[Aux[B, L]] =
-      G.map(f(fa.value))(Labelled(_, fa.label))
+  sealed trait LabelledLP {
+    implicit def eqLabelledSingleton[A <: Singleton, L <: String](implicit l: ValueOf[L]): Eq[Labelled[A, L]] =
+      Eq.instance((a1, a2) => a1.value == a2.value && a1.label == a2.label)
   }
 
-  implicit def eqLabelled[A: Eq, L <: Singleton with String]: Eq[Aux[A, L]] =
-    Eq.by(l => ((l.label: String), l.value))
+  object Labelled extends LabelledLP {
+    implicit def traverseLabelled[L]: Traverse[Labelled[*, L]] = new Traverse[Labelled[*, L]] {
+      def foldLeft[A, B](fa: Labelled[A, L], b: B)(f: (B, A) => B): B = f(b, fa.value)
+      def foldRight[A, B](fa: Labelled[A, L], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = f(fa.value, lb)
+      def traverse[G[_], A, B](fa: Labelled[A, L])(f: A => G[B])(implicit G: Applicative[G]): G[Labelled[B, L]] =
+        G.map(f(fa.value))(Labelled(_))
+    }
+
+    implicit def eqLabelled[A: Eq, L <: String](implicit l: ValueOf[L]): Eq[Labelled[A, L]] =
+      Eq.by(a => (l.value: String, a.value))
+
+    implicit def valueOfLabelled[A, L](implicit a: ValueOf[A]): ValueOf[Labelled[A, L]] =
+      new ValueOf[Labelled[A, L]](Labelled[A, L](a.value))
+  }
 }

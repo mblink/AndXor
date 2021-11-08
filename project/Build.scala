@@ -8,17 +8,7 @@ import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.13.5")
-
-  val splainSettings = Seq(
-    addCompilerPlugin("io.tryp" % "splain" % "0.5.8" cross CrossVersion.patch),
-    scalacOptions ++= Seq(
-      "-P:splain:all",
-      "-P:splain:foundreq:false",
-      "-P:splain:keepmodules:500",
-      "-P:splain:rewrite:^((([^\\.]+\\.)*)([^\\.]+))\\.Type$/$1"
-    )
-  )
+  lazy val scalaVersions = Seq("2.13.7")
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -26,13 +16,17 @@ object Build {
       case _ => Seq()
     }
 
-  val baseSettings = splainSettings ++ Seq(
+  val baseSettings = Seq(
     organization := "andxor",
     crossScalaVersions := scalaVersions,
     scalaVersion := scalaVersions.find(_.startsWith("2.13")).get,
-    scalacOptions += "-Xlint:strict-unsealed-patmat",
+    scalacOptions ++= Seq(
+      "-Vimplicits",
+      "-Vimplicits-verbose-tree",
+      "-Xlint:strict-unsealed-patmat",
+    ),
     version := currentVersion,
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
     Compile / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     Test / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
     publish / skip  := true,
@@ -41,9 +35,9 @@ object Build {
     Compile / doc / sources := Seq()
   )
 
-  val catsVersion = "2.6.0"
+  val catsVersion = "2.6.1"
   val monocleVersion = "2.1.0"
-  val scalacheckVersion = "1.15.3"
+  val scalacheckVersion = "1.15.4"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
   val commonSettings = baseSettings ++ Seq(
