@@ -1,6 +1,5 @@
 package andxor
 
-import andxor.types.ADTValue
 import _root_.io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
 import cats.{~>, Apply, Monoid}
 
@@ -32,24 +31,35 @@ trait LPCirce {
     implicit def default[A]: JsonSumCodec[A] = new ObjectCodec[A]
   }
 
-  implicit def encoderBaseAdtVal[A <: Singleton, L <: Singleton with String](implicit codec: JsonSumCodec[A]): Encoder[Labelled.Aux[ADTValue[A], L]] =
+  implicit def encoderBaseAdtVal[A <: Singleton, L <: Singleton with String](
+    implicit codec: JsonSumCodec[A],
+    label: ValueOf[L]
+  ): Encoder[Labelled[A, L]] =
     Encoder.instance(a => codec.encodeField(a.label, Json.obj()))
 
   implicit def decoderBaseAdtVal[A <: Singleton, L <: Singleton with String](
-    implicit value: Labelled.Aux[ADTValue[A], L],
-    codec: JsonSumCodec[Labelled.Aux[ADTValue[A], L]]
-  ): Decoder[Labelled.Aux[ADTValue[A], L]] =
-    Decoder.instance(codec.decodeField(value.label, _, Decoder.instance(_ => Right(value))))
+    implicit value: ValueOf[Labelled[A, L]],
+    codec: JsonSumCodec[Labelled[A, L]],
+    label: ValueOf[L]
+  ): Decoder[Labelled[A, L]] =
+    Decoder.instance(codec.decodeField(value.value.label, _, Decoder.instance(_ => Right(value.value))))
 }
 
 package object circe extends LPCirce {
   implicit val jsonMonoid: Monoid[Json] = Monoid.instance(Json.obj(), _.deepMerge(_))
 
-  implicit def encoderLabelled[L <: Singleton with String, A](implicit e: Encoder[A]): Encoder[Labelled.Aux[A, L]] =
+  implicit def encoderLabelled[L <: Singleton with String, A](
+    implicit e: Encoder[A],
+    label: ValueOf[L]
+  ): Encoder[Labelled[A, L]] =
     Encoder.instance(l => Json.obj(l.label -> e(l.value)))
 
-  implicit def encoderAdtVal[A <: Singleton, L <: Singleton with String](implicit e: Encoder[A], codec: JsonSumCodec[A]): Encoder[Labelled.Aux[ADTValue[A], L]] =
-    Encoder.instance(a => codec.encodeField(a.label, e(a.value.value)))
+  implicit def encoderAdtVal[A <: Singleton, L <: Singleton with String](
+    implicit e: Encoder[A],
+    codec: JsonSumCodec[A],
+    label: ValueOf[L]
+  ): Encoder[Labelled[A, L]] =
+    Encoder.instance(a => codec.encodeField(a.label, e(a.value)))
 
   type EncoderF[A] = A => Json
 
@@ -59,9 +69,9 @@ package object circe extends LPCirce {
   implicit val encoderDivide: Divide[Encoder] = Divide.fromIso(encoderToEncoderF, encoderFToEncoder)
   implicit val encoderDecide: Decidable[Encoder] = Decidable.fromIso(encoderToEncoderF, encoderFToEncoder)
 
-  implicit def decoderLabelled[L <: Singleton with String, A: Decoder](implicit label: ValueOf[L]): Decoder[Labelled.Aux[A, L]] =
+  implicit def decoderLabelled[L <: Singleton with String, A: Decoder](implicit label: ValueOf[L]): Decoder[Labelled[A, L]] =
     Decoder.instance(_.get[A](label.value) match {
-      case Right(x) => Right(Labelled(x, label.value))
+      case Right(x) => Right(Labelled[A, L](x))
       case Left(f) => Left(f)
     })
 

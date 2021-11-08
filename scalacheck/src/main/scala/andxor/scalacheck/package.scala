@@ -1,6 +1,5 @@
 package andxor
 
-import andxor.types.ADTValue
 import cats.Monad
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -13,5 +12,5 @@ package object scalacheck {
       Arbitrary(f(a).arbitrary.flatMap(_.fold(tailRecM(_)(f), pure).arbitrary))
   }
 
-  implicit def arbAdtVal[A <: Singleton](implicit a: ADTValue[A]): Arbitrary[ADTValue[A]] = arbitraryInst.point(a)
+  implicit def arbAdtVal[A <: Singleton](implicit a: ValueOf[A]): Arbitrary[A] = arbitraryInst.pure(a.value)
 }
