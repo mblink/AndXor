@@ -8,7 +8,7 @@ import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.13.7")
+  lazy val scalaVersions = Seq("2.13.8")
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -35,8 +35,8 @@ object Build {
     Compile / doc / sources := Seq()
   )
 
-  val catsVersion = "2.6.1"
-  val monocleVersion = "2.1.0"
+  val catsVersion = "2.7.0"
+  val monocleVersion = "3.1.0"
   val scalacheckVersion = "1.15.4"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
@@ -44,8 +44,8 @@ object Build {
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
       "org.typelevel" %% "cats-laws" % catsVersion % "test",
-      "com.github.julien-truffaut" %% "monocle-core" % monocleVersion,
-      "com.github.julien-truffaut" %% "monocle-law" % monocleVersion % "test"
+      "dev.optics" %% "monocle-core" % monocleVersion,
+      "dev.optics" %% "monocle-law" % monocleVersion % "test"
     )
   )
 
@@ -86,7 +86,7 @@ object Build {
       libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.3"
     ))
 
-  val circeVersion = "0.14.0-M6"
+  val circeVersion = "0.14.1"
   def circeBase = Project("circe", file("circe"))
     .settings(commonSettings)
     .settings(publishSettings)
