@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - upd-ci
   pull_request:
     branches:
       - master
