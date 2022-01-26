@@ -13,9 +13,14 @@ jobs:
       fail-fast: false
       matrix:
         scala: [2.13.8]
-    env:
-      SCALA_VERSION: ${{ matrix.scala }}
+        java: [8, 11, 17]
     steps:
       - uses: actions/checkout@v2
+      - name: Setup Java ${{ matrix.java }}
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
       - name: sbt test
-        run: sbt ++$SCALA_VERSION test
+        run: sbt ++${{ matrix.scala }} test
