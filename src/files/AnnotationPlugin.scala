@@ -264,8 +264,8 @@ abstract class AnnotationPlugin(override val global: Global) extends Plugin { se
     private def processResult[A <: NameTree: Get[*, Modifiers]](tpe: String, a: Option[A], companion: Option[ModuleDef], extras: Vector[Tree]): Vector[Tree] = {
       if (debugMode) {
         val prefix = s"${a.fold("")(x => s"${x.get[Modifiers].flagString} $tpe ${x.name.decode}")}"
-        a.map(x => debug(prefix -> x))
-        companion.map(x => debug(s"$prefix companion" -> x))
+        a.foreach(x => debug(prefix -> x))
+        companion.foreach(x => debug(s"$prefix companion" -> x))
         Some(extras).filter(_.nonEmpty).foreach(xs => debug(xs.map(x => s"$prefix extra" -> x):_*))
       }
 

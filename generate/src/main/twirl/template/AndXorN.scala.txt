@@ -4,7 +4,6 @@
 
 @tpes.foldLen01("")("import andxor.syntax.ffunctor._\nimport andxor.syntax.ftraverse._\nimport andxor.types._\nimport cats.syntax.either._")
 import cats.{@{(tpes.foldLen01(List[String]())(List("~>", "Applicative", "Functor", "MonoidK")) ::: List("Apply", "Id", "Monoid")).sorted.mkString(", ")}}
-import cats.instances.vector._
 
 @axoDeriving(cop: String, prod: String) = {
   new AndXorDeriving[TC, Cop[F], Prod[F]] {
@@ -31,10 +30,10 @@ import cats.instances.vector._
 
 @axoEv = {
   object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], *], F].choose
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], *], F].divide")
     implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = @tpes.foldLen01("injEv[F]")("deriving[Inj[Prod[F], *], F].choose")
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], *], F].divide
+    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = @tpes.foldLen01("Inj.instance(Vector(_))")("deriving[Inj[Vector[Cop[F]], *], F].divide")
   }
 }
 

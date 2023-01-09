@@ -441,7 +441,7 @@ class DerivingPlugin(override val global: Global) extends AnnotationPlugin(globa
           case Some(x) => getTypeclasses(List(tc), tree(x._2), x._1)
           case None => err(t, s"No configuration found for deriving typeclass `${showCode(tc)}` over a ${if (prod) "" else "co"}product")
         }
-      case None => err(t, s"Invalid argument to deriving annotation: ${showCode(t)}"); Nil
+      case None => err(t, s"Invalid argument to deriving annotation: ${showCode(t)}")
     })
   }
 

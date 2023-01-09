@@ -4,7 +4,7 @@
 
 import andxor.scalacheck._
 import io.circe.{Codec, Decoder, Encoder}
-import org.scalacheck.{Arbitrary, Properties}
+import org.scalacheck.{Arbitrary, Prop, Properties}
 import org.scalacheck.Prop.{forAllNoShrink, propBoolean}
 
 @tpeLists = @{ mkTpeList(1, maxLen) }
@@ -12,11 +12,14 @@ import org.scalacheck.Prop.{forAllNoShrink, propBoolean}
 @ccTpe(i: Int) = @{ List("Int", "String", "Boolean").apply(i % 3) }
 
 object CirceTest extends Properties("circe") {
+  private def registerProp(name: String)(prop: => Prop): Unit =
+    property.update(name, prop): Unit
+
   @tpeLists.map { tpes =>
   @@deriving(Arbitrary, Decoder, Encoder)
   case class @{ccName(tpes)}(@{tpes.zipWithIndex.map(t => ccTpe(t._2)).paramSig("x")})
 
-  property("@{ccName(tpes)}") = forAllNoShrink { (t: @{ccName(tpes)}) =>
+  registerProp("@{ccName(tpes)}")(forAllNoShrink { (t: @{ccName(tpes)}) =>
     val axoCodec = Codec.from(Decoder[@{ccName(tpes)}], Encoder[@{ccName(tpes)}])
     val circeCodec = Codec.forProduct@{tpes.length}(@{tpes.paramList("x").map(t => s""""$t"""").mkString(", ")})(@{ccName(tpes)}.apply)((@{ccName(tpes)}.unapply _).andThen(_.get))
 
@@ -28,6 +31,6 @@ object CirceTest extends Properties("circe") {
 
     ((axoEncoded == circeEncoded) :| "encoded json was different") &&
       ((axoDecoded == circeDecoded) :| "decoded json was different")
-  }
+  })
   }
 }

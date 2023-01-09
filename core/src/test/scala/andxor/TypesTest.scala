@@ -4,12 +4,6 @@ import andxor.AndXorProperties.arbitrary._
 import andxor.types._
 import org.scalacheck.{Arbitrary, Properties}
 import cats.{Applicative, Eq, Functor}
-import cats.instances.int._
-import cats.instances.list._
-import cats.instances.option._
-import cats.instances.string._
-import cats.instances.tuple._
-import cats.instances.vector._
 import cats.kernel.laws.discipline.MonoidTests
 import monocle.law.discipline.LensTests
 

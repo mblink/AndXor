@@ -8,7 +8,7 @@ import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
 object Build {
-  lazy val scalaVersions = Seq("2.13.8")
+  lazy val scalaVersions = Seq("2.13.10")
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -67,6 +67,7 @@ object Build {
         "org.scalariform" %% "scalariform" % "0.2.10",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ),
+      dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
       TwirlKeys.templateImports := Seq(),
       gitRelease := {}
     )).enablePlugins(SbtTwirl)

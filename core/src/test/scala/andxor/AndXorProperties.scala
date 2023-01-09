@@ -1,7 +1,6 @@
 package andxor
 
 import cats.{~>, Applicative, Eq, Id, Monad}
-import cats.instances.option._
 import cats.syntax.apply._
 import org.scalacheck.{Arbitrary, Gen, Prop, PropFromFun, Properties}
 
@@ -46,9 +45,8 @@ object AndXorProperties {
 
     def laws[F[_[_]]](implicit F: FFunctor[F], af: Arbitrary[F[Option]], axy: Arbitrary[Option ~> Option], ef: Eq[F[Option]]): Properties =
       newProperties("ffunctor") { p =>
-        p.property("identity") = identity[F, Option]
-        p.property("composite") = composite[F, Option, Option, Option]
-        ()
+        p.property.update("identity", identity[F, Option]): Unit
+        p.property.update("composite", composite[F, Option, Option, Option]): Unit
       }
   }
 
@@ -83,20 +81,15 @@ object AndXorProperties {
     ): Properties =
       newProperties("ftraverse") { p =>
         import arbitrary._
-        import cats.instances.list._
-        import cats.instances.tuple._
-        import cats.instances.vector._
 
         p.include(ffunctor.laws[F])
-        p.property("identity") = identity[F, TC, Option, Option]
-        p.property("purity.list") = purity[F, TC, List, Option]
-        p.property("purity.stream") = purity[F, TC, Vector, Option]
-        p.property("sequential fusion") = sequentialFusion[F, TC, Id, Id, Option, Option, Option]
-        p.property("naturality") = naturality[F, TC, Vector, List, Option](
-          new (List ~> Vector) { def apply[A](l: List[A]): Vector[A] = l.toVector })
-        p.property("parallel fusion") = parallelFusion[F, TC, Id, Id, Option, Option]
-
-        ()
+        p.property.update("identity", identity[F, TC, Option, Option]): Unit
+        p.property.update("purity.list", purity[F, TC, List, Option]): Unit
+        p.property.update("purity.stream", purity[F, TC, Vector, Option]): Unit
+        p.property.update("sequential fusion", sequentialFusion[F, TC, Id, Id, Option, Option, Option]): Unit
+        p.property.update("naturality", naturality[F, TC, Vector, List, Option](
+          new (List ~> Vector) { def apply[A](l: List[A]): Vector[A] = l.toVector })): Unit
+        p.property.update("parallel fusion", parallelFusion[F, TC, Id, Id, Option, Option]): Unit
       }
   }
 }

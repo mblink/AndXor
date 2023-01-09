@@ -5,7 +5,6 @@ import andxor.syntax.ftraverse._
 import andxor.types._
 import cats.syntax.either._
 import cats.{Applicative, Apply, Functor, Id, Monoid, MonoidK, ~>}
-import cats.instances.vector._
 
 trait AndXorNested2[A1[_[_]], A2[_[_]]] extends AndXor {
 
@@ -156,7 +155,7 @@ trait AndXorNested2[A1[_[_]], A2[_[_]]] extends AndXor {
   def derivingId[TC[_]](implicit t0: TC[A1[Id]], t1: TC[A2[Id]]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 
   object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], *], F].choose
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = deriving[Inj[Prod[F], *], F].divide
     implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = deriving[Inj[Prod[F], *], F].choose
     implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], *], F].divide
@@ -265,7 +264,7 @@ trait AndXor2[A1, A2] extends AndXor {
   def derivingId[TC[_]](implicit t0: TC[A1], t1: TC[A2]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 
   object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], *], F].choose
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = deriving[Inj[Prod[F], *], F].divide
     implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = deriving[Inj[Prod[F], *], F].choose
     implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], *], F].divide

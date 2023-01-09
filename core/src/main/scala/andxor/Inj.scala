@@ -27,6 +27,9 @@ object Inj extends InjLP {
     def apply(a: A): B = ab(a)
   }
 
+  private final val idInst: Inj[Any, Any] = instance(identity)
+  def id[A]: Inj[A, A] = idInst.asInstanceOf[Inj[A, A]]
+
   implicit def decidableInj[Cop]: Decidable[Inj[Cop, *]] =
     new Decidable[Inj[Cop, *]] {
       def contramap[A, B](fa: Inj[Cop, A])(f: B => A): Inj[Cop, B] = instance(b => fa(f(b)))

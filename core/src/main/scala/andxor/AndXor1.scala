@@ -1,7 +1,6 @@
 package andxor
 
 import cats.{Apply, Id, Monoid}
-import cats.instances.vector._
 
 trait AndXorNested1[A1[_[_]]] extends AndXor {
 
@@ -97,10 +96,10 @@ trait AndXorNested1[A1[_[_]]] extends AndXor {
   def derivingId[TC[_]](implicit t0: TC[A1[Id]]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 
   object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], *], F].choose
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = injEv[F]
     implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = injEv[F]
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], *], F].divide
+    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = Inj.instance(Vector(_))
   }
 
 }
@@ -204,10 +203,10 @@ trait AndXor1[A1] extends AndXor {
   def derivingId[TC[_]](implicit t0: TC[A1]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
 
   object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = deriving[Inj[Cop[F], *], F].choose
+    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
     implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = injEv[F]
     implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = injEv[F]
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], *], F].divide
+    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = Inj.instance(Vector(_))
   }
 
 }

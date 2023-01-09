@@ -18,13 +18,6 @@ provides an instance for the corresponding Coproduct, or Product respectively.
 ```scala mdoc:silent
 import andxor._
 import cats.{~>, Id, Show}
-import cats.instances.int._
-import cats.instances.list._
-import cats.instances.option._
-import cats.instances.string._
-import cats.instances.tuple._
-import cats.syntax.semigroup._
-import cats.syntax.show._
 ```
 
 #### Construct an AndXor
