@@ -1,6 +1,0 @@
-@(tpeLists: List[List[String]])
-
-trait Dummy {
-  @tpeLists.map(_.length).map { i =>
-  sealed trait Dummy@{i}; object Dummy@{i} { implicit val inst: Dummy@{i} = new Dummy@{i} {} }}
-}

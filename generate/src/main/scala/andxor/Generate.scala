@@ -1,64 +1,73 @@
 package andxor
 
-import andxor.syntax._
-import better.files.File
-import better.files.Dsl._
-import play.twirl.api.Txt
+import andxor.template.*
+import java.nio.file.{Files, Path, Paths}
 import scalariform.formatter.ScalaFormatter
-import scalariform.formatter.preferences._
+import scalariform.formatter.preferences.*
 
-object Generate extends App {
+object Generate {
   val conf = FormattingPreferences()
     .setPreference(NewlineAtEndOfFile, true)
     .setPreference(SpacesAroundMultiImports, false)
 
-  val tpeLists = mkTpeList(2, maxLen)
+  val tpeLists1To22 = mkTpeList(1, 22)
+  val tpeLists1To100 = mkTpeList(1, 100)
+  val tpeLists2To22 = mkTpeList(2, 22)
+  val tpeLists2To100 = mkTpeList(2, 100)
 
-  def noWs(s: String): String = s.filterNot(_.isWhitespace)
-
-  def maybeWrite(
-    name: String,
-    txt: Txt,
-    pkgs: List[String] = List("andxor"),
-    getProj: File => File = _ / "core",
-    mainOrTest: File => File = _ / "main",
-    fileDir: File => File = identity _,
-    format: Boolean = true
-  ): Unit = {
-    val f = fileDir(mainOrTest(getProj(cwd) / "src") / "scala" / "andxor") / name
-    println(s"Generating $f...")
-    val code = s"${pkgs.map(p => s"package $p").mkString("\n")}\n\n$txt"
-    if (f.notExists || noWs(f.contentAsString) != noWs(code)) {
-      val toWrite = if (format) {
-        println("    formatting...")
-        ScalaFormatter.format(code, conf)
-      } else code
-      println("    writing...")
-      f.overwrite(toWrite)
-      ()
-    } else {
-      println(s"Skipping $f -- content is unchanged")
-    }
+  private final implicit class PathOps(private val p: Path) extends AnyVal {
+    def /(s: String): Path = p.resolve(s)
   }
 
-  maybeWrite("AndXor.scala", template.txt.AndXor(tpeLists))
-  maybeWrite("Derivation.scala", template.txt.Derivation(tpeLists))
+  def fileContents(p: Path): String = new String(Files.readAllBytes(p), "UTF-8")
+  def noWs(s: String): String = s.filterNot(_.isWhitespace)
 
-  maybeWrite("package.scala", template.txt.Types(tpeLists), fileDir = _ / "types")
-  maybeWrite("Dummy.scala", template.txt.Dummy(tpeLists), pkgs = List("andxor.types"), fileDir = _ / "types")
-  tpeLists.foreach(tpes => maybeWrite(s"Types${tpes.length}.scala", template.txt.TypesN(tpes),
-    pkgs = List("andxor.types"), fileDir = _ / "types"))
+  def main(args: Array[String]): Unit = args match {
+    case Array(rootDirS) =>
+      val rootDir = Paths.get(rootDirS)
+      def maybeWrite(
+        name: String,
+        contents: String,
+        pkgs: List[String] = List("andxor"),
+        getProj: Path => Path = _ / "core",
+        mainOrTest: Path => Path = _ / "main",
+        fileDir: Path => Path = identity _,
+        format: Boolean = false
+      ): Unit = {
+        val f = fileDir(mainOrTest(getProj(rootDir) / "src") / "scala" / "andxor") / name
+        println(s"Generating $f...")
+        val code = s"${pkgs.map(p => s"package $p").mkString("\n")}\n\n$contents"
+        if (Files.notExists(f) || noWs(fileContents(f)) != noWs(code)) {
+          val toWrite = if (format) {
+            println("    formatting...")
+            ScalaFormatter.format(code, conf)
+          } else code
+          println("    writing...")
+          Option(f.getParent).foreach(Files.createDirectories(_))
+          Files.write(f, toWrite.getBytes("UTF-8"))
+          ()
+        } else {
+          println(s"Skipping $f -- content is unchanged")
+        }
+      }
 
-  maybeWrite("TypesTest.scala", template.txt.TypesTest(tpeLists), mainOrTest = _ / "test")
-  maybeWrite("AndXor1.scala", template.txt.AndXorN(List("A1")))
-  tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))
-  maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(1)))
-  maybeWrite("MapN.scala", template.txt.MapN(tpeLists.last))
-  maybeWrite("Tuple.scala", template.txt.Tuple(tpeLists))
-  maybeWrite("DerivingPluginTest.scala", template.txt.DerivingPluginTest(), List("andxor", "test"),
-    getProj = _ / "deriving", mainOrTest = _ / "test")
-  maybeWrite("ArgonautTest.scala", template.txt.ArgonautTest(), List("andxor", "argonaut"),
-    getProj = _ / "argonaut", mainOrTest = _ / "test", fileDir = _ / "argonaut")
-  maybeWrite("CirceTest.scala", template.txt.CirceTest(), List("andxor", "circe"),
-    getProj = _ / "circe", mainOrTest = _ / "test", fileDir = _ / "circe")
+      maybeWrite("Dummy.scala", Dummy(tpeLists1To100), pkgs = List("andxor.types"), fileDir = _ / "types")
+      maybeWrite("AndXorNConstructors.scala", AndXorNConstructors(tpeLists1To100))
+      maybeWrite("AndXorNTypes.scala", AndXorNTypes(tpeLists1To100.tail))
+      maybeWrite("Either.scala", Either(tpeLists1To100))
+      maybeWrite("FTraverseEitherNInstances.scala", FTraverseEitherNInstances(tpeLists1To100.tail))
+      maybeWrite("FTraverseTupleNInstances.scala", FTraverseTupleNInstances(tpeLists1To100))
+      maybeWrite("Tuple.scala", Tuple(tpeLists1To100))
+
+      maybeWrite("ArgonautTest.scala", ArgonautTest(tpeLists1To22), List("andxor", "argonaut"),
+        getProj = _ / "tests", mainOrTest = _ / "test", fileDir = _ / "argonaut")
+      maybeWrite("CirceTest.scala", CirceTest(tpeLists1To22), List("andxor", "circe"),
+        getProj = _ / "tests", mainOrTest = _ / "test", fileDir = _ / "circe")
+      maybeWrite("DerivationTest.scala", DerivationTest(mkTpeList(1, 3)),
+        getProj = _ / "tests", mainOrTest = _ / "test")
+      maybeWrite("TypesTest.scala", TypesTest(tpeLists1To22),
+        getProj = _ / "tests", mainOrTest = _ / "test")
+
+    case _ => sys.error("Expected the base path as a single argument")
+  }
 }

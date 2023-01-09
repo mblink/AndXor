@@ -1,9 +1,10 @@
 package andxor
 
 import _root_.argonaut.{DecodeJson, DecodeResult, EncodeJson, HCursor, Json}
-import cats.{~>, Apply, Monoid}
+import cats.{~>, Apply, Id, Monoid}
+import scala.compiletime.{summonAll, summonFrom}
 
-trait LPArgonaut {
+sealed trait ArgonautLP {
   trait JsonSumCodec[A] {
     def encodeField(name: String, value: Json): Json
     def decodeField(name: String, cursor: HCursor, decode: DecodeJson[A]): DecodeResult[A]
@@ -27,7 +28,7 @@ trait LPArgonaut {
         }
     }
 
-    implicit def default[A]: JsonSumCodec[A] = new ObjectCodec[A]
+    given default[A]: JsonSumCodec[A] = new ObjectCodec[A]
   }
 
   implicit def encodeJsonBaseAdtVal[A <: Singleton, L <: Singleton with String](
@@ -44,7 +45,7 @@ trait LPArgonaut {
     DecodeJson(codec.decodeField(value.value.label, _, DecodeJson(_ => DecodeResult.ok(value.value))))
 }
 
-package object argonaut extends LPArgonaut {
+package object argonaut extends ArgonautLP {
   implicit val jsonMonoid: Monoid[Json] = Monoid.instance(Json(), _.deepmerge(_))
 
   implicit def encodeJsonLabelled[L <: Singleton with String, A](
@@ -62,23 +63,53 @@ package object argonaut extends LPArgonaut {
 
   type EncodeJsonF[A] = A => Json
 
-  implicit val encodeJsonToEncodeJsonF: EncodeJson ~> EncodeJsonF = Lambda[EncodeJson ~> EncodeJsonF](_.encode _)
-  implicit val encodeJsonFToEncodeJson: EncodeJsonF ~> EncodeJson = Lambda[EncodeJsonF ~> EncodeJson](EncodeJson(_))
+  val encodeJsonToEncodeJsonF: EncodeJson ~> EncodeJsonF = new (EncodeJson ~> EncodeJsonF) {
+    def apply[A](f: EncodeJson[A]): EncodeJsonF[A] = f.encode
+  }
+  val encodeJsonFToEncodeJson: EncodeJsonF ~> EncodeJson = new (EncodeJsonF ~> EncodeJson) {
+    def apply[A](f: EncodeJsonF[A]): EncodeJson[A] = EncodeJson(f)
+  }
 
-  implicit val encodeJsonDivide: Divide[EncodeJson] = Divide.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
-  implicit val encodeJsonDecide: Decidable[EncodeJson] = Decidable.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
+  given encodeJsonDivide: Divide[EncodeJson] = Divide.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
+  given encodeJsonDecide: Decidable[EncodeJson] = Decidable.fromIso(encodeJsonToEncodeJsonF, encodeJsonFToEncodeJson)
+
+  extension (x: EncodeJson.type) inline def derived[A]: EncodeJson[A] =
+    summonFrom {
+      case p: AndXorProdIso[A] =>
+        given axoInstances: AndXorInstances[EncodeJson, p.Prod[Id]] =
+          AndXorInstances(summonAll[Tuple.Map[p.Prod[Id], EncodeJson]])
+
+        p.deriving[EncodeJson].divide
+
+      case c: AndXorCopIso[A] =>
+        given axoInstances: AndXorInstances[EncodeJson, c.Prod[Id]] =
+          AndXorInstances(summonAll[Tuple.Map[c.Prod[Id], EncodeJson]])
+
+        c.deriving[EncodeJson].choose
+    }
 
   implicit def decodeJsonLabelled[L <: Singleton with String, A: DecodeJson](implicit label: ValueOf[L]): DecodeJson[Labelled[A, L]] =
     DecodeJson(_.get[A](label.value).map(Labelled[A, L](_)))
 
-  implicit val decodeJsonApply: Apply[DecodeJson] = new Apply[DecodeJson] {
+  implicit val decodeJsonInstance: Alt[DecodeJson] with Apply[DecodeJson] = new Alt[DecodeJson] with Apply[DecodeJson] {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)
+    def alt[A](a1: DecodeJson[A], a2: DecodeJson[A]): DecodeJson[A] = a1 ||| a2
     def ap[A, B](f: DecodeJson[A => B])(fa: DecodeJson[A]): DecodeJson[B] =
       DecodeJson(c => f(c).flatMap(g => fa(c).map(g(_))))
   }
 
-  implicit val decodeJsonAlt: Alt[DecodeJson] = new Alt[DecodeJson] {
-    def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)
-    def alt[A](a1: DecodeJson[A], a2: DecodeJson[A]): DecodeJson[A] = a1 ||| a2
-  }
+  extension (x: DecodeJson.type) inline def derived[A]: DecodeJson[A] =
+    summonFrom {
+      case p: AndXorProdIso[A] =>
+        given axoInstances: AndXorInstances[DecodeJson, p.Prod[Id]] =
+          AndXorInstances(summonAll[Tuple.Map[p.Prod[Id], DecodeJson]])
+
+        p.deriving[DecodeJson].apply
+
+      case c: AndXorCopIso[A] =>
+        given axoInstances: AndXorInstances[DecodeJson, c.Prod[Id]] =
+          AndXorInstances(summonAll[Tuple.Map[c.Prod[Id], DecodeJson]])
+
+        c.deriving[DecodeJson].alt
+    }
 }

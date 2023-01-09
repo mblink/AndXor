@@ -1,7 +1,9 @@
 package andxor
 
-import cats.Monad
+import cats.{Id, Monad}
 import org.scalacheck.{Arbitrary, Gen}
+import scala.compiletime.{summonAll, summonFrom, summonInline}
+import scala.deriving.Mirror
 
 package object scalacheck {
   implicit val arbitraryInst: Monad[Arbitrary] with Alt[Arbitrary] = new Monad[Arbitrary] with Alt[Arbitrary] {
@@ -12,5 +14,20 @@ package object scalacheck {
       Arbitrary(f(a).arbitrary.flatMap(_.fold(tailRecM(_)(f), pure).arbitrary))
   }
 
-  implicit def arbAdtVal[A <: Singleton](implicit a: ValueOf[A]): Arbitrary[A] = arbitraryInst.pure(a.value)
+  inline given singletonInstance[A](using inline v: ValueOf[A]): Arbitrary[A] = Arbitrary(Gen.const(v.value))
+
+  extension (x: Arbitrary.type) inline def derived[A]: Arbitrary[A] =
+    summonFrom {
+      case p: AndXorProdIso[A] =>
+        given axoInstances: AndXorInstances[Arbitrary, p.Prod[Id]] =
+          AndXorInstances(summonAll[Tuple.Map[p.Prod[Id], Arbitrary]])
+
+        p.deriving[Arbitrary].apply
+
+      case c: AndXorCopIso[A] =>
+        given axoInstances: AndXorInstances[Arbitrary, c.Prod[Id]] =
+          AndXorInstances(summonAll[Tuple.Map[c.Prod[Id], Arbitrary]])
+
+        c.deriving[Arbitrary].alt
+    }
 }

@@ -1,8 +1,0 @@
-@import andxor.syntax._
-
-@(tpes: List[String])
-  def altly@{tpes.length}[F[_], Z, @{tpes.tpeParams}](@{tpes.paramSig("=>F", "a")})(
-    f: @{tpes.dj} => Z
-  )(implicit A: Alt[F]): F[Z] =
-    A.altly2(a0, @{Some(tpes.length).filter(_ > 3)
-      .fold("A.")(_ => "")}altly@{tpes.length - 1}(@{tpes.tail.params("a", 1)})(identity))(f)

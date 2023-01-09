@@ -1,32 +1,43 @@
 package andxor
 
 import java.io.File
-import play.twirl.sbt.Import.TwirlKeys
-import play.twirl.sbt.SbtTwirl
-import sbt._
-import sbt.Keys._
-import sbtgitpublish.GitPublishKeys._
+import sbt.*
+import sbt.Keys.*
+import sbtgitpublish.GitPublishKeys.*
 
 object Build {
-  lazy val scalaVersions = Seq("2.13.10")
+  lazy val scalaVersions = Seq("3.3.0-RC3")
+
+  def foldScalaV[A](scalaVersion: String)(_213: => A, _3: => A): A =
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, 13)) => _213
+      case Some((3, _)) => _3
+    }
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
-    CrossVersion.partialVersion(scalaVersion) match {
-      case Some((2, 13)) => Seq(srcBaseDir / srcName / "scala-2.13")
-      case _ => Seq()
-    }
+    foldScalaV(scalaVersion)(
+      Seq(srcBaseDir / srcName / "scala-2"),
+      Seq(srcBaseDir / srcName / "scala-3"))
 
   val baseSettings = Seq(
     organization := "andxor",
     crossScalaVersions := scalaVersions,
-    scalaVersion := scalaVersions.find(_.startsWith("2.13")).get,
-    scalacOptions ++= Seq(
-      "-Vimplicits",
-      "-Vimplicits-verbose-tree",
-      "-Xlint:strict-unsealed-patmat",
+    scalaVersion := scalaVersions.find(_.startsWith("3.")).get,
+    scalacOptions ++= foldScalaV(scalaVersion.value)(
+      Seq(
+        "-Vimplicits-verbose-tree",
+        "-Xlint:strict-unsealed-patmat",
+      ),
+      Seq(
+        "-explain",
+        "-Yexplain-lowlevel",
+      )
     ),
     version := currentVersion,
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
+    libraryDependencies ++= foldScalaV(scalaVersion.value)(
+      Seq(compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full)),
+      Seq(),
+    ),
     Compile / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     Test / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
     publish / skip  := true,
@@ -35,9 +46,9 @@ object Build {
     Compile / doc / sources := Seq()
   )
 
-  val catsVersion = "2.7.0"
+  val catsVersion = "2.9.0"
   val monocleVersion = "3.1.0"
-  val scalacheckVersion = "1.15.4"
+  val scalacheckVersion = "1.17.0"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
   val commonSettings = baseSettings ++ Seq(
@@ -61,16 +72,11 @@ object Build {
     .settings(commonSettings)
     .settings(Seq(
       name := "andxor-generate",
-      resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
-        "com.github.pathikrit" %% "better-files" % "3.9.1",
-        "org.scalariform" %% "scalariform" % "0.2.10",
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+        ("org.scalariform" %% "scalariform" % "0.2.10").cross(CrossVersion.for3Use2_13),
       ),
-      dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
-      TwirlKeys.templateImports := Seq(),
       gitRelease := {}
-    )).enablePlugins(SbtTwirl)
+    ))
 
   def coreBase = Project("core", file("core"))
     .settings(commonSettings)
@@ -84,10 +90,10 @@ object Build {
     .settings(testSettings)
     .settings(Seq(
       name := "andxor-argonaut",
-      libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.3"
+      libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.8"
     ))
 
-  val circeVersion = "0.14.1"
+  val circeVersion = "0.14.3"
   def circeBase = Project("circe", file("circe"))
     .settings(commonSettings)
     .settings(publishSettings)
@@ -107,37 +113,7 @@ object Build {
       libraryDependencies += scalacheckDep
     ))
 
-  def enablePlugin(jar: File, extra: Seq[String]): Seq[String] =
-    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}") ++ extra
-
-  def pluginOptions(pluginOpts: Seq[String]) = Seq(
-    scalacOptions -= "-Ywarn-unused:patvars",
-    Test / scalacOptions ++= enablePlugin((Compile / Keys.`package`).value, pluginOpts),
-    libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
-  )
-
-  def compilerPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
-    proj
-      .settings(baseSettings)
-      .settings(publishSettings)
-      .settings(pluginOptions(pluginOpts))
-      .settings(name := nme)
-
-  def annotationPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
-    compilerPlugin(proj, nme, pluginOpts)
-      .settings(Compile / sourceGenerators += Def.task {
-        Seq(baseDirectory.value / ".." / "src" / "files" / "AnnotationPlugin.scala")
-      })
-
-  val derivingFlags = Seq(
-    "-P:deriving:covariant:Arbitrary",
-    "-P:deriving:labelledCovariant:Decoder|DecodeJson|Read",
-    "-P:deriving:contravariant:Prod:Csv|Eq",
-    "-P:deriving:labelledContravariant:Cop:Csv|Eq",
-    "-P:deriving:labelledContravariant:Encoder|EncodeJson|Show"
-  )
-
-  def derivingBase = annotationPlugin(Project("deriving", file("deriving")), "andxor-deriving", derivingFlags).settings(testSettings)
-
-  def newtypeBase = annotationPlugin(Project("newtype", file("newtype")), "andxor-newtype", Seq())
+  def testsBase = Project("tests", file("tests"))
+    .settings(commonSettings)
+    .settings(Seq(name := "andxor-tests"))
 }

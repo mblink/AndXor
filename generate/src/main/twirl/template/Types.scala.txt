@@ -1,5 +1,0 @@
-@(tpeLists: List[List[String]])
-
-package object types
-  extends Dummy
-  with @{tpeLists.map(ts => s"Types${ts.length}").mkString("\nwith ")}

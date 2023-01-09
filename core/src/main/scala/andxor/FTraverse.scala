@@ -1,101 +1,149 @@
 package andxor
 
-import cats.{~>, Applicative, Eq, Functor, Id}
+import cats.{~>, Applicative, Apply, Eq, Functor, Id}
 
-trait FTraverse0[T[_[_]], TC[_[_]]] extends FFunctor[T] {
-  def traverse[F[_], G[_], A[_]: TC](tf: T[F])(f: F ~> Lambda[a => A[G[a]]]): A[T[G]]
-  def sequence[F[_], A[_]: TC](taf: T[Lambda[a => A[F[a]]]]): A[T[F]]
+trait FTraverse[T[_[_]], TC[_[_]]] extends FFunctor[T] {
+  def traverse[F[_], G[_], A[_]: TC](tf: T[F])(f: F ~> ([a] =>> A[G[a]])): A[T[G]]
+
+  final def sequence[F[_], A[_]: TC](taf: T[[a] =>> A[F[a]]]): A[T[F]] =
+    traverse[[a] =>> A[F[a]], F, A](taf)(new (([a] =>> A[F[a]]) ~> ([a] =>> A[F[a]])) {
+      def apply[a](a: A[F[a]]): A[F[a]] = a
+    })
 
   trait FTraverseLaw extends FFunctorLaw {
-    def toFunctor[F[_]](f: TC[F]): Functor[F]
-    def compose[F[_], G[_]](f: TC[F], g: TC[G]): TC[Lambda[a => F[G[a]]]]
-    def product[F[_], G[_]](f: TC[F], g: TC[G]): TC[Lambda[a => (F[a], G[a])]]
+    protected val H: FTraverse.LawHelper[TC]
 
-    def identity[A[_], B[_]](ta: T[A], f: A ~> B)(implicit TB: Eq[T[B]], TCId: TC[Id]): Boolean =
+    final def identity[A[_], B[_]](ta: T[A], f: A ~> B)(using TB: Eq[T[B]], TCId: TC[Id]): Boolean =
       TB.eqv(traverse[A, B, Id](ta)(f), map(ta)(f))
 
-    def sequentialFusion[N[_], M[_], A[_], B[_], C[_]](ta: T[A], amb: A ~> Lambda[a => M[B[a]]], bnc: B ~> Lambda[a => N[C[a]]])(
-        implicit N: TC[N], M: TC[M], MN: Eq[M[N[T[C]]]]): Boolean = {
+    final def sequentialFusion[N[_], M[_], A[_], B[_], C[_]](ta: T[A], amb: A ~> ([a] =>> M[B[a]]), bnc: B ~> ([a] =>> N[C[a]]))(
+        using N: TC[N],
+        M: TC[M],
+        MN: Eq[M[N[T[C]]]]
+      ): Boolean = {
       type MN[X] = M[N[X]]
-      val FM = toFunctor[M](M)
+      val FM = H.toFunctor[M](M)
       val t1: MN[T[C]] = FM.map(traverse[A, B, M](ta)(amb))(tb => traverse[B, C, N](tb)(bnc))
-      val t2: MN[T[C]] = traverse[A, C, MN](ta)(new (A ~> Lambda[a => MN[C[a]]]) {
+      val t2: MN[T[C]] = traverse[A, C, MN](ta)(new (A ~> ([a] =>> MN[C[a]])) {
         def apply[a](aa: A[a]): MN[C[a]] = FM.map(amb(aa))(bnc(_))
-      })(compose(M, N))
+      })(H.compose(M, N))
       MN.eqv(t1, t2)
     }
 
-    def purity[G[_]: Applicative, A[_]](ta: T[A])(implicit G: TC[G], GTA: Eq[G[T[A]]]): Boolean =
+    final def purity[G[_]: Applicative, A[_]](ta: T[A])(using G: TC[G], GTA: Eq[G[T[A]]]): Boolean =
       GTA.eqv(
-        traverse[A, A, G](ta)(new (A ~> Lambda[a => G[A[a]]]) { def apply[a](aa: A[a]): G[A[a]] = Applicative[G].point(aa) }),
+        traverse[A, A, G](ta)(new (A ~> ([a] =>> G[A[a]])) { def apply[a](aa: A[a]): G[A[a]] = Applicative[G].point(aa) }),
         Applicative[G].point(ta))
 
-    def naturality[N[_], M[_], A[_]](nat: M ~> N)(tma: T[Lambda[a => M[A[a]]]])(implicit N: TC[N], M: TC[M], NTA: Eq[N[T[A]]]): Boolean =
+    final def naturality[N[_], M[_], A[_]](nat: M ~> N)(tma: T[[a] =>> M[A[a]]])(using N: TC[N], M: TC[M], NTA: Eq[N[T[A]]]): Boolean =
       NTA.eqv(
         nat[T[A]](sequence[A, M](tma)),
-        sequence[A, N](map[Lambda[a => M[A[a]]], Lambda[a => N[A[a]]]](tma)(new (Lambda[a => M[A[a]]] ~> Lambda[a => N[A[a]]]) {
+        sequence[A, N](map[[a] =>> M[A[a]], [a] =>> N[A[a]]](tma)(new (([a] =>> M[A[a]]) ~> ([a] =>> N[A[a]])) {
           def apply[a](maa: M[A[a]]): N[A[a]] = nat(maa)
         })))
 
-    def parallelFusion[N[_], M[_], A[_], B[_]](ta: T[A], amb: A ~> Lambda[a => M[B[a]]], anb: A ~> Lambda[a => N[B[a]]])(
-        implicit N: TC[N], M: TC[M], MN: Eq[(M[T[B]], N[T[B]])]): Boolean = {
+    final def parallelFusion[N[_], M[_], A[_], B[_]](ta: T[A], amb: A ~> ([a] =>> M[B[a]]), anb: A ~> ([a] =>> N[B[a]]))(
+        using N: TC[N], M: TC[M], MN: Eq[(M[T[B]], N[T[B]])]): Boolean = {
       type MN[X] = (M[X], N[X])
       val t1: MN[T[B]] = (traverse[A, B, M](ta)(amb), traverse[A, B, N](ta)(anb))
-      val t2: MN[T[B]] = traverse[A, B, MN](ta)(new (A ~> Lambda[a => MN[B[a]]]) {
+      val t2: MN[T[B]] = traverse[A, B, MN](ta)(new (A ~> ([a] =>> MN[B[a]])) {
         def apply[a](aa: A[a]): MN[B[a]] = (amb(aa), anb(aa))
-      })(product(M, N))
+      })(H.product(M, N))
       MN.eqv(t1, t2)
     }
   }
-  def ftraverseLaw: FTraverseLaw
+  final def ftraverseLaw(implicit LH: FTraverse.LawHelper[TC]): FTraverseLaw = new FTraverseLaw { val H = LH }
 }
 
-trait FTraverse0Companion[FT[_[_[_]]]] {
-  def apply[T[_[_]]](implicit ev: FT[T]): FT[T] = ev
+sealed trait FTraverseInstances
+extends FTraverseEitherNInstances
+with FTraverseTupleNInstances  {
+  private[andxor] trait FX[TC[_[_]], X]
+  extends FTraverse[[F[_]] =>> F[X], TC]
+  with FFunctor.FX[X] {
+    final def traverse[F[_], G[_], A[_]: TC](tf: F[X])(f: F ~> ([a] =>> A[G[a]])): A[G[X]] =
+      f(tf)
+  }
+
+  private[andxor] trait Tuple1[TC[f[_]] <: Functor[f], X]
+  extends FTraverse[[F[_]] =>> F[X] *: EmptyTuple, TC]
+  with FFunctor.Tuple1[X] {
+    final def traverse[F[_], G[_], A[_]: TC](tf: F[X] *: EmptyTuple)(f: F ~> ([a] =>> A[G[a]])): A[G[X] *: EmptyTuple] =
+      Functor[A].map(f(tf.head))(_ *: EmptyTuple)
+  }
+
+  private[andxor] trait TupleN[TC[f[_]] <: Apply[f], H, T[_[_]] <: Tuple]
+  extends FTraverse[[F[_]] =>> F[H] *: T[F], TC]
+  with FFunctor.TupleN[H, T] {
+    protected val FT: FTraverse[T, TC]
+    final def traverse[F[_], G[_], A[_]: TC](tf: F[H] *: T[F])(f: F ~> ([a] =>> A[G[a]])): A[G[H] *: T[G]] =
+      Apply[A].map2(f(tf.head), FT.traverse(tf.tail)(f))(_ *: _)
+  }
+
+  private[andxor] trait Either[TC[f[_]] <: Functor[f], L, R[_[_]]]
+  extends FTraverse[[F[_]] =>> F[L] |: R[F], TC]
+  with FFunctor.Either[L, R] {
+    protected val FR: FTraverse[R, TC]
+    final def traverse[F[_], G[_], A[_]: TC](tf: F[L] |: R[F])(f: F ~> ([a] =>> A[G[a]])): A[G[L] |: R[G]] =
+      tf match {
+        case Left(fl) => Functor[A].map(f(fl))(Left(_))
+        case Right(rf) => Functor[A].map(FR.traverse(rf)(f))(Right(_))
+      }
+  }
+
+  // Base case for coproduct derivation
+  final given fx[TC[_[_]], X]: FTraverse[[F[_]] =>> F[X], TC] =
+    new FX[TC, X] {}
+
+  // Base case for product derivation
+  final given tuple1[TC[f[_]] <: Functor[f], X]: FTraverse[[F[_]] =>> F[X] *: EmptyTuple, TC] =
+    new Tuple1[TC, X] {}
 }
 
-trait FTraverseFunctor[T[_[_]]] extends FTraverse0[T, Functor] {
-  val ftraverseLaw = new FTraverseLaw {
-    def toFunctor[F[_]](tc: Functor[F]): Functor[F] = tc
-    def compose[F[_], G[_]](f: Functor[F], g: Functor[G]): Functor[Lambda[a => F[G[a]]]] = f.compose(g)
-    def product[F[_], G[_]](F: Functor[F], G: Functor[G]): Functor[Lambda[a => (F[a], G[a])]] = new Functor[Lambda[a => (F[a], G[a])]] {
-      def map[A, B](fa: (F[A], G[A]))(f: A => B): (F[B], G[B]) =
-        (F.map(fa._1)(f), G.map(fa._2)(f))
+object FTraverse extends FTraverseInstances {
+  @inline def apply[T[_[_]], TC[_[_]]](using ev: FTraverse[T, TC]): FTraverse[T, TC] = ev
+
+  private[andxor] sealed trait LawHelper[TC[_[_]]] {
+    def toFunctor[F[_]](f: TC[F]): Functor[F]
+    def compose[F[_], G[_]](f: TC[F], g: TC[G]): TC[[a] =>> F[G[a]]]
+    def product[F[_], G[_]](f: TC[F], g: TC[G]): TC[[a] =>> (F[a], G[a])]
+  }
+
+  object LawHelper {
+    implicit val functor: LawHelper[Functor] = new LawHelper[Functor] {
+      def toFunctor[F[_]](tc: Functor[F]): Functor[F] = tc
+      def compose[F[_], G[_]](f: Functor[F], g: Functor[G]): Functor[[a] =>> F[G[a]]] = f.compose(g)
+      def product[F[_], G[_]](F: Functor[F], G: Functor[G]): Functor[[a] =>> (F[a], G[a])] = new Functor[[a] =>> (F[a], G[a])] {
+        def map[A, B](fa: (F[A], G[A]))(f: A => B): (F[B], G[B]) =
+          (F.map(fa._1)(f), G.map(fa._2)(f))
+      }
+    }
+
+    implicit val apply: LawHelper[Apply] = new LawHelper[Apply] {
+      def toFunctor[F[_]](tc: Apply[F]): Functor[F] = tc
+      def compose[F[_], G[_]](f: Apply[F], g: Apply[G]): Apply[[a] =>> F[G[a]]] = f.compose(g)
+      def product[F[_], G[_]](F: Apply[F], G: Apply[G]): Apply[[a] =>> (F[a], G[a])] = new Apply[[a] =>> (F[a], G[a])] {
+        def map[A, B](fa: (F[A], G[A]))(f: A => B): (F[B], G[B]) =
+          (F.map(fa._1)(f), G.map(fa._2)(f))
+
+        def ap[A, B](ff: (F[A => B], G[A => B]))(fa: (F[A], G[A])): (F[B], G[B]) =
+          (F.ap(ff._1)(fa._1), G.ap(ff._2)(fa._2))
+      }
     }
   }
 }
 
-trait FTraverseApplicative[T[_[_]]] extends FTraverse0[T, Applicative] {
-  val ftraverseLaw = new FTraverseLaw {
-    def toFunctor[F[_]](tc: Applicative[F]): Functor[F] = tc
-    def compose[F[_], G[_]](f: Applicative[F], g: Applicative[G]): Applicative[Lambda[a => F[G[a]]]] = f.compose(g)
-    def product[F[_], G[_]](F: Applicative[F], G: Applicative[G]): Applicative[Lambda[a => (F[a], G[a])]] = new Applicative[Lambda[a => (F[a], G[a])]] {
-      def pure[A](a: A): (F[A], G[A]) = (F.pure(a), G.pure(a))
-      def ap[A, B](ff: (F[A => B], G[A => B]))(fa: (F[A], G[A])): (F[B], G[B]) =
-        (F.ap(ff._1)(fa._1), G.ap(ff._2)(fa._2))
-    }
-  }
+trait FTraverseCompanion[FT[_[_[_]]]] {
+  final def apply[T[_[_]]](using ev: FT[T]): FT[T] = ev
 }
 
-trait FTraverse[T[_[_]], TC[_[_]]] extends FTraverse0[T, TC] {
-  def sequence[F[_], A[_]: TC](taf: T[Lambda[a => A[F[a]]]]): A[T[F]] =
-    traverse[Lambda[a => A[F[a]]], F, A](taf)(new (Lambda[a => A[F[a]]] ~> Lambda[a => A[F[a]]]) {
-      def apply[a](a: A[F[a]]): A[F[a]] = a
-    })
-}
-object FTraverse extends FTraverse0Companion[FTraverse[*[_[_]], Applicative]]
-object FTraverseFunctor extends FTraverse0Companion[FTraverse[*[_[_]], Functor]]
+trait FTraverseFunctor[T[_[_]]] extends FTraverse[T, Functor]
+object FTraverseFunctor extends FTraverseCompanion[[T[_[_]]] =>> FTraverse[T, Functor]]
 
-trait FTraverseProd[T[_[_]]] extends FTraverse[T, Applicative] with FTraverseApplicative[T]
-object FTraverseProd extends FTraverse0Companion[FTraverseProd]
+trait FTraverseApply[T[_[_]]] extends FTraverse[T, Apply]
+object FTraverseApply extends FTraverseCompanion[[T[_[_]]] =>> FTraverse[T, Apply]]
 
-trait FTraverseCop[T[_[_]]] extends FTraverse[T, Functor] with FTraverseFunctor[T]
-object FTraverseCop extends FTraverse0Companion[FTraverseCop] {
-  implicit def FConstFTraverseCop[X]: FTraverseCop[FConst[X]#T] = new FTraverseCop[FConst[X]#T] {
-    type T[F[_]] = FConst[X]#T[F]
-
-    def map[A[_], B[_]](fa: T[A])(f: A ~> B): T[B] = f(fa)
-    def traverse[F[_], G[_], A[_]: Functor](tf: T[F])(f: F ~> Lambda[a => A[G[a]]]): A[T[G]] =
-      map[F, Lambda[a => A[G[a]]]](tf)(f)
-  }
-}
+type FTraverseProd[T[_[_]]] = FTraverseApply[T]
+val FTraverseProd = FTraverseApply
+type FTraverseCop[T[_[_]]] = FTraverseFunctor[T]
+val FTraverseCop = FTraverseFunctor

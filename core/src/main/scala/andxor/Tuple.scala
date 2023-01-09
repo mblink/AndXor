@@ -1,341 +1,1810 @@
 package andxor
 
-package object tuple {
 
-  implicit class Tuple2Ops[A1, A2](t: (A1, A2)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
+import cats.Monoid
+import monocle.Lens
 
+// These methods could be implemented without `.asInstanceOf`,
+// but treating tuples as `Array`s yields significantly better performance
+object tuple {
+
+  extension [A1, T <: Tuple](t: A1 *: T) {
+    inline final def t1: A1 = t.toArray(0).asInstanceOf[A1]
+
+    inline final def map1[B](f: A1 => B): B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(0, f(arr(0).asInstanceOf[A1]): Any)).asInstanceOf[B *: T]
+    }
   }
 
-  implicit class Tuple3Ops[A1, A2, A3](t: (A1, A2, A3)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
+  given lensT1[A1, T <: Tuple]: Lens[A1 *: T, A1] =
+    Lens((_: A1 *: T).t1)((a: A1) => (_: A1 *: T).map1(_ => a))
 
+  given injT1[A1, T <: Tuple](
+    using M: Monoid[A1 *: T],
+  ): Inj[A1 *: T, A1] =
+    Inj.instance((a: A1) => M.empty.map1(_ => a))
+
+
+  extension [A1, A2, T <: Tuple](t: A1 *: A2 *: T) {
+    inline final def t2: A2 = t.toArray(1).asInstanceOf[A2]
+
+    inline final def map2[B](f: A2 => B): A1 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(1, f(arr(1).asInstanceOf[A2]): Any)).asInstanceOf[A1 *: B *: T]
+    }
   }
 
-  implicit class Tuple4Ops[A1, A2, A3, A4](t: (A1, A2, A3, A4)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
+  given lensT2[A1, A2, T <: Tuple]: Lens[A1 *: A2 *: T, A2] =
+    Lens((_: A1 *: A2 *: T).t2)((a: A2) => (_: A1 *: A2 *: T).map2(_ => a))
 
+  given injT2[A1, A2, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: T],
+  ): Inj[A1 *: A2 *: T, A2] =
+    Inj.instance((a: A2) => M.empty.map2(_ => a))
+
+
+  extension [A1, A2, A3, T <: Tuple](t: A1 *: A2 *: A3 *: T) {
+    inline final def t3: A3 = t.toArray(2).asInstanceOf[A3]
+
+    inline final def map3[B](f: A3 => B): A1 *: A2 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(2, f(arr(2).asInstanceOf[A3]): Any)).asInstanceOf[A1 *: A2 *: B *: T]
+    }
   }
 
-  implicit class Tuple5Ops[A1, A2, A3, A4, A5](t: (A1, A2, A3, A4, A5)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
+  given lensT3[A1, A2, A3, T <: Tuple]: Lens[A1 *: A2 *: A3 *: T, A3] =
+    Lens((_: A1 *: A2 *: A3 *: T).t3)((a: A3) => (_: A1 *: A2 *: A3 *: T).map3(_ => a))
 
+  given injT3[A1, A2, A3, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: T],
+  ): Inj[A1 *: A2 *: A3 *: T, A3] =
+    Inj.instance((a: A3) => M.empty.map3(_ => a))
+
+
+  extension [A1, A2, A3, A4, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: T) {
+    inline final def t4: A4 = t.toArray(3).asInstanceOf[A4]
+
+    inline final def map4[B](f: A4 => B): A1 *: A2 *: A3 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(3, f(arr(3).asInstanceOf[A4]): Any)).asInstanceOf[A1 *: A2 *: A3 *: B *: T]
+    }
   }
 
-  implicit class Tuple6Ops[A1, A2, A3, A4, A5, A6](t: (A1, A2, A3, A4, A5, A6)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
+  given lensT4[A1, A2, A3, A4, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: T, A4] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: T).t4)((a: A4) => (_: A1 *: A2 *: A3 *: A4 *: T).map4(_ => a))
 
+  given injT4[A1, A2, A3, A4, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: T, A4] =
+    Inj.instance((a: A4) => M.empty.map4(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: T) {
+    inline final def t5: A5 = t.toArray(4).asInstanceOf[A5]
+
+    inline final def map5[B](f: A5 => B): A1 *: A2 *: A3 *: A4 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(4, f(arr(4).asInstanceOf[A5]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: B *: T]
+    }
   }
 
-  implicit class Tuple7Ops[A1, A2, A3, A4, A5, A6, A7](t: (A1, A2, A3, A4, A5, A6, A7)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
+  given lensT5[A1, A2, A3, A4, A5, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: T, A5] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: T).t5)((a: A5) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: T).map5(_ => a))
 
+  given injT5[A1, A2, A3, A4, A5, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: T, A5] =
+    Inj.instance((a: A5) => M.empty.map5(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: T) {
+    inline final def t6: A6 = t.toArray(5).asInstanceOf[A6]
+
+    inline final def map6[B](f: A6 => B): A1 *: A2 *: A3 *: A4 *: A5 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(5, f(arr(5).asInstanceOf[A6]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: B *: T]
+    }
   }
 
-  implicit class Tuple8Ops[A1, A2, A3, A4, A5, A6, A7, A8](t: (A1, A2, A3, A4, A5, A6, A7, A8)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
+  given lensT6[A1, A2, A3, A4, A5, A6, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: T, A6] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: T).t6)((a: A6) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: T).map6(_ => a))
 
+  given injT6[A1, A2, A3, A4, A5, A6, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: T, A6] =
+    Inj.instance((a: A6) => M.empty.map6(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: T) {
+    inline final def t7: A7 = t.toArray(6).asInstanceOf[A7]
+
+    inline final def map7[B](f: A7 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(6, f(arr(6).asInstanceOf[A7]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: B *: T]
+    }
   }
 
-  implicit class Tuple9Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
+  given lensT7[A1, A2, A3, A4, A5, A6, A7, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: T, A7] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: T).t7)((a: A7) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: T).map7(_ => a))
 
+  given injT7[A1, A2, A3, A4, A5, A6, A7, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: T, A7] =
+    Inj.instance((a: A7) => M.empty.map7(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: T) {
+    inline final def t8: A8 = t.toArray(7).asInstanceOf[A8]
+
+    inline final def map8[B](f: A8 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(7, f(arr(7).asInstanceOf[A8]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: B *: T]
+    }
   }
 
-  implicit class Tuple10Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
+  given lensT8[A1, A2, A3, A4, A5, A6, A7, A8, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: T, A8] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: T).t8)((a: A8) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: T).map8(_ => a))
 
+  given injT8[A1, A2, A3, A4, A5, A6, A7, A8, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: T, A8] =
+    Inj.instance((a: A8) => M.empty.map8(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: T) {
+    inline final def t9: A9 = t.toArray(8).asInstanceOf[A9]
+
+    inline final def map9[B](f: A9 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(8, f(arr(8).asInstanceOf[A9]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: B *: T]
+    }
   }
 
-  implicit class Tuple11Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
+  given lensT9[A1, A2, A3, A4, A5, A6, A7, A8, A9, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: T, A9] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: T).t9)((a: A9) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: T).map9(_ => a))
 
+  given injT9[A1, A2, A3, A4, A5, A6, A7, A8, A9, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: T, A9] =
+    Inj.instance((a: A9) => M.empty.map9(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: T) {
+    inline final def t10: A10 = t.toArray(9).asInstanceOf[A10]
+
+    inline final def map10[B](f: A10 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(9, f(arr(9).asInstanceOf[A10]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: B *: T]
+    }
   }
 
-  implicit class Tuple12Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
+  given lensT10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: T, A10] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: T).t10)((a: A10) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: T).map10(_ => a))
 
+  given injT10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: T, A10] =
+    Inj.instance((a: A10) => M.empty.map10(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: T) {
+    inline final def t11: A11 = t.toArray(10).asInstanceOf[A11]
+
+    inline final def map11[B](f: A11 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(10, f(arr(10).asInstanceOf[A11]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: B *: T]
+    }
   }
 
-  implicit class Tuple13Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
+  given lensT11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: T, A11] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: T).t11)((a: A11) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: T).map11(_ => a))
 
+  given injT11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: T, A11] =
+    Inj.instance((a: A11) => M.empty.map11(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: T) {
+    inline final def t12: A12 = t.toArray(11).asInstanceOf[A12]
+
+    inline final def map12[B](f: A12 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(11, f(arr(11).asInstanceOf[A12]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: B *: T]
+    }
   }
 
-  implicit class Tuple14Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
+  given lensT12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: T, A12] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: T).t12)((a: A12) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: T).map12(_ => a))
 
+  given injT12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: T, A12] =
+    Inj.instance((a: A12) => M.empty.map12(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: T) {
+    inline final def t13: A13 = t.toArray(12).asInstanceOf[A13]
+
+    inline final def map13[B](f: A13 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(12, f(arr(12).asInstanceOf[A13]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: B *: T]
+    }
   }
 
-  implicit class Tuple15Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
+  given lensT13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: T, A13] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: T).t13)((a: A13) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: T).map13(_ => a))
 
+  given injT13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: T, A13] =
+    Inj.instance((a: A13) => M.empty.map13(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: T) {
+    inline final def t14: A14 = t.toArray(13).asInstanceOf[A14]
+
+    inline final def map14[B](f: A14 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(13, f(arr(13).asInstanceOf[A14]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: B *: T]
+    }
   }
 
-  implicit class Tuple16Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
-    def t16: A16 = t._16
+  given lensT14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: T, A14] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: T).t14)((a: A14) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: T).map14(_ => a))
 
+  given injT14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: T, A14] =
+    Inj.instance((a: A14) => M.empty.map14(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: T) {
+    inline final def t15: A15 = t.toArray(14).asInstanceOf[A15]
+
+    inline final def map15[B](f: A15 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(14, f(arr(14).asInstanceOf[A15]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: B *: T]
+    }
   }
 
-  implicit class Tuple17Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
-    def t16: A16 = t._16
-    def t17: A17 = t._17
+  given lensT15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: T, A15] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: T).t15)((a: A15) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: T).map15(_ => a))
 
+  given injT15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: T, A15] =
+    Inj.instance((a: A15) => M.empty.map15(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: T) {
+    inline final def t16: A16 = t.toArray(15).asInstanceOf[A16]
+
+    inline final def map16[B](f: A16 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(15, f(arr(15).asInstanceOf[A16]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: B *: T]
+    }
   }
 
-  implicit class Tuple18Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
-    def t16: A16 = t._16
-    def t17: A17 = t._17
-    def t18: A18 = t._18
+  given lensT16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: T, A16] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: T).t16)((a: A16) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: T).map16(_ => a))
 
+  given injT16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: T, A16] =
+    Inj.instance((a: A16) => M.empty.map16(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: T) {
+    inline final def t17: A17 = t.toArray(16).asInstanceOf[A17]
+
+    inline final def map17[B](f: A17 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(16, f(arr(16).asInstanceOf[A17]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: B *: T]
+    }
   }
 
-  implicit class Tuple19Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
-    def t16: A16 = t._16
-    def t17: A17 = t._17
-    def t18: A18 = t._18
-    def t19: A19 = t._19
+  given lensT17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: T, A17] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: T).t17)((a: A17) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: T).map17(_ => a))
 
+  given injT17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: T, A17] =
+    Inj.instance((a: A17) => M.empty.map17(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: T) {
+    inline final def t18: A18 = t.toArray(17).asInstanceOf[A18]
+
+    inline final def map18[B](f: A18 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(17, f(arr(17).asInstanceOf[A18]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: B *: T]
+    }
   }
 
-  implicit class Tuple20Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
-    def t16: A16 = t._16
-    def t17: A17 = t._17
-    def t18: A18 = t._18
-    def t19: A19 = t._19
-    def t20: A20 = t._20
+  given lensT18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: T, A18] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: T).t18)((a: A18) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: T).map18(_ => a))
 
+  given injT18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: T, A18] =
+    Inj.instance((a: A18) => M.empty.map18(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: T) {
+    inline final def t19: A19 = t.toArray(18).asInstanceOf[A19]
+
+    inline final def map19[B](f: A19 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(18, f(arr(18).asInstanceOf[A19]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: B *: T]
+    }
   }
 
-  implicit class Tuple21Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
-    def t16: A16 = t._16
-    def t17: A17 = t._17
-    def t18: A18 = t._18
-    def t19: A19 = t._19
-    def t20: A20 = t._20
-    def t21: A21 = t._21
+  given lensT19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: T, A19] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: T).t19)((a: A19) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: T).map19(_ => a))
 
+  given injT19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: T, A19] =
+    Inj.instance((a: A19) => M.empty.map19(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: T) {
+    inline final def t20: A20 = t.toArray(19).asInstanceOf[A20]
+
+    inline final def map20[B](f: A20 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(19, f(arr(19).asInstanceOf[A20]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: B *: T]
+    }
   }
 
-  implicit class Tuple22Ops[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](t: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22)) {
-    def t1: A1 = t._1
-    def t2: A2 = t._2
-    def t3: A3 = t._3
-    def t4: A4 = t._4
-    def t5: A5 = t._5
-    def t6: A6 = t._6
-    def t7: A7 = t._7
-    def t8: A8 = t._8
-    def t9: A9 = t._9
-    def t10: A10 = t._10
-    def t11: A11 = t._11
-    def t12: A12 = t._12
-    def t13: A13 = t._13
-    def t14: A14 = t._14
-    def t15: A15 = t._15
-    def t16: A16 = t._16
-    def t17: A17 = t._17
-    def t18: A18 = t._18
-    def t19: A19 = t._19
-    def t20: A20 = t._20
-    def t21: A21 = t._21
-    def t22: A22 = t._22
+  given lensT20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: T, A20] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: T).t20)((a: A20) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: T).map20(_ => a))
 
+  given injT20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: T, A20] =
+    Inj.instance((a: A20) => M.empty.map20(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: T) {
+    inline final def t21: A21 = t.toArray(20).asInstanceOf[A21]
+
+    inline final def map21[B](f: A21 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(20, f(arr(20).asInstanceOf[A21]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: B *: T]
+    }
   }
+
+  given lensT21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: T, A21] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: T).t21)((a: A21) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: T).map21(_ => a))
+
+  given injT21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: T, A21] =
+    Inj.instance((a: A21) => M.empty.map21(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: T) {
+    inline final def t22: A22 = t.toArray(21).asInstanceOf[A22]
+
+    inline final def map22[B](f: A22 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(21, f(arr(21).asInstanceOf[A22]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: B *: T]
+    }
+  }
+
+  given lensT22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: T, A22] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: T).t22)((a: A22) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: T).map22(_ => a))
+
+  given injT22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: T, A22] =
+    Inj.instance((a: A22) => M.empty.map22(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: T) {
+    inline final def t23: A23 = t.toArray(22).asInstanceOf[A23]
+
+    inline final def map23[B](f: A23 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(22, f(arr(22).asInstanceOf[A23]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: B *: T]
+    }
+  }
+
+  given lensT23[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: T, A23] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: T).t23)((a: A23) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: T).map23(_ => a))
+
+  given injT23[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: T, A23] =
+    Inj.instance((a: A23) => M.empty.map23(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: T) {
+    inline final def t24: A24 = t.toArray(23).asInstanceOf[A24]
+
+    inline final def map24[B](f: A24 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(23, f(arr(23).asInstanceOf[A24]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: B *: T]
+    }
+  }
+
+  given lensT24[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: T, A24] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: T).t24)((a: A24) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: T).map24(_ => a))
+
+  given injT24[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: T, A24] =
+    Inj.instance((a: A24) => M.empty.map24(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: T) {
+    inline final def t25: A25 = t.toArray(24).asInstanceOf[A25]
+
+    inline final def map25[B](f: A25 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(24, f(arr(24).asInstanceOf[A25]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: B *: T]
+    }
+  }
+
+  given lensT25[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: T, A25] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: T).t25)((a: A25) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: T).map25(_ => a))
+
+  given injT25[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: T, A25] =
+    Inj.instance((a: A25) => M.empty.map25(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: T) {
+    inline final def t26: A26 = t.toArray(25).asInstanceOf[A26]
+
+    inline final def map26[B](f: A26 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(25, f(arr(25).asInstanceOf[A26]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: B *: T]
+    }
+  }
+
+  given lensT26[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: T, A26] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: T).t26)((a: A26) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: T).map26(_ => a))
+
+  given injT26[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: T, A26] =
+    Inj.instance((a: A26) => M.empty.map26(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: T) {
+    inline final def t27: A27 = t.toArray(26).asInstanceOf[A27]
+
+    inline final def map27[B](f: A27 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(26, f(arr(26).asInstanceOf[A27]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: B *: T]
+    }
+  }
+
+  given lensT27[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: T, A27] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: T).t27)((a: A27) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: T).map27(_ => a))
+
+  given injT27[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: T, A27] =
+    Inj.instance((a: A27) => M.empty.map27(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: T) {
+    inline final def t28: A28 = t.toArray(27).asInstanceOf[A28]
+
+    inline final def map28[B](f: A28 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(27, f(arr(27).asInstanceOf[A28]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: B *: T]
+    }
+  }
+
+  given lensT28[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: T, A28] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: T).t28)((a: A28) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: T).map28(_ => a))
+
+  given injT28[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: T, A28] =
+    Inj.instance((a: A28) => M.empty.map28(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: T) {
+    inline final def t29: A29 = t.toArray(28).asInstanceOf[A29]
+
+    inline final def map29[B](f: A29 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(28, f(arr(28).asInstanceOf[A29]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: B *: T]
+    }
+  }
+
+  given lensT29[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: T, A29] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: T).t29)((a: A29) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: T).map29(_ => a))
+
+  given injT29[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: T, A29] =
+    Inj.instance((a: A29) => M.empty.map29(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: T) {
+    inline final def t30: A30 = t.toArray(29).asInstanceOf[A30]
+
+    inline final def map30[B](f: A30 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(29, f(arr(29).asInstanceOf[A30]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: B *: T]
+    }
+  }
+
+  given lensT30[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: T, A30] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: T).t30)((a: A30) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: T).map30(_ => a))
+
+  given injT30[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: T, A30] =
+    Inj.instance((a: A30) => M.empty.map30(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: T) {
+    inline final def t31: A31 = t.toArray(30).asInstanceOf[A31]
+
+    inline final def map31[B](f: A31 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(30, f(arr(30).asInstanceOf[A31]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: B *: T]
+    }
+  }
+
+  given lensT31[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: T, A31] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: T).t31)((a: A31) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: T).map31(_ => a))
+
+  given injT31[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: T, A31] =
+    Inj.instance((a: A31) => M.empty.map31(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: T) {
+    inline final def t32: A32 = t.toArray(31).asInstanceOf[A32]
+
+    inline final def map32[B](f: A32 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(31, f(arr(31).asInstanceOf[A32]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: B *: T]
+    }
+  }
+
+  given lensT32[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: T, A32] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: T).t32)((a: A32) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: T).map32(_ => a))
+
+  given injT32[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: T, A32] =
+    Inj.instance((a: A32) => M.empty.map32(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: T) {
+    inline final def t33: A33 = t.toArray(32).asInstanceOf[A33]
+
+    inline final def map33[B](f: A33 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(32, f(arr(32).asInstanceOf[A33]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: B *: T]
+    }
+  }
+
+  given lensT33[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: T, A33] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: T).t33)((a: A33) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: T).map33(_ => a))
+
+  given injT33[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: T, A33] =
+    Inj.instance((a: A33) => M.empty.map33(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: T) {
+    inline final def t34: A34 = t.toArray(33).asInstanceOf[A34]
+
+    inline final def map34[B](f: A34 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(33, f(arr(33).asInstanceOf[A34]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: B *: T]
+    }
+  }
+
+  given lensT34[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: T, A34] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: T).t34)((a: A34) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: T).map34(_ => a))
+
+  given injT34[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: T, A34] =
+    Inj.instance((a: A34) => M.empty.map34(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: T) {
+    inline final def t35: A35 = t.toArray(34).asInstanceOf[A35]
+
+    inline final def map35[B](f: A35 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(34, f(arr(34).asInstanceOf[A35]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: B *: T]
+    }
+  }
+
+  given lensT35[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: T, A35] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: T).t35)((a: A35) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: T).map35(_ => a))
+
+  given injT35[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: T, A35] =
+    Inj.instance((a: A35) => M.empty.map35(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: T) {
+    inline final def t36: A36 = t.toArray(35).asInstanceOf[A36]
+
+    inline final def map36[B](f: A36 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(35, f(arr(35).asInstanceOf[A36]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: B *: T]
+    }
+  }
+
+  given lensT36[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: T, A36] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: T).t36)((a: A36) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: T).map36(_ => a))
+
+  given injT36[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: T, A36] =
+    Inj.instance((a: A36) => M.empty.map36(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: T) {
+    inline final def t37: A37 = t.toArray(36).asInstanceOf[A37]
+
+    inline final def map37[B](f: A37 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(36, f(arr(36).asInstanceOf[A37]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: B *: T]
+    }
+  }
+
+  given lensT37[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: T, A37] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: T).t37)((a: A37) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: T).map37(_ => a))
+
+  given injT37[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: T, A37] =
+    Inj.instance((a: A37) => M.empty.map37(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: T) {
+    inline final def t38: A38 = t.toArray(37).asInstanceOf[A38]
+
+    inline final def map38[B](f: A38 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(37, f(arr(37).asInstanceOf[A38]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: B *: T]
+    }
+  }
+
+  given lensT38[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: T, A38] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: T).t38)((a: A38) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: T).map38(_ => a))
+
+  given injT38[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: T, A38] =
+    Inj.instance((a: A38) => M.empty.map38(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: T) {
+    inline final def t39: A39 = t.toArray(38).asInstanceOf[A39]
+
+    inline final def map39[B](f: A39 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(38, f(arr(38).asInstanceOf[A39]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: B *: T]
+    }
+  }
+
+  given lensT39[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: T, A39] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: T).t39)((a: A39) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: T).map39(_ => a))
+
+  given injT39[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: T, A39] =
+    Inj.instance((a: A39) => M.empty.map39(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: T) {
+    inline final def t40: A40 = t.toArray(39).asInstanceOf[A40]
+
+    inline final def map40[B](f: A40 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(39, f(arr(39).asInstanceOf[A40]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: B *: T]
+    }
+  }
+
+  given lensT40[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: T, A40] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: T).t40)((a: A40) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: T).map40(_ => a))
+
+  given injT40[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: T, A40] =
+    Inj.instance((a: A40) => M.empty.map40(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: T) {
+    inline final def t41: A41 = t.toArray(40).asInstanceOf[A41]
+
+    inline final def map41[B](f: A41 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(40, f(arr(40).asInstanceOf[A41]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: B *: T]
+    }
+  }
+
+  given lensT41[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: T, A41] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: T).t41)((a: A41) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: T).map41(_ => a))
+
+  given injT41[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: T, A41] =
+    Inj.instance((a: A41) => M.empty.map41(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: T) {
+    inline final def t42: A42 = t.toArray(41).asInstanceOf[A42]
+
+    inline final def map42[B](f: A42 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(41, f(arr(41).asInstanceOf[A42]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: B *: T]
+    }
+  }
+
+  given lensT42[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: T, A42] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: T).t42)((a: A42) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: T).map42(_ => a))
+
+  given injT42[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: T, A42] =
+    Inj.instance((a: A42) => M.empty.map42(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: T) {
+    inline final def t43: A43 = t.toArray(42).asInstanceOf[A43]
+
+    inline final def map43[B](f: A43 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(42, f(arr(42).asInstanceOf[A43]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: B *: T]
+    }
+  }
+
+  given lensT43[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: T, A43] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: T).t43)((a: A43) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: T).map43(_ => a))
+
+  given injT43[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: T, A43] =
+    Inj.instance((a: A43) => M.empty.map43(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: T) {
+    inline final def t44: A44 = t.toArray(43).asInstanceOf[A44]
+
+    inline final def map44[B](f: A44 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(43, f(arr(43).asInstanceOf[A44]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: B *: T]
+    }
+  }
+
+  given lensT44[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: T, A44] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: T).t44)((a: A44) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: T).map44(_ => a))
+
+  given injT44[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: T, A44] =
+    Inj.instance((a: A44) => M.empty.map44(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: T) {
+    inline final def t45: A45 = t.toArray(44).asInstanceOf[A45]
+
+    inline final def map45[B](f: A45 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(44, f(arr(44).asInstanceOf[A45]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: B *: T]
+    }
+  }
+
+  given lensT45[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: T, A45] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: T).t45)((a: A45) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: T).map45(_ => a))
+
+  given injT45[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: T, A45] =
+    Inj.instance((a: A45) => M.empty.map45(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: T) {
+    inline final def t46: A46 = t.toArray(45).asInstanceOf[A46]
+
+    inline final def map46[B](f: A46 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(45, f(arr(45).asInstanceOf[A46]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: B *: T]
+    }
+  }
+
+  given lensT46[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: T, A46] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: T).t46)((a: A46) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: T).map46(_ => a))
+
+  given injT46[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: T, A46] =
+    Inj.instance((a: A46) => M.empty.map46(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: T) {
+    inline final def t47: A47 = t.toArray(46).asInstanceOf[A47]
+
+    inline final def map47[B](f: A47 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(46, f(arr(46).asInstanceOf[A47]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: B *: T]
+    }
+  }
+
+  given lensT47[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: T, A47] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: T).t47)((a: A47) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: T).map47(_ => a))
+
+  given injT47[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: T, A47] =
+    Inj.instance((a: A47) => M.empty.map47(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: T) {
+    inline final def t48: A48 = t.toArray(47).asInstanceOf[A48]
+
+    inline final def map48[B](f: A48 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(47, f(arr(47).asInstanceOf[A48]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: B *: T]
+    }
+  }
+
+  given lensT48[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: T, A48] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: T).t48)((a: A48) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: T).map48(_ => a))
+
+  given injT48[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: T, A48] =
+    Inj.instance((a: A48) => M.empty.map48(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: T) {
+    inline final def t49: A49 = t.toArray(48).asInstanceOf[A49]
+
+    inline final def map49[B](f: A49 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(48, f(arr(48).asInstanceOf[A49]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: B *: T]
+    }
+  }
+
+  given lensT49[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: T, A49] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: T).t49)((a: A49) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: T).map49(_ => a))
+
+  given injT49[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: T, A49] =
+    Inj.instance((a: A49) => M.empty.map49(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: T) {
+    inline final def t50: A50 = t.toArray(49).asInstanceOf[A50]
+
+    inline final def map50[B](f: A50 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(49, f(arr(49).asInstanceOf[A50]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: B *: T]
+    }
+  }
+
+  given lensT50[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: T, A50] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: T).t50)((a: A50) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: T).map50(_ => a))
+
+  given injT50[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: T, A50] =
+    Inj.instance((a: A50) => M.empty.map50(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: T) {
+    inline final def t51: A51 = t.toArray(50).asInstanceOf[A51]
+
+    inline final def map51[B](f: A51 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(50, f(arr(50).asInstanceOf[A51]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: B *: T]
+    }
+  }
+
+  given lensT51[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: T, A51] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: T).t51)((a: A51) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: T).map51(_ => a))
+
+  given injT51[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: T, A51] =
+    Inj.instance((a: A51) => M.empty.map51(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: T) {
+    inline final def t52: A52 = t.toArray(51).asInstanceOf[A52]
+
+    inline final def map52[B](f: A52 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(51, f(arr(51).asInstanceOf[A52]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: B *: T]
+    }
+  }
+
+  given lensT52[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: T, A52] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: T).t52)((a: A52) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: T).map52(_ => a))
+
+  given injT52[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: T, A52] =
+    Inj.instance((a: A52) => M.empty.map52(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: T) {
+    inline final def t53: A53 = t.toArray(52).asInstanceOf[A53]
+
+    inline final def map53[B](f: A53 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(52, f(arr(52).asInstanceOf[A53]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: B *: T]
+    }
+  }
+
+  given lensT53[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: T, A53] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: T).t53)((a: A53) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: T).map53(_ => a))
+
+  given injT53[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: T, A53] =
+    Inj.instance((a: A53) => M.empty.map53(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: T) {
+    inline final def t54: A54 = t.toArray(53).asInstanceOf[A54]
+
+    inline final def map54[B](f: A54 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(53, f(arr(53).asInstanceOf[A54]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: B *: T]
+    }
+  }
+
+  given lensT54[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: T, A54] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: T).t54)((a: A54) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: T).map54(_ => a))
+
+  given injT54[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: T, A54] =
+    Inj.instance((a: A54) => M.empty.map54(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: T) {
+    inline final def t55: A55 = t.toArray(54).asInstanceOf[A55]
+
+    inline final def map55[B](f: A55 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(54, f(arr(54).asInstanceOf[A55]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: B *: T]
+    }
+  }
+
+  given lensT55[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: T, A55] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: T).t55)((a: A55) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: T).map55(_ => a))
+
+  given injT55[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: T, A55] =
+    Inj.instance((a: A55) => M.empty.map55(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: T) {
+    inline final def t56: A56 = t.toArray(55).asInstanceOf[A56]
+
+    inline final def map56[B](f: A56 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(55, f(arr(55).asInstanceOf[A56]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: B *: T]
+    }
+  }
+
+  given lensT56[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: T, A56] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: T).t56)((a: A56) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: T).map56(_ => a))
+
+  given injT56[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: T, A56] =
+    Inj.instance((a: A56) => M.empty.map56(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: T) {
+    inline final def t57: A57 = t.toArray(56).asInstanceOf[A57]
+
+    inline final def map57[B](f: A57 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(56, f(arr(56).asInstanceOf[A57]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: B *: T]
+    }
+  }
+
+  given lensT57[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: T, A57] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: T).t57)((a: A57) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: T).map57(_ => a))
+
+  given injT57[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: T, A57] =
+    Inj.instance((a: A57) => M.empty.map57(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: T) {
+    inline final def t58: A58 = t.toArray(57).asInstanceOf[A58]
+
+    inline final def map58[B](f: A58 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(57, f(arr(57).asInstanceOf[A58]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: B *: T]
+    }
+  }
+
+  given lensT58[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: T, A58] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: T).t58)((a: A58) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: T).map58(_ => a))
+
+  given injT58[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: T, A58] =
+    Inj.instance((a: A58) => M.empty.map58(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: T) {
+    inline final def t59: A59 = t.toArray(58).asInstanceOf[A59]
+
+    inline final def map59[B](f: A59 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(58, f(arr(58).asInstanceOf[A59]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: B *: T]
+    }
+  }
+
+  given lensT59[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: T, A59] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: T).t59)((a: A59) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: T).map59(_ => a))
+
+  given injT59[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: T, A59] =
+    Inj.instance((a: A59) => M.empty.map59(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: T) {
+    inline final def t60: A60 = t.toArray(59).asInstanceOf[A60]
+
+    inline final def map60[B](f: A60 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(59, f(arr(59).asInstanceOf[A60]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: B *: T]
+    }
+  }
+
+  given lensT60[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: T, A60] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: T).t60)((a: A60) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: T).map60(_ => a))
+
+  given injT60[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: T, A60] =
+    Inj.instance((a: A60) => M.empty.map60(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: T) {
+    inline final def t61: A61 = t.toArray(60).asInstanceOf[A61]
+
+    inline final def map61[B](f: A61 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(60, f(arr(60).asInstanceOf[A61]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: B *: T]
+    }
+  }
+
+  given lensT61[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: T, A61] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: T).t61)((a: A61) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: T).map61(_ => a))
+
+  given injT61[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: T, A61] =
+    Inj.instance((a: A61) => M.empty.map61(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: T) {
+    inline final def t62: A62 = t.toArray(61).asInstanceOf[A62]
+
+    inline final def map62[B](f: A62 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(61, f(arr(61).asInstanceOf[A62]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: B *: T]
+    }
+  }
+
+  given lensT62[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: T, A62] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: T).t62)((a: A62) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: T).map62(_ => a))
+
+  given injT62[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: T, A62] =
+    Inj.instance((a: A62) => M.empty.map62(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: T) {
+    inline final def t63: A63 = t.toArray(62).asInstanceOf[A63]
+
+    inline final def map63[B](f: A63 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(62, f(arr(62).asInstanceOf[A63]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: B *: T]
+    }
+  }
+
+  given lensT63[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: T, A63] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: T).t63)((a: A63) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: T).map63(_ => a))
+
+  given injT63[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: T, A63] =
+    Inj.instance((a: A63) => M.empty.map63(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: T) {
+    inline final def t64: A64 = t.toArray(63).asInstanceOf[A64]
+
+    inline final def map64[B](f: A64 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(63, f(arr(63).asInstanceOf[A64]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: B *: T]
+    }
+  }
+
+  given lensT64[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: T, A64] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: T).t64)((a: A64) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: T).map64(_ => a))
+
+  given injT64[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: T, A64] =
+    Inj.instance((a: A64) => M.empty.map64(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: T) {
+    inline final def t65: A65 = t.toArray(64).asInstanceOf[A65]
+
+    inline final def map65[B](f: A65 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(64, f(arr(64).asInstanceOf[A65]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: B *: T]
+    }
+  }
+
+  given lensT65[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: T, A65] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: T).t65)((a: A65) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: T).map65(_ => a))
+
+  given injT65[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: T, A65] =
+    Inj.instance((a: A65) => M.empty.map65(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: T) {
+    inline final def t66: A66 = t.toArray(65).asInstanceOf[A66]
+
+    inline final def map66[B](f: A66 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(65, f(arr(65).asInstanceOf[A66]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: B *: T]
+    }
+  }
+
+  given lensT66[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: T, A66] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: T).t66)((a: A66) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: T).map66(_ => a))
+
+  given injT66[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: T, A66] =
+    Inj.instance((a: A66) => M.empty.map66(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: T) {
+    inline final def t67: A67 = t.toArray(66).asInstanceOf[A67]
+
+    inline final def map67[B](f: A67 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(66, f(arr(66).asInstanceOf[A67]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: B *: T]
+    }
+  }
+
+  given lensT67[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: T, A67] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: T).t67)((a: A67) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: T).map67(_ => a))
+
+  given injT67[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: T, A67] =
+    Inj.instance((a: A67) => M.empty.map67(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: T) {
+    inline final def t68: A68 = t.toArray(67).asInstanceOf[A68]
+
+    inline final def map68[B](f: A68 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(67, f(arr(67).asInstanceOf[A68]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: B *: T]
+    }
+  }
+
+  given lensT68[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: T, A68] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: T).t68)((a: A68) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: T).map68(_ => a))
+
+  given injT68[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: T, A68] =
+    Inj.instance((a: A68) => M.empty.map68(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: T) {
+    inline final def t69: A69 = t.toArray(68).asInstanceOf[A69]
+
+    inline final def map69[B](f: A69 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(68, f(arr(68).asInstanceOf[A69]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: B *: T]
+    }
+  }
+
+  given lensT69[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: T, A69] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: T).t69)((a: A69) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: T).map69(_ => a))
+
+  given injT69[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: T, A69] =
+    Inj.instance((a: A69) => M.empty.map69(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: T) {
+    inline final def t70: A70 = t.toArray(69).asInstanceOf[A70]
+
+    inline final def map70[B](f: A70 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(69, f(arr(69).asInstanceOf[A70]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: B *: T]
+    }
+  }
+
+  given lensT70[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: T, A70] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: T).t70)((a: A70) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: T).map70(_ => a))
+
+  given injT70[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: T, A70] =
+    Inj.instance((a: A70) => M.empty.map70(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: T) {
+    inline final def t71: A71 = t.toArray(70).asInstanceOf[A71]
+
+    inline final def map71[B](f: A71 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(70, f(arr(70).asInstanceOf[A71]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: B *: T]
+    }
+  }
+
+  given lensT71[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: T, A71] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: T).t71)((a: A71) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: T).map71(_ => a))
+
+  given injT71[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: T, A71] =
+    Inj.instance((a: A71) => M.empty.map71(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: T) {
+    inline final def t72: A72 = t.toArray(71).asInstanceOf[A72]
+
+    inline final def map72[B](f: A72 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(71, f(arr(71).asInstanceOf[A72]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: B *: T]
+    }
+  }
+
+  given lensT72[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: T, A72] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: T).t72)((a: A72) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: T).map72(_ => a))
+
+  given injT72[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: T, A72] =
+    Inj.instance((a: A72) => M.empty.map72(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: T) {
+    inline final def t73: A73 = t.toArray(72).asInstanceOf[A73]
+
+    inline final def map73[B](f: A73 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(72, f(arr(72).asInstanceOf[A73]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: B *: T]
+    }
+  }
+
+  given lensT73[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: T, A73] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: T).t73)((a: A73) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: T).map73(_ => a))
+
+  given injT73[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: T, A73] =
+    Inj.instance((a: A73) => M.empty.map73(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: T) {
+    inline final def t74: A74 = t.toArray(73).asInstanceOf[A74]
+
+    inline final def map74[B](f: A74 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(73, f(arr(73).asInstanceOf[A74]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: B *: T]
+    }
+  }
+
+  given lensT74[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: T, A74] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: T).t74)((a: A74) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: T).map74(_ => a))
+
+  given injT74[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: T, A74] =
+    Inj.instance((a: A74) => M.empty.map74(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: T) {
+    inline final def t75: A75 = t.toArray(74).asInstanceOf[A75]
+
+    inline final def map75[B](f: A75 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(74, f(arr(74).asInstanceOf[A75]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: B *: T]
+    }
+  }
+
+  given lensT75[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: T, A75] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: T).t75)((a: A75) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: T).map75(_ => a))
+
+  given injT75[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: T, A75] =
+    Inj.instance((a: A75) => M.empty.map75(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: T) {
+    inline final def t76: A76 = t.toArray(75).asInstanceOf[A76]
+
+    inline final def map76[B](f: A76 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(75, f(arr(75).asInstanceOf[A76]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: B *: T]
+    }
+  }
+
+  given lensT76[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: T, A76] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: T).t76)((a: A76) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: T).map76(_ => a))
+
+  given injT76[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: T, A76] =
+    Inj.instance((a: A76) => M.empty.map76(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: T) {
+    inline final def t77: A77 = t.toArray(76).asInstanceOf[A77]
+
+    inline final def map77[B](f: A77 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(76, f(arr(76).asInstanceOf[A77]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: B *: T]
+    }
+  }
+
+  given lensT77[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: T, A77] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: T).t77)((a: A77) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: T).map77(_ => a))
+
+  given injT77[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: T, A77] =
+    Inj.instance((a: A77) => M.empty.map77(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: T) {
+    inline final def t78: A78 = t.toArray(77).asInstanceOf[A78]
+
+    inline final def map78[B](f: A78 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(77, f(arr(77).asInstanceOf[A78]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: B *: T]
+    }
+  }
+
+  given lensT78[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: T, A78] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: T).t78)((a: A78) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: T).map78(_ => a))
+
+  given injT78[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: T, A78] =
+    Inj.instance((a: A78) => M.empty.map78(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: T) {
+    inline final def t79: A79 = t.toArray(78).asInstanceOf[A79]
+
+    inline final def map79[B](f: A79 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(78, f(arr(78).asInstanceOf[A79]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: B *: T]
+    }
+  }
+
+  given lensT79[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: T, A79] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: T).t79)((a: A79) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: T).map79(_ => a))
+
+  given injT79[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: T, A79] =
+    Inj.instance((a: A79) => M.empty.map79(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: T) {
+    inline final def t80: A80 = t.toArray(79).asInstanceOf[A80]
+
+    inline final def map80[B](f: A80 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(79, f(arr(79).asInstanceOf[A80]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: B *: T]
+    }
+  }
+
+  given lensT80[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: T, A80] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: T).t80)((a: A80) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: T).map80(_ => a))
+
+  given injT80[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: T, A80] =
+    Inj.instance((a: A80) => M.empty.map80(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: T) {
+    inline final def t81: A81 = t.toArray(80).asInstanceOf[A81]
+
+    inline final def map81[B](f: A81 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(80, f(arr(80).asInstanceOf[A81]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: B *: T]
+    }
+  }
+
+  given lensT81[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: T, A81] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: T).t81)((a: A81) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: T).map81(_ => a))
+
+  given injT81[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: T, A81] =
+    Inj.instance((a: A81) => M.empty.map81(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: T) {
+    inline final def t82: A82 = t.toArray(81).asInstanceOf[A82]
+
+    inline final def map82[B](f: A82 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(81, f(arr(81).asInstanceOf[A82]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: B *: T]
+    }
+  }
+
+  given lensT82[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: T, A82] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: T).t82)((a: A82) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: T).map82(_ => a))
+
+  given injT82[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: T, A82] =
+    Inj.instance((a: A82) => M.empty.map82(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: T) {
+    inline final def t83: A83 = t.toArray(82).asInstanceOf[A83]
+
+    inline final def map83[B](f: A83 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(82, f(arr(82).asInstanceOf[A83]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: B *: T]
+    }
+  }
+
+  given lensT83[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: T, A83] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: T).t83)((a: A83) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: T).map83(_ => a))
+
+  given injT83[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: T, A83] =
+    Inj.instance((a: A83) => M.empty.map83(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: T) {
+    inline final def t84: A84 = t.toArray(83).asInstanceOf[A84]
+
+    inline final def map84[B](f: A84 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(83, f(arr(83).asInstanceOf[A84]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: B *: T]
+    }
+  }
+
+  given lensT84[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: T, A84] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: T).t84)((a: A84) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: T).map84(_ => a))
+
+  given injT84[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: T, A84] =
+    Inj.instance((a: A84) => M.empty.map84(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: T) {
+    inline final def t85: A85 = t.toArray(84).asInstanceOf[A85]
+
+    inline final def map85[B](f: A85 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(84, f(arr(84).asInstanceOf[A85]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: B *: T]
+    }
+  }
+
+  given lensT85[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: T, A85] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: T).t85)((a: A85) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: T).map85(_ => a))
+
+  given injT85[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: T, A85] =
+    Inj.instance((a: A85) => M.empty.map85(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: T) {
+    inline final def t86: A86 = t.toArray(85).asInstanceOf[A86]
+
+    inline final def map86[B](f: A86 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(85, f(arr(85).asInstanceOf[A86]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: B *: T]
+    }
+  }
+
+  given lensT86[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: T, A86] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: T).t86)((a: A86) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: T).map86(_ => a))
+
+  given injT86[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: T, A86] =
+    Inj.instance((a: A86) => M.empty.map86(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: T) {
+    inline final def t87: A87 = t.toArray(86).asInstanceOf[A87]
+
+    inline final def map87[B](f: A87 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(86, f(arr(86).asInstanceOf[A87]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: B *: T]
+    }
+  }
+
+  given lensT87[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: T, A87] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: T).t87)((a: A87) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: T).map87(_ => a))
+
+  given injT87[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: T, A87] =
+    Inj.instance((a: A87) => M.empty.map87(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: T) {
+    inline final def t88: A88 = t.toArray(87).asInstanceOf[A88]
+
+    inline final def map88[B](f: A88 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(87, f(arr(87).asInstanceOf[A88]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: B *: T]
+    }
+  }
+
+  given lensT88[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: T, A88] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: T).t88)((a: A88) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: T).map88(_ => a))
+
+  given injT88[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: T, A88] =
+    Inj.instance((a: A88) => M.empty.map88(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: T) {
+    inline final def t89: A89 = t.toArray(88).asInstanceOf[A89]
+
+    inline final def map89[B](f: A89 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(88, f(arr(88).asInstanceOf[A89]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: B *: T]
+    }
+  }
+
+  given lensT89[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: T, A89] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: T).t89)((a: A89) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: T).map89(_ => a))
+
+  given injT89[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: T, A89] =
+    Inj.instance((a: A89) => M.empty.map89(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: T) {
+    inline final def t90: A90 = t.toArray(89).asInstanceOf[A90]
+
+    inline final def map90[B](f: A90 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(89, f(arr(89).asInstanceOf[A90]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: B *: T]
+    }
+  }
+
+  given lensT90[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: T, A90] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: T).t90)((a: A90) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: T).map90(_ => a))
+
+  given injT90[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: T, A90] =
+    Inj.instance((a: A90) => M.empty.map90(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: T) {
+    inline final def t91: A91 = t.toArray(90).asInstanceOf[A91]
+
+    inline final def map91[B](f: A91 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(90, f(arr(90).asInstanceOf[A91]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: B *: T]
+    }
+  }
+
+  given lensT91[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: T, A91] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: T).t91)((a: A91) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: T).map91(_ => a))
+
+  given injT91[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: T, A91] =
+    Inj.instance((a: A91) => M.empty.map91(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: T) {
+    inline final def t92: A92 = t.toArray(91).asInstanceOf[A92]
+
+    inline final def map92[B](f: A92 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(91, f(arr(91).asInstanceOf[A92]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: B *: T]
+    }
+  }
+
+  given lensT92[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: T, A92] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: T).t92)((a: A92) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: T).map92(_ => a))
+
+  given injT92[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: T, A92] =
+    Inj.instance((a: A92) => M.empty.map92(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: T) {
+    inline final def t93: A93 = t.toArray(92).asInstanceOf[A93]
+
+    inline final def map93[B](f: A93 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(92, f(arr(92).asInstanceOf[A93]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: B *: T]
+    }
+  }
+
+  given lensT93[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: T, A93] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: T).t93)((a: A93) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: T).map93(_ => a))
+
+  given injT93[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: T, A93] =
+    Inj.instance((a: A93) => M.empty.map93(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: T) {
+    inline final def t94: A94 = t.toArray(93).asInstanceOf[A94]
+
+    inline final def map94[B](f: A94 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(93, f(arr(93).asInstanceOf[A94]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: B *: T]
+    }
+  }
+
+  given lensT94[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: T, A94] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: T).t94)((a: A94) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: T).map94(_ => a))
+
+  given injT94[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: T, A94] =
+    Inj.instance((a: A94) => M.empty.map94(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: T) {
+    inline final def t95: A95 = t.toArray(94).asInstanceOf[A95]
+
+    inline final def map95[B](f: A95 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(94, f(arr(94).asInstanceOf[A95]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: B *: T]
+    }
+  }
+
+  given lensT95[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: T, A95] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: T).t95)((a: A95) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: T).map95(_ => a))
+
+  given injT95[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: T, A95] =
+    Inj.instance((a: A95) => M.empty.map95(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: T) {
+    inline final def t96: A96 = t.toArray(95).asInstanceOf[A96]
+
+    inline final def map96[B](f: A96 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(95, f(arr(95).asInstanceOf[A96]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: B *: T]
+    }
+  }
+
+  given lensT96[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: T, A96] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: T).t96)((a: A96) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: T).map96(_ => a))
+
+  given injT96[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: T, A96] =
+    Inj.instance((a: A96) => M.empty.map96(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: T) {
+    inline final def t97: A97 = t.toArray(96).asInstanceOf[A97]
+
+    inline final def map97[B](f: A97 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(96, f(arr(96).asInstanceOf[A97]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: B *: T]
+    }
+  }
+
+  given lensT97[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: T, A97] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: T).t97)((a: A97) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: T).map97(_ => a))
+
+  given injT97[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: T, A97] =
+    Inj.instance((a: A97) => M.empty.map97(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: T) {
+    inline final def t98: A98 = t.toArray(97).asInstanceOf[A98]
+
+    inline final def map98[B](f: A98 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(97, f(arr(97).asInstanceOf[A98]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: B *: T]
+    }
+  }
+
+  given lensT98[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: T, A98] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: T).t98)((a: A98) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: T).map98(_ => a))
+
+  given injT98[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: T, A98] =
+    Inj.instance((a: A98) => M.empty.map98(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, A99, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: T) {
+    inline final def t99: A99 = t.toArray(98).asInstanceOf[A99]
+
+    inline final def map99[B](f: A99 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(98, f(arr(98).asInstanceOf[A99]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: B *: T]
+    }
+  }
+
+  given lensT99[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, A99, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: T, A99] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: T).t99)((a: A99) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: T).map99(_ => a))
+
+  given injT99[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, A99, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: T, A99] =
+    Inj.instance((a: A99) => M.empty.map99(_ => a))
+
+
+  extension [A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, A99, A100, T <: Tuple](t: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: A100 *: T) {
+    inline final def t100: A100 = t.toArray(99).asInstanceOf[A100]
+
+    inline final def map100[B](f: A100 => B): A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: B *: T = {
+      val arr = t.toArray
+      Tuple.fromArray(arr.updated(99, f(arr(99).asInstanceOf[A100]): Any)).asInstanceOf[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: B *: T]
+    }
+  }
+
+  given lensT100[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, A99, A100, T <: Tuple]: Lens[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: A100 *: T, A100] =
+    Lens((_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: A100 *: T).t100)((a: A100) => (_: A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: A100 *: T).map100(_ => a))
+
+  given injT100[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27, A28, A29, A30, A31, A32, A33, A34, A35, A36, A37, A38, A39, A40, A41, A42, A43, A44, A45, A46, A47, A48, A49, A50, A51, A52, A53, A54, A55, A56, A57, A58, A59, A60, A61, A62, A63, A64, A65, A66, A67, A68, A69, A70, A71, A72, A73, A74, A75, A76, A77, A78, A79, A80, A81, A82, A83, A84, A85, A86, A87, A88, A89, A90, A91, A92, A93, A94, A95, A96, A97, A98, A99, A100, T <: Tuple](
+    using M: Monoid[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: A100 *: T],
+  ): Inj[A1 *: A2 *: A3 *: A4 *: A5 *: A6 *: A7 *: A8 *: A9 *: A10 *: A11 *: A12 *: A13 *: A14 *: A15 *: A16 *: A17 *: A18 *: A19 *: A20 *: A21 *: A22 *: A23 *: A24 *: A25 *: A26 *: A27 *: A28 *: A29 *: A30 *: A31 *: A32 *: A33 *: A34 *: A35 *: A36 *: A37 *: A38 *: A39 *: A40 *: A41 *: A42 *: A43 *: A44 *: A45 *: A46 *: A47 *: A48 *: A49 *: A50 *: A51 *: A52 *: A53 *: A54 *: A55 *: A56 *: A57 *: A58 *: A59 *: A60 *: A61 *: A62 *: A63 *: A64 *: A65 *: A66 *: A67 *: A68 *: A69 *: A70 *: A71 *: A72 *: A73 *: A74 *: A75 *: A76 *: A77 *: A78 *: A79 *: A80 *: A81 *: A82 *: A83 *: A84 *: A85 *: A86 *: A87 *: A88 *: A89 *: A90 *: A91 *: A92 *: A93 *: A94 *: A95 *: A96 *: A97 *: A98 *: A99 *: A100 *: T, A100] =
+    Inj.instance((a: A100) => M.empty.map100(_ => a))
 
 }

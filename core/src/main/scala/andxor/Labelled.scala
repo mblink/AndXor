@@ -1,29 +1,24 @@
 package andxor
 
 import cats.{Applicative, Eq, Eval, Traverse}
+import cats.syntax.eq.*
 
-object labelled {
-  @newtype case class Labelled[A, L](value: A) {
+opaque type Labelled[A, L] = A
+
+object Labelled {
+  extension [A, L](x: Labelled[A, L]) {
+    def value: A = x
     def label(implicit l: ValueOf[L]): L = l.value
   }
 
-  sealed trait LabelledLP {
-    implicit def eqLabelledSingleton[A <: Singleton, L <: String](implicit l: ValueOf[L]): Eq[Labelled[A, L]] =
-      Eq.instance((a1, a2) => a1.value == a2.value && a1.label == a2.label)
-  }
+  inline def apply[A, L](a: A): Labelled[A, L] = a
 
-  object Labelled extends LabelledLP {
-    implicit def traverseLabelled[L]: Traverse[Labelled[*, L]] = new Traverse[Labelled[*, L]] {
-      def foldLeft[A, B](fa: Labelled[A, L], b: B)(f: (B, A) => B): B = f(b, fa.value)
-      def foldRight[A, B](fa: Labelled[A, L], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = f(fa.value, lb)
-      def traverse[G[_], A, B](fa: Labelled[A, L])(f: A => G[B])(implicit G: Applicative[G]): G[Labelled[B, L]] =
-        G.map(f(fa.value))(Labelled(_))
-    }
+  inline given tcK0ForLabelled[TC[_], A, T](using tc: TC[A]): TC[Labelled[A, T]] =
+    tc.asInstanceOf[TC[Labelled[A, T]]]
 
-    implicit def eqLabelled[A: Eq, L <: String](implicit l: ValueOf[L]): Eq[Labelled[A, L]] =
-      Eq.by(a => (l.value: String, a.value))
+  inline given tcK1ForLabelled[TC[_[_]], T](using tc: TC[[a] =>> a]): TC[Labelled[*, T]] =
+    tc.asInstanceOf[TC[Labelled[*, T]]]
 
-    implicit def valueOfLabelled[A, L](implicit a: ValueOf[A]): ValueOf[Labelled[A, L]] =
-      new ValueOf[Labelled[A, L]](Labelled[A, L](a.value))
-  }
+  inline given valueOfLabelled[A, L](using a: ValueOf[A]): ValueOf[Labelled[A, L]] =
+    new ValueOf[Labelled[A, L]](Labelled[A, L](a.value))
 }

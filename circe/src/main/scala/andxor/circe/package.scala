@@ -1,7 +1,7 @@
 package andxor
 
 import _root_.io.circe.{Decoder, DecodingFailure, Encoder, HCursor, Json}
-import cats.{~>, Apply, Monoid}
+import cats.{~>, Apply, Id, Monoid}
 
 trait LPCirce {
   trait JsonSumCodec[A] {
@@ -30,19 +30,6 @@ trait LPCirce {
 
     implicit def default[A]: JsonSumCodec[A] = new ObjectCodec[A]
   }
-
-  implicit def encoderBaseAdtVal[A <: Singleton, L <: Singleton with String](
-    implicit codec: JsonSumCodec[A],
-    label: ValueOf[L]
-  ): Encoder[Labelled[A, L]] =
-    Encoder.instance(a => codec.encodeField(a.label, Json.obj()))
-
-  implicit def decoderBaseAdtVal[A <: Singleton, L <: Singleton with String](
-    implicit value: ValueOf[Labelled[A, L]],
-    codec: JsonSumCodec[Labelled[A, L]],
-    label: ValueOf[L]
-  ): Decoder[Labelled[A, L]] =
-    Decoder.instance(codec.decodeField(value.value.label, _, Decoder.instance(_ => Right(value.value))))
 }
 
 package object circe extends LPCirce {
@@ -63,8 +50,12 @@ package object circe extends LPCirce {
 
   type EncoderF[A] = A => Json
 
-  implicit val encoderToEncoderF: Encoder ~> EncoderF = Lambda[Encoder ~> EncoderF](_.apply _)
-  implicit val encoderFToEncoder: EncoderF ~> Encoder = Lambda[EncoderF ~> Encoder](Encoder.instance(_))
+  implicit val encoderToEncoderF: Encoder ~> EncoderF = new (Encoder ~> EncoderF) {
+    def apply[A](f: Encoder[A]): EncoderF[A] = f.apply
+  }
+  implicit val encoderFToEncoder: EncoderF ~> Encoder = new (EncoderF ~> Encoder) {
+    def apply[A](f: EncoderF[A]): Encoder[A] = Encoder.instance(f)
+  }
 
   implicit val encoderDivide: Divide[Encoder] = Divide.fromIso(encoderToEncoderF, encoderFToEncoder)
   implicit val encoderDecide: Decidable[Encoder] = Decidable.fromIso(encoderToEncoderF, encoderFToEncoder)

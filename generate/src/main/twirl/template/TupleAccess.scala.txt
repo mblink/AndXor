@@ -1,5 +1,0 @@
-@import andxor.LazyList
-@import andxor.syntax._
-
-@(vName: String, tpes: List[String])
-    @{tpes.zip(LazyList.from(1)).map(t => s"def t${t._2}: ${t._1} = ${vName}${tpes.tupleAccessNoSyntax(t._2)}").mkString("\n    ")}

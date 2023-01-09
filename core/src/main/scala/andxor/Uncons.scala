@@ -8,23 +8,29 @@ trait Uncons[F[_], G[_]] {
 }
 
 object Uncons {
-  private def inst[F[_], G[_]](f: F ~> Lambda[a => (Option[G[a]], F[a])]): Uncons[F, G] =
+  private def inst[F[_], G[_]](f: F ~> ([a] =>> (Option[G[a]], F[a]))): Uncons[F, G] =
     new Uncons[F, G] {
       def apply[A](fa: F[A]): (Option[G[A]], F[A]) = f(fa)
     }
 
-  implicit val unconsChain: Uncons[Chain, Id] = inst[Chain, Id](Lambda[Chain ~> Lambda[a => (Option[Id[a]], Chain[a])]](_ match {
-    case Chain.==:(h, t) => (Some(h), t)
-    case _ => (None, Chain.empty)
-  }))
+  implicit val unconsChain: Uncons[Chain, Id] = inst[Chain, Id](new (Chain ~> ([a] =>> (Option[Id[a]], Chain[a]))) {
+    def apply[A](x: Chain[A]): (Option[Id[A]], Chain[A]) = x match {
+      case Chain.==:(h, t) => (Some(h), t)
+      case _ => (None, Chain.empty)
+    }
+  })
 
-  implicit val unconsList: Uncons[List, Id] = inst[List, Id](Lambda[List ~> Lambda[a => (Option[Id[a]], List[a])]](_ match {
-    case h :: t => (Some(h), t)
-    case Nil => (None, List.empty)
-  }))
+  implicit val unconsList: Uncons[List, Id] = inst[List, Id](new (List ~> ([a] =>> (Option[Id[a]], List[a]))) {
+    def apply[A](x: List[A]): (Option[Id[A]], List[A]) = x match {
+      case h :: t => (Some(h), t)
+      case Nil => (None, List.empty)
+    }
+  })
 
-  implicit val unconsVector: Uncons[Vector, Id] = inst[Vector, Id](Lambda[Vector ~> Lambda[a => (Option[Id[a]], Vector[a])]](_ match {
-    case h +: t => (Some(h), t)
-    case _ => (None, Vector.empty)
-  }))
+  implicit val unconsVector: Uncons[Vector, Id] = inst[Vector, Id](new (Vector ~> ([a] =>> (Option[Id[a]], Vector[a]))) {
+    def apply[A](x: Vector[A]): (Option[Id[A]], Vector[A]) = x match {
+      case h +: t => (Some(h), t)
+      case _ => (None, Vector.empty)
+    }
+  })
 }

@@ -12,7 +12,7 @@ case class Reader[A, B](run: A => B) {
 }
 
 abstract class AnnotationPlugin(override val global: Global) extends Plugin { self =>
-  import global._
+  import global.*
 
   protected var debugMode = false
   protected def setDebug(d: Boolean): Unit = { debugMode = d }

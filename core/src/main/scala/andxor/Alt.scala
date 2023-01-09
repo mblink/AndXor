@@ -1,7 +1,7 @@
 package andxor
 
 import cats.{~>, Functor}
-import cats.syntax.either._
+import cats.syntax.either.*
 
 trait Alt[F[_]] extends Functor[F] {
   def alt[A](a1: F[A], a2: F[A]): F[A]
