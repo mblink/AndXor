@@ -3,6 +3,7 @@ package andxor
 import cats.{Apply, Id}
 import cats.syntax.eq.*
 import monocle.Iso
+import scala.annotation.tailrec
 import scala.deriving.Mirror
 import scala.compiletime.summonAll
 
@@ -134,10 +135,16 @@ object AndXorCopIso {
       val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXor.NonEmpty])(
         (x, acc) => (x.asInstanceOf[AndXor._1[Any]] *: acc).asInstanceOf[AndXor.NonEmpty]).asInstanceOf[Axo0]
 
+      @tailrec private def unEither(x: Matchable): Any = x match {
+        case Left(l) => unEither(l)
+        case Right(r) => unEither(r)
+        case _ => x
+      }
+
       val iso: Iso[X, Cop[Id]] = Iso((x: X) => {
         val ord = m.ordinal(x)
         val init: Any = if (ord === numMembers - 1) x else Left(x)
         1.to(ord).foldRight(init)((_, acc) => Right(acc)).asInstanceOf[Cop[Id]]
-      })((c: Cop[Id]) => c.asInstanceOf[X])
+      })(unEither(_: Cop[Id]).asInstanceOf[X])
     }
 }
