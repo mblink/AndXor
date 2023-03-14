@@ -86,8 +86,8 @@ object AndXorProdIso {
     new AndXorProdIso[X] with AndXorIso.Types[m.MirroredElemLabels, m.MirroredElemTypes] {
       private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor._1]].productIterator.toList
 
-      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[Axo0])(
-        (x, acc) => (x.asInstanceOf[AndXor._1[Any]] *: acc).asInstanceOf[Axo0])
+      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXor.NonEmpty])(
+        (x, acc) => (x.asInstanceOf[AndXor._1[Any]] *: acc).asInstanceOf[AndXor.NonEmpty]).asInstanceOf[Axo0]
 
       val iso: Iso[X, Prod[Id]] = Iso(Tuple.fromProductTyped(_: X).asInstanceOf[Prod[Id]])(
         (p: Prod[Id]) => m.fromTuple(p.asInstanceOf[m.MirroredElemTypes]))
@@ -131,8 +131,8 @@ object AndXorCopIso {
       private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor._1]].productIterator.toList
       private val numMembers = axos.length
 
-      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[Axo0])(
-        (x, acc) => (x.asInstanceOf[AndXor._1[Any]] *: acc).asInstanceOf[Axo0])
+      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXor.NonEmpty])(
+        (x, acc) => (x.asInstanceOf[AndXor._1[Any]] *: acc).asInstanceOf[AndXor.NonEmpty]).asInstanceOf[Axo0]
 
       val iso: Iso[X, Cop[Id]] = Iso((x: X) => {
         val ord = m.ordinal(x)
