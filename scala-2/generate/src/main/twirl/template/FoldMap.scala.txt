@@ -1,0 +1,15 @@
+@import andxor.Zipper
+@import andxor.syntax._
+
+@(z: Zipper[String], nested: Boolean)
+
+@copG = @{ if (nested) z.toList.nestedCopTpe("G") else z.toList.copTpeF("G") }
+@prodF = @{ if (nested) z.toList.nestedProdTpe() else z.toList.prodTpe }
+@unconsOne = @{ if (nested) s"fm${z.index}.unconsOne" else "U" }
+@unconsArgs = @{ if (nested) s"p${z.toList.prodAccess(z.index + 1)}, x" else s"p${z.toList.prodAccess(z.index + 1)}" }
+@bindVar = @{ if (nested) "x" else "_" }
+
+            case @{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(z.toList.foldLen01("_")(bindVar))(_ => s"Left($bindVar)"))((_, a) => s"Right(${a})")} =>
+              val (h, t) = @{unconsOne}(@unconsArgs)
+              (h.map(v => @{copG}(@{z.djVal("v")})), @{prodF}(@{
+                z.prodAccesses("p").updated(z.index, "t").mkTuple}))

@@ -1,0 +1,16 @@
+@import andxor.Zipper
+@import andxor.syntax._
+
+@(z: Zipper[String], cop: Boolean)
+
+  def map@{z.index + 1}[B](c: @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.toList)})(f: @{cop.fold(s"F[${z.focus}]", z.focus)} => @{cop.fold(s"F[B]", "B")}): @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.modify(_ => "B").toList)} =
+    @if(cop) {
+    @{z.modify(_ => "B").toList.copTpe}(mapN.map@{z.index + 1}(c.run)(f))
+    } else {
+    c@{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold(
+      "f")(_ => "_.leftMap(f)"))((_, a) => s"_.map(${a})").tail}
+    }
+
+  def mapAt[B](f: @{cop.fold(s"F[${z.focus}]", z.focus)} => @{cop.fold(s"F[B]", "B")})(c: @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.toList)})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
+    _ => z.dummyImpl(cop))}: @{cop.fold((_: LS).copTpe, (_: LS).dj)(z.modify(_ => "B").toList)} =
+    @z.wrapCopOrTuple(cop)(s"mapN.map${z.index + 1}(c${cop.fold(".run", "")})(f)")

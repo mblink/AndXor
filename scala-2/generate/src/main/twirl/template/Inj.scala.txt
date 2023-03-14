@@ -1,0 +1,14 @@
+@import andxor.Zipper
+@import andxor.syntax._
+
+@(z: Zipper[String], isId: Boolean)
+
+@tpes = @{ z.toList }
+
+@if(isId) {
+  implicit def inja@{z.index}Id[@{tpes.tpeParams}]: Inj[@{tpes.copTpeF("Id")}, @z.focus] =
+    inja@{z.index}F[Id, @{tpes.tpeParams}]
+} else {
+  implicit def inja@{z.index}F[F[_], @{tpes.tpeParams}]: Inj[@tpes.copTpe, F[@z.focus]] =
+    Inj.instance(x => @{tpes.copTpeF("F")}(@z.djVal("x")))
+}

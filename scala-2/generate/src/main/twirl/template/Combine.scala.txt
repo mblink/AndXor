@@ -1,0 +1,27 @@
+@(tpes: List[List[String]])
+
+import andxor.tuple._
+import cats.Apply
+import cats.syntax.apply._
+
+object Combine {
+  def divide2[F[_], A1, A2, Z](a1: =>F[A1], a2: =>F[A2])(f: Z => (A1, A2))(
+    implicit D: Divide[F]): F[Z] = D.divide2(a1, a2)(f)
+
+  @{tpes.map(template.txt.Divide(_)).mkString("\n")}
+
+  def choose2[F[_], Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(f: Z => Either[A1, A2])(
+    implicit D: Decidable[F]): F[Z] = D.choose2(a1, a2)(f)
+
+  @{tpes.map(template.txt.Decidable(_)).mkString("\n")}
+
+  def altly2[F[_], Z, A1, A2](a1: =>F[A1], a2: =>F[A2])(f: Either[A1, A2] => Z)(
+    implicit A: Alt[F]): F[Z] = A.altly2(a1, a2)(f)
+
+  @{tpes.map(template.txt.Alt(_)).mkString("\n")}
+
+  def apply2[F[_], A1, A2, R](a1: =>F[A1], a2: =>F[A2])(f: (A1, A2) => R)(
+    implicit A: Apply[F]): F[R] = A.map2(a1, a2)(f)
+
+  @{tpes.map(template.txt.Apply(_)).mkString("\n")}
+}
