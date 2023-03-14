@@ -27,11 +27,11 @@ object typeclasses {
   given showDecide: Decidable[Show] = Decidable.fromIso[Show, ShowF](showToShowF, showFToShow)
   given showDivide: Divide[Show] = Divide.fromIso[Show, ShowF](showToShowF, showFToShow)
 
-  inline given showCop[A](using c: AndXorCopIso[A], i: AndXorInstances[Show, c.Prod[Id]]): Show[A] =
-    c.deriving[Show].choose
+  inline given showCop[A](using c: AndXorCopIso[A], i: AndXorInstances[Show, c.LabelledProd[Id]]): Show[A] =
+    c.derivingLabelled[Show].choose
 
-  inline given showProd[A](using p: AndXorProdIso[A], i: AndXorInstances[Show, p.Prod[Id]]): Show[A] =
-    p.deriving[Show].divide
+  inline given showProd[A](using p: AndXorProdIso[A], i: AndXorInstances[Show, p.LabelledProd[Id]]): Show[A] =
+    p.derivingLabelled[Show].divide
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
@@ -158,71 +158,104 @@ object testTypes {
   case object Bar extends Foo
   case class Baz(s: String) extends Foo derives Arbitrary, Csv, Read
 
-  sealed trait Trait0 // derives Arbitrary, Csv
-  sealed trait Trait1 extends Trait0 { val value: Option[Int] }
-  sealed trait Trait2 extends Trait0
-  sealed trait Trait3 extends Trait1
+  sealed trait Trait0 derives Arbitrary, Csv, Read
+  sealed trait Trait1 extends Trait0 derives Arbitrary, Csv, Read { val value: Option[Int] }
+  sealed trait Trait2 extends Trait0 derives Arbitrary, Csv, Read
+  sealed trait Trait3 extends Trait1 derives Arbitrary, Csv, Read
   case object Inst1 extends Trait0
-  case class Inst2(value: Option[Int]) extends Trait1 derives Arbitrary, Csv
+  case class Inst2(value: Option[Int]) extends Trait1 derives Arbitrary, Csv, Read
   case object Inst3 extends Trait1 { val value = Some(3) }
   case object Inst4 extends Trait2
   case object Inst5 extends Trait3 { val value = Some(5) }
-  case class Inst6(x: String) extends Trait3 { val value = Try(x.toInt).toOption }
+  case class Inst6(x: String) extends Trait3 derives Arbitrary, Csv, Read { val value = Try(x.toInt).toOption }
 
-  sealed abstract class AbstractClass(val i: Int)
+  sealed abstract class AbstractClass(val i: Int) derives Arbitrary, Csv, Read
   object AbstractClass {
-    case class Foo(s: String, b: Boolean) extends AbstractClass(1)
+    case class Foo(s: String, b: Boolean) extends AbstractClass(1) derives Arbitrary, Csv, Read
     case object Bar extends AbstractClass(2)
-    case class Baz(override val i: Int) extends AbstractClass(3)
+    case class Baz(override val i: Int) extends AbstractClass(3) derives Arbitrary, Csv, Read
   }
 
-  case class Multi(str: String)(val int: Int)
-
   case class HKFG[F[_[_]], G[_]](run: F[G])
+  object HKFG {
+    given arbitrary[F[_[_]], G[_]](using a: Arbitrary[F[G]]): Arbitrary[HKFG[F, G]] = Arbitrary.derived
+    given csv[F[_[_]], G[_]](using c: Csv[F[G]]): Csv[HKFG[F, G]] = Csv.derived
+    given read[F[_[_]], G[_]](using r: Read[F[G]]): Read[HKFG[F, G]] = Read.derived
+  }
 
-  case class Covariant[+A](a: A)
+  case class Covariant[+A](a: A) derives Arbitrary, Csv, Read
 
-  case class Contravariant[-A](s: String, i: Int) {
+  case class Contravariant[-A](s: String, i: Int) derives Arbitrary, Csv, Read {
     def go(a: A): (String, Int) = (s"$s -- $a", i)
   }
 
-  case class ErrorTest1[A](i: Int, a: A)
+  case class ErrorTest1[A](i: Int, a: A) derives Arbitrary, Csv, Read
 
   case class ErrorTest2[A](as: List[A], ints: List[Int], test1s: List[ErrorTest1[A]])
+  object ErrorTest2 {
+    given arbitrary[A](using as: Arbitrary[List[A]], ints: Arbitrary[List[Int]], test1s: Arbitrary[List[ErrorTest1[A]]]): Arbitrary[ErrorTest2[A]] = Arbitrary.derived
+    given csv[A](using as: Csv[List[A]], ints: Csv[List[Int]], test1s: Csv[List[ErrorTest1[A]]]): Csv[ErrorTest2[A]] = Csv.derived
+    given read[A](using as: Read[List[A]], ints: Read[List[Int]], test1s: Read[List[ErrorTest1[A]]]): Read[ErrorTest2[A]] = Read.derived
+  }
 
   case class ErrorTest3[D[_], A](test1s: List[ErrorTest1[D[A]]], test2: ErrorTest2[A])
   object ErrorTest3 {
+    given arbitrary[D[_], A](using test1s: Arbitrary[List[ErrorTest1[D[A]]]], test2: Arbitrary[ErrorTest2[A]]): Arbitrary[ErrorTest3[D, A]] = Arbitrary.derived
+    given csv[D[_], A](using test1s: Csv[List[ErrorTest1[D[A]]]], test2: Csv[ErrorTest2[A]]): Csv[ErrorTest3[D, A]] = Csv.derived
+    given read[D[_], A](using test1s: Read[List[ErrorTest1[D[A]]]], test2: Read[ErrorTest2[A]]): Read[ErrorTest3[D, A]] = Read.derived
+
     def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
       ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
   }
 
-  case class TParamsDup[A](a1: A, a2: A)
+  case class TParamsDup[A](a1: A, a2: A) derives Arbitrary, Csv, Read
 
   
   case class Test1(x0: Int)
+    derives Arbitrary, Csv, Read
 
   case class TParams1[A1](x0: A1)
+    derives Arbitrary, Csv, Read
 
   case class HK1[F[_], A1](run: F[A1])
+  object HK1 {
+    given arbitrary[F[_], A1](using a: Arbitrary[F[A1]]): Arbitrary[HK1[F, A1]] = Arbitrary.derived
+    given csv[F[_], A1](using c: Csv[F[A1]]): Csv[HK1[F, A1]] = Csv.derived
+    given read[F[_], A1](using r: Read[F[A1]]): Read[HK1[F, A1]] = Read.derived
+  }
 
 
   case class Test2(x0: Int, x1: String)
+    derives Arbitrary, Csv, Read
 
   case class TParams2[A1, A2](x0: A1, x1: A2)
+    derives Arbitrary, Csv, Read
 
   case class HK2[F[_, _], A1, A2](run: F[A1, A2])
+  object HK2 {
+    given arbitrary[F[_, _], A1, A2](using a: Arbitrary[F[A1, A2]]): Arbitrary[HK2[F, A1, A2]] = Arbitrary.derived
+    given csv[F[_, _], A1, A2](using c: Csv[F[A1, A2]]): Csv[HK2[F, A1, A2]] = Csv.derived
+    given read[F[_, _], A1, A2](using r: Read[F[A1, A2]]): Read[HK2[F, A1, A2]] = Read.derived
+  }
 
 
   case class Test3(x0: Int, x1: String, x2: Boolean)
+    derives Arbitrary, Csv, Read
 
   case class TParams3[A1, A2, A3](x0: A1, x1: A2, x2: A3)
+    derives Arbitrary, Csv, Read
 
   case class HK3[F[_, _, _], A1, A2, A3](run: F[A1, A2, A3])
+  object HK3 {
+    given arbitrary[F[_, _, _], A1, A2, A3](using a: Arbitrary[F[A1, A2, A3]]): Arbitrary[HK3[F, A1, A2, A3]] = Arbitrary.derived
+    given csv[F[_, _, _], A1, A2, A3](using c: Csv[F[A1, A2, A3]]): Csv[HK3[F, A1, A2, A3]] = Csv.derived
+    given read[F[_, _, _], A1, A2, A3](using r: Read[F[A1, A2, A3]]): Read[HK3[F, A1, A2, A3]] = Read.derived
+  }
 
 }
 
-object DerivingPluginTest extends Properties("DerivingPlugin") {
-  import typeclasses.{Csv, Read}
+object DerivationTest extends Properties("Derivation") {
+  import typeclasses.{Csv, Read, given}
   import testTypes.*
 
   def proof[A: Arbitrary: Csv: Show](label: String)(using r: Read[A]) =
@@ -232,12 +265,11 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
       (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     })
 
-  // proof[Foo]("Foo")
-  /*proof[Baz]("Baz")
+  proof[Foo]("Foo")
+  proof[Baz]("Baz")
   proof[Trait0]("Trait0")
   proof[AbstractClass]("AbstractClass")
-  proof[Multi]("Multi")
-  proof[HKFG[FConst[String]#T, Id]]("HKFG")
+  proof[HKFG[FConst[String], Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
   
@@ -254,5 +286,5 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[Test3]("Test3")
   proof[TParams3[String, String, String]]("TParams3")
   proof[HK3[TParams3, String, String, String]]("HK3")
-*/
+
 }
