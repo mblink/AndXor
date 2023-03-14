@@ -35,9 +35,9 @@ object Build {
     Compile / doc / sources := Seq()
   )
 
-  val catsVersion = "2.7.0"
-  val monocleVersion = "3.1.0"
-  val scalacheckVersion = "1.15.4"
+  val catsVersion = "2.9.0"
+  val monocleVersion = "3.2.0"
+  val scalacheckVersion = "1.17.0"
   val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
   val commonSettings = baseSettings ++ Seq(

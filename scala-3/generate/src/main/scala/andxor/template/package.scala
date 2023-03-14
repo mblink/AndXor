@@ -1,7 +1,5 @@
 package andxor
 
-import cats.syntax.coflatMap.*
-
 package object template {
   val maxLen = 100
 

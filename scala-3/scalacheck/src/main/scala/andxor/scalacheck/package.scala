@@ -2,8 +2,7 @@ package andxor
 
 import cats.{Id, Monad}
 import org.scalacheck.{Arbitrary, Gen}
-import scala.compiletime.{summonAll, summonFrom, summonInline}
-import scala.deriving.Mirror
+import scala.compiletime.summonAll
 
 package object scalacheck {
   implicit val arbitraryInst: Monad[Arbitrary] with Alt[Arbitrary] = new Monad[Arbitrary] with Alt[Arbitrary] {
@@ -16,8 +15,8 @@ package object scalacheck {
 
   inline given singletonInstance[A](using inline v: ValueOf[A]): Arbitrary[A] = Arbitrary(Gen.const(v.value))
 
-  extension (x: Arbitrary.type) inline def derived[A]: Arbitrary[A] =
-    summonFrom {
+  extension (@annotation.unused x: Arbitrary.type) inline def derived[A]: Arbitrary[A] =
+    scala.compiletime.summonFrom {
       case p: AndXorProdIso[A] =>
         given axoInstances: AndXorInstances[Arbitrary, p.Prod[Id]] =
           AndXorInstances(summonAll[Tuple.Map[p.Prod[Id], Arbitrary]])

@@ -1,9 +1,7 @@
 package andxor
 
-import andxor.types.*
 import cats.{Apply, Id}
 import monocle.{Lens, Optional}
-import scala.compiletime.summonAll
 import scala.util.chaining.*
 
 // Right-associative alias for `Either` that yields more compact code and easier chaining
@@ -21,7 +19,7 @@ sealed trait AndXor { self =>
 
   inline def nest[X[_[_]]]: AndXor.MakeNextNested[X, self.type]
   inline final def apply[X]: AndXor.MakeNextNested[FConst[X], self.type] = nest[FConst[X]]
-  inline final def *:[X[_[_]]](a: AndXor._1Nested[X]): AndXor.MakeNextNested[X, self.type] = nest[X]
+  inline final def *:[X[_[_]]](@annotation.unused a: AndXor._1Nested[X]): AndXor.MakeNextNested[X, self.type] = nest[X]
 
   inline def inj[F[_], A](a: A)(implicit i: Inj[Cop[F], A]): Cop[F] = i(a)
   inline def injId[A](a: A)(implicit i: Inj[Cop[Id], Id[A]]): Cop[Id] = i(a)

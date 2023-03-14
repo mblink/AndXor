@@ -3,7 +3,7 @@ package andxor
 import cats.{~>, Applicative, Apply, Eq, Functor, Id}
 
 trait FTraverse[T[_[_]], TC[_[_]]] extends FFunctor[T] {
-  def traverse[F[_], G[_], A[_]: TC](tf: T[F])(f: F ~> ([a] =>> A[G[a]])): A[T[G]]
+  def traverse[F[_], G[_], A[_]](tf: T[F])(f: F ~> ([a] =>> A[G[a]]))(using tc: TC[A]): A[T[G]]
 
   final def sequence[F[_], A[_]: TC](taf: T[[a] =>> A[F[a]]]): A[T[F]] =
     traverse[[a] =>> A[F[a]], F, A](taf)(new (([a] =>> A[F[a]]) ~> ([a] =>> A[F[a]])) {
@@ -24,9 +24,12 @@ trait FTraverse[T[_[_]], TC[_[_]]] extends FFunctor[T] {
       type MN[X] = M[N[X]]
       val FM = H.toFunctor[M](M)
       val t1: MN[T[C]] = FM.map(traverse[A, B, M](ta)(amb))(tb => traverse[B, C, N](tb)(bnc))
+
+      given TCMN: TC[MN] = H.compose(M, N)
       val t2: MN[T[C]] = traverse[A, C, MN](ta)(new (A ~> ([a] =>> MN[C[a]])) {
         def apply[a](aa: A[a]): MN[C[a]] = FM.map(amb(aa))(bnc(_))
-      })(H.compose(M, N))
+      })
+
       MN.eqv(t1, t2)
     }
 
@@ -46,9 +49,12 @@ trait FTraverse[T[_[_]], TC[_[_]]] extends FFunctor[T] {
         using N: TC[N], M: TC[M], MN: Eq[(M[T[B]], N[T[B]])]): Boolean = {
       type MN[X] = (M[X], N[X])
       val t1: MN[T[B]] = (traverse[A, B, M](ta)(amb), traverse[A, B, N](ta)(anb))
+
+      given TCMN: TC[MN] = H.product(M, N)
       val t2: MN[T[B]] = traverse[A, B, MN](ta)(new (A ~> ([a] =>> MN[B[a]])) {
         def apply[a](aa: A[a]): MN[B[a]] = (amb(aa), anb(aa))
-      })(H.product(M, N))
+      })
+
       MN.eqv(t1, t2)
     }
   }
@@ -61,14 +67,14 @@ with FTraverseTupleNInstances  {
   private[andxor] trait FX[TC[_[_]], X]
   extends FTraverse[[F[_]] =>> F[X], TC]
   with FFunctor.FX[X] {
-    final def traverse[F[_], G[_], A[_]: TC](tf: F[X])(f: F ~> ([a] =>> A[G[a]])): A[G[X]] =
+    final def traverse[F[_], G[_], A[_]](tf: F[X])(f: F ~> ([a] =>> A[G[a]]))(using @annotation.unused tc: TC[A]): A[G[X]] =
       f(tf)
   }
 
   private[andxor] trait Tuple1[TC[f[_]] <: Functor[f], X]
   extends FTraverse[[F[_]] =>> F[X] *: EmptyTuple, TC]
   with FFunctor.Tuple1[X] {
-    final def traverse[F[_], G[_], A[_]: TC](tf: F[X] *: EmptyTuple)(f: F ~> ([a] =>> A[G[a]])): A[G[X] *: EmptyTuple] =
+    final def traverse[F[_], G[_], A[_]](tf: F[X] *: EmptyTuple)(f: F ~> ([a] =>> A[G[a]]))(using tc: TC[A]): A[G[X] *: EmptyTuple] =
       Functor[A].map(f(tf.head))(_ *: EmptyTuple)
   }
 
@@ -76,7 +82,7 @@ with FTraverseTupleNInstances  {
   extends FTraverse[[F[_]] =>> F[H] *: T[F], TC]
   with FFunctor.TupleN[H, T] {
     protected val FT: FTraverse[T, TC]
-    final def traverse[F[_], G[_], A[_]: TC](tf: F[H] *: T[F])(f: F ~> ([a] =>> A[G[a]])): A[G[H] *: T[G]] =
+    final def traverse[F[_], G[_], A[_]](tf: F[H] *: T[F])(f: F ~> ([a] =>> A[G[a]]))(using tc: TC[A]): A[G[H] *: T[G]] =
       Apply[A].map2(f(tf.head), FT.traverse(tf.tail)(f))(_ *: _)
   }
 
@@ -84,7 +90,7 @@ with FTraverseTupleNInstances  {
   extends FTraverse[[F[_]] =>> F[L] |: R[F], TC]
   with FFunctor.Either[L, R] {
     protected val FR: FTraverse[R, TC]
-    final def traverse[F[_], G[_], A[_]: TC](tf: F[L] |: R[F])(f: F ~> ([a] =>> A[G[a]])): A[G[L] |: R[G]] =
+    final def traverse[F[_], G[_], A[_]](tf: F[L] |: R[F])(f: F ~> ([a] =>> A[G[a]]))(using tc: TC[A]): A[G[L] |: R[G]] =
       tf match {
         case Left(fl) => Functor[A].map(f(fl))(Left(_))
         case Right(rf) => Functor[A].map(FR.traverse(rf)(f))(Right(_))

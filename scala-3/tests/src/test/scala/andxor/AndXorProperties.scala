@@ -1,8 +1,8 @@
 package andxor
 
-import cats.{~>, Applicative, Eq, Id, Monad}
+import cats.{~>, Applicative, Eq, Id}
 import cats.syntax.apply.*
-import org.scalacheck.{Arbitrary, Gen, Prop, PropFromFun, Properties}
+import org.scalacheck.{Arbitrary, Prop, PropFromFun, Properties}
 
 object AndXorProperties {
   object arbitrary {

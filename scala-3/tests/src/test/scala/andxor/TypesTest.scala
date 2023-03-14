@@ -1412,6 +1412,8 @@ object Prod1Test extends Properties("Prod1") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
 }
 
 object Cop1Test extends Properties("Cop1") {
@@ -1427,6 +1429,10 @@ object Prod2Test extends Properties("Prod2") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
 }
 
 object Cop2Test extends Properties("Cop2") {
@@ -1442,6 +1448,12 @@ object Prod3Test extends Properties("Prod3") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
 }
 
 object Cop3Test extends Properties("Cop3") {
@@ -1457,6 +1469,14 @@ object Prod4Test extends Properties("Prod4") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
 }
 
 object Cop4Test extends Properties("Cop4") {
@@ -1472,6 +1492,16 @@ object Prod5Test extends Properties("Prod5") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
 }
 
 object Cop5Test extends Properties("Cop5") {
@@ -1487,6 +1517,18 @@ object Prod6Test extends Properties("Prod6") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
 }
 
 object Cop6Test extends Properties("Cop6") {
@@ -1502,6 +1544,20 @@ object Prod7Test extends Properties("Prod7") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
 }
 
 object Cop7Test extends Properties("Cop7") {
@@ -1517,6 +1573,22 @@ object Prod8Test extends Properties("Prod8") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
 }
 
 object Cop8Test extends Properties("Cop8") {
@@ -1532,6 +1604,24 @@ object Prod9Test extends Properties("Prod9") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
 }
 
 object Cop9Test extends Properties("Cop9") {
@@ -1547,6 +1637,26 @@ object Prod10Test extends Properties("Prod10") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
 }
 
 object Cop10Test extends Properties("Cop10") {
@@ -1562,6 +1672,28 @@ object Prod11Test extends Properties("Prod11") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
 }
 
 object Cop11Test extends Properties("Cop11") {
@@ -1577,6 +1709,30 @@ object Prod12Test extends Properties("Prod12") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
 }
 
 object Cop12Test extends Properties("Cop12") {
@@ -1592,6 +1748,32 @@ object Prod13Test extends Properties("Prod13") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
 }
 
 object Cop13Test extends Properties("Cop13") {
@@ -1607,6 +1789,34 @@ object Prod14Test extends Properties("Prod14") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
 }
 
 object Cop14Test extends Properties("Cop14") {
@@ -1622,6 +1832,36 @@ object Prod15Test extends Properties("Prod15") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
 }
 
 object Cop15Test extends Properties("Cop15") {
@@ -1637,6 +1877,38 @@ object Prod16Test extends Properties("Prod16") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT16).all, "16.")
 }
 
 object Cop16Test extends Properties("Cop16") {
@@ -1652,6 +1924,40 @@ object Prod17Test extends Properties("Prod17") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT16).all, "16.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT17).all, "17.")
 }
 
 object Cop17Test extends Properties("Cop17") {
@@ -1667,6 +1973,42 @@ object Prod18Test extends Properties("Prod18") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT16).all, "16.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT17).all, "17.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT18).all, "18.")
 }
 
 object Cop18Test extends Properties("Cop18") {
@@ -1682,6 +2024,44 @@ object Prod19Test extends Properties("Prod19") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT16).all, "16.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT17).all, "17.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT18).all, "18.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT19).all, "19.")
 }
 
 object Cop19Test extends Properties("Cop19") {
@@ -1697,6 +2077,46 @@ object Prod20Test extends Properties("Prod20") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT16).all, "16.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT17).all, "17.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT18).all, "18.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT19).all, "19.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT20).all, "20.")
 }
 
 object Cop20Test extends Properties("Cop20") {
@@ -1712,6 +2132,48 @@ object Prod21Test extends Properties("Prod21") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT16).all, "16.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT17).all, "17.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT18).all, "18.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT19).all, "19.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[Int]](andxor.tuple.lensT20).all, "20.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: EmptyTuple, Option[String]](andxor.tuple.lensT21).all, "21.")
 }
 
 object Cop21Test extends Properties("Cop21") {
@@ -1727,6 +2189,50 @@ object Prod22Test extends Properties("Prod22") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: F[String] *: F[Int] *: EmptyTuple, Apply])
 
   include(MonoidTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple].monoid.all)
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT1).all, "1.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT2).all, "2.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT3).all, "3.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT4).all, "4.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT5).all, "5.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT6).all, "6.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT7).all, "7.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT8).all, "8.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT9).all, "9.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT10).all, "10.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT11).all, "11.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT12).all, "12.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT13).all, "13.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT14).all, "14.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT15).all, "15.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT16).all, "16.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT17).all, "17.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT18).all, "18.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT19).all, "19.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT20).all, "20.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[String]](andxor.tuple.lensT21).all, "21.")
+
+  include(LensTests[Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: Option[String] *: Option[Int] *: EmptyTuple, Option[Int]](andxor.tuple.lensT22).all, "22.")
 }
 
 object Cop22Test extends Properties("Cop22") {

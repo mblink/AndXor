@@ -1,12 +1,13 @@
 package andxor
 
-import cats.{Applicative, Eq, Eval, Traverse}
 import cats.syntax.eq.*
 
 opaque type Labelled[A, L] = A
 
 object Labelled {
-  extension [A, L](x: Labelled[A, L]) {
+  // TODO - this is only reported as unused because it's not used in `def label`
+  // https://github.com/lampepfl/dotty/issues/17101
+  extension [A, L](@annotation.unused x: Labelled[A, L]) {
     def value: A = x
     def label(implicit l: ValueOf[L]): L = l.value
   }

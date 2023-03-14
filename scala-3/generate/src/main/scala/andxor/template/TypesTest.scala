@@ -66,6 +66,10 @@ object ${prodName}Test extends Properties("$prodName") {
   include(AndXorProperties.ftraverse.laws[[F[_]] =>> ${prodTpe("F")}, Apply])
 
   include(MonoidTests[${prodTpe("Option")}].monoid.all)
+
+  ${1.to(i).map(j =>
+    s"include(LensTests[${prodTpe("Option")}, Option[${tpes(j - 1)}]](andxor.tuple.lensT$j).all, \"$j.\")"
+  ).mkString("\n\n  ")}
 }
 
 object ${copName}Test extends Properties("$copName") {

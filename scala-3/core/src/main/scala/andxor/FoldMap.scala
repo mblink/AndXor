@@ -66,7 +66,7 @@ object FoldMap {
           case (None, t) => (Nil, t *: EmptyTuple)
         }
 
-      def unconsOne[F[_], G[_]](p: F[X] *: EmptyTuple, c: G[X])(using U: Uncons[F, G]): (Option[G[X]], F[X] *: EmptyTuple) =
+      def unconsOne[F[_], G[_]](p: F[X] *: EmptyTuple, @annotation.unused c: G[X])(using U: Uncons[F, G]): (Option[G[X]], F[X] *: EmptyTuple) =
         U(p.head).pipe { case (h, t) => (h, t *: EmptyTuple) }
     }
 

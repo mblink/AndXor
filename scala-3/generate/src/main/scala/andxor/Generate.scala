@@ -22,7 +22,7 @@ object Generate {
   def fileContents(p: Path): String = new String(Files.readAllBytes(p), "UTF-8")
   def noWs(s: String): String = s.filterNot(_.isWhitespace)
 
-  def main(args: Array[String]): Unit = {
+  def main(@annotation.unused args: Array[String]): Unit = {
     val rootDir = Paths.get(BuildInfo.rootDir)
     def maybeWrite(
       name: String,

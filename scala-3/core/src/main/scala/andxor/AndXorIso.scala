@@ -1,6 +1,6 @@
 package andxor
 
-import cats.{Apply, Id}
+import cats.Id
 import cats.syntax.eq.*
 import monocle.Iso
 import scala.annotation.tailrec
