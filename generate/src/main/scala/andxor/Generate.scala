@@ -59,10 +59,6 @@ object Generate {
       maybeWrite("FTraverseTupleNInstances.scala", FTraverseTupleNInstances(tpeLists1To100))
       maybeWrite("Tuple.scala", Tuple(tpeLists1To100))
 
-      maybeWrite("ArgonautTest.scala", ArgonautTest(tpeLists1To22), List("andxor", "argonaut"),
-        getProj = _ / "tests", mainOrTest = _ / "test", fileDir = _ / "argonaut")
-      maybeWrite("CirceTest.scala", CirceTest(tpeLists1To22), List("andxor", "circe"),
-        getProj = _ / "tests", mainOrTest = _ / "test", fileDir = _ / "circe")
       maybeWrite("DerivationTest.scala", DerivationTest(mkTpeList(1, 3)),
         getProj = _ / "tests", mainOrTest = _ / "test")
       maybeWrite("TypesTest.scala", TypesTest(tpeLists1To22),

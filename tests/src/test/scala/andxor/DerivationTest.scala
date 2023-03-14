@@ -1,14 +1,9 @@
 package andxor
 
 
-// import andxor.argonaut.*
-import andxor.circe.*
 import andxor.scalacheck.{given, *}
-import _root_.argonaut.{DecodeJson, EncodeJson}
-import cats.{~>, Apply, Eq, Id, Show}
+import cats.{~>, Apply, Id, Show}
 import cats.syntax.apply.*
-import cats.syntax.eq.*
-import io.circe.{Decoder, Encoder}
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop.{forAllNoShrink, propBoolean}
 import scala.compiletime.{summonAll, summonFrom}
@@ -31,6 +26,12 @@ object typeclasses {
 
   given showDecide: Decidable[Show] = Decidable.fromIso[Show, ShowF](showToShowF, showFToShow)
   given showDivide: Divide[Show] = Divide.fromIso[Show, ShowF](showToShowF, showFToShow)
+
+  inline given showCop[A](using c: AndXorCopIso[A], i: AndXorInstances[Show, c.Prod[Id]]): Show[A] =
+    c.deriving[Show].choose
+
+  inline given showProd[A](using p: AndXorProdIso[A], i: AndXorInstances[Show, p.Prod[Id]]): Show[A] =
+    p.deriving[Show].divide
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
@@ -81,16 +82,16 @@ object typeclasses {
     inline def derived[A]: Read[A] =
       summonFrom {
         case p: AndXorProdIso[A] =>
-          given axoInstances: AndXorInstances[Read, p.andxor.Prod[Id]] =
-            AndXorInstances(summonAll[Tuple.Map[p.andxor.Prod[Id], Read]])
+          given axoInstances: AndXorInstances[Read, p.LabelledProd[Id]] =
+            AndXorInstances(summonAll[Tuple.Map[p.LabelledProd[Id], Read]])
 
-          p.deriving[Read].apply
+          p.derivingLabelled[Read].apply
 
         case c: AndXorCopIso[A] =>
-          given axoInstances: AndXorInstances[Read, c.andxor.Prod[Id]] =
-            AndXorInstances(summonAll[Tuple.Map[c.andxor.Prod[Id], Read]])
+          given axoInstances: AndXorInstances[Read, c.LabelledProd[Id]] =
+            AndXorInstances(summonAll[Tuple.Map[c.LabelledProd[Id], Read]])
 
-          c.deriving[Read].alt
+          c.derivingLabelled[Read].alt
       }
   }
 
@@ -153,10 +154,9 @@ object testTypes {
   @annotation.nowarn("msg=zero-member coproduct")
   sealed trait EmptyCop
 
-  // @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
-  sealed trait Foo derives Arbitrary, Csv //, Decoder, DecodeJson // , Encoder, EncodeJson, Eq, Read, Show
+  sealed trait Foo derives Arbitrary, Csv, Read
   case object Bar extends Foo
-  case class Baz(s: String) extends Foo derives Arbitrary, Csv
+  case class Baz(s: String) extends Foo derives Arbitrary, Csv, Read
 
   sealed trait Trait0 // derives Arbitrary, Csv
   sealed trait Trait1 extends Trait0 { val value: Option[Int] }
@@ -225,14 +225,9 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   import typeclasses.{Csv, Read}
   import testTypes.*
 
-  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String)(using r: Read[A]) =
+  def proof[A: Arbitrary: Csv: Show](label: String)(using r: Read[A]) =
     property(label) = forAllNoShrink((a: A) => {
       (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
-      ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not Eq") &&
-      ((implicitly[Decoder[A]].decodeJson(implicitly[Encoder[A]].apply(a)) match {
-        case Right(res) => res === a
-        case _ => false
-      }) :| "circe was not Eq") &&
       // can't really test `Read` because the implementations don't work for nested values
       (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     })

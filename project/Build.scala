@@ -84,27 +84,6 @@ object Build {
     .settings(testSettings)
     .settings(Seq(name := "andxor-core"))
 
-  def argonautBase = Project("argonaut", file("argonaut"))
-    .settings(commonSettings)
-    .settings(publishSettings)
-    .settings(testSettings)
-    .settings(Seq(
-      name := "andxor-argonaut",
-      libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.8"
-    ))
-
-  val circeVersion = "0.14.3"
-  def circeBase = Project("circe", file("circe"))
-    .settings(commonSettings)
-    .settings(publishSettings)
-    .settings(Seq(
-      name := "andxor-circe",
-      libraryDependencies ++= Seq(
-        "io.circe" %% "circe-core" % circeVersion,
-        "io.circe" %% "circe-parser" % circeVersion,
-      )
-    ))
-
   def scalacheckBase = Project("scalacheck", file("scalacheck"))
     .settings(commonSettings)
     .settings(publishSettings)

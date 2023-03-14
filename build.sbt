@@ -8,12 +8,8 @@ lazy val core: Project = coreBase
 
 lazy val scalacheck = scalacheckBase.dependsOn(core)
 
-lazy val argonaut: Project = argonautBase.dependsOn(core, scalacheck % "test")
-
-lazy val circe: Project = circeBase.dependsOn(core, scalacheck % "test")
-
 lazy val tests: Project = testsBase
-  .dependsOn(core, scalacheck, argonaut, circe)
+  .dependsOn(core, scalacheck)
 
 lazy val root: Project = project.in(file("."))
   .settings(commonSettings)
@@ -21,7 +17,7 @@ lazy val root: Project = project.in(file("."))
     crossScalaVersions := Seq(),
     gitRelease := {}
   )
-  .aggregate(core, argonaut, circe, scalacheck, tests)
+  .aggregate(core, scalacheck, tests)
 
 lazy val docs = project.in(file("andxor-docs"))
   .settings(commonSettings)
