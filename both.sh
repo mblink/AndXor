@@ -35,6 +35,10 @@ function publish() {
   sbtSequential publish
 }
 
+function publishLocal() {
+  sbtSequential publishLocal
+}
+
 function gitRelease() {
   sbtSequential gitRelease
 }
