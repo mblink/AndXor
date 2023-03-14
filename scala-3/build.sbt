@@ -3,6 +3,11 @@ import andxor.Build._
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val generate: Project = generateBase
+  .settings(
+    buildInfoKeys := Seq[BuildInfoKey]("rootDir" -> (ThisBuild / baseDirectory).value.toString),
+    buildInfoPackage := "andxor",
+  )
+  .enablePlugins(BuildInfoPlugin)
 
 lazy val core: Project = coreBase
 
