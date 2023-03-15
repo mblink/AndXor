@@ -7,8 +7,8 @@ import sbt._
 import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
-object Build {
-  lazy val scalaVersions = Seq("2.13.10")
+object Build extends CommonBuild {
+  val scalaVersions = Seq("2.13.10")
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -16,8 +16,7 @@ object Build {
       case _ => Seq()
     }
 
-  val baseSettings = Seq(
-    organization := "andxor",
+  val baseSettings0 = Seq(
     crossScalaVersions := scalaVersions,
     scalaVersion := scalaVersions.find(_.startsWith("2.13")).get,
     scalacOptions ++= Seq(
@@ -25,58 +24,23 @@ object Build {
       "-Vimplicits-verbose-tree",
       "-Xlint:strict-unsealed-patmat",
     ),
-    version := currentVersion,
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
     Compile / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     Test / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
-    publish / skip  := true,
-    Compile / packageDoc / publishArtifact := false,
-    packageDoc / publishArtifact := false,
-    Compile / doc / sources := Seq()
   )
 
-  val catsVersion = "2.9.0"
-  val monocleVersion = "3.2.0"
-  val scalacheckVersion = "1.17.0"
-  val scalacheckDep = "org.scalacheck" %% "scalacheck" % scalacheckVersion
-
-  val commonSettings = baseSettings ++ Seq(
-    libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-core" % catsVersion,
-      "org.typelevel" %% "cats-laws" % catsVersion % "test",
-      "dev.optics" %% "monocle-core" % monocleVersion,
-      "dev.optics" %% "monocle-law" % monocleVersion % "test"
-    )
-  )
-
-  val publishSettings = Seq(
-    publish / skip := false,
-    gitPublishDir := file("/src/maven-repo"),
-    licenses += License.Apache2,
-  )
-
-  val testSettings = Seq(libraryDependencies += scalacheckDep % "test")
-
-  def generateBase = Project("generate", file("generate"))
-    .settings(commonSettings)
-    .settings(Seq(
-      name := "andxor-generate",
-      resolvers += Resolver.sonatypeRepo("snapshots"),
+  override def generateBase = super.generateBase
+    .settings(
+      resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
       libraryDependencies ++= Seq(
         "com.github.pathikrit" %% "better-files" % "3.9.1",
-        "org.scalariform" %% "scalariform" % "0.2.10",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ),
       dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
       TwirlKeys.templateImports := Seq(),
       gitRelease := {}
-    )).enablePlugins(SbtTwirl)
-
-  def coreBase = Project("core", file("core"))
-    .settings(commonSettings)
-    .settings(publishSettings)
-    .settings(testSettings)
-    .settings(Seq(name := "andxor-core"))
+    )
+    .enablePlugins(SbtTwirl)
 
   def argonautBase = Project("argonaut", file("argonaut"))
     .settings(commonSettings)
@@ -87,7 +51,7 @@ object Build {
       libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.3"
     ))
 
-  val circeVersion = "0.14.1"
+  val circeVersion = "0.14.5"
   def circeBase = Project("circe", file("circe"))
     .settings(commonSettings)
     .settings(publishSettings)
@@ -97,14 +61,6 @@ object Build {
         "io.circe" %% "circe-core" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
       )
-    ))
-
-  def scalacheckBase = Project("scalacheck", file("scalacheck"))
-    .settings(commonSettings)
-    .settings(publishSettings)
-    .settings(Seq(
-      name := "andxor-scalacheck",
-      libraryDependencies += scalacheckDep
     ))
 
   def enablePlugin(jar: File, extra: Seq[String]): Seq[String] =
