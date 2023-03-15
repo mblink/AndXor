@@ -252,6 +252,244 @@ object testTypes {
     given read[F[_, _, _], A1, A2, A3](using r: Read[F[A1, A2, A3]]): Read[HK3[F, A1, A2, A3]] = Read.derived
   }
 
+
+  case class Test4(x0: Int, x1: String, x2: Boolean, x3: Int)
+    derives Arbitrary, Csv, Read
+
+  case class TParams4[A1, A2, A3, A4](x0: A1, x1: A2, x2: A3, x3: A4)
+    derives Arbitrary, Csv, Read
+
+  case class HK4[F[_, _, _, _], A1, A2, A3, A4](run: F[A1, A2, A3, A4])
+  object HK4 {
+    given arbitrary[F[_, _, _, _], A1, A2, A3, A4](using a: Arbitrary[F[A1, A2, A3, A4]]): Arbitrary[HK4[F, A1, A2, A3, A4]] = Arbitrary.derived
+    given csv[F[_, _, _, _], A1, A2, A3, A4](using c: Csv[F[A1, A2, A3, A4]]): Csv[HK4[F, A1, A2, A3, A4]] = Csv.derived
+    given read[F[_, _, _, _], A1, A2, A3, A4](using r: Read[F[A1, A2, A3, A4]]): Read[HK4[F, A1, A2, A3, A4]] = Read.derived
+  }
+
+
+  case class Test5(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String)
+    derives Arbitrary, Csv, Read
+
+  case class TParams5[A1, A2, A3, A4, A5](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5)
+    derives Arbitrary, Csv, Read
+
+  case class HK5[F[_, _, _, _, _], A1, A2, A3, A4, A5](run: F[A1, A2, A3, A4, A5])
+  object HK5 {
+    given arbitrary[F[_, _, _, _, _], A1, A2, A3, A4, A5](using a: Arbitrary[F[A1, A2, A3, A4, A5]]): Arbitrary[HK5[F, A1, A2, A3, A4, A5]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _], A1, A2, A3, A4, A5](using c: Csv[F[A1, A2, A3, A4, A5]]): Csv[HK5[F, A1, A2, A3, A4, A5]] = Csv.derived
+    given read[F[_, _, _, _, _], A1, A2, A3, A4, A5](using r: Read[F[A1, A2, A3, A4, A5]]): Read[HK5[F, A1, A2, A3, A4, A5]] = Read.derived
+  }
+
+
+  case class Test6(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean)
+    derives Arbitrary, Csv, Read
+
+  case class TParams6[A1, A2, A3, A4, A5, A6](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6)
+    derives Arbitrary, Csv, Read
+
+  case class HK6[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](run: F[A1, A2, A3, A4, A5, A6])
+  object HK6 {
+    given arbitrary[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6]]): Arbitrary[HK6[F, A1, A2, A3, A4, A5, A6]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](using c: Csv[F[A1, A2, A3, A4, A5, A6]]): Csv[HK6[F, A1, A2, A3, A4, A5, A6]] = Csv.derived
+    given read[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](using r: Read[F[A1, A2, A3, A4, A5, A6]]): Read[HK6[F, A1, A2, A3, A4, A5, A6]] = Read.derived
+  }
+
+
+  case class Test7(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int)
+    derives Arbitrary, Csv, Read
+
+  case class TParams7[A1, A2, A3, A4, A5, A6, A7](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7)
+    derives Arbitrary, Csv, Read
+
+  case class HK7[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](run: F[A1, A2, A3, A4, A5, A6, A7])
+  object HK7 {
+    given arbitrary[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7]]): Arbitrary[HK7[F, A1, A2, A3, A4, A5, A6, A7]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7]]): Csv[HK7[F, A1, A2, A3, A4, A5, A6, A7]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](using r: Read[F[A1, A2, A3, A4, A5, A6, A7]]): Read[HK7[F, A1, A2, A3, A4, A5, A6, A7]] = Read.derived
+  }
+
+
+  case class Test8(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String)
+    derives Arbitrary, Csv, Read
+
+  case class TParams8[A1, A2, A3, A4, A5, A6, A7, A8](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8)
+    derives Arbitrary, Csv, Read
+
+  case class HK8[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](run: F[A1, A2, A3, A4, A5, A6, A7, A8])
+  object HK8 {
+    given arbitrary[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8]]): Arbitrary[HK8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8]]): Csv[HK8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8]]): Read[HK8[F, A1, A2, A3, A4, A5, A6, A7, A8]] = Read.derived
+  }
+
+
+  case class Test9(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean)
+    derives Arbitrary, Csv, Read
+
+  case class TParams9[A1, A2, A3, A4, A5, A6, A7, A8, A9](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9)
+    derives Arbitrary, Csv, Read
+
+  case class HK9[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9])
+  object HK9 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Arbitrary[HK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Csv[HK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9]]): Read[HK9[F, A1, A2, A3, A4, A5, A6, A7, A8, A9]] = Read.derived
+  }
+
+
+  case class Test10(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int)
+    derives Arbitrary, Csv, Read
+
+  case class TParams10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10)
+    derives Arbitrary, Csv, Read
+
+  case class HK10[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])
+  object HK10 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]): Arbitrary[HK10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]): Csv[HK10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]]): Read[HK10[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] = Read.derived
+  }
+
+
+  case class Test11(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String)
+    derives Arbitrary, Csv, Read
+
+  case class TParams11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11)
+    derives Arbitrary, Csv, Read
+
+  case class HK11[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])
+  object HK11 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]): Arbitrary[HK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]): Csv[HK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]]): Read[HK11[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] = Read.derived
+  }
+
+
+  case class Test12(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean)
+    derives Arbitrary, Csv, Read
+
+  case class TParams12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12)
+    derives Arbitrary, Csv, Read
+
+  case class HK12[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])
+  object HK12 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]): Arbitrary[HK12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]): Csv[HK12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]]): Read[HK12[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] = Read.derived
+  }
+
+
+  case class Test13(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int)
+    derives Arbitrary, Csv, Read
+
+  case class TParams13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13)
+    derives Arbitrary, Csv, Read
+
+  case class HK13[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])
+  object HK13 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]): Arbitrary[HK13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]): Csv[HK13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]]): Read[HK13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] = Read.derived
+  }
+
+
+  case class Test14(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String)
+    derives Arbitrary, Csv, Read
+
+  case class TParams14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14)
+    derives Arbitrary, Csv, Read
+
+  case class HK14[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])
+  object HK14 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]): Arbitrary[HK14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]): Csv[HK14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]]): Read[HK14[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] = Read.derived
+  }
+
+
+  case class Test15(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean)
+    derives Arbitrary, Csv, Read
+
+  case class TParams15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15)
+    derives Arbitrary, Csv, Read
+
+  case class HK15[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])
+  object HK15 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]): Arbitrary[HK15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]): Csv[HK15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]]): Read[HK15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] = Read.derived
+  }
+
+
+  case class Test16(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int)
+    derives Arbitrary, Csv, Read
+
+  case class TParams16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16)
+    derives Arbitrary, Csv, Read
+
+  case class HK16[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])
+  object HK16 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]): Arbitrary[HK16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]): Csv[HK16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]]): Read[HK16[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] = Read.derived
+  }
+
+
+  case class Test17(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String)
+    derives Arbitrary, Csv, Read
+
+  case class TParams17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17)
+    derives Arbitrary, Csv, Read
+
+  case class HK17[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])
+  object HK17 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]): Arbitrary[HK17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]): Csv[HK17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]]): Read[HK17[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] = Read.derived
+  }
+
+
+  case class Test18(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean)
+    derives Arbitrary, Csv, Read
+
+  case class TParams18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18)
+    derives Arbitrary, Csv, Read
+
+  case class HK18[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])
+  object HK18 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]): Arbitrary[HK18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]): Csv[HK18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]]): Read[HK18[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] = Read.derived
+  }
+
+
+  case class Test19(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int)
+    derives Arbitrary, Csv, Read
+
+  case class TParams19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19)
+    derives Arbitrary, Csv, Read
+
+  case class HK19[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])
+  object HK19 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]): Arbitrary[HK19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]): Csv[HK19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]]): Read[HK19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] = Read.derived
+  }
+
+
+  case class Test20(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int, x19: String)
+    derives Arbitrary, Csv, Read
+
+  case class TParams20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19, x19: A20)
+    derives Arbitrary, Csv, Read
+
+  case class HK20[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])
+  object HK20 {
+    given arbitrary[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](using a: Arbitrary[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]): Arbitrary[HK20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Arbitrary.derived
+    given csv[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](using c: Csv[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]): Csv[HK20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Csv.derived
+    given read[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](using r: Read[F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]]): Read[HK20[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] = Read.derived
+  }
+
 }
 
 object DerivationTest extends Properties("Derivation") {
@@ -286,5 +524,90 @@ object DerivationTest extends Properties("Derivation") {
   proof[Test3]("Test3")
   proof[TParams3[String, String, String]]("TParams3")
   proof[HK3[TParams3, String, String, String]]("HK3")
+
+
+  proof[Test4]("Test4")
+  proof[TParams4[String, String, String, String]]("TParams4")
+  proof[HK4[TParams4, String, String, String, String]]("HK4")
+
+
+  proof[Test5]("Test5")
+  proof[TParams5[String, String, String, String, String]]("TParams5")
+  proof[HK5[TParams5, String, String, String, String, String]]("HK5")
+
+
+  proof[Test6]("Test6")
+  proof[TParams6[String, String, String, String, String, String]]("TParams6")
+  proof[HK6[TParams6, String, String, String, String, String, String]]("HK6")
+
+
+  proof[Test7]("Test7")
+  proof[TParams7[String, String, String, String, String, String, String]]("TParams7")
+  proof[HK7[TParams7, String, String, String, String, String, String, String]]("HK7")
+
+
+  proof[Test8]("Test8")
+  proof[TParams8[String, String, String, String, String, String, String, String]]("TParams8")
+  proof[HK8[TParams8, String, String, String, String, String, String, String, String]]("HK8")
+
+
+  proof[Test9]("Test9")
+  proof[TParams9[String, String, String, String, String, String, String, String, String]]("TParams9")
+  proof[HK9[TParams9, String, String, String, String, String, String, String, String, String]]("HK9")
+
+
+  proof[Test10]("Test10")
+  proof[TParams10[String, String, String, String, String, String, String, String, String, String]]("TParams10")
+  proof[HK10[TParams10, String, String, String, String, String, String, String, String, String, String]]("HK10")
+
+
+  proof[Test11]("Test11")
+  proof[TParams11[String, String, String, String, String, String, String, String, String, String, String]]("TParams11")
+  proof[HK11[TParams11, String, String, String, String, String, String, String, String, String, String, String]]("HK11")
+
+
+  proof[Test12]("Test12")
+  proof[TParams12[String, String, String, String, String, String, String, String, String, String, String, String]]("TParams12")
+  proof[HK12[TParams12, String, String, String, String, String, String, String, String, String, String, String, String]]("HK12")
+
+
+  proof[Test13]("Test13")
+  proof[TParams13[String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams13")
+  proof[HK13[TParams13, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK13")
+
+
+  proof[Test14]("Test14")
+  proof[TParams14[String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams14")
+  proof[HK14[TParams14, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK14")
+
+
+  proof[Test15]("Test15")
+  proof[TParams15[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams15")
+  proof[HK15[TParams15, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK15")
+
+
+  proof[Test16]("Test16")
+  proof[TParams16[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams16")
+  proof[HK16[TParams16, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK16")
+
+
+  proof[Test17]("Test17")
+  proof[TParams17[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams17")
+  proof[HK17[TParams17, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK17")
+
+
+  proof[Test18]("Test18")
+  proof[TParams18[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams18")
+  proof[HK18[TParams18, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK18")
+
+
+  proof[Test19]("Test19")
+  proof[TParams19[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams19")
+  proof[HK19[TParams19, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK19")
+
+
+  proof[Test20]("Test20")
+  proof[TParams20[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams20")
+  proof[HK20[TParams20, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK20")
 
 }

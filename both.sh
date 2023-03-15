@@ -23,6 +23,10 @@ function compile() {
   sbtParallel compile
 }
 
+function testCompile() {
+  sbtParallel Test/compile
+}
+
 function test() {
   sbtParallel test
 }
