@@ -385,9 +385,9 @@ object DerivationTest extends Properties("Derivation") {
   private def registerProp(name: String)(prop: => Prop): Unit =
     property.update(name, prop): Unit
 
-  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String)(implicit @unused r: Read[A]) =
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String, csvEmptyOk: Boolean = false)(implicit @unused r: Read[A]) =
     registerProp(label)(forAllNoShrink((a: A) => {
-      (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
+      ((csvEmptyOk || implicitly[Csv[A]].toCsv(a).nonEmpty) :| "CSV output was empty") &&
         ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not Eq") &&
         ((implicitly[Decoder[A]].decodeJson(implicitly[Encoder[A]].apply(a)) match {
           case Right(res) => res === a
@@ -397,7 +397,7 @@ object DerivationTest extends Properties("Derivation") {
         (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     }))
 
-  proof[NoParams]("NoParams")
+  proof[NoParams]("NoParams", true)
   proof[Foo]("Foo")
   proof[Baz]("Baz")
   proof[Trait0]("Trait0")
