@@ -13,4 +13,7 @@ package object scalacheck {
   }
 
   implicit def arbAdtVal[A <: Singleton](implicit a: ValueOf[A]): Arbitrary[A] = arbitraryInst.pure(a.value)
+
+  val arbitraryDeriving: AndXorIso.DerivingCovariant[Arbitrary] = new AndXorIso.DerivingCovariant[Arbitrary] {}
+  implicit def arbitraryToDeriving(@annotation.unused a: Arbitrary.type): arbitraryDeriving.type = arbitraryDeriving
 }

@@ -23,11 +23,17 @@ object Build extends CommonBuild {
       "-Vimplicits",
       "-Vimplicits-verbose-tree",
       "-Xlint:strict-unsealed-patmat",
+      "-Ymacro-annotations",
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
     Compile / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     Test / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
   )
+
+  override def coreBase = super.coreBase
+    .settings(
+      libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    )
 
   override def generateBase = super.generateBase
     .settings(
@@ -84,16 +90,6 @@ object Build extends CommonBuild {
       .settings(Compile / sourceGenerators += Def.task {
         Seq(baseDirectory.value / ".." / "src" / "files" / "AnnotationPlugin.scala")
       })
-
-  val derivingFlags = Seq(
-    "-P:deriving:covariant:Arbitrary",
-    "-P:deriving:labelledCovariant:Decoder|DecodeJson|Read",
-    "-P:deriving:contravariant:Prod:Csv|Eq",
-    "-P:deriving:labelledContravariant:Cop:Csv|Eq",
-    "-P:deriving:labelledContravariant:Encoder|EncodeJson|Show"
-  )
-
-  def derivingBase = annotationPlugin(Project("deriving", file("deriving")), "andxor-deriving", derivingFlags).settings(testSettings)
 
   def newtypeBase = annotationPlugin(Project("newtype", file("newtype")), "andxor-newtype", Seq())
 }

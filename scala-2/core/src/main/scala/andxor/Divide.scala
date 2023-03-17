@@ -60,7 +60,7 @@ trait DivideLP {
 }
 
 object Divide extends DivideLP {
-  def apply[F[_]](implicit ev: Divide[F]): Divide[F] = ev
+  @inline def apply[F[_]](implicit ev: Divide[F]): Divide[F] = ev
 
   def fromIso[F[_], G[_]](fg: F ~> G, gf: G ~> F)(implicit D: Divide[G]): Divide[F] = new IsomorphismDivide[F, G] {
     implicit val G: Divide[G] = D

@@ -25,3 +25,7 @@ trait DerivingCop[Cop[_[_]], F[_], TC[_]] extends Deriving[Cop, F, TC, Alt, Deci
   def alt(implicit A: Alt[TC]): TC[Cop[F]] = mkAlt(identity _)
   def choose(implicit D: Decidable[TC]): TC[Cop[F]] = mkChoose(identity _)
 }
+
+final class derives(@annotation.unused tcs: Any*) extends annotation.StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro AndXorIso.BlackboxMacros.derivingAnnotation
+}

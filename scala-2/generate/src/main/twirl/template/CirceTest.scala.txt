@@ -16,7 +16,7 @@ object CirceTest extends Properties("circe") {
     property.update(name, prop): Unit
 
   @tpeLists.map { tpes =>
-  @@deriving(Arbitrary, Decoder, Encoder)
+  @@derives(Arbitrary, Decoder, Encoder)
   case class @{ccName(tpes)}(@{tpes.zipWithIndex.map(t => ccTpe(t._2)).paramSig("x")})
 
   registerProp("@{ccName(tpes)}")(forAllNoShrink { (t: @{ccName(tpes)}) =>

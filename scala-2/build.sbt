@@ -10,16 +10,13 @@ lazy val core: Project = coreBase
 lazy val scalacheck = scalacheckBase.dependsOn(core)
 
 lazy val argonaut: Project = argonautBase
-  .settings(Test / scalacOptions ++= enablePlugin((derivingBase / Compile / Keys.`package`).value, derivingFlags))
   .dependsOn(core, scalacheck % "test")
 
 lazy val circe: Project = circeBase
-  .settings(Test / scalacOptions ++= enablePlugin((derivingBase / Compile / Keys.`package`).value, derivingFlags))
   .dependsOn(core, scalacheck % "test")
 
-lazy val deriving: Project = derivingBase
-  .settings(Test / scalacOptions ++= enablePlugin((newtype / Compile / Keys.`package`).value, Seq()))
-  .dependsOn(argonaut % "test", circe % "test", scalacheck % "test")
+lazy val tests: Project = testsBase
+  .dependsOn(core, scalacheck, argonaut, circe)
 
 lazy val newtype: Project = newtypeBase
 
@@ -29,7 +26,7 @@ lazy val root: Project = project.in(file("."))
     crossScalaVersions := Seq(),
     gitRelease := {}
   )
-  .aggregate(generate, core, argonaut, circe, scalacheck, deriving, newtype)
+  .aggregate(generate, core, argonaut, circe, scalacheck, newtype, tests)
 
 lazy val docs = project.in(file("andxor-docs"))
   .settings(commonSettings)

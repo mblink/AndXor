@@ -10,6 +10,8 @@ trait Alt[F[_]] extends Functor[F] {
 }
 
 object Alt {
+  @inline def apply[F[_]](implicit ev: Alt[F]): Alt[F] = ev
+
   def fromIso[F[_], G[_]](fg: F ~> G, gf: G ~> F)(implicit G: Alt[G]): Alt[F] =
     new Alt[F] {
       def map[A, B](fa: F[A])(f: A => B): F[B] = gf(G.map(fg(fa))(f))
