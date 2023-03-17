@@ -5,9 +5,17 @@ import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
 import cats.syntax.invariant._
+import io.estatico.newtype.macros.newtype
 import monocle.Iso
 
 trait Types19 {
+  final type Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] = Types19.Prod19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+  final val Prod19: Types19.Prod19.type = Types19.Prod19
+  final type Cop19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] = Types19.Cop19[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]
+  final val Cop19: Types19.Cop19.type = Types19.Cop19
+}
+
+object Types19 {
   @newtype case class Prod19[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15], F[A16], F[A17], F[A18], F[A19])) { self =>
     def t1: F[A1] = run._1
     def t2: F[A2] = run._2

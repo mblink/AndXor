@@ -5,9 +5,17 @@ import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
 import cats.syntax.invariant._
+import io.estatico.newtype.macros.newtype
 import monocle.Iso
 
 trait Types13 {
+  final type Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] = Types13.Prod13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+  final val Prod13: Types13.Prod13.type = Types13.Prod13
+  final type Cop13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] = Types13.Cop13[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]
+  final val Cop13: Types13.Cop13.type = Types13.Cop13
+}
+
+object Types13 {
   @newtype case class Prod13[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: (F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13])) { self =>
     def t1: F[A1] = run._1
     def t2: F[A2] = run._2

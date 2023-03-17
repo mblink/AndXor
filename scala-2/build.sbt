@@ -5,7 +5,6 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 lazy val generate: Project = generateBase
 
 lazy val core: Project = coreBase
-  .settings(scalacOptions ++= enablePlugin((newtypeBase / Compile / Keys.`package`).value, Seq()))
 
 lazy val scalacheck = scalacheckBase.dependsOn(core)
 
@@ -18,15 +17,13 @@ lazy val circe: Project = circeBase
 lazy val tests: Project = testsBase
   .dependsOn(core, scalacheck, argonaut, circe)
 
-lazy val newtype: Project = newtypeBase
-
 lazy val root: Project = project.in(file("."))
   .settings(commonSettings)
   .settings(
     crossScalaVersions := Seq(),
     gitRelease := {}
   )
-  .aggregate(generate, core, argonaut, circe, scalacheck, newtype, tests)
+  .aggregate(generate, core, argonaut, circe, scalacheck, tests)
 
 lazy val docs = project.in(file("andxor-docs"))
   .settings(commonSettings)

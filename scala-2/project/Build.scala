@@ -32,7 +32,10 @@ object Build extends CommonBuild {
 
   override def coreBase = super.coreBase
     .settings(
-      libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      libraryDependencies ++= Seq(
+        newtype,
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      ),
     )
 
   override def generateBase = super.generateBase
@@ -68,28 +71,4 @@ object Build extends CommonBuild {
         "io.circe" %% "circe-parser" % circeVersion,
       )
     ))
-
-  def enablePlugin(jar: File, extra: Seq[String]): Seq[String] =
-    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}") ++ extra
-
-  def pluginOptions(pluginOpts: Seq[String]) = Seq(
-    scalacOptions -= "-Ywarn-unused:patvars",
-    Test / scalacOptions ++= enablePlugin((Compile / Keys.`package`).value, pluginOpts),
-    libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
-  )
-
-  def compilerPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
-    proj
-      .settings(baseSettings)
-      .settings(publishSettings)
-      .settings(pluginOptions(pluginOpts))
-      .settings(name := nme)
-
-  def annotationPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
-    compilerPlugin(proj, nme, pluginOpts)
-      .settings(Compile / sourceGenerators += Def.task {
-        Seq(baseDirectory.value / ".." / "src" / "files" / "AnnotationPlugin.scala")
-      })
-
-  def newtypeBase = annotationPlugin(Project("newtype", file("newtype")), "andxor-newtype", Seq())
 }
