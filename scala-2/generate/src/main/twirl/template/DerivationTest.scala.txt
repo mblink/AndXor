@@ -16,7 +16,7 @@ import andxor.eq._
 import andxor.scalacheck._
 import andxor.show._
 import _root_.argonaut.{DecodeJson, EncodeJson}
-import cats.{~>, Apply, Eq, Show}
+import cats.{~>, Apply, Eq, Id, Show}
 import cats.syntax.apply._
 import cats.syntax.eq._
 import io.circe.{Decoder, Encoder}
@@ -155,7 +155,7 @@ object types {
   @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Multi(str: String)(val int: Int)
 
-  // @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HKFG[F[_[_]], G[_]](run: F[G])
 
   @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -172,7 +172,7 @@ object types {
   @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest2[A](as: List[A], ints: List[Int], test1s: List[ErrorTest1[A]])
 
-  // @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest3[D[_], A](test1s: List[ErrorTest1[D[A]]], test2: ErrorTest2[A])
   object ErrorTest3 {
     def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
@@ -189,12 +189,12 @@ object types {
     @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class @{tparamsCCName(tpes)}[@{tpes.tpeParams}](@{tpes.paramSig("x")})
 
-    // @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class @{hkCCName(tpes)}[F[@{tpes.map(_ => "_").tpeParams}], @{tpes.tpeParams}](run: F[@{tpes.tpeParams}])
   }
 }
 
-object DerivingPluginTest extends Properties("DerivingPlugin") {
+object DerivationTest extends Properties("Derivation") {
   import typeclasses.{Csv, Read}
   import types._
 
@@ -218,16 +218,12 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[Trait0]("Trait0")
   proof[AbstractClass]("AbstractClass")
   proof[Multi]("Multi")
-  /*
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
-  */
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
   @tpeLists.map { tpes =>
     proof[@{testCCName(tpes)}]("@{testCCName(tpes)}")
     proof[@{tparamsCCName(tpes)}[@{tpes.map(_ => "String").tpeParams}]]("@{tparamsCCName(tpes)}")
-    /*
     proof[@{hkCCName(tpes)}[@{tparamsCCName(tpes)}, @{tpes.map(_ => "String").tpeParams}]]("@{hkCCName(tpes)}")
-    */
   }
 }

@@ -7,7 +7,7 @@ import andxor.eq._
 import andxor.scalacheck._
 import andxor.show._
 import _root_.argonaut.{DecodeJson, EncodeJson}
-import cats.{~>, Apply, Eq, Show}
+import cats.{~>, Apply, Eq, Id, Show}
 import cats.syntax.apply._
 import cats.syntax.eq._
 import io.circe.{Decoder, Encoder}
@@ -146,7 +146,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Multi(str: String)(val int: Int)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HKFG[F[_[_]], G[_]](run: F[G])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -163,7 +163,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest2[A](as: List[A], ints: List[Int], test1s: List[ErrorTest1[A]])
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest3[D[_], A](test1s: List[ErrorTest1[D[A]]], test2: ErrorTest2[A])
   object ErrorTest3 {
     def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
@@ -179,7 +179,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams1[A1](x0: A1)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK1[F[_], A1](run: F[A1])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -188,7 +188,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams2[A1, A2](x0: A1, x1: A2)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK2[F[_, _], A1, A2](run: F[A1, A2])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -197,7 +197,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams3[A1, A2, A3](x0: A1, x1: A2, x2: A3)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK3[F[_, _, _], A1, A2, A3](run: F[A1, A2, A3])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -206,7 +206,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams4[A1, A2, A3, A4](x0: A1, x1: A2, x2: A3, x3: A4)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK4[F[_, _, _, _], A1, A2, A3, A4](run: F[A1, A2, A3, A4])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -215,7 +215,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams5[A1, A2, A3, A4, A5](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK5[F[_, _, _, _, _], A1, A2, A3, A4, A5](run: F[A1, A2, A3, A4, A5])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -224,7 +224,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams6[A1, A2, A3, A4, A5, A6](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK6[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](run: F[A1, A2, A3, A4, A5, A6])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -233,7 +233,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams7[A1, A2, A3, A4, A5, A6, A7](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK7[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](run: F[A1, A2, A3, A4, A5, A6, A7])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -242,7 +242,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams8[A1, A2, A3, A4, A5, A6, A7, A8](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK8[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](run: F[A1, A2, A3, A4, A5, A6, A7, A8])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -251,7 +251,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams9[A1, A2, A3, A4, A5, A6, A7, A8, A9](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK9[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -260,7 +260,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK10[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -269,7 +269,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK11[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -278,7 +278,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK12[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -287,7 +287,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK13[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -296,7 +296,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK14[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -305,7 +305,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK15[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -314,7 +314,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK16[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -323,7 +323,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK17[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -332,7 +332,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK18[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -341,7 +341,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK19[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -350,7 +350,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19, x19: A20)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK20[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -359,7 +359,7 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19, x19: A20, x20: A21)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK21[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])
 
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
@@ -368,12 +368,12 @@ object types {
   @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19, x19: A20, x20: A21, x21: A22)
 
-  // @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK22[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])
 
 }
 
-object DerivingPluginTest extends Properties("DerivingPlugin") {
+object DerivationTest extends Properties("Derivation") {
   import typeclasses.{Csv, Read}
   import types._
 
@@ -397,142 +397,96 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
   proof[Trait0]("Trait0")
   proof[AbstractClass]("AbstractClass")
   proof[Multi]("Multi")
-  /*
   proof[HKFG[FConst[String]#T, Id]]("HKFG")
-  */
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
 
   proof[Test1]("Test1")
   proof[TParams1[String]]("TParams1")
-  /*
-    proof[HK1[TParams1, String]]("HK1")
-    */
+  proof[HK1[TParams1, String]]("HK1")
 
   proof[Test2]("Test2")
   proof[TParams2[String, String]]("TParams2")
-  /*
-    proof[HK2[TParams2, String, String]]("HK2")
-    */
+  proof[HK2[TParams2, String, String]]("HK2")
 
   proof[Test3]("Test3")
   proof[TParams3[String, String, String]]("TParams3")
-  /*
-    proof[HK3[TParams3, String, String, String]]("HK3")
-    */
+  proof[HK3[TParams3, String, String, String]]("HK3")
 
   proof[Test4]("Test4")
   proof[TParams4[String, String, String, String]]("TParams4")
-  /*
-    proof[HK4[TParams4, String, String, String, String]]("HK4")
-    */
+  proof[HK4[TParams4, String, String, String, String]]("HK4")
 
   proof[Test5]("Test5")
   proof[TParams5[String, String, String, String, String]]("TParams5")
-  /*
-    proof[HK5[TParams5, String, String, String, String, String]]("HK5")
-    */
+  proof[HK5[TParams5, String, String, String, String, String]]("HK5")
 
   proof[Test6]("Test6")
   proof[TParams6[String, String, String, String, String, String]]("TParams6")
-  /*
-    proof[HK6[TParams6, String, String, String, String, String, String]]("HK6")
-    */
+  proof[HK6[TParams6, String, String, String, String, String, String]]("HK6")
 
   proof[Test7]("Test7")
   proof[TParams7[String, String, String, String, String, String, String]]("TParams7")
-  /*
-    proof[HK7[TParams7, String, String, String, String, String, String, String]]("HK7")
-    */
+  proof[HK7[TParams7, String, String, String, String, String, String, String]]("HK7")
 
   proof[Test8]("Test8")
   proof[TParams8[String, String, String, String, String, String, String, String]]("TParams8")
-  /*
-    proof[HK8[TParams8, String, String, String, String, String, String, String, String]]("HK8")
-    */
+  proof[HK8[TParams8, String, String, String, String, String, String, String, String]]("HK8")
 
   proof[Test9]("Test9")
   proof[TParams9[String, String, String, String, String, String, String, String, String]]("TParams9")
-  /*
-    proof[HK9[TParams9, String, String, String, String, String, String, String, String, String]]("HK9")
-    */
+  proof[HK9[TParams9, String, String, String, String, String, String, String, String, String]]("HK9")
 
   proof[Test10]("Test10")
   proof[TParams10[String, String, String, String, String, String, String, String, String, String]]("TParams10")
-  /*
-    proof[HK10[TParams10, String, String, String, String, String, String, String, String, String, String]]("HK10")
-    */
+  proof[HK10[TParams10, String, String, String, String, String, String, String, String, String, String]]("HK10")
 
   proof[Test11]("Test11")
   proof[TParams11[String, String, String, String, String, String, String, String, String, String, String]]("TParams11")
-  /*
-    proof[HK11[TParams11, String, String, String, String, String, String, String, String, String, String, String]]("HK11")
-    */
+  proof[HK11[TParams11, String, String, String, String, String, String, String, String, String, String, String]]("HK11")
 
   proof[Test12]("Test12")
   proof[TParams12[String, String, String, String, String, String, String, String, String, String, String, String]]("TParams12")
-  /*
-    proof[HK12[TParams12, String, String, String, String, String, String, String, String, String, String, String, String]]("HK12")
-    */
+  proof[HK12[TParams12, String, String, String, String, String, String, String, String, String, String, String, String]]("HK12")
 
   proof[Test13]("Test13")
   proof[TParams13[String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams13")
-  /*
-    proof[HK13[TParams13, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK13")
-    */
+  proof[HK13[TParams13, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK13")
 
   proof[Test14]("Test14")
   proof[TParams14[String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams14")
-  /*
-    proof[HK14[TParams14, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK14")
-    */
+  proof[HK14[TParams14, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK14")
 
   proof[Test15]("Test15")
   proof[TParams15[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams15")
-  /*
-    proof[HK15[TParams15, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK15")
-    */
+  proof[HK15[TParams15, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK15")
 
   proof[Test16]("Test16")
   proof[TParams16[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams16")
-  /*
-    proof[HK16[TParams16, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK16")
-    */
+  proof[HK16[TParams16, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK16")
 
   proof[Test17]("Test17")
   proof[TParams17[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams17")
-  /*
-    proof[HK17[TParams17, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK17")
-    */
+  proof[HK17[TParams17, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK17")
 
   proof[Test18]("Test18")
   proof[TParams18[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams18")
-  /*
-    proof[HK18[TParams18, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK18")
-    */
+  proof[HK18[TParams18, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK18")
 
   proof[Test19]("Test19")
   proof[TParams19[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams19")
-  /*
-    proof[HK19[TParams19, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK19")
-    */
+  proof[HK19[TParams19, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK19")
 
   proof[Test20]("Test20")
   proof[TParams20[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams20")
-  /*
-    proof[HK20[TParams20, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK20")
-    */
+  proof[HK20[TParams20, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK20")
 
   proof[Test21]("Test21")
   proof[TParams21[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams21")
-  /*
-    proof[HK21[TParams21, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK21")
-    */
+  proof[HK21[TParams21, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK21")
 
   proof[Test22]("Test22")
   proof[TParams22[String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("TParams22")
-  /*
-    proof[HK22[TParams22, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK22")
-    */
+  proof[HK22[TParams22, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]]("HK22")
 
 }

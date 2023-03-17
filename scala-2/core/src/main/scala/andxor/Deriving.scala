@@ -27,5 +27,5 @@ trait DerivingCop[Cop[_[_]], F[_], TC[_]] extends Deriving[Cop, F, TC, Alt, Deci
 }
 
 final class derives(@annotation.unused tcs: Any*) extends annotation.StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro AndXorIso.BlackboxMacros.derivingAnnotation
+  def macroTransform(annottees: Any*): Any = macro AndXorIso.BlackboxMacros.derivesAnnotation
 }

@@ -1,9 +1,8 @@
 package andxor
 
-import cats.Id
+import cats.{Eval, Id}
 import monocle.Iso
 import scala.reflect.macros
-import scala.util.control.TailCalls.{done, tailcall, TailRec}
 
 sealed trait AndXorIso { self =>
   type Axo <: AndXor
@@ -146,13 +145,13 @@ object AndXorIso {
     }
 
     private def allSubtypes(klass: ClassSymbol): List[Symbol] = {
-      def go(syms: List[Symbol]): TailRec[List[Symbol]] = syms match {
-        case sym :: rest if sym.isClass && sym.asClass.isSealed => tailcall(go(rest ++ sym.asClass.knownDirectSubclasses))
-        case sym :: rest => tailcall(go(rest)).map(sym :: _)
-        case Nil => done(Nil)
+      def go(syms: List[Symbol]): Eval[List[Symbol]] = syms match {
+        case sym :: rest if sym.isClass && sym.asClass.isSealed => go(rest ++ sym.asClass.knownDirectSubclasses)
+        case sym :: rest => go(rest).map(sym :: _)
+        case Nil => Eval.now(Nil)
       }
 
-      go(klass.knownDirectSubclasses.toList).result
+      go(klass.knownDirectSubclasses.toList).value
     }
 
     def copInst[X: c.WeakTypeTag]: c.Expr[AndXorCopIso[X]] = {
@@ -249,8 +248,34 @@ object AndXorIso {
       }
     }
 
+    private def isImplicitVal(v: ValDef): Boolean = v.mods.hasFlag(Flag.IMPLICIT)
+    private def isImplicitVal(vs: List[ValDef]): Boolean = Some(vs).filter(_.nonEmpty).fold(false)(_.forall(isImplicitVal(_)))
+
+    private def ctorParams(klass: ClassDef): (List[List[ValDef]], Option[List[ValDef]]) =
+      klass.impl.body.collect { case d@DefDef(_, termNames.CONSTRUCTOR, _, _, _, _) => d } match {
+        case DefDef(_, _, _, vs, _, _) :: Nil if vs.headOption.fold(true)(!isImplicitVal(_)) =>
+          vs.span(!isImplicitVal(_)) match {
+            case (e, i :: Nil) => (e, Some(i))
+            case (e, Nil) => (e, None)
+            case _ => fail(s"Found more than one implicit parameter group for ${klass.name}")
+          }
+        case ds =>
+          fail(s"Failed to find exactly one constructor for class `${klass.name}`, found: `$ds`")
+      }
+
+    private def getTypeNames(tpe: Tree): Set[TypeName] = {
+      def go(ts: List[Tree]): Eval[Set[TypeName]] = ts match {
+        case Ident(t: TypeName) :: rest => go(rest).map(_ + t)
+        case AppliedTypeTree(Ident(t: TypeName), tps) :: rest => go(tps ++ rest).map(_ + t)
+        case _ :: rest => go(rest)
+        case Nil => Eval.now(Set.empty[TypeName])
+      }
+
+      go(List(tpe)).value
+    }
+
     @annotation.nowarn("msg=pattern var.*is never used")
-    def derivingAnnotation(annottees: Tree*): Tree = {
+    def derivesAnnotation(annottees: Tree*): Tree = {
       val tcs = c.prefix.tree match {
         case Apply(Select(New(Ident(TypeName("derives"))), termNames.CONSTRUCTOR), args) => args
         case t => fail(s"Unexpected `derives` application: ${showRaw(t)}")
@@ -265,9 +290,14 @@ object AndXorIso {
             val tpe = tq"${klass.name}"
             q"implicit val $instName: $tcTpe[$tpe] = $tcCompanion.derived[$tpe]"
           } else {
+            val params = ctorParams(klass)._1.flatten
             val tparamNames = tparams.map(_.name)
-            val implicitParams = tparamNames.zipWithIndex.map { case (n, i) =>
-              q"@_root_.scala.annotation.unused val ${TermName(s"ev$i")}: $tcTpe[$n]"
+            val tparamNamesSet = tparamNames.toSet
+            val abstractParams = params.filter(p => getTypeNames(p.tpt).exists(tparamNamesSet.contains)).distinctBy(p => showRaw(p.tpt))
+
+            val implicitParams = abstractParams.zipWithIndex.map { case (p, i) =>
+              // TODO - why are these reported unused?
+              q"@_root_.scala.annotation.unused val ${TermName(s"ev$i")}: $tcTpe[${p.tpt}]"
             }
             val tpe = tq"${klass.name}[..$tparamNames]"
             q"implicit def $instName[..$tparams](implicit ..$implicitParams): $tcTpe[$tpe] = $tcCompanion.derived[$tpe]"
