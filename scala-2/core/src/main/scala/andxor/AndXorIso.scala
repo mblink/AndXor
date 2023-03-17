@@ -307,7 +307,7 @@ object AndXorIso {
           fail(s"Unexpected typeclass reference: `$tc`")
       }
 
-      val res = annottees match {
+      annottees match {
         case List(klass: ClassDef) =>
           q"""
           $klass
@@ -328,8 +328,6 @@ object AndXorIso {
           """
         case _ => fail("Invalid `derives` annotation target: must be a class/trait")
       }
-      // println(s"************* $res")
-      res
     }
   }
 }
