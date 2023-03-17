@@ -120,26 +120,36 @@ object AndXorIso {
           _.name,
           _.typeTree,
           (members, len) => {
-            def valueToProd(value: Tree): Tree =
-              if (len == 1)
-                q"$value.${members.head.name}"
+            val valueToProdName = if (len == 0) termNames.WILDCARD else TermName("v")
+            val valueToProdParam = q"val $valueToProdName: $NoType"
+            val valueToProd: Tree =
+              if (len == 0)
+                q"()"
+              else if (len == 1)
+                q"$valueToProdName.${members.head.name}"
               else
                 q"""_root_.andxor.types.${TermName(s"Prod$len")}.apply[..${catsIdType :: members.map(_.typeTree)}](
-                  _root_.scala.${TermName(s"Tuple$len")}.apply(..${members.map(m => q"$value.${m.name}")}))"""
+                  _root_.scala.${TermName(s"Tuple$len")}.apply(..${members.map(m => q"$valueToProdName.${m.name}")}))"""
 
-            def prodToValue(prod: Tree): Tree =
-              if (len == 1)
-                repr.instantiate(repr.paramLists.map(_.map(_ => prod)))
+            val prodToValueName = if (len == 0) termNames.WILDCARD else TermName("p")
+            val prodtoValueParam = q"val $prodToValueName: $NoType"
+            val prodToValue: Tree =
+              if (len == 0)
+                repr.instantiate(Nil)
+              else if (len == 1)
+                repr.instantiate(repr.paramLists.map(_.map(_ => Ident(prodToValueName))))
               else
                 repr.instantiate(repr.paramLists.foldRight((len, List[List[Tree]]())) { case (ms, (i, acc)) =>
                   val (updI, trees) = ms.foldRight((i, List[Tree]())) { case (_, (j, acc)) =>
-                    (j - 1, q"$prod.${TermName(s"t$j")}" :: acc)
+                    (j - 1, q"$prodToValueName.${TermName(s"t$j")}" :: acc)
                   }
                   (updI, trees :: acc)
                 }._2)
 
             q"""val iso: _root_.monocle.Iso[$tpe, Prod[$catsIdType]] =
-              _root_.monocle.Iso.apply[$tpe, Prod[$catsIdType]](v => ${valueToProd(q"v")})(p => ${prodToValue(q"p")})"""
+              _root_.monocle.Iso.apply[$tpe, Prod[$catsIdType]](
+                $valueToProdParam => $valueToProd)(
+                $prodtoValueParam => $prodToValue)"""
           }))
       }
     }
@@ -200,7 +210,7 @@ object AndXorIso {
   class BlackboxMacros(val c: macros.blackbox.Context) extends GenMacros(c) {
     import c.universe._
 
-    private def deriving[MapTC[_[_]], DerivingTC[_], X](
+    private def deriving[CopMapTC[_[_]], ProdMapTC[_[_]], DerivingTC[_], X](
       getAxo: Tree => Tree,
       getIso: Tree => Tree,
       copDerivingMethod: String,
@@ -208,14 +218,15 @@ object AndXorIso {
       mapMethod: String,
       isoMethod: String,
     )(
-      implicit mapTC: c.WeakTypeTag[MapTC[Any]],
+      implicit copMapTC: c.WeakTypeTag[CopMapTC[Any]],
+      prodMapTC: c.WeakTypeTag[ProdMapTC[Any]],
       derivingTC: c.WeakTypeTag[DerivingTC[Any]],
       X: c.WeakTypeTag[X]
     ): c.Expr[DerivingTC[X]] = {
-      val mapTCTpe = weakTypeOf[MapTC[Any]].typeConstructor
-      val derivingTCTpe = weakTypeOf[DerivingTC[Any]].typeConstructor
       val xTpe = weakTypeOf[X]
       val isCop = xTpe.typeSymbol.isClass && xTpe.typeSymbol.asClass.isSealed
+      val mapTCTpe = (if (isCop) weakTypeOf[CopMapTC[Any]] else weakTypeOf[ProdMapTC[Any]]).typeConstructor
+      val derivingTCTpe = weakTypeOf[DerivingTC[Any]].typeConstructor
       val axoIsoName = TermName(c.freshName())
       c.Expr[DerivingTC[X]](q"""{
         val $axoIsoName = _root_.andxor.${TermName(s"AndXor${if (isCop) "Cop" else "Prod"}Iso")}.apply[$xTpe]
@@ -227,16 +238,16 @@ object AndXorIso {
     }
 
     def derivingCovariant[TC[_], X](implicit derivingTC: c.WeakTypeTag[TC[Any]], X: c.WeakTypeTag[X]): c.Expr[TC[X]] =
-      deriving[Alt, TC, X](t => q"$t.andxor", t => q"$t.iso", "alt", "apply", "map", "reverseGet")
+      deriving[Alt, cats.Apply, TC, X](t => q"$t.andxor", t => q"$t.iso", "alt", "apply", "map", "reverseGet")
 
     def derivingContravariant[TC[_], X](implicit derivingTC: c.WeakTypeTag[TC[Any]], X: c.WeakTypeTag[X]): c.Expr[TC[X]] =
-      deriving[Decidable, TC, X](t => q"$t.andxor", t => q"$t.iso", "choose", "divide", "contramap", "get")
+      deriving[Decidable, Divide, TC, X](t => q"$t.andxor", t => q"$t.iso", "choose", "divide", "contramap", "get")
 
     def derivingLabelledCovariant[TC[_], X](implicit derivingTC: c.WeakTypeTag[TC[Any]], X: c.WeakTypeTag[X]): c.Expr[TC[X]] =
-      deriving[Alt, TC, X](t => q"$t.andxorLabelled", t => q"$t.isoLabelled", "alt", "apply", "map", "reverseGet")
+      deriving[Alt, cats.Apply, TC, X](t => q"$t.andxorLabelled", t => q"$t.isoLabelled", "alt", "apply", "map", "reverseGet")
 
     def derivingLabelledContravariant[TC[_], X](implicit derivingTC: c.WeakTypeTag[TC[Any]], X: c.WeakTypeTag[X]): c.Expr[TC[X]] =
-      deriving[Divide, TC, X](t => q"$t.andxorLabelled", t => q"$t.isoLabelled", "choose", "divide", "contramap", "get")
+      deriving[Decidable, Divide, TC, X](t => q"$t.andxorLabelled", t => q"$t.isoLabelled", "choose", "divide", "contramap", "get")
 
     private object TCType {
       def unapply(companion: Tree): Option[(Tree, TypeName)] = companion match {
@@ -274,10 +285,11 @@ object AndXorIso {
       go(List(tpe)).value
     }
 
-    @annotation.nowarn("msg=pattern var.*is never used")
+    @annotation.nowarn("msg=pattern var qq\\$macro.*is never used")
     def derivesAnnotation(annottees: Tree*): Tree = {
       val tcs = c.prefix.tree match {
-        case Apply(Select(New(Ident(TypeName("derives"))), termNames.CONSTRUCTOR), args) => args
+        case Apply(Select(New(Ident(TypeName(_))), termNames.CONSTRUCTOR), args) => args
+        case Apply(Select(New(Select(_, TypeName(_))), termNames.CONSTRUCTOR), args) => args
         case t => fail(s"Unexpected `derives` application: ${showRaw(t)}")
       }
 

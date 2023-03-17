@@ -63,6 +63,7 @@ object typeclasses {
       def read(s: String): Option[Option[A]] = r.read(s).map(Some(_))
     }
 
+    implicit val readUnit: Read[Unit] = new Read[Unit] { def read(s: String): Option[Unit] = Some(()) }
     implicit val readStr: Read[String] = new Read[String] {
       def read(s: String): Option[String] =
         if (s.headOption.exists(_ == '"') && s.lastOption.exists(_ == '"')) Some(s.drop(1).dropRight(1)) else None
@@ -87,6 +88,7 @@ object typeclasses {
 
   trait Csv[A] { def toCsv(a: A): List[String] }
   object Csv extends AndXorIso.DerivingLabelledContravariant[Csv] {
+    implicit val csvUnit: Csv[Unit] = new Csv[Unit] { def toCsv(x: Unit): List[String] = Nil }
     implicit val csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
     implicit val csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
     implicit val csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
@@ -121,6 +123,9 @@ object types {
   import typeclasses._
 
   @@derives case class NoInstances(s: String)
+
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  case class NoParams()
 
   @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed trait Foo
@@ -213,6 +218,7 @@ object DerivationTest extends Properties("Derivation") {
       (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     }))
 
+  proof[NoParams]("NoParams")
   proof[Foo]("Foo")
   proof[Baz]("Baz")
   proof[Trait0]("Trait0")
