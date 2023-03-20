@@ -85,4 +85,10 @@ package object circe extends LPCirce {
     def map[A, B](fa: Decoder[A])(f: A => B): Decoder[B] = fa.map(f)
     def alt[A](a1: Decoder[A], a2: Decoder[A]): Decoder[A] = a1.or(a2)
   }
+
+  val decoderDeriving: AndXorIso.DerivingLabelledCovariant[Decoder] = new AndXorIso.DerivingLabelledCovariant[Decoder] {}
+  implicit def decoderToDeriving(@annotation.unused a: Decoder.type): decoderDeriving.type = decoderDeriving
+
+  val encoderDeriving: AndXorIso.DerivingLabelledContravariant[Encoder] = new AndXorIso.DerivingLabelledContravariant[Encoder] {}
+  implicit def encoderToDeriving(@annotation.unused a: Encoder.type): encoderDeriving.type = encoderDeriving
 }

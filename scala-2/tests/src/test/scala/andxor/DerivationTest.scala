@@ -3,7 +3,9 @@ package test
 
 import andxor.argonaut._
 import andxor.circe._
+import andxor.eq._
 import andxor.scalacheck._
+import andxor.show._
 import _root_.argonaut.{DecodeJson, EncodeJson}
 import cats.{~>, Apply, Eq, Id, Show}
 import cats.syntax.apply._
@@ -28,7 +30,7 @@ object typeclasses {
   implicit val showDivide: Divide[Show] = Divide.fromIso[Show, ShowF](showToShowF, showFToShow)
 
   trait Read[A] { def read(s: String): Option[A] }
-  object Read {
+  object Read extends AndXorIso.DerivingLabelledCovariant[Read] {
     implicit def readLabelled[A, L <: Singleton with String](implicit l: ValueOf[L], r: Read[A]): Read[Labelled[A, L]] =
       new Read[Labelled[A, L]] {
         def read(s: String): Option[Labelled[A, L]] =
@@ -52,6 +54,7 @@ object typeclasses {
       def read(s: String): Option[Option[A]] = r.read(s).map(Some(_))
     }
 
+    implicit val readUnit: Read[Unit] = new Read[Unit] { def read(s: String): Option[Unit] = Some(()) }
     implicit val readStr: Read[String] = new Read[String] {
       def read(s: String): Option[String] =
         if (s.headOption.exists(_ == '"') && s.lastOption.exists(_ == '"')) Some(s.drop(1).dropRight(1)) else None
@@ -75,7 +78,8 @@ object typeclasses {
   }
 
   trait Csv[A] { def toCsv(a: A): List[String] }
-  object Csv {
+  object Csv extends AndXorIso.DerivingLabelledContravariant[Csv] {
+    implicit val csvUnit: Csv[Unit] = new Csv[Unit] { def toCsv(x: Unit): List[String] = Nil }
     implicit val csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
     implicit val csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
     implicit val csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
@@ -109,284 +113,281 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  @deriving case class NoInstances(s: String)
+  @derives case class NoInstances(s: String)
 
-  // Test that zero-member coproduct warning is triggered
-  // The nowarn annotation will cause a "does not suppress any warnings" error if not
-  @annotation.nowarn("msg=zero-member coproduct")
-  @deriving sealed trait EmptyCop
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  case class NoParams()
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed trait Foo
   case object Bar extends Foo
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Baz(s: String) extends Foo
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed trait Trait0
   sealed trait Trait1 extends Trait0 { val value: Option[Int] }
   sealed trait Trait2 extends Trait0
   sealed trait Trait3 extends Trait1
   case object Inst1 extends Trait0
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Inst2(value: Option[Int]) extends Trait1
   case object Inst3 extends Trait1 { val value = Some(3) }
   case object Inst4 extends Trait2
   case object Inst5 extends Trait3 { val value = Some(5) }
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Inst6(x: String) extends Trait3 { val value = Try(x.toInt).toOption }
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed abstract class AbstractClass(val i: Int)
   object AbstractClass {
-    @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class Foo(s: String, b: Boolean) extends AbstractClass(1)
     case object Bar extends AbstractClass(2)
-    @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class Baz(override val i: Int) extends AbstractClass(3)
   }
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Multi(str: String)(val int: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HKFG[F[_[_]], G[_]](run: F[G])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Covariant[+A](a: A)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Contravariant[-A](s: String, i: Int) {
     def go(a: A): (String, Int) = (s"$s -- $a", i)
   }
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest1[A](i: Int, a: A)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest2[A](as: List[A], ints: List[Int], test1s: List[ErrorTest1[A]])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest3[D[_], A](test1s: List[ErrorTest1[D[A]]], test2: ErrorTest2[A])
   object ErrorTest3 {
     def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
       ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
   }
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParamsDup[A](a1: A, a2: A)
 
-  @newtype
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test1(x0: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams1[A1](x0: A1)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK1[F[_], A1](run: F[A1])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test2(x0: Int, x1: String)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams2[A1, A2](x0: A1, x1: A2)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK2[F[_, _], A1, A2](run: F[A1, A2])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test3(x0: Int, x1: String, x2: Boolean)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams3[A1, A2, A3](x0: A1, x1: A2, x2: A3)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK3[F[_, _, _], A1, A2, A3](run: F[A1, A2, A3])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test4(x0: Int, x1: String, x2: Boolean, x3: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams4[A1, A2, A3, A4](x0: A1, x1: A2, x2: A3, x3: A4)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK4[F[_, _, _, _], A1, A2, A3, A4](run: F[A1, A2, A3, A4])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test5(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams5[A1, A2, A3, A4, A5](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK5[F[_, _, _, _, _], A1, A2, A3, A4, A5](run: F[A1, A2, A3, A4, A5])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test6(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams6[A1, A2, A3, A4, A5, A6](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK6[F[_, _, _, _, _, _], A1, A2, A3, A4, A5, A6](run: F[A1, A2, A3, A4, A5, A6])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test7(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams7[A1, A2, A3, A4, A5, A6, A7](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK7[F[_, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7](run: F[A1, A2, A3, A4, A5, A6, A7])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test8(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams8[A1, A2, A3, A4, A5, A6, A7, A8](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK8[F[_, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8](run: F[A1, A2, A3, A4, A5, A6, A7, A8])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test9(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams9[A1, A2, A3, A4, A5, A6, A7, A8, A9](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK9[F[_, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test10(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK10[F[_, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test11(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK11[F[_, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test12(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK12[F[_, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test13(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK13[F[_, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test14(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK14[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test15(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK15[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test16(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK16[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test17(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK17[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test18(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK18[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test19(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK19[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test20(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int, x19: String)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19, x19: A20)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK20[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test21(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int, x19: String, x20: Boolean)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19, x19: A20, x20: A21)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK21[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21])
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Test22(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int, x19: String, x20: Boolean, x21: Int)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParams22[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](x0: A1, x1: A2, x2: A3, x3: A4, x4: A5, x5: A6, x6: A7, x7: A8, x8: A9, x9: A10, x10: A11, x11: A12, x12: A13, x13: A14, x14: A15, x15: A16, x16: A17, x17: A18, x18: A19, x19: A20, x20: A21, x21: A22)
 
-  @deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HK22[F[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](run: F[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22])
 
 }
 
-object DerivingPluginTest extends Properties("DerivingPlugin") {
+object DerivationTest extends Properties("Derivation") {
   import typeclasses.{Csv, Read}
   import types._
 
   private def registerProp(name: String)(prop: => Prop): Unit =
     property.update(name, prop): Unit
 
-  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String)(implicit @unused r: Read[A]) =
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String, csvEmptyOk: Boolean = false)(implicit @unused r: Read[A]) =
     registerProp(label)(forAllNoShrink((a: A) => {
-      (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
+      ((csvEmptyOk || implicitly[Csv[A]].toCsv(a).nonEmpty) :| "CSV output was empty") &&
         ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not Eq") &&
         ((implicitly[Decoder[A]].decodeJson(implicitly[Encoder[A]].apply(a)) match {
           case Right(res) => res === a
@@ -396,6 +397,7 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
         (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     }))
 
+  proof[NoParams]("NoParams", true)
   proof[Foo]("Foo")
   proof[Baz]("Baz")
   proof[Trait0]("Trait0")

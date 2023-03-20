@@ -1,6 +1,7 @@
 package andxor
 
 import cats.{Applicative, Eq, Eval, Traverse}
+import io.estatico.newtype.macros.newtype
 
 object labelled {
   @newtype case class Labelled[A, L](value: A) {

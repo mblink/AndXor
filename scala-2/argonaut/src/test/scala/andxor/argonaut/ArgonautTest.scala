@@ -11,7 +11,7 @@ object ArgonautTest extends Properties("argonaut") {
   private def registerProp(name: String)(prop: => Prop): Unit =
     property.update(name, prop): Unit
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test1(x0: Int)
 
   registerProp(" Test1 ")(forAllNoShrink { (t: Test1) =>
@@ -28,7 +28,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test2(x0: Int, x1: String)
 
   registerProp(" Test2 ")(forAllNoShrink { (t: Test2) =>
@@ -45,7 +45,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test3(x0: Int, x1: String, x2: Boolean)
 
   registerProp(" Test3 ")(forAllNoShrink { (t: Test3) =>
@@ -62,7 +62,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test4(x0: Int, x1: String, x2: Boolean, x3: Int)
 
   registerProp(" Test4 ")(forAllNoShrink { (t: Test4) =>
@@ -79,7 +79,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test5(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String)
 
   registerProp(" Test5 ")(forAllNoShrink { (t: Test5) =>
@@ -96,7 +96,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test6(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean)
 
   registerProp(" Test6 ")(forAllNoShrink { (t: Test6) =>
@@ -113,7 +113,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test7(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int)
 
   registerProp(" Test7 ")(forAllNoShrink { (t: Test7) =>
@@ -130,7 +130,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test8(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String)
 
   registerProp(" Test8 ")(forAllNoShrink { (t: Test8) =>
@@ -147,7 +147,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test9(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean)
 
   registerProp(" Test9 ")(forAllNoShrink { (t: Test9) =>
@@ -164,7 +164,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test10(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int)
 
   registerProp(" Test10 ")(forAllNoShrink { (t: Test10) =>
@@ -181,7 +181,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test11(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String)
 
   registerProp(" Test11 ")(forAllNoShrink { (t: Test11) =>
@@ -198,7 +198,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test12(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean)
 
   registerProp(" Test12 ")(forAllNoShrink { (t: Test12) =>
@@ -215,7 +215,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test13(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int)
 
   registerProp(" Test13 ")(forAllNoShrink { (t: Test13) =>
@@ -232,7 +232,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test14(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String)
 
   registerProp(" Test14 ")(forAllNoShrink { (t: Test14) =>
@@ -249,7 +249,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test15(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean)
 
   registerProp(" Test15 ")(forAllNoShrink { (t: Test15) =>
@@ -266,7 +266,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test16(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int)
 
   registerProp(" Test16 ")(forAllNoShrink { (t: Test16) =>
@@ -283,7 +283,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test17(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String)
 
   registerProp(" Test17 ")(forAllNoShrink { (t: Test17) =>
@@ -300,7 +300,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test18(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean)
 
   registerProp(" Test18 ")(forAllNoShrink { (t: Test18) =>
@@ -317,7 +317,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test19(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int)
 
   registerProp(" Test19 ")(forAllNoShrink { (t: Test19) =>
@@ -334,7 +334,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test20(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int, x19: String)
 
   registerProp(" Test20 ")(forAllNoShrink { (t: Test20) =>
@@ -351,7 +351,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test21(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int, x19: String, x20: Boolean)
 
   registerProp(" Test21 ")(forAllNoShrink { (t: Test21) =>
@@ -368,7 +368,7 @@ object ArgonautTest extends Properties("argonaut") {
       ((axoDecoded == argDecoded) :| "decoded json was different")
   })
 
-  @deriving(Arbitrary, DecodeJson, EncodeJson)
+  @derives(Arbitrary, DecodeJson, EncodeJson)
   case class Test22(x0: Int, x1: String, x2: Boolean, x3: Int, x4: String, x5: Boolean, x6: Int, x7: String, x8: Boolean, x9: Int, x10: String, x11: Boolean, x12: Int, x13: String, x14: Boolean, x15: Int, x16: String, x17: Boolean, x18: Int, x19: String, x20: Boolean, x21: Int)
 
   registerProp(" Test22 ")(forAllNoShrink { (t: Test22) =>

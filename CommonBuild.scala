@@ -13,6 +13,8 @@ package object andxor {
   val monocleCore = "dev.optics" %% "monocle-core" % monocleVersion
   val monocleLaws = "dev.optics" %% "monocle-law" % monocleVersion % "test"
 
+  val newtype = "io.estatico" %% "newtype" % "0.4.4"
+
   val scalacheckVersion = "1.17.0"
   val scalacheck = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 

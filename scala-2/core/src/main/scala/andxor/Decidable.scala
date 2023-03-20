@@ -8,7 +8,7 @@ trait Decidable[F[_]] extends Contravariant[F] {
 }
 
 object Decidable {
-  def apply[F[_]](implicit ev: Decidable[F]): Decidable[F] = ev
+  @inline def apply[F[_]](implicit ev: Decidable[F]): Decidable[F] = ev
 
   def fromIso[F[_], G[_]](fg: F ~> G, gf: G ~> F)(implicit G: Decidable[G]): Decidable[F] =
     new Decidable[F] {

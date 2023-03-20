@@ -12,7 +12,9 @@
 
 import andxor.argonaut._
 import andxor.circe._
+import andxor.eq._
 import andxor.scalacheck._
+import andxor.show._
 import _root_.argonaut.{DecodeJson, EncodeJson}
 import cats.{~>, Apply, Eq, Id, Show}
 import cats.syntax.apply._
@@ -37,7 +39,7 @@ object typeclasses {
   implicit val showDivide: Divide[Show] = Divide.fromIso[Show, ShowF](showToShowF, showFToShow)
 
   trait Read[A] { def read(s: String): Option[A] }
-  object Read {
+  object Read extends AndXorIso.DerivingLabelledCovariant[Read] {
     implicit def readLabelled[A, L <: Singleton with String](implicit l: ValueOf[L], r: Read[A]): Read[Labelled[A, L]] =
       new Read[Labelled[A, L]] {
         def read(s: String): Option[Labelled[A, L]] =
@@ -61,6 +63,7 @@ object typeclasses {
       def read(s: String): Option[Option[A]] = r.read(s).map(Some(_))
     }
 
+    implicit val readUnit: Read[Unit] = new Read[Unit] { def read(s: String): Option[Unit] = Some(()) }
     implicit val readStr: Read[String] = new Read[String] {
       def read(s: String): Option[String] =
         if (s.headOption.exists(_ == '"') && s.lastOption.exists(_ == '"')) Some(s.drop(1).dropRight(1)) else None
@@ -84,7 +87,8 @@ object typeclasses {
   }
 
   trait Csv[A] { def toCsv(a: A): List[String] }
-  object Csv {
+  object Csv extends AndXorIso.DerivingLabelledContravariant[Csv] {
+    implicit val csvUnit: Csv[Unit] = new Csv[Unit] { def toCsv(x: Unit): List[String] = Nil }
     implicit val csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
     implicit val csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
     implicit val csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
@@ -118,96 +122,93 @@ object typeclasses {
 object types {
   import typeclasses._
 
-  @@deriving case class NoInstances(s: String)
+  @@derives case class NoInstances(s: String)
 
-  // Test that zero-member coproduct warning is triggered
-  // The nowarn annotation will cause a "does not suppress any warnings" error if not
-  @@annotation.nowarn("msg=zero-member coproduct")
-  @@deriving sealed trait EmptyCop
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  case class NoParams()
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed trait Foo
   case object Bar extends Foo
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Baz(s: String) extends Foo
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed trait Trait0
   sealed trait Trait1 extends Trait0 { val value: Option[Int] }
   sealed trait Trait2 extends Trait0
   sealed trait Trait3 extends Trait1
   case object Inst1 extends Trait0
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Inst2(value: Option[Int]) extends Trait1
   case object Inst3 extends Trait1 { val value = Some(3) }
   case object Inst4 extends Trait2
   case object Inst5 extends Trait3 { val value = Some(5) }
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Inst6(x: String) extends Trait3 { val value = Try(x.toInt).toOption }
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   sealed abstract class AbstractClass(val i: Int)
   object AbstractClass {
-    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class Foo(s: String, b: Boolean) extends AbstractClass(1)
     case object Bar extends AbstractClass(2)
-    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class Baz(override val i: Int) extends AbstractClass(3)
   }
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Multi(str: String)(val int: Int)
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class HKFG[F[_[_]], G[_]](run: F[G])
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Covariant[+A](a: A)
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class Contravariant[-A](s: String, i: Int) {
     def go(a: A): (String, Int) = (s"$s -- $a", i)
   }
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest1[A](i: Int, a: A)
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest2[A](as: List[A], ints: List[Int], test1s: List[ErrorTest1[A]])
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class ErrorTest3[D[_], A](test1s: List[ErrorTest1[D[A]]], test2: ErrorTest2[A])
   object ErrorTest3 {
     def update[G[_], B](bs: List[B], ts: List[(Int, B)], d: List[Int]): ErrorTest3[G, B] =
       ErrorTest3(Nil, ErrorTest2(bs, d, ts.map(t => ErrorTest1[B](t._1, t._2))))
   }
 
-  @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+  @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
   case class TParamsDup[A](a1: A, a2: A)
 
   @tpeLists.map { tpes =>
-    @if(tpes.length == 1) { @@newtype }
-    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class @{testCCName(tpes)}(@{tpes.zipWithIndex.map(t => testCCValueTpe(t._2)).paramSig("x")})
 
-    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class @{tparamsCCName(tpes)}[@{tpes.tpeParams}](@{tpes.paramSig("x")})
 
-    @@deriving(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
+    @@derives(Arbitrary, Csv, Decoder, DecodeJson, Encoder, EncodeJson, Eq, Read, Show)
     case class @{hkCCName(tpes)}[F[@{tpes.map(_ => "_").tpeParams}], @{tpes.tpeParams}](run: F[@{tpes.tpeParams}])
   }
 }
 
-object DerivingPluginTest extends Properties("DerivingPlugin") {
+object DerivationTest extends Properties("Derivation") {
   import typeclasses.{Csv, Read}
   import types._
 
   private def registerProp(name: String)(prop: => Prop): Unit =
     property.update(name, prop): Unit
 
-  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String)(implicit @@unused r: Read[A]) =
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String, csvEmptyOk: Boolean = false)(implicit @@unused r: Read[A]) =
     registerProp(label)(forAllNoShrink((a: A) => {
-      (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
+      ((csvEmptyOk || implicitly[Csv[A]].toCsv(a).nonEmpty) :| "CSV output was empty") &&
       ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not Eq") &&
       ((implicitly[Decoder[A]].decodeJson(implicitly[Encoder[A]].apply(a)) match {
         case Right(res) => res === a
@@ -217,6 +218,7 @@ object DerivingPluginTest extends Properties("DerivingPlugin") {
       (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
     }))
 
+  proof[NoParams]("NoParams", true)
   proof[Foo]("Foo")
   proof[Baz]("Baz")
   proof[Trait0]("Trait0")

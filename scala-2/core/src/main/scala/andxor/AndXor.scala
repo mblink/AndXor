@@ -17,17 +17,21 @@ trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
   implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]]
 }
 
-trait AndXorDeriving[TC[_], Cop, Prod] {
+trait AndXorCopDeriving[TC[_], Cop] {
   def mkChoose[B](f: B => Cop)(implicit d: Decidable[TC]): TC[B]
   def mkAlt[B](f: Cop => B)(implicit a: Alt[TC]): TC[B]
+  final def choose(implicit d: Decidable[TC]): TC[Cop] = mkChoose(identity _)
+  final def alt(implicit a: Alt[TC]): TC[Cop] = mkAlt(identity _)
+}
+
+trait AndXorProdDeriving[TC[_], Prod] {
   def mkDivide[B](f: B => Prod)(implicit a: Divide[TC]): TC[B]
   def mkApply[B](f: Prod => B)(implicit a: Apply[TC]): TC[B]
-
-  def choose(implicit d: Decidable[TC]): TC[Cop] = mkChoose(identity _)
-  def alt(implicit a: Alt[TC]): TC[Cop] = mkAlt(identity _)
-  def divide(implicit d: Divide[TC]): TC[Prod] = mkDivide(identity _)
-  def apply(implicit a: Apply[TC]): TC[Prod] = mkApply(identity _)
+  final def divide(implicit d: Divide[TC]): TC[Prod] = mkDivide(identity _)
+  final def apply(implicit a: Apply[TC]): TC[Prod] = mkApply(identity _)
 }
+
+trait AndXorDeriving[TC[_], Cop, Prod] extends AndXorCopDeriving[TC, Cop] with AndXorProdDeriving[TC, Prod]
 
 trait AndXor { self =>
   type Cop[F[_]]

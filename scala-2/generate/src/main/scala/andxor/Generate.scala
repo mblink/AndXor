@@ -49,14 +49,14 @@ object Generate extends App {
   tpeLists.foreach(tpes => maybeWrite(s"Types${tpes.length}.scala", template.txt.TypesN(tpes),
     pkgs = List("andxor.types"), fileDir = _ / "types"))
 
-  maybeWrite("TypesTest.scala", template.txt.TypesTest(tpeLists), mainOrTest = _ / "test")
+  maybeWrite("TypesTest.scala", template.txt.TypesTest(tpeLists), getProj = _ / "tests", mainOrTest = _ / "test")
   maybeWrite("AndXor1.scala", template.txt.AndXorN(List("A1")))
   tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))
   maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(1)))
   maybeWrite("MapN.scala", template.txt.MapN(tpeLists.last))
   maybeWrite("Tuple.scala", template.txt.Tuple(tpeLists))
-  maybeWrite("DerivingPluginTest.scala", template.txt.DerivingPluginTest(), List("andxor", "test"),
-    getProj = _ / "deriving", mainOrTest = _ / "test")
+  maybeWrite("DerivationTest.scala", template.txt.DerivationTest(), List("andxor", "test"),
+    getProj = _ / "tests", mainOrTest = _ / "test")
   maybeWrite("ArgonautTest.scala", template.txt.ArgonautTest(), List("andxor", "argonaut"),
     getProj = _ / "argonaut", mainOrTest = _ / "test", fileDir = _ / "argonaut")
   maybeWrite("CirceTest.scala", template.txt.CirceTest(), List("andxor", "circe"),

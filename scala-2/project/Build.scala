@@ -23,11 +23,20 @@ object Build extends CommonBuild {
       "-Vimplicits",
       "-Vimplicits-verbose-tree",
       "-Xlint:strict-unsealed-patmat",
+      "-Ymacro-annotations",
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
     Compile / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     Test / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
   )
+
+  override def coreBase = super.coreBase
+    .settings(
+      libraryDependencies ++= Seq(
+        newtype,
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      ),
+    )
 
   override def generateBase = super.generateBase
     .settings(
@@ -62,38 +71,4 @@ object Build extends CommonBuild {
         "io.circe" %% "circe-parser" % circeVersion,
       )
     ))
-
-  def enablePlugin(jar: File, extra: Seq[String]): Seq[String] =
-    Seq(s"-Xplugin:${jar.getAbsolutePath}", s"-Jdummy=${jar.lastModified}") ++ extra
-
-  def pluginOptions(pluginOpts: Seq[String]) = Seq(
-    scalacOptions -= "-Ywarn-unused:patvars",
-    Test / scalacOptions ++= enablePlugin((Compile / Keys.`package`).value, pluginOpts),
-    libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
-  )
-
-  def compilerPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
-    proj
-      .settings(baseSettings)
-      .settings(publishSettings)
-      .settings(pluginOptions(pluginOpts))
-      .settings(name := nme)
-
-  def annotationPlugin(proj: Project, nme: String, pluginOpts: Seq[String]) =
-    compilerPlugin(proj, nme, pluginOpts)
-      .settings(Compile / sourceGenerators += Def.task {
-        Seq(baseDirectory.value / ".." / "src" / "files" / "AnnotationPlugin.scala")
-      })
-
-  val derivingFlags = Seq(
-    "-P:deriving:covariant:Arbitrary",
-    "-P:deriving:labelledCovariant:Decoder|DecodeJson|Read",
-    "-P:deriving:contravariant:Prod:Csv|Eq",
-    "-P:deriving:labelledContravariant:Cop:Csv|Eq",
-    "-P:deriving:labelledContravariant:Encoder|EncodeJson|Show"
-  )
-
-  def derivingBase = annotationPlugin(Project("deriving", file("deriving")), "andxor-deriving", derivingFlags).settings(testSettings)
-
-  def newtypeBase = annotationPlugin(Project("newtype", file("newtype")), "andxor-newtype", Seq())
 }

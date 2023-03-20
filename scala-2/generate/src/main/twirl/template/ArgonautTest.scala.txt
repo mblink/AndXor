@@ -17,7 +17,7 @@ object ArgonautTest extends Properties("argonaut") {
     property.update(name, prop): Unit
 
   @tpeLists.map { tpes =>
-  @@deriving(Arbitrary, DecodeJson, EncodeJson)
+  @@derives(Arbitrary, DecodeJson, EncodeJson)
   case class @{ccName(tpes)}(@{tpes.zipWithIndex.map(t => ccTpe(t._2)).paramSig("x")})
 
   registerProp("@{ccName(tpes)}")(forAllNoShrink { (t: @{ccName(tpes)}) =>

@@ -81,4 +81,10 @@ package object argonaut extends LPArgonaut {
     def map[A, B](fa: DecodeJson[A])(f: A => B): DecodeJson[B] = fa.map(f)
     def alt[A](a1: DecodeJson[A], a2: DecodeJson[A]): DecodeJson[A] = a1 ||| a2
   }
+
+  val decodeJsonDeriving: AndXorIso.DerivingLabelledCovariant[DecodeJson] = new AndXorIso.DerivingLabelledCovariant[DecodeJson] {}
+  implicit def decodeJsonToDeriving(@annotation.unused a: DecodeJson.type): decodeJsonDeriving.type = decodeJsonDeriving
+
+  val encodeJsonDeriving: AndXorIso.DerivingLabelledContravariant[EncodeJson] = new AndXorIso.DerivingLabelledContravariant[EncodeJson] {}
+  implicit def encodeJsonToDeriving(@annotation.unused a: EncodeJson.type): encodeJsonDeriving.type = encodeJsonDeriving
 }

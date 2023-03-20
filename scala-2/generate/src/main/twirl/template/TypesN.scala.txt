@@ -7,9 +7,17 @@ import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
 import cats.syntax.invariant._
+import io.estatico.newtype.macros.newtype
 import monocle.Iso
 
 trait Types@{tpes.length} {
+  final type @{tpes.prodTpeDef} = Types@{tpes.length}.@{tpes.prodTpe}
+  final val @{tpes.prodName}: Types@{tpes.length}.@{tpes.prodName}.type = Types@{tpes.length}.@{tpes.prodName}
+  final type @{tpes.copTpeDef} = Types@{tpes.length}.@{tpes.copTpe}
+  final val @{tpes.copName}: Types@{tpes.length}.@{tpes.copName}.type = Types@{tpes.length}.@{tpes.copName}
+}
+
+object Types@{tpes.length} {
   @@newtype case class @{tpes.prodTpeDef}(run: @{tpes.prodK("F")}) { self =>
     @template.txt.TupleAccess("run", tpes.map(t => s"F[$t]"))
 
