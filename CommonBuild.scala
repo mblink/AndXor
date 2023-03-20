@@ -3,7 +3,7 @@ import sbt.Keys.*
 import sbtgitpublish.GitPublishKeys.*
 
 package object andxor {
-  val currentVersion = "0.10.0"
+  val currentVersion = "0.11.0"
 
   val catsVersion = "2.9.0"
   val catsCore = "org.typelevel" %% "cats-core" % catsVersion
@@ -29,7 +29,7 @@ package object andxor {
       publish / skip  := true,
       Compile / packageDoc / publishArtifact := false,
       packageDoc / publishArtifact := false,
-      Compile / doc / sources := Seq()
+      Compile / doc / sources := Seq(),
     ) ++ baseSettings0
 
     final lazy val commonSettings = baseSettings ++ Seq(
@@ -73,6 +73,9 @@ package object andxor {
 
     def testsBase = Project("tests", file("tests"))
       .settings(commonSettings)
-      .settings(name := "andxor-tests")
+      .settings(
+        name := "andxor-tests",
+        gitRelease := {},
+      )
   }
 }
