@@ -53,7 +53,7 @@ object Generate extends App {
   maybeWrite("AndXor1.scala", template.txt.AndXorN(List("A1")))
   tpeLists.foreach(tpes => maybeWrite(s"AndXor${tpes.length}.scala", template.txt.AndXorN(tpes)))
   maybeWrite("Combine.scala", template.txt.Combine(tpeLists.drop(1)))
-  maybeWrite("MapN.scala", template.txt.MapN(tpeLists.last))
+  maybeWrite("Either.scala", template.txt.Either(tpeLists))
   maybeWrite("Tuple.scala", template.txt.Tuple(tpeLists))
   maybeWrite("DerivationTest.scala", template.txt.DerivationTest(), List("andxor", "test"),
     getProj = _ / "tests", mainOrTest = _ / "test")

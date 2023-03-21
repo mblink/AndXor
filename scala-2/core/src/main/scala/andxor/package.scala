@@ -1,4 +1,4 @@
-import andxor.MapN.syntax._
+import andxor.tuple._
 import cats.{~>, Applicative, MonoidK}
 
 package object andxor {

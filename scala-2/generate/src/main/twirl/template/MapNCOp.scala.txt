@@ -8,9 +8,8 @@
 @origT = { F[@z.focus] }
 @modT = { F[@mod(z.index)] }
 
-  def map@{z.index + 1}[@{B}](f: @{cop.fold(origT, z.focus)} => @{cop.fold(modT, "B")}): @{cop.fold(mod.copTpe, mod.dj)} =
-    @z.wrapCopOrTuple(cop)(s"mapN.map${z.index + 1}(${cop.fold("run", "c")})(f)")
-
-  def mapAt[@{B}](f: @{cop.fold(origT, z.focus)} => @{cop.fold(modT, "B")})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
-    _ => z.dummyImpl(cop))}: @{cop.fold(mod.copTpe, mod.dj)} =
-    @z.wrapCopOrTuple(cop)(s"mapN.map${cop.fold("At(f)(run)", s"${z.index + 1}(c)(f)")}")
+  def map@{z.index + 1}[@{B}](f: @{cop.fold(origT, z.focus)} => @{cop.fold(modT, "B")}): @{cop.fold(mod.copTpe, mod.dj)} = @if(cop) {
+    @z.wrapCopOrTuple(cop)(s"run.map${z.index + 1}(f)")
+  } else {
+    c@{z.lefts.foldRight(Some(z).filterNot(_.atEnd).fold("f")(_ => "_.leftMap(f)"))((_, a) => s"_.map(${a})").tail}
+  }

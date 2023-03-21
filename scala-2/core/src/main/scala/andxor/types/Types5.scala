@@ -1,6 +1,8 @@
 package andxor.types
 
 import andxor._
+import andxor.either._
+import andxor.tuple._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
@@ -23,37 +25,25 @@ object Types5 {
     def t4: F[A4] = run._4
     def t5: F[A5] = run._5
 
-    private def mapN = new Map5P[F[A1], F[A2], F[A3], F[A4], F[A5]] {}
+    def map1[B](f: F[A1] => F[B]): Prod5[F, B, A2, A3, A4, A5] = {
+      Prod5[F, B, A2, A3, A4, A5](run.map1(f))
+    }
 
-    def map1[B](f: F[A1] => F[B]): Prod5[F, B, A2, A3, A4, A5] =
-      Prod5[F, B, A2, A3, A4, A5](mapN.map1(run)(f))
+    def map2[B](f: F[A2] => F[B]): Prod5[F, A1, B, A3, A4, A5] = {
+      Prod5[F, A1, B, A3, A4, A5](run.map2(f))
+    }
 
-    def mapAt[B](f: F[A1] => F[B]): Prod5[F, B, A2, A3, A4, A5] =
-      Prod5[F, B, A2, A3, A4, A5](mapN.mapAt(f)(run))
+    def map3[B](f: F[A3] => F[B]): Prod5[F, A1, A2, B, A4, A5] = {
+      Prod5[F, A1, A2, B, A4, A5](run.map3(f))
+    }
 
-    def map2[B](f: F[A2] => F[B]): Prod5[F, A1, B, A3, A4, A5] =
-      Prod5[F, A1, B, A3, A4, A5](mapN.map2(run)(f))
+    def map4[B](f: F[A4] => F[B]): Prod5[F, A1, A2, A3, B, A5] = {
+      Prod5[F, A1, A2, A3, B, A5](run.map4(f))
+    }
 
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Prod5[F, A1, B, A3, A4, A5] =
-      Prod5[F, A1, B, A3, A4, A5](mapN.mapAt(f)(run))
-
-    def map3[B](f: F[A3] => F[B]): Prod5[F, A1, A2, B, A4, A5] =
-      Prod5[F, A1, A2, B, A4, A5](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Prod5[F, A1, A2, B, A4, A5] =
-      Prod5[F, A1, A2, B, A4, A5](mapN.mapAt(f)(run))
-
-    def map4[B](f: F[A4] => F[B]): Prod5[F, A1, A2, A3, B, A5] =
-      Prod5[F, A1, A2, A3, B, A5](mapN.map4(run)(f))
-
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Prod5[F, A1, A2, A3, B, A5] =
-      Prod5[F, A1, A2, A3, B, A5](mapN.mapAt(f)(run))
-
-    def map5[B](f: F[A5] => F[B]): Prod5[F, A1, A2, A3, A4, B] =
-      Prod5[F, A1, A2, A3, A4, B](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Prod5[F, A1, A2, A3, A4, B] =
-      Prod5[F, A1, A2, A3, A4, B](mapN.mapAt(f)(run))
+    def map5[B](f: F[A5] => F[B]): Prod5[F, A1, A2, A3, A4, B] = {
+      Prod5[F, A1, A2, A3, A4, B](run.map5(f))
+    }
 
   }
 
@@ -200,37 +190,21 @@ object Types5 {
   }
 
   @newtype case class Cop5[F[_], A1, A2, A3, A4, A5](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], F[A5]]]]]) {
-    private def mapN = new Map5C[F[A1], F[A2], F[A3], F[A4], F[A5]] {}
 
     def map1[B](f: F[A1] => F[B]): Cop5[F, B, A2, A3, A4, A5] =
-      Cop5[F, B, A2, A3, A4, A5](mapN.map1(run)(f))
-
-    def mapAt[B](f: F[A1] => F[B]): Cop5[F, B, A2, A3, A4, A5] =
-      Cop5[F, B, A2, A3, A4, A5](mapN.mapAt(f)(run))
+      Cop5[F, B, A2, A3, A4, A5](run.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop5[F, A1, B, A3, A4, A5] =
-      Cop5[F, A1, B, A3, A4, A5](mapN.map2(run)(f))
-
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Cop5[F, A1, B, A3, A4, A5] =
-      Cop5[F, A1, B, A3, A4, A5](mapN.mapAt(f)(run))
+      Cop5[F, A1, B, A3, A4, A5](run.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop5[F, A1, A2, B, A4, A5] =
-      Cop5[F, A1, A2, B, A4, A5](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Cop5[F, A1, A2, B, A4, A5] =
-      Cop5[F, A1, A2, B, A4, A5](mapN.mapAt(f)(run))
+      Cop5[F, A1, A2, B, A4, A5](run.map3(f))
 
     def map4[B](f: F[A4] => F[B]): Cop5[F, A1, A2, A3, B, A5] =
-      Cop5[F, A1, A2, A3, B, A5](mapN.map4(run)(f))
-
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Cop5[F, A1, A2, A3, B, A5] =
-      Cop5[F, A1, A2, A3, B, A5](mapN.mapAt(f)(run))
+      Cop5[F, A1, A2, A3, B, A5](run.map4(f))
 
     def map5[B](f: F[A5] => F[B]): Cop5[F, A1, A2, A3, A4, B] =
-      Cop5[F, A1, A2, A3, A4, B](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Cop5[F, A1, A2, A3, A4, B] =
-      Cop5[F, A1, A2, A3, A4, B](mapN.mapAt(f)(run))
+      Cop5[F, A1, A2, A3, A4, B](run.map5(f))
 
   }
 

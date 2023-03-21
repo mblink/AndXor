@@ -3,6 +3,8 @@
 @(tpes: List[String])
 
 import andxor._
+import andxor.either._
+import andxor.tuple._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
@@ -22,7 +24,6 @@ object Types@{tpes.length} {
     @template.txt.TupleAccess("run", tpes.map(t => s"F[$t]"))
 
     @if(tpes.length > 1) {
-    private def mapN = new Map@{tpes.length}P[@{tpes.map(t => s"F[$t]").tpeParams}] {}
     @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
     }
   }
@@ -79,7 +80,6 @@ object Types@{tpes.length} {
   }
 
   @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{if (tpes.length <= 1) "" else s""" {
-    private def mapN = new Map${tpes.length}C[${tpes.map(t => s"F[$t]").tpeParams}] {}
     ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
   }"""}
 

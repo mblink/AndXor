@@ -88,13 +88,6 @@ SIS.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString + "!"))
 SIS.lift(Option("foo")).run.map2(_.map(_.toString + "!")).map1(_.map(_.length))
 ```
 
-#### Map a unique type at an arbitrary index of a Cop or Prod
-
-```scala mdoc
-SIS.lift(2).run.mapAt((_: Int) + 3)
-SIS.inj(List("Hello ", "Goodbye cruel ")).run.mapAt((_: List[String]).map(_ + "world"))
-```
-
 #### Extract specific type from Cop or Prod
 
 ```scala mdoc
