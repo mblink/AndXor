@@ -12,7 +12,7 @@ ${tpeLists.map { case (tpes, i) =>
   val prevProdTpe = (fTpes.tail :+ "EmptyTuple").mkString(" *: ")
 
   s"""
-  final given tuple$i[TC[f[_]] <: Apply[f], ${tpes.mkString(", ")}](
+  final implicit def tuple$i[TC[f[_]] <: Apply[f], ${tpes.mkString(", ")}](
     using F: FTraverse[[F[_]] =>> $prevProdTpe, TC]
   ): FTraverse[[F[_]] =>> $prodTpe, TC] =
     new TupleN[TC, ${tpes.head}, [F[_]] =>> $prevProdTpe] { protected val FT = F }

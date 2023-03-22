@@ -19,10 +19,10 @@ ${tpeLists.map { case (tpes, i) => s"""
     }
   }
 
-  given lensT$i[${(tpes :+ "T <: Tuple").mkString(", ")}]: Lens[${(tpes :+ "T").mkString(" *: ")}, A$i] =
+  implicit def lensT$i[${(tpes :+ "T <: Tuple").mkString(", ")}]: Lens[${(tpes :+ "T").mkString(" *: ")}, A$i] =
     Lens((_: ${(tpes :+ "T").mkString(" *: ")}).t$i)((a: A$i) => (_: ${(tpes :+ "T").mkString(" *: ")}).map$i(_ => a))
 
-  given injT$i[${(tpes :+ "T <: Tuple").mkString(", ")}](
+  implicit def injT$i[${(tpes :+ "T <: Tuple").mkString(", ")}](
     using M: Monoid[${(tpes :+ "T").mkString(" *: ")}],
   ): Inj[${(tpes :+ "T").mkString(" *: ")}, A$i] =
     Inj.instance((a: A$i) => M.empty.map$i(_ => a))
