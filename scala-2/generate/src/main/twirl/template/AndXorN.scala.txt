@@ -38,6 +38,11 @@ import cats.{@{(tpes.foldLen01(List[String]())(List("~>", "Applicative", "Functo
 }
 
 trait AndXorNested@{tpes.length}[@{tpes.nestedTpeParams}] extends AndXor {
+  @if(tpes.length < maxLen) {
+  def *:[B](@@annotation.unused a: AndXor1[B]): @{(List("B").const ::: tpes).nestedBuiltAndXor} = @{(List("B").const ::: tpes).nestedBuiltAndXor}
+  def *:[B[_[_]]](@@annotation.unused a: AndXorNested1[B]): @{("B" :: tpes).nestedBuiltAndXor} = @{("B" :: tpes).nestedBuiltAndXor}
+  }
+
   @mkTpeList(1, maxLen - tpes.length, "B").map(template.txt.Build(tpes, _, true))
 
   type Prod[F[_]] = @{tpes.nestedProdTpe()}
@@ -110,6 +115,11 @@ object AndXorNested@{tpes.length} {
 }
 
 trait AndXor@{tpes.length}[@{tpes.tpeParams}] extends AndXor {
+  @if(tpes.length < maxLen) {
+  def *:[B](@@annotation.unused a: AndXor1[B]): @{("B" :: tpes).builtAndXor} = @{("B" :: tpes).builtAndXor}
+  def *:[B[_[_]]](@@annotation.unused a: AndXorNested1[B]): @{("B" :: tpes.const).nestedBuiltAndXor} = @{("B" :: tpes.const).nestedBuiltAndXor}
+  }
+
   @mkTpeList(1, maxLen - tpes.length, "B").map(template.txt.Build(tpes, _, false))
 
   type Prod[F[_]] = @{tpes.prodTpe}

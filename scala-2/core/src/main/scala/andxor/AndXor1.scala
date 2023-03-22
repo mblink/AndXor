@@ -4,6 +4,9 @@ import cats.{Apply, Id, Monoid}
 
 trait AndXorNested1[A1[_[_]]] extends AndXor {
 
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXorNested2[FConst[B]#T, A1] = AndXorNested2[FConst[B]#T, A1]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested2[B, A1] = AndXorNested2[B, A1]
+
   def apply[B1]: AndXorNested2[A1, FConst[B1]#T] = AndXorNested2[A1, FConst[B1]#T]
   def nest[B1[_[_]]]: AndXorNested2[A1, B1] = AndXorNested2[A1, B1]
 
@@ -110,6 +113,9 @@ object AndXorNested1 {
 }
 
 trait AndXor1[A1] extends AndXor {
+
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXor2[B, A1] = AndXor2[B, A1]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested2[B, FConst[A1]#T] = AndXorNested2[B, FConst[A1]#T]
 
   def apply[B1]: AndXor2[A1, B1] = AndXor2[A1, B1]
   def nest[B1[_[_]]]: AndXorNested2[FConst[A1]#T, B1] = AndXorNested2[FConst[A1]#T, B1]

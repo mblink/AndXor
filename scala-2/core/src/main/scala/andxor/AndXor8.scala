@@ -8,6 +8,9 @@ import cats.{Applicative, Apply, Functor, Id, Monoid, MonoidK, ~>}
 
 trait AndXorNested8[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]], A6[_[_]], A7[_[_]], A8[_[_]]] extends AndXor {
 
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXorNested9[FConst[B]#T, A1, A2, A3, A4, A5, A6, A7, A8] = AndXorNested9[FConst[B]#T, A1, A2, A3, A4, A5, A6, A7, A8]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested9[B, A1, A2, A3, A4, A5, A6, A7, A8] = AndXorNested9[B, A1, A2, A3, A4, A5, A6, A7, A8]
+
   def apply[B1]: AndXorNested9[A1, A2, A3, A4, A5, A6, A7, A8, FConst[B1]#T] = AndXorNested9[A1, A2, A3, A4, A5, A6, A7, A8, FConst[B1]#T]
   def nest[B1[_[_]]]: AndXorNested9[A1, A2, A3, A4, A5, A6, A7, A8, B1] = AndXorNested9[A1, A2, A3, A4, A5, A6, A7, A8, B1]
 
@@ -193,6 +196,9 @@ object AndXorNested8 {
 }
 
 trait AndXor8[A1, A2, A3, A4, A5, A6, A7, A8] extends AndXor {
+
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXor9[B, A1, A2, A3, A4, A5, A6, A7, A8] = AndXor9[B, A1, A2, A3, A4, A5, A6, A7, A8]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested9[B, FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, FConst[A7]#T, FConst[A8]#T] = AndXorNested9[B, FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, FConst[A7]#T, FConst[A8]#T]
 
   def apply[B1]: AndXor9[A1, A2, A3, A4, A5, A6, A7, A8, B1] = AndXor9[A1, A2, A3, A4, A5, A6, A7, A8, B1]
   def nest[B1[_[_]]]: AndXorNested9[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, FConst[A7]#T, FConst[A8]#T, B1] = AndXorNested9[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, FConst[A6]#T, FConst[A7]#T, FConst[A8]#T, B1]
