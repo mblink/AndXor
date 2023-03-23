@@ -2,6 +2,7 @@ package andxor
 
 package object types
   extends Dummy
+  with Types1
   with Types2
   with Types3
   with Types4

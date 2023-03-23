@@ -9,6 +9,18 @@ import monocle.law.discipline.LensTests
 
 object arbitrary {
 
+  implicit def prod1Arb[F[_], A1](implicit a0: Arbitrary[F[A1]]): Arbitrary[Prod1[F, A1]] =
+    AndXor[A1].deriving[Arbitrary, F].apply
+
+  implicit def cop1Arb[F[_], A1](implicit a0: Arbitrary[F[A1]]): Arbitrary[Cop1[F, A1]] =
+    AndXor[A1].deriving[Arbitrary, F].alt
+
+  implicit def prod1Eq[F[_], A1](implicit e0: Eq[F[A1]]): Eq[Prod1[F, A1]] =
+    AndXor[A1].deriving[Eq, F].divide
+
+  implicit def cop1Eq[F[_], A1](implicit e0: Eq[F[A1]]): Eq[Cop1[F, A1]] =
+    AndXor[A1].deriving[Eq, F].choose
+
   implicit def prod2Arb[F[_], A1, A2](implicit a0: Arbitrary[F[A1]], a1: Arbitrary[F[A2]]): Arbitrary[Prod2[F, A1, A2]] =
     AndXor[A1, A2].deriving[Arbitrary, F].apply
 
@@ -261,6 +273,24 @@ object arbitrary {
   implicit def cop22Eq[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22](implicit e0: Eq[F[A1]], e1: Eq[F[A2]], e2: Eq[F[A3]], e3: Eq[F[A4]], e4: Eq[F[A5]], e5: Eq[F[A6]], e6: Eq[F[A7]], e7: Eq[F[A8]], e8: Eq[F[A9]], e9: Eq[F[A10]], e10: Eq[F[A11]], e11: Eq[F[A12]], e12: Eq[F[A13]], e13: Eq[F[A14]], e14: Eq[F[A15]], e15: Eq[F[A16]], e16: Eq[F[A17]], e17: Eq[F[A18]], e18: Eq[F[A19]], e19: Eq[F[A20]], e20: Eq[F[A21]], e21: Eq[F[A22]]): Eq[Cop22[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22]] =
     AndXor[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22].deriving[Eq, F].choose
 
+}
+
+object Prod1Test extends Properties("Prod1") {
+  import arbitrary._
+
+  include(AndXorProperties.ftraverse.laws[Prod1[*[_], String], Applicative])
+
+  include(MonoidTests[Prod1[Option, String]].monoid.all)
+
+  include(LensTests[Prod1[Option, String], Option[String]](
+    Prod1.Prod1Lens0[Option, String]).all, "0.")
+
+}
+
+object Cop1Test extends Properties("Cop1") {
+  import arbitrary._
+
+  include(AndXorProperties.ftraverse.laws[Cop1[*[_], String], Functor])
 }
 
 object Prod2Test extends Properties("Prod2") {

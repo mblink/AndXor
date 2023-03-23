@@ -126,7 +126,8 @@ object AndXorIso {
               if (len == 0)
                 q"()"
               else if (len == 1)
-                q"$valueToProdName.${members.head.name}"
+                q"""_root_.andxor.types.${TermName(s"Prod$len")}.apply[..${catsIdType :: members.map(_.typeTree)}](
+                  ..${members.map(m => q"$valueToProdName.${m.name}")})"""
               else
                 q"""_root_.andxor.types.${TermName(s"Prod$len")}.apply[..${catsIdType :: members.map(_.typeTree)}](
                   _root_.scala.${TermName(s"Tuple$len")}.apply(..${members.map(m => q"$valueToProdName.${m.name}")}))"""
@@ -136,8 +137,6 @@ object AndXorIso {
             val prodToValue: Tree =
               if (len == 0)
                 repr.instantiate(Nil)
-              else if (len == 1)
-                repr.instantiate(repr.paramLists.map(_.map(_ => Ident(prodToValueName))))
               else
                 repr.instantiate(repr.paramLists.foldRight((len, List[List[Tree]]())) { case (ms, (i, acc)) =>
                   val (updI, trees) = ms.foldRight((i, List[Tree]())) { case (_, (j, acc)) =>
@@ -186,10 +185,7 @@ object AndXorIso {
               def valueToCop(value: Tree): Tree = {
                 val cases = members.zipWithIndex.map { case (s, i) => cq"x: $s => ${mkEither(q"x", i)}" }
                 val matchStmt = q"$value match { case ..$cases }"
-                if (len == 1)
-                  matchStmt
-                else
-                  q"_root_.andxor.types.${TermName(s"Cop$len")}.apply[..${catsIdType :: members.map(s => tq"$s")}]($matchStmt)"
+                q"_root_.andxor.types.${TermName(s"Cop$len")}.apply[..${catsIdType :: members.map(s => tq"$s")}]($matchStmt)"
               }
 
               def copToValue(cop: Tree): Tree = {
@@ -197,7 +193,7 @@ object AndXorIso {
                 val inner = (v: Tree) => if (len == 1) v else q"$v.fold($id, $id)"
                 1.to(len - 2).foldRight(inner)((_, acc) =>
                   (v: Tree) => q"$v.fold($id, v => ${acc(q"v")})"
-                ).apply(if (len == 1) cop else q"$cop.run")
+                ).apply(q"$cop.run")
               }
 
               q"""val iso: _root_.monocle.Iso[$tpe, Cop[$catsIdType]] =

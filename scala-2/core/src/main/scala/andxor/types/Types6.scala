@@ -148,6 +148,15 @@ object Types6 {
       Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t.t1, t.t2, t.t3, t.t4, t.t5, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3, A4, A5, A6]: Inj[Vector[Cop6[F, A1, A2, A3, A4, A5, A6]], Prod6[F, A1, A2, A3, A4, A5, A6]] =
+      Inj.instance(p => Vector(
+        Cop6[F, A1, A2, A3, A4, A5, A6](Left(p.t1)),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Left(p.t2))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Left(p.t3)))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Left(p.t4))))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Right(Left(p.t5)))))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Right(Right(p.t6))))))))
+
     implicit def Prod6Lens0[F[_], A1, A2, A3, A4, A5, A6]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], F[A1]] =
       Lens[Prod6[F, A1, A2, A3, A4, A5, A6], F[A1]](p => p.t1)(x => p =>
         Prod6[F, A1, A2, A3, A4, A5, A6]((x, p.t2, p.t3, p.t4, p.t5, p.t6)))
@@ -278,6 +287,16 @@ object Types6 {
 
     implicit def inja5F[F[_], A1, A2, A3, A4, A5, A6]: Inj[Cop6[F, A1, A2, A3, A4, A5, A6], F[A6]] =
       Inj.instance(x => Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Right(Right(x)))))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], Cop6[F, A1, A2, A3, A4, A5, A6]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod6.lifta0F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Left(x)) => Prod6.lifta1F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Left(x))) => Prod6.lifta2F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Right(Left(x)))) => Prod6.lifta3F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Right(Right(Left(x))))) => Prod6.lifta4F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Right(Right(Right(x))))) => Prod6.lifta5F[F, A1, A2, A3, A4, A5, A6].apply(x)
+      })
 
     implicit def Cop6Optional0[F[_], A1, A2, A3, A4, A5, A6]: Optional[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]] =
       Optional[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]](c => c.run match {

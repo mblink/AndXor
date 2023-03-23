@@ -133,6 +133,14 @@ object Types5 {
       Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t.t1, t.t2, t.t3, t.t4, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3, A4, A5]: Inj[Vector[Cop5[F, A1, A2, A3, A4, A5]], Prod5[F, A1, A2, A3, A4, A5]] =
+      Inj.instance(p => Vector(
+        Cop5[F, A1, A2, A3, A4, A5](Left(p.t1)),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Left(p.t2))),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Right(Left(p.t3)))),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Left(p.t4))))),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Right(p.t5)))))))
+
     implicit def Prod5Lens0[F[_], A1, A2, A3, A4, A5]: Lens[Prod5[F, A1, A2, A3, A4, A5], F[A1]] =
       Lens[Prod5[F, A1, A2, A3, A4, A5], F[A1]](p => p.t1)(x => p =>
         Prod5[F, A1, A2, A3, A4, A5]((x, p.t2, p.t3, p.t4, p.t5)))
@@ -245,6 +253,15 @@ object Types5 {
 
     implicit def inja4F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A5]] =
       Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Right(x))))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[F, A1, A2, A3, A4, A5]]): Inj[Prod5[F, A1, A2, A3, A4, A5], Cop5[F, A1, A2, A3, A4, A5]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod5.lifta0F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Left(x)) => Prod5.lifta1F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Right(Left(x))) => Prod5.lifta2F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Right(Right(Left(x)))) => Prod5.lifta3F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Right(Right(Right(x)))) => Prod5.lifta4F[F, A1, A2, A3, A4, A5].apply(x)
+      })
 
     implicit def Cop5Optional0[F[_], A1, A2, A3, A4, A5]: Optional[Cop5[F, A1, A2, A3, A4, A5], F[A1]] =
       Optional[Cop5[F, A1, A2, A3, A4, A5], F[A1]](c => c.run match {

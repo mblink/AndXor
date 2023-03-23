@@ -1,21 +1,7 @@
 @(tpeLists: List[List[String]])
 
-import cats.{Apply, Id, Monoid}
+import cats.{Apply, Id}
 import monocle.{Lens, Optional}
-
-trait AndXorEvidence[Cop[_[_]], Prod[_[_]]] {
-  implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]]
-  implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]]
-  implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]]
-
-  implicit def injProdToVecCopEvHelper[F[_], A](implicit i: Inj[Cop[F], F[A]]): Inj[Vector[Cop[F]], F[A]] =
-    Inj.instance(a => Vector(i(a)))
-
-  implicit def injNestedProdToVecCopEvHelper[A[_[_]], F[_]](implicit i: Inj[Cop[F], Id[A[F]]]): Inj[Vector[Cop[F]], A[F]] =
-    Inj.instance(a => Vector(i(a)))
-
-  implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]]
-}
 
 trait AndXorCopDeriving[TC[_], Cop] {
   def mkChoose[B](f: B => Cop)(implicit d: Decidable[TC]): TC[B]
@@ -37,8 +23,6 @@ trait AndXor { self =>
   type Cop[F[_]]
   type Prod[F[_]]
 
-  val evidence: AndXorEvidence[Cop, Prod]
-
   def inj[F[_], A](a: A)(implicit inj: Inj[Cop[F], A]): Cop[F] = inj(a)
   def injId[A](a: A)(implicit inj: Inj[Cop[Id], Id[A]]): Cop[Id] = inj(a)
   def lift[F[_], A](a: A)(implicit inj: Inj[Prod[F], A]): Prod[F] = inj(a)
@@ -51,7 +35,5 @@ trait AndXor { self =>
 }
 
 object AndXor {
-  def apply[A]: AndXor1[A] = new AndXor1[A] {}
-  def nest[A[_[_]]]: AndXorNested1[A] = new AndXorNested1[A] {}
   @tpeLists.map(template.txt.Build(Nil, _, false))
 }

@@ -103,6 +103,12 @@ object Types3 {
       Inj.instance(x => Prod3[F, A1, A2, A3]((t.t1, t.t2, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3]: Inj[Vector[Cop3[F, A1, A2, A3]], Prod3[F, A1, A2, A3]] =
+      Inj.instance(p => Vector(
+        Cop3[F, A1, A2, A3](Left(p.t1)),
+        Cop3[F, A1, A2, A3](Right(Left(p.t2))),
+        Cop3[F, A1, A2, A3](Right(Right(p.t3)))))
+
     implicit def Prod3Lens0[F[_], A1, A2, A3]: Lens[Prod3[F, A1, A2, A3], F[A1]] =
       Lens[Prod3[F, A1, A2, A3], F[A1]](p => p.t1)(x => p =>
         Prod3[F, A1, A2, A3]((x, p.t2, p.t3)))
@@ -179,6 +185,13 @@ object Types3 {
 
     implicit def inja2F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A3]] =
       Inj.instance(x => Cop3[F, A1, A2, A3](Right(Right(x))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], Cop3[F, A1, A2, A3]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod3.lifta0F[F, A1, A2, A3].apply(x)
+        case Right(Left(x)) => Prod3.lifta1F[F, A1, A2, A3].apply(x)
+        case Right(Right(x)) => Prod3.lifta2F[F, A1, A2, A3].apply(x)
+      })
 
     implicit def Cop3Optional0[F[_], A1, A2, A3]: Optional[Cop3[F, A1, A2, A3], F[A1]] =
       Optional[Cop3[F, A1, A2, A3], F[A1]](c => c.run match {

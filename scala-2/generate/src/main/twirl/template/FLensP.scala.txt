@@ -10,6 +10,6 @@
     @{tpes.prodName}Lens@{z.index}[Id, @{tpes.tpeParams}]
 } else {
   implicit def @{tpes.prodName}Lens@{z.index}[F[_], @{tpes.tpeParams}]: Lens[@tpes.prodTpe, F[@z.focus]] =
-    Lens[@{tpes.prodTpe}, @aT](p => p@{tpes.prodAccess(z.index + 1)})(x => p =>
+    Lens[@{tpes.prodTpe}, @aT](p => p@{tpes.prodAccess(z.index + 1)})(x => @tpes.foldLen01("_")("p") =>
       @{tpes.prodTpe}(@{z.prodAccesses("p").updated(z.index, "x").mkTuple}))
 }

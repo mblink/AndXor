@@ -21,17 +21,17 @@ object syntax {
   implicit class TpesOps(tpes: LS) {
     def copName = s"Cop${tpes.length}"
     def copTpeDef = s"$copName[F[_], $tpeParams]"
-    def copTpeF(F: String) = foldLen01(s"$F[$tpeParams]")(s"$copName[$F, $tpeParams]")
+    def copTpeF(F: String) = s"$copName[$F, $tpeParams]"
     def copTpe = copTpeF("F")
 
-    def wrapCopVal(v: String, F: String = "F"): String = foldLen01(v)(s"${copTpeF(F)}($v)")
+    def wrapCopVal(v: String, F: String = "F"): String = s"${copTpeF(F)}($v)"
 
     def prodName = s"Prod${tpes.length}"
     def prodTpeDef = s"$prodName[F[_], $tpeParams]"
-    def prodTpeF(F: String) = foldLen01(s"$F[$tpeParams]")(s"$prodName[$F, $tpeParams]")
+    def prodTpeF(F: String) = s"$prodName[$F, $tpeParams]"
     def prodTpe = prodTpeF("F")
 
-    def wrapProdVal(v: String, F: String = "F"): String = foldLen01(v)(s"${prodTpeF(F)}($v)")
+    def wrapProdVal(v: String, F: String = "F"): String = s"${prodTpeF(F)}($v)"
 
     def djBase(wrapTpe: String => String): String =
       tpes.init.foldRight(wrapTpe(tpes.last))((e, a) => s"Either[${wrapTpe(e)}, $a]")

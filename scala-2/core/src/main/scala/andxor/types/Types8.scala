@@ -178,6 +178,17 @@ object Types8 {
       Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, t.t2, t.t3, t.t4, t.t5, t.t6, t.t7, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Vector[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Inj.instance(p => Vector(
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Left(p.t1)),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Left(p.t2))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Left(p.t3)))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Left(p.t4))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Left(p.t5)))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Left(p.t6))))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Right(Left(p.t7)))))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Right(Right(p.t8))))))))))
+
     implicit def Prod8Lens0[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] =
       Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]](p => p.t1)(x => p =>
         Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8)))
@@ -344,6 +355,18 @@ object Types8 {
 
     implicit def inja7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A8]] =
       Inj.instance(x => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Right(Right(x)))))))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod8.lifta0F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Left(x)) => Prod8.lifta1F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Left(x))) => Prod8.lifta2F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Left(x)))) => Prod8.lifta3F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Left(x))))) => Prod8.lifta4F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Right(Left(x)))))) => Prod8.lifta5F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Right(Right(Left(x))))))) => Prod8.lifta6F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Right(Right(Right(x))))))) => Prod8.lifta7F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+      })
 
     implicit def Cop8Optional0[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Optional[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] =
       Optional[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]](c => c.run match {

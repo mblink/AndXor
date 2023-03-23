@@ -12,6 +12,6 @@
   implicit def @{tpes.copName}Optional@{z.index}[F[_], @{tpes.tpeParams}]: Optional[@tpes.copTpe, F[@z.focus]] =
     Optional[@{tpes.copTpe}, @aT](c => c.run match {
       case @z.djVal("x") => Some(x)
-      case _ => None
+      @tpes.foldLen01("")("case _ => None")
     })(x => _ => @{tpes.copTpe}(@z.djVal("x")))
 }

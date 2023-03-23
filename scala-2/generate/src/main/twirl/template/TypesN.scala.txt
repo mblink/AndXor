@@ -3,11 +3,10 @@
 @(tpes: List[String])
 
 import andxor._
-import andxor.either._
-import andxor.tuple._
+@tpes.foldLen01("")("import andxor.either._\nimport andxor.tuple._\n")
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
-import cats.syntax.either._
+@tpes.foldLen01("")("import cats.syntax.either._\n")
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso
@@ -69,6 +68,12 @@ object Types@{tpes.length} {
     }
 
     @tpes.zipper(template.txt.Lift(_, false))
+
+    implicit def injProdToVecCop[F[_], @{tpes.tpeParams}]: Inj[Vector[@tpes.copTpe], @tpes.prodTpe] =
+      Inj.instance(p => Vector(
+        @tpes.zipper(z => s"${tpes.copTpe}(${z.djVal(s"p.t${z.index + 1}")})").mkString(",\n        ")
+      ))
+
     @tpes.zipper(template.txt.FLensP(_, false))
   }
 
@@ -99,6 +104,12 @@ object Types@{tpes.length} {
       }
 
     @tpes.zipper(template.txt.Inj(_, false))
+
+    implicit def injCopToProd[F[_], @{tpes.tpeParams}]@{tpes.foldLen01("")(s"(implicit M: Monoid[${tpes.prodTpe}])")}: Inj[@tpes.prodTpe, @tpes.copTpe] =
+      Inj.instance(_.run match {
+        @tpes.zipper(z => s"case ${z.djVal("x")} => ${tpes.prodName}.lifta${z.index}F[F, ${tpes.tpeParams}].apply(x)").mkString("\n        ")
+      })
+
     @tpes.zipper(template.txt.FLensC(_, false))
   }
 
