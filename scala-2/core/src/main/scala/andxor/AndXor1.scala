@@ -1,8 +1,13 @@
 package andxor
 
-import cats.{Apply, Id, Monoid}
+import andxor.types._
+
+import cats.{Apply, Id}
 
 trait AndXorNested1[A1[_[_]]] extends AndXor {
+
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXorNested2[FConst[B]#T, A1] = AndXorNested2[FConst[B]#T, A1]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested2[B, A1] = AndXorNested2[B, A1]
 
   def apply[B1]: AndXorNested2[A1, FConst[B1]#T] = AndXorNested2[A1, FConst[B1]#T]
   def nest[B1[_[_]]]: AndXorNested2[A1, B1] = AndXorNested2[A1, B1]
@@ -67,12 +72,12 @@ trait AndXorNested1[A1[_[_]]] extends AndXor {
   def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21]: AndXorNested22[A1, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T, FConst[B15]#T, FConst[B16]#T, FConst[B17]#T, FConst[B18]#T, FConst[B19]#T, FConst[B20]#T, FConst[B21]#T] = AndXorNested22[A1, FConst[B1]#T, FConst[B2]#T, FConst[B3]#T, FConst[B4]#T, FConst[B5]#T, FConst[B6]#T, FConst[B7]#T, FConst[B8]#T, FConst[B9]#T, FConst[B10]#T, FConst[B11]#T, FConst[B12]#T, FConst[B13]#T, FConst[B14]#T, FConst[B15]#T, FConst[B16]#T, FConst[B17]#T, FConst[B18]#T, FConst[B19]#T, FConst[B20]#T, FConst[B21]#T]
   def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]], B15[_[_]], B16[_[_]], B17[_[_]], B18[_[_]], B19[_[_]], B20[_[_]], B21[_[_]]]: AndXorNested22[A1, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21] = AndXorNested22[A1, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21]
 
-  type Prod[F[_]] = Id[A1[F]]
+  type Prod[F[_]] = Prod1[Id, A1[F]]
   object Prod {
     def apply[F[_]](p: A1[F]): Prod[F] = p
   }
 
-  type Cop[F[_]] = Id[A1[F]]
+  type Cop[F[_]] = Cop1[Id, A1[F]]
   object Cop {
     def apply[F[_]](c: A1[F]): Cop[F] = c
   }
@@ -81,27 +86,19 @@ trait AndXorNested1[A1[_[_]]] extends AndXor {
 
     new AndXorDeriving[TC, Cop[F], Prod[F]] {
       def mkChoose[B](f: B => Cop[F])(implicit d: Decidable[TC]): TC[B] =
-        d.contramap(t0)(f)
+        d.contramap(t0)(f(_).run)
 
       def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[TC]): TC[B] =
-        a.map(t0)(f)
+        a.map(t0)(x => f(Cop1[Id, A1[F]](x)))
 
       def mkDivide[B](f: B => Prod[F])(implicit a: Divide[TC]): TC[B] =
-        a.contramap(t0)(f)
+        a.contramap(t0)(f(_).run)
 
       def mkApply[B](f: Prod[F] => B)(implicit a: Apply[TC]): TC[B] =
-        a.map(t0)(f)
+        a.map(t0)(x => f(Prod1[Id, A1[F]](x)))
     }
 
   def derivingId[TC[_]](implicit t0: TC[A1[Id]]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
-
-  object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = injEv[F]
-    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = injEv[F]
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = Inj.instance(Vector(_))
-  }
-
 }
 
 object AndXorNested1 {
@@ -110,6 +107,9 @@ object AndXorNested1 {
 }
 
 trait AndXor1[A1] extends AndXor {
+
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXor2[B, A1] = AndXor2[B, A1]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested2[B, FConst[A1]#T] = AndXorNested2[B, FConst[A1]#T]
 
   def apply[B1]: AndXor2[A1, B1] = AndXor2[A1, B1]
   def nest[B1[_[_]]]: AndXorNested2[FConst[A1]#T, B1] = AndXorNested2[FConst[A1]#T, B1]
@@ -174,41 +174,33 @@ trait AndXor1[A1] extends AndXor {
   def apply[B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21]: AndXor22[A1, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21] = AndXor22[A1, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21]
   def nest[B1[_[_]], B2[_[_]], B3[_[_]], B4[_[_]], B5[_[_]], B6[_[_]], B7[_[_]], B8[_[_]], B9[_[_]], B10[_[_]], B11[_[_]], B12[_[_]], B13[_[_]], B14[_[_]], B15[_[_]], B16[_[_]], B17[_[_]], B18[_[_]], B19[_[_]], B20[_[_]], B21[_[_]]]: AndXorNested22[FConst[A1]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21] = AndXorNested22[FConst[A1]#T, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, B18, B19, B20, B21]
 
-  type Prod[F[_]] = F[A1]
+  type Prod[F[_]] = Prod1[F, A1]
   object Prod {
-    def apply[F[_]](p: F[A1]): Prod[F] = p
+    def apply[F[_]](p: F[A1]): Prod[F] = Prod1[F, A1](p)
   }
 
-  type Cop[F[_]] = F[A1]
+  type Cop[F[_]] = Cop1[F, A1]
   object Cop {
-    def apply[F[_]](c: F[A1]): Cop[F] = c
+    def apply[F[_]](c: F[A1]): Cop[F] = Cop1[F, A1](c)
   }
 
   def deriving[TC[_], F[_]](implicit t0: TC[F[A1]]): AndXorDeriving[TC, Cop[F], Prod[F]] =
 
     new AndXorDeriving[TC, Cop[F], Prod[F]] {
       def mkChoose[B](f: B => Cop[F])(implicit d: Decidable[TC]): TC[B] =
-        d.contramap(t0)(f)
+        d.contramap(t0)(f(_).run)
 
       def mkAlt[B](f: Cop[F] => B)(implicit a: Alt[TC]): TC[B] =
-        a.map(t0)(f)
+        a.map(t0)(x => f(Cop1[F, A1](x)))
 
       def mkDivide[B](f: B => Prod[F])(implicit a: Divide[TC]): TC[B] =
-        a.contramap(t0)(f)
+        a.contramap(t0)(f(_).run)
 
       def mkApply[B](f: Prod[F] => B)(implicit a: Apply[TC]): TC[B] =
-        a.map(t0)(f)
+        a.map(t0)(x => f(Prod1[F, A1](x)))
     }
 
   def derivingId[TC[_]](implicit t0: TC[A1]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
-
-  object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = injEv[F]
-    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = injEv[F]
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = Inj.instance(Vector(_))
-  }
-
 }
 
 object AndXor1 {

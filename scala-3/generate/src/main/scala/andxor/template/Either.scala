@@ -18,14 +18,14 @@ ${tpeLists.map { case (tpes, i) =>
     }
   }
 
-  given optionalE$i[${(tpes :+ "T").mkString(", ")}]: Optional[${(tpes :+ "T").mkString(" |: ")}, A$i] =
+  implicit def optionalE$i[${(tpes :+ "T").mkString(", ")}]: Optional[${(tpes :+ "T").mkString(" |: ")}, A$i] =
     Optional((_: ${(tpes :+ "T").mkString(" |: ")}) match {
       case ${either("a")} => Some(a)
       case _ => None
     })((a: A$i) => (_: ${(tpes :+ "T").mkString(" |: ")}).map$i(_ => a))
 
   ${if (i == 1) "" else s"""
-  given optionalE${i}Last[${tpes.mkString(", ")}]: Optional[${tpes.mkString(" |: ")}, A$i] =
+  implicit def optionalE${i}Last[${tpes.mkString(", ")}]: Optional[${tpes.mkString(" |: ")}, A$i] =
     Optional((_: ${tpes.mkString(" |: ")}) match {
       case ${eitherLast("a")} => Some(a)
       case _ => None

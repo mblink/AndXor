@@ -1,6 +1,8 @@
 package andxor.types
 
 import andxor._
+import andxor.either._
+import andxor.tuple._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
@@ -26,55 +28,39 @@ object Types8 {
     def t7: F[A7] = run._7
     def t8: F[A8] = run._8
 
-    private def mapN = new Map8P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]] {}
+    private def mapN = new Tuple8Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]](run)
 
-    def map1[B](f: F[A1] => F[B]): Prod8[F, B, A2, A3, A4, A5, A6, A7, A8] =
-      Prod8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.map1(run)(f))
+    def map1[B](f: F[A1] => F[B]): Prod8[F, B, A2, A3, A4, A5, A6, A7, A8] = {
+      Prod8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.map1(f))
+    }
 
-    def mapAt[B](f: F[A1] => F[B]): Prod8[F, B, A2, A3, A4, A5, A6, A7, A8] =
-      Prod8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+    def map2[B](f: F[A2] => F[B]): Prod8[F, A1, B, A3, A4, A5, A6, A7, A8] = {
+      Prod8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.map2(f))
+    }
 
-    def map2[B](f: F[A2] => F[B]): Prod8[F, A1, B, A3, A4, A5, A6, A7, A8] =
-      Prod8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.map2(run)(f))
+    def map3[B](f: F[A3] => F[B]): Prod8[F, A1, A2, B, A4, A5, A6, A7, A8] = {
+      Prod8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.map3(f))
+    }
 
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Prod8[F, A1, B, A3, A4, A5, A6, A7, A8] =
-      Prod8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+    def map4[B](f: F[A4] => F[B]): Prod8[F, A1, A2, A3, B, A5, A6, A7, A8] = {
+      Prod8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.map4(f))
+    }
 
-    def map3[B](f: F[A3] => F[B]): Prod8[F, A1, A2, B, A4, A5, A6, A7, A8] =
-      Prod8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.map3(run)(f))
+    def map5[B](f: F[A5] => F[B]): Prod8[F, A1, A2, A3, A4, B, A6, A7, A8] = {
+      Prod8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.map5(f))
+    }
 
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Prod8[F, A1, A2, B, A4, A5, A6, A7, A8] =
-      Prod8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+    def map6[B](f: F[A6] => F[B]): Prod8[F, A1, A2, A3, A4, A5, B, A7, A8] = {
+      Prod8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.map6(f))
+    }
 
-    def map4[B](f: F[A4] => F[B]): Prod8[F, A1, A2, A3, B, A5, A6, A7, A8] =
-      Prod8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.map4(run)(f))
+    def map7[B](f: F[A7] => F[B]): Prod8[F, A1, A2, A3, A4, A5, A6, B, A8] = {
+      Prod8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.map7(f))
+    }
 
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Prod8[F, A1, A2, A3, B, A5, A6, A7, A8] =
-      Prod8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.mapAt(f)(run))
-
-    def map5[B](f: F[A5] => F[B]): Prod8[F, A1, A2, A3, A4, B, A6, A7, A8] =
-      Prod8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Prod8[F, A1, A2, A3, A4, B, A6, A7, A8] =
-      Prod8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.mapAt(f)(run))
-
-    def map6[B](f: F[A6] => F[B]): Prod8[F, A1, A2, A3, A4, A5, B, A7, A8] =
-      Prod8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.map6(run)(f))
-
-    def mapAt[B](f: F[A6] => F[B])(implicit d: Dummy6): Prod8[F, A1, A2, A3, A4, A5, B, A7, A8] =
-      Prod8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.mapAt(f)(run))
-
-    def map7[B](f: F[A7] => F[B]): Prod8[F, A1, A2, A3, A4, A5, A6, B, A8] =
-      Prod8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.map7(run)(f))
-
-    def mapAt[B](f: F[A7] => F[B])(implicit d: Dummy7): Prod8[F, A1, A2, A3, A4, A5, A6, B, A8] =
-      Prod8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.mapAt(f)(run))
-
-    def map8[B](f: F[A8] => F[B]): Prod8[F, A1, A2, A3, A4, A5, A6, A7, B] =
-      Prod8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.map8(run)(f))
-
-    def mapAt[B](f: F[A8] => F[B])(implicit d: Dummy8): Prod8[F, A1, A2, A3, A4, A5, A6, A7, B] =
-      Prod8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.mapAt(f)(run))
+    def map8[B](f: F[A8] => F[B]): Prod8[F, A1, A2, A3, A4, A5, A6, A7, B] = {
+      Prod8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.map8(f))
+    }
 
   }
 
@@ -194,6 +180,17 @@ object Types8 {
       Inj.instance(x => Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((t.t1, t.t2, t.t3, t.t4, t.t5, t.t6, t.t7, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Vector[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]], Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Inj.instance(p => Vector(
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Left(p.t1)),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Left(p.t2))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Left(p.t3)))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Left(p.t4))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Left(p.t5)))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Left(p.t6))))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Right(Left(p.t7)))))))),
+        Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Right(Right(p.t8))))))))))
+
     implicit def Prod8Lens0[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] =
       Lens[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]](p => p.t1)(x => p =>
         Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]((x, p.t2, p.t3, p.t4, p.t5, p.t6, p.t7, p.t8)))
@@ -281,55 +278,31 @@ object Types8 {
   }
 
   @newtype case class Cop8[F[_], A1, A2, A3, A4, A5, A6, A7, A8](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], Either[F[A6], Either[F[A7], F[A8]]]]]]]]) {
-    private def mapN = new Map8C[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]] {}
+    private def mapN = new Either8Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop8[F, B, A2, A3, A4, A5, A6, A7, A8] =
-      Cop8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.map1(run)(f))
-
-    def mapAt[B](f: F[A1] => F[B]): Cop8[F, B, A2, A3, A4, A5, A6, A7, A8] =
-      Cop8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+      Cop8[F, B, A2, A3, A4, A5, A6, A7, A8](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop8[F, A1, B, A3, A4, A5, A6, A7, A8] =
-      Cop8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.map2(run)(f))
-
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Cop8[F, A1, B, A3, A4, A5, A6, A7, A8] =
-      Cop8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+      Cop8[F, A1, B, A3, A4, A5, A6, A7, A8](mapN.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop8[F, A1, A2, B, A4, A5, A6, A7, A8] =
-      Cop8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Cop8[F, A1, A2, B, A4, A5, A6, A7, A8] =
-      Cop8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.mapAt(f)(run))
+      Cop8[F, A1, A2, B, A4, A5, A6, A7, A8](mapN.map3(f))
 
     def map4[B](f: F[A4] => F[B]): Cop8[F, A1, A2, A3, B, A5, A6, A7, A8] =
-      Cop8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.map4(run)(f))
-
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Cop8[F, A1, A2, A3, B, A5, A6, A7, A8] =
-      Cop8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.mapAt(f)(run))
+      Cop8[F, A1, A2, A3, B, A5, A6, A7, A8](mapN.map4(f))
 
     def map5[B](f: F[A5] => F[B]): Cop8[F, A1, A2, A3, A4, B, A6, A7, A8] =
-      Cop8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Cop8[F, A1, A2, A3, A4, B, A6, A7, A8] =
-      Cop8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.mapAt(f)(run))
+      Cop8[F, A1, A2, A3, A4, B, A6, A7, A8](mapN.map5(f))
 
     def map6[B](f: F[A6] => F[B]): Cop8[F, A1, A2, A3, A4, A5, B, A7, A8] =
-      Cop8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.map6(run)(f))
-
-    def mapAt[B](f: F[A6] => F[B])(implicit d: Dummy6): Cop8[F, A1, A2, A3, A4, A5, B, A7, A8] =
-      Cop8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.mapAt(f)(run))
+      Cop8[F, A1, A2, A3, A4, A5, B, A7, A8](mapN.map6(f))
 
     def map7[B](f: F[A7] => F[B]): Cop8[F, A1, A2, A3, A4, A5, A6, B, A8] =
-      Cop8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.map7(run)(f))
-
-    def mapAt[B](f: F[A7] => F[B])(implicit d: Dummy7): Cop8[F, A1, A2, A3, A4, A5, A6, B, A8] =
-      Cop8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.mapAt(f)(run))
+      Cop8[F, A1, A2, A3, A4, A5, A6, B, A8](mapN.map7(f))
 
     def map8[B](f: F[A8] => F[B]): Cop8[F, A1, A2, A3, A4, A5, A6, A7, B] =
-      Cop8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.map8(run)(f))
-
-    def mapAt[B](f: F[A8] => F[B])(implicit d: Dummy8): Cop8[F, A1, A2, A3, A4, A5, A6, A7, B] =
-      Cop8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.mapAt(f)(run))
+      Cop8[F, A1, A2, A3, A4, A5, A6, A7, B](mapN.map8(f))
 
   }
 
@@ -385,6 +358,18 @@ object Types8 {
 
     implicit def inja7F[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Inj[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A8]] =
       Inj.instance(x => Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8](Right(Right(Right(Right(Right(Right(Right(x)))))))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3, A4, A5, A6, A7, A8](implicit M: Monoid[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8]]): Inj[Prod8[F, A1, A2, A3, A4, A5, A6, A7, A8], Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod8.lifta0F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Left(x)) => Prod8.lifta1F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Left(x))) => Prod8.lifta2F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Left(x)))) => Prod8.lifta3F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Left(x))))) => Prod8.lifta4F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Right(Left(x)))))) => Prod8.lifta5F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Right(Right(Left(x))))))) => Prod8.lifta6F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+        case Right(Right(Right(Right(Right(Right(Right(x))))))) => Prod8.lifta7F[F, A1, A2, A3, A4, A5, A6, A7, A8].apply(x)
+      })
 
     implicit def Cop8Optional0[F[_], A1, A2, A3, A4, A5, A6, A7, A8]: Optional[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]] =
       Optional[Cop8[F, A1, A2, A3, A4, A5, A6, A7, A8], F[A1]](c => c.run match {

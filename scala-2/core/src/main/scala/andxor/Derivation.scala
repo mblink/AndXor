@@ -5,6 +5,26 @@ import monocle.Iso
 
 object derivation {
 
+  trait Derivation1C[A1] {
+    val axo = AndXor1[A1]
+
+    def deriveCovariant[TC[_], F[_], A](iso: Iso[A, axo.Cop[F]])(implicit F: Alt[TC], t0: TC[F[A1]]): TC[A] =
+      F.map(axo.deriving[TC, F].alt)(iso.reverseGet(_))
+
+    def deriveContravariant[TC[_], F[_], A](iso: Iso[A, axo.Cop[F]])(implicit F: Decidable[TC], t0: TC[F[A1]]): TC[A] =
+      F.contramap(axo.deriving[TC, F].choose)(iso.get(_))
+  }
+
+  trait Derivation1P[A1] {
+    val axo = AndXor1[A1]
+
+    def deriveCovariant[TC[_], F[_], A](iso: Iso[A, axo.Prod[F]])(implicit F: Apply[TC], t0: TC[F[A1]]): TC[A] =
+      F.map(axo.deriving[TC, F].apply)(iso.reverseGet(_))
+
+    def deriveContravariant[TC[_], F[_], A](iso: Iso[A, axo.Prod[F]])(implicit F: Divide[TC], t0: TC[F[A1]]): TC[A] =
+      F.contramap(axo.deriving[TC, F].divide)(iso.get(_))
+  }
+
   trait Derivation2C[A1, A2] {
     val axo = AndXor2[A1, A2]
 
@@ -426,6 +446,26 @@ object derivation {
   }
 
   object ops {
+
+    implicit class Derivation1COps[A, A1, F[_]](iso: Iso[A, AndXor1[A1]#Cop[F]]) {
+      val derive = new Derivation1C[A1] {}
+
+      def deriveCovariant[TC[_]](implicit F: Alt[TC], t0: TC[F[A1]]): TC[A] =
+        derive.deriveCovariant[TC, F, A](iso)
+
+      def deriveContravariant[TC[_]](implicit F: Decidable[TC], t0: TC[F[A1]]): TC[A] =
+        derive.deriveContravariant[TC, F, A](iso)
+    }
+
+    implicit class Derivation1POps[A, A1, F[_]](iso: Iso[A, AndXor1[A1]#Prod[F]]) {
+      val derive = new Derivation1P[A1] {}
+
+      def deriveCovariant[TC[_]](implicit F: Apply[TC], t0: TC[F[A1]]): TC[A] =
+        derive.deriveCovariant[TC, F, A](iso)
+
+      def deriveContravariant[TC[_]](implicit F: Divide[TC], t0: TC[F[A1]]): TC[A] =
+        derive.deriveContravariant[TC, F, A](iso)
+    }
 
     implicit class Derivation2COps[A, A1, A2, F[_]](iso: Iso[A, AndXor2[A1, A2]#Cop[F]]) {
       val derive = new Derivation2C[A1, A2] {}

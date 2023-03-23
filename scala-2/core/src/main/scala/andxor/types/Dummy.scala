@@ -2,6 +2,7 @@ package andxor.types
 
 trait Dummy {
 
+  sealed trait Dummy1; object Dummy1 { implicit val inst: Dummy1 = new Dummy1 {} }
   sealed trait Dummy2; object Dummy2 { implicit val inst: Dummy2 = new Dummy2 {} }
   sealed trait Dummy3; object Dummy3 { implicit val inst: Dummy3 = new Dummy3 {} }
   sealed trait Dummy4; object Dummy4 { implicit val inst: Dummy4 = new Dummy4 {} }

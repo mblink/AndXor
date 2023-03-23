@@ -1,4 +1,4 @@
-import andxor.MapN.syntax._
+import andxor.tuple._
 import cats.{~>, Applicative, MonoidK}
 
 package object andxor {
@@ -22,4 +22,7 @@ package object andxor {
 
   type Labelled[A, L] = labelled.Labelled[A, L]
   val Labelled: labelled.Labelled.type = labelled.Labelled
+
+  @inline def axo[A]: AndXor1[A] = AndXor[A]
+  @inline def axoN[A[_[_]]]: AndXorNested1[A] = AndXorNested1[A]
 }

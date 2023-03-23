@@ -1,6 +1,8 @@
 package andxor.types
 
 import andxor._
+import andxor.either._
+import andxor.tuple._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
@@ -23,37 +25,27 @@ object Types5 {
     def t4: F[A4] = run._4
     def t5: F[A5] = run._5
 
-    private def mapN = new Map5P[F[A1], F[A2], F[A3], F[A4], F[A5]] {}
+    private def mapN = new Tuple5Ops[F[A1], F[A2], F[A3], F[A4], F[A5]](run)
 
-    def map1[B](f: F[A1] => F[B]): Prod5[F, B, A2, A3, A4, A5] =
-      Prod5[F, B, A2, A3, A4, A5](mapN.map1(run)(f))
+    def map1[B](f: F[A1] => F[B]): Prod5[F, B, A2, A3, A4, A5] = {
+      Prod5[F, B, A2, A3, A4, A5](mapN.map1(f))
+    }
 
-    def mapAt[B](f: F[A1] => F[B]): Prod5[F, B, A2, A3, A4, A5] =
-      Prod5[F, B, A2, A3, A4, A5](mapN.mapAt(f)(run))
+    def map2[B](f: F[A2] => F[B]): Prod5[F, A1, B, A3, A4, A5] = {
+      Prod5[F, A1, B, A3, A4, A5](mapN.map2(f))
+    }
 
-    def map2[B](f: F[A2] => F[B]): Prod5[F, A1, B, A3, A4, A5] =
-      Prod5[F, A1, B, A3, A4, A5](mapN.map2(run)(f))
+    def map3[B](f: F[A3] => F[B]): Prod5[F, A1, A2, B, A4, A5] = {
+      Prod5[F, A1, A2, B, A4, A5](mapN.map3(f))
+    }
 
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Prod5[F, A1, B, A3, A4, A5] =
-      Prod5[F, A1, B, A3, A4, A5](mapN.mapAt(f)(run))
+    def map4[B](f: F[A4] => F[B]): Prod5[F, A1, A2, A3, B, A5] = {
+      Prod5[F, A1, A2, A3, B, A5](mapN.map4(f))
+    }
 
-    def map3[B](f: F[A3] => F[B]): Prod5[F, A1, A2, B, A4, A5] =
-      Prod5[F, A1, A2, B, A4, A5](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Prod5[F, A1, A2, B, A4, A5] =
-      Prod5[F, A1, A2, B, A4, A5](mapN.mapAt(f)(run))
-
-    def map4[B](f: F[A4] => F[B]): Prod5[F, A1, A2, A3, B, A5] =
-      Prod5[F, A1, A2, A3, B, A5](mapN.map4(run)(f))
-
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Prod5[F, A1, A2, A3, B, A5] =
-      Prod5[F, A1, A2, A3, B, A5](mapN.mapAt(f)(run))
-
-    def map5[B](f: F[A5] => F[B]): Prod5[F, A1, A2, A3, A4, B] =
-      Prod5[F, A1, A2, A3, A4, B](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Prod5[F, A1, A2, A3, A4, B] =
-      Prod5[F, A1, A2, A3, A4, B](mapN.mapAt(f)(run))
+    def map5[B](f: F[A5] => F[B]): Prod5[F, A1, A2, A3, A4, B] = {
+      Prod5[F, A1, A2, A3, A4, B](mapN.map5(f))
+    }
 
   }
 
@@ -143,6 +135,14 @@ object Types5 {
       Inj.instance(x => Prod5[F, A1, A2, A3, A4, A5]((t.t1, t.t2, t.t3, t.t4, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3, A4, A5]: Inj[Vector[Cop5[F, A1, A2, A3, A4, A5]], Prod5[F, A1, A2, A3, A4, A5]] =
+      Inj.instance(p => Vector(
+        Cop5[F, A1, A2, A3, A4, A5](Left(p.t1)),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Left(p.t2))),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Right(Left(p.t3)))),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Left(p.t4))))),
+        Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Right(p.t5)))))))
+
     implicit def Prod5Lens0[F[_], A1, A2, A3, A4, A5]: Lens[Prod5[F, A1, A2, A3, A4, A5], F[A1]] =
       Lens[Prod5[F, A1, A2, A3, A4, A5], F[A1]](p => p.t1)(x => p =>
         Prod5[F, A1, A2, A3, A4, A5]((x, p.t2, p.t3, p.t4, p.t5)))
@@ -200,37 +200,22 @@ object Types5 {
   }
 
   @newtype case class Cop5[F[_], A1, A2, A3, A4, A5](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], F[A5]]]]]) {
-    private def mapN = new Map5C[F[A1], F[A2], F[A3], F[A4], F[A5]] {}
+    private def mapN = new Either5Ops[F[A1], F[A2], F[A3], F[A4], F[A5]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop5[F, B, A2, A3, A4, A5] =
-      Cop5[F, B, A2, A3, A4, A5](mapN.map1(run)(f))
-
-    def mapAt[B](f: F[A1] => F[B]): Cop5[F, B, A2, A3, A4, A5] =
-      Cop5[F, B, A2, A3, A4, A5](mapN.mapAt(f)(run))
+      Cop5[F, B, A2, A3, A4, A5](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop5[F, A1, B, A3, A4, A5] =
-      Cop5[F, A1, B, A3, A4, A5](mapN.map2(run)(f))
-
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Cop5[F, A1, B, A3, A4, A5] =
-      Cop5[F, A1, B, A3, A4, A5](mapN.mapAt(f)(run))
+      Cop5[F, A1, B, A3, A4, A5](mapN.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop5[F, A1, A2, B, A4, A5] =
-      Cop5[F, A1, A2, B, A4, A5](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Cop5[F, A1, A2, B, A4, A5] =
-      Cop5[F, A1, A2, B, A4, A5](mapN.mapAt(f)(run))
+      Cop5[F, A1, A2, B, A4, A5](mapN.map3(f))
 
     def map4[B](f: F[A4] => F[B]): Cop5[F, A1, A2, A3, B, A5] =
-      Cop5[F, A1, A2, A3, B, A5](mapN.map4(run)(f))
-
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Cop5[F, A1, A2, A3, B, A5] =
-      Cop5[F, A1, A2, A3, B, A5](mapN.mapAt(f)(run))
+      Cop5[F, A1, A2, A3, B, A5](mapN.map4(f))
 
     def map5[B](f: F[A5] => F[B]): Cop5[F, A1, A2, A3, A4, B] =
-      Cop5[F, A1, A2, A3, A4, B](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Cop5[F, A1, A2, A3, A4, B] =
-      Cop5[F, A1, A2, A3, A4, B](mapN.mapAt(f)(run))
+      Cop5[F, A1, A2, A3, A4, B](mapN.map5(f))
 
   }
 
@@ -271,6 +256,15 @@ object Types5 {
 
     implicit def inja4F[F[_], A1, A2, A3, A4, A5]: Inj[Cop5[F, A1, A2, A3, A4, A5], F[A5]] =
       Inj.instance(x => Cop5[F, A1, A2, A3, A4, A5](Right(Right(Right(Right(x))))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3, A4, A5](implicit M: Monoid[Prod5[F, A1, A2, A3, A4, A5]]): Inj[Prod5[F, A1, A2, A3, A4, A5], Cop5[F, A1, A2, A3, A4, A5]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod5.lifta0F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Left(x)) => Prod5.lifta1F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Right(Left(x))) => Prod5.lifta2F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Right(Right(Left(x)))) => Prod5.lifta3F[F, A1, A2, A3, A4, A5].apply(x)
+        case Right(Right(Right(Right(x)))) => Prod5.lifta4F[F, A1, A2, A3, A4, A5].apply(x)
+      })
 
     implicit def Cop5Optional0[F[_], A1, A2, A3, A4, A5]: Optional[Cop5[F, A1, A2, A3, A4, A5], F[A1]] =
       Optional[Cop5[F, A1, A2, A3, A4, A5], F[A1]](c => c.run match {

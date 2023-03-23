@@ -1,12 +1,15 @@
 package andxor
 
+import andxor.types._
 import andxor.syntax.ffunctor._
 import andxor.syntax.ftraverse._
-import andxor.types._
 import cats.syntax.either._
-import cats.{Applicative, Apply, Functor, Id, Monoid, MonoidK, ~>}
+import cats.{Applicative, Apply, Functor, Id, MonoidK, ~>}
 
 trait AndXorNested5[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]] extends AndXor {
+
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXorNested6[FConst[B]#T, A1, A2, A3, A4, A5] = AndXorNested6[FConst[B]#T, A1, A2, A3, A4, A5]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested6[B, A1, A2, A3, A4, A5] = AndXorNested6[B, A1, A2, A3, A4, A5]
 
   def apply[B1]: AndXorNested6[A1, A2, A3, A4, A5, FConst[B1]#T] = AndXorNested6[A1, A2, A3, A4, A5, FConst[B1]#T]
   def nest[B1[_[_]]]: AndXorNested6[A1, A2, A3, A4, A5, B1] = AndXorNested6[A1, A2, A3, A4, A5, B1]
@@ -165,14 +168,6 @@ trait AndXorNested5[A1[_[_]], A2[_[_]], A3[_[_]], A4[_[_]], A5[_[_]]] extends An
     }
 
   def derivingId[TC[_]](implicit t0: TC[A1[Id]], t1: TC[A2[Id]], t2: TC[A3[Id]], t3: TC[A4[Id]], t4: TC[A5[Id]]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
-
-  object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = deriving[Inj[Prod[F], *], F].divide
-    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = deriving[Inj[Prod[F], *], F].choose
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], *], F].divide
-  }
-
 }
 
 object AndXorNested5 {
@@ -181,6 +176,9 @@ object AndXorNested5 {
 }
 
 trait AndXor5[A1, A2, A3, A4, A5] extends AndXor {
+
+  def *:[B](@annotation.unused a: AndXor1[B]): AndXor6[B, A1, A2, A3, A4, A5] = AndXor6[B, A1, A2, A3, A4, A5]
+  def *:[B[_[_]]](@annotation.unused a: AndXorNested1[B]): AndXorNested6[B, FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T] = AndXorNested6[B, FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T]
 
   def apply[B1]: AndXor6[A1, A2, A3, A4, A5, B1] = AndXor6[A1, A2, A3, A4, A5, B1]
   def nest[B1[_[_]]]: AndXorNested6[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, B1] = AndXorNested6[FConst[A1]#T, FConst[A2]#T, FConst[A3]#T, FConst[A4]#T, FConst[A5]#T, B1]
@@ -265,14 +263,6 @@ trait AndXor5[A1, A2, A3, A4, A5] extends AndXor {
     }
 
   def derivingId[TC[_]](implicit t0: TC[A1], t1: TC[A2], t2: TC[A3], t3: TC[A4], t4: TC[A5]): AndXorDeriving[TC, Cop[Id], Prod[Id]] = deriving[TC, Id]
-
-  object evidence extends AndXorEvidence[Cop, Prod] {
-    implicit def injEv[F[_]]: Inj[Cop[F], Cop[F]] = Inj.id[Cop[F]]
-    implicit def liftEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Prod[F]] = deriving[Inj[Prod[F], *], F].divide
-    implicit def injCopToProdEv[F[_]](implicit M: Monoid[Prod[F]]): Inj[Prod[F], Cop[F]] = deriving[Inj[Prod[F], *], F].choose
-    implicit def injProdToVecCopEv[F[_]]: Inj[Vector[Cop[F]], Prod[F]] = deriving[Inj[Vector[Cop[F]], *], F].divide
-  }
-
 }
 
 object AndXor5 {

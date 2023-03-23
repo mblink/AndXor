@@ -1,6 +1,8 @@
 package andxor.types
 
 import andxor._
+import andxor.either._
+import andxor.tuple._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
@@ -21,25 +23,19 @@ object Types3 {
     def t2: F[A2] = run._2
     def t3: F[A3] = run._3
 
-    private def mapN = new Map3P[F[A1], F[A2], F[A3]] {}
+    private def mapN = new Tuple3Ops[F[A1], F[A2], F[A3]](run)
 
-    def map1[B](f: F[A1] => F[B]): Prod3[F, B, A2, A3] =
-      Prod3[F, B, A2, A3](mapN.map1(run)(f))
+    def map1[B](f: F[A1] => F[B]): Prod3[F, B, A2, A3] = {
+      Prod3[F, B, A2, A3](mapN.map1(f))
+    }
 
-    def mapAt[B](f: F[A1] => F[B]): Prod3[F, B, A2, A3] =
-      Prod3[F, B, A2, A3](mapN.mapAt(f)(run))
+    def map2[B](f: F[A2] => F[B]): Prod3[F, A1, B, A3] = {
+      Prod3[F, A1, B, A3](mapN.map2(f))
+    }
 
-    def map2[B](f: F[A2] => F[B]): Prod3[F, A1, B, A3] =
-      Prod3[F, A1, B, A3](mapN.map2(run)(f))
-
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Prod3[F, A1, B, A3] =
-      Prod3[F, A1, B, A3](mapN.mapAt(f)(run))
-
-    def map3[B](f: F[A3] => F[B]): Prod3[F, A1, A2, B] =
-      Prod3[F, A1, A2, B](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Prod3[F, A1, A2, B] =
-      Prod3[F, A1, A2, B](mapN.mapAt(f)(run))
+    def map3[B](f: F[A3] => F[B]): Prod3[F, A1, A2, B] = {
+      Prod3[F, A1, A2, B](mapN.map3(f))
+    }
 
   }
 
@@ -109,6 +105,12 @@ object Types3 {
       Inj.instance(x => Prod3[F, A1, A2, A3]((t.t1, t.t2, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3]: Inj[Vector[Cop3[F, A1, A2, A3]], Prod3[F, A1, A2, A3]] =
+      Inj.instance(p => Vector(
+        Cop3[F, A1, A2, A3](Left(p.t1)),
+        Cop3[F, A1, A2, A3](Right(Left(p.t2))),
+        Cop3[F, A1, A2, A3](Right(Right(p.t3)))))
+
     implicit def Prod3Lens0[F[_], A1, A2, A3]: Lens[Prod3[F, A1, A2, A3], F[A1]] =
       Lens[Prod3[F, A1, A2, A3], F[A1]](p => p.t1)(x => p =>
         Prod3[F, A1, A2, A3]((x, p.t2, p.t3)))
@@ -146,25 +148,16 @@ object Types3 {
   }
 
   @newtype case class Cop3[F[_], A1, A2, A3](run: Either[F[A1], Either[F[A2], F[A3]]]) {
-    private def mapN = new Map3C[F[A1], F[A2], F[A3]] {}
+    private def mapN = new Either3Ops[F[A1], F[A2], F[A3]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop3[F, B, A2, A3] =
-      Cop3[F, B, A2, A3](mapN.map1(run)(f))
-
-    def mapAt[B](f: F[A1] => F[B]): Cop3[F, B, A2, A3] =
-      Cop3[F, B, A2, A3](mapN.mapAt(f)(run))
+      Cop3[F, B, A2, A3](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop3[F, A1, B, A3] =
-      Cop3[F, A1, B, A3](mapN.map2(run)(f))
-
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Cop3[F, A1, B, A3] =
-      Cop3[F, A1, B, A3](mapN.mapAt(f)(run))
+      Cop3[F, A1, B, A3](mapN.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop3[F, A1, A2, B] =
-      Cop3[F, A1, A2, B](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Cop3[F, A1, A2, B] =
-      Cop3[F, A1, A2, B](mapN.mapAt(f)(run))
+      Cop3[F, A1, A2, B](mapN.map3(f))
 
   }
 
@@ -195,6 +188,13 @@ object Types3 {
 
     implicit def inja2F[F[_], A1, A2, A3]: Inj[Cop3[F, A1, A2, A3], F[A3]] =
       Inj.instance(x => Cop3[F, A1, A2, A3](Right(Right(x))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3](implicit M: Monoid[Prod3[F, A1, A2, A3]]): Inj[Prod3[F, A1, A2, A3], Cop3[F, A1, A2, A3]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod3.lifta0F[F, A1, A2, A3].apply(x)
+        case Right(Left(x)) => Prod3.lifta1F[F, A1, A2, A3].apply(x)
+        case Right(Right(x)) => Prod3.lifta2F[F, A1, A2, A3].apply(x)
+      })
 
     implicit def Cop3Optional0[F[_], A1, A2, A3]: Optional[Cop3[F, A1, A2, A3], F[A1]] =
       Optional[Cop3[F, A1, A2, A3], F[A1]](c => c.run match {

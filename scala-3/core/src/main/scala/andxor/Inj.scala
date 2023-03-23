@@ -19,14 +19,14 @@ trait InjLP {
 
   given divideInj[Prod](using S: Semigroup[Prod]): Divide[Inj[Prod, *]] = new DivideInj[Prod] { val G = S }
 
-  inline given aToTuple1[A]: Inj[A *: EmptyTuple, A] =
+  given aToTuple1[A]: Inj[A *: EmptyTuple, A] =
     Inj.instance(_ *: EmptyTuple)
 
-  inline given tuple1ToVectorA[A]: Inj[Vector[A], A *: EmptyTuple] =
+  given tuple1ToVectorA[A]: Inj[Vector[A], A *: EmptyTuple] =
     Inj.instance { case a *: _ => Vector(a) }
 }
 
-object Inj extends InjLP {
+object Inj extends InjLP with TupleInj {
   inline def apply[Cop, A](using ev: Inj[Cop, A]): Inj[Cop, A] = ev
 
   def instance[A, B](ab: A => B): Inj[B, A] = new Inj[B, A] {
@@ -35,14 +35,14 @@ object Inj extends InjLP {
 
   private final val idInst: Inj[Any, Any] = instance(identity)
 
-  inline given id[A]: Inj[A, A] = idInst.asInstanceOf[Inj[A, A]]
+  given id[A]: Inj[A, A] = idInst.asInstanceOf[Inj[A, A]]
 
-  inline given injEitherLeft[L, R]: Inj[L |: R, L] = instance(Left(_: L))
+  given injEitherLeft[L, R]: Inj[L |: R, L] = instance(Left(_: L))
 
-  inline given injEitherRight[L, R, A](using i: Inj[R, A]): Inj[L |: R, A] =
+  given injEitherRight[L, R, A](using i: Inj[R, A]): Inj[L |: R, A] =
     instance((a: A) => Right(i(a)))
 
-  inline given eitherToTupleN[L, R, T <: Tuple](
+  given eitherToTupleN[L, R, T <: Tuple](
     using injR: Inj[T, R],
     M: Monoid[L *: T]
   ): Inj[L *: T, L |: R] =
@@ -51,7 +51,7 @@ object Inj extends InjLP {
       case Right(r) => M.empty.head *: injR(r)
     }
 
-  inline given tupleNToVectorEither[H, T <: Tuple, R](
+  given tupleNToVectorEither[H, T <: Tuple, R](
     using injT: Inj[Vector[R], T],
   ): Inj[Vector[H |: R], H *: T] =
     Inj.instance { case h *: t => Left(h) +: injT(t).map(Right(_)) }

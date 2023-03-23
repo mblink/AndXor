@@ -1,6 +1,8 @@
 package andxor.types
 
 import andxor._
+import andxor.either._
+import andxor.tuple._
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
@@ -24,43 +26,31 @@ object Types6 {
     def t5: F[A5] = run._5
     def t6: F[A6] = run._6
 
-    private def mapN = new Map6P[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]] {}
+    private def mapN = new Tuple6Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]](run)
 
-    def map1[B](f: F[A1] => F[B]): Prod6[F, B, A2, A3, A4, A5, A6] =
-      Prod6[F, B, A2, A3, A4, A5, A6](mapN.map1(run)(f))
+    def map1[B](f: F[A1] => F[B]): Prod6[F, B, A2, A3, A4, A5, A6] = {
+      Prod6[F, B, A2, A3, A4, A5, A6](mapN.map1(f))
+    }
 
-    def mapAt[B](f: F[A1] => F[B]): Prod6[F, B, A2, A3, A4, A5, A6] =
-      Prod6[F, B, A2, A3, A4, A5, A6](mapN.mapAt(f)(run))
+    def map2[B](f: F[A2] => F[B]): Prod6[F, A1, B, A3, A4, A5, A6] = {
+      Prod6[F, A1, B, A3, A4, A5, A6](mapN.map2(f))
+    }
 
-    def map2[B](f: F[A2] => F[B]): Prod6[F, A1, B, A3, A4, A5, A6] =
-      Prod6[F, A1, B, A3, A4, A5, A6](mapN.map2(run)(f))
+    def map3[B](f: F[A3] => F[B]): Prod6[F, A1, A2, B, A4, A5, A6] = {
+      Prod6[F, A1, A2, B, A4, A5, A6](mapN.map3(f))
+    }
 
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Prod6[F, A1, B, A3, A4, A5, A6] =
-      Prod6[F, A1, B, A3, A4, A5, A6](mapN.mapAt(f)(run))
+    def map4[B](f: F[A4] => F[B]): Prod6[F, A1, A2, A3, B, A5, A6] = {
+      Prod6[F, A1, A2, A3, B, A5, A6](mapN.map4(f))
+    }
 
-    def map3[B](f: F[A3] => F[B]): Prod6[F, A1, A2, B, A4, A5, A6] =
-      Prod6[F, A1, A2, B, A4, A5, A6](mapN.map3(run)(f))
+    def map5[B](f: F[A5] => F[B]): Prod6[F, A1, A2, A3, A4, B, A6] = {
+      Prod6[F, A1, A2, A3, A4, B, A6](mapN.map5(f))
+    }
 
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Prod6[F, A1, A2, B, A4, A5, A6] =
-      Prod6[F, A1, A2, B, A4, A5, A6](mapN.mapAt(f)(run))
-
-    def map4[B](f: F[A4] => F[B]): Prod6[F, A1, A2, A3, B, A5, A6] =
-      Prod6[F, A1, A2, A3, B, A5, A6](mapN.map4(run)(f))
-
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Prod6[F, A1, A2, A3, B, A5, A6] =
-      Prod6[F, A1, A2, A3, B, A5, A6](mapN.mapAt(f)(run))
-
-    def map5[B](f: F[A5] => F[B]): Prod6[F, A1, A2, A3, A4, B, A6] =
-      Prod6[F, A1, A2, A3, A4, B, A6](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Prod6[F, A1, A2, A3, A4, B, A6] =
-      Prod6[F, A1, A2, A3, A4, B, A6](mapN.mapAt(f)(run))
-
-    def map6[B](f: F[A6] => F[B]): Prod6[F, A1, A2, A3, A4, A5, B] =
-      Prod6[F, A1, A2, A3, A4, A5, B](mapN.map6(run)(f))
-
-    def mapAt[B](f: F[A6] => F[B])(implicit d: Dummy6): Prod6[F, A1, A2, A3, A4, A5, B] =
-      Prod6[F, A1, A2, A3, A4, A5, B](mapN.mapAt(f)(run))
+    def map6[B](f: F[A6] => F[B]): Prod6[F, A1, A2, A3, A4, A5, B] = {
+      Prod6[F, A1, A2, A3, A4, A5, B](mapN.map6(f))
+    }
 
   }
 
@@ -160,6 +150,15 @@ object Types6 {
       Inj.instance(x => Prod6[F, A1, A2, A3, A4, A5, A6]((t.t1, t.t2, t.t3, t.t4, t.t5, x)))
     }
 
+    implicit def injProdToVecCop[F[_], A1, A2, A3, A4, A5, A6]: Inj[Vector[Cop6[F, A1, A2, A3, A4, A5, A6]], Prod6[F, A1, A2, A3, A4, A5, A6]] =
+      Inj.instance(p => Vector(
+        Cop6[F, A1, A2, A3, A4, A5, A6](Left(p.t1)),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Left(p.t2))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Left(p.t3)))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Left(p.t4))))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Right(Left(p.t5)))))),
+        Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Right(Right(p.t6))))))))
+
     implicit def Prod6Lens0[F[_], A1, A2, A3, A4, A5, A6]: Lens[Prod6[F, A1, A2, A3, A4, A5, A6], F[A1]] =
       Lens[Prod6[F, A1, A2, A3, A4, A5, A6], F[A1]](p => p.t1)(x => p =>
         Prod6[F, A1, A2, A3, A4, A5, A6]((x, p.t2, p.t3, p.t4, p.t5, p.t6)))
@@ -227,43 +226,25 @@ object Types6 {
   }
 
   @newtype case class Cop6[F[_], A1, A2, A3, A4, A5, A6](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], F[A6]]]]]]) {
-    private def mapN = new Map6C[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]] {}
+    private def mapN = new Either6Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop6[F, B, A2, A3, A4, A5, A6] =
-      Cop6[F, B, A2, A3, A4, A5, A6](mapN.map1(run)(f))
-
-    def mapAt[B](f: F[A1] => F[B]): Cop6[F, B, A2, A3, A4, A5, A6] =
-      Cop6[F, B, A2, A3, A4, A5, A6](mapN.mapAt(f)(run))
+      Cop6[F, B, A2, A3, A4, A5, A6](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop6[F, A1, B, A3, A4, A5, A6] =
-      Cop6[F, A1, B, A3, A4, A5, A6](mapN.map2(run)(f))
-
-    def mapAt[B](f: F[A2] => F[B])(implicit d: Dummy2): Cop6[F, A1, B, A3, A4, A5, A6] =
-      Cop6[F, A1, B, A3, A4, A5, A6](mapN.mapAt(f)(run))
+      Cop6[F, A1, B, A3, A4, A5, A6](mapN.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop6[F, A1, A2, B, A4, A5, A6] =
-      Cop6[F, A1, A2, B, A4, A5, A6](mapN.map3(run)(f))
-
-    def mapAt[B](f: F[A3] => F[B])(implicit d: Dummy3): Cop6[F, A1, A2, B, A4, A5, A6] =
-      Cop6[F, A1, A2, B, A4, A5, A6](mapN.mapAt(f)(run))
+      Cop6[F, A1, A2, B, A4, A5, A6](mapN.map3(f))
 
     def map4[B](f: F[A4] => F[B]): Cop6[F, A1, A2, A3, B, A5, A6] =
-      Cop6[F, A1, A2, A3, B, A5, A6](mapN.map4(run)(f))
-
-    def mapAt[B](f: F[A4] => F[B])(implicit d: Dummy4): Cop6[F, A1, A2, A3, B, A5, A6] =
-      Cop6[F, A1, A2, A3, B, A5, A6](mapN.mapAt(f)(run))
+      Cop6[F, A1, A2, A3, B, A5, A6](mapN.map4(f))
 
     def map5[B](f: F[A5] => F[B]): Cop6[F, A1, A2, A3, A4, B, A6] =
-      Cop6[F, A1, A2, A3, A4, B, A6](mapN.map5(run)(f))
-
-    def mapAt[B](f: F[A5] => F[B])(implicit d: Dummy5): Cop6[F, A1, A2, A3, A4, B, A6] =
-      Cop6[F, A1, A2, A3, A4, B, A6](mapN.mapAt(f)(run))
+      Cop6[F, A1, A2, A3, A4, B, A6](mapN.map5(f))
 
     def map6[B](f: F[A6] => F[B]): Cop6[F, A1, A2, A3, A4, A5, B] =
-      Cop6[F, A1, A2, A3, A4, A5, B](mapN.map6(run)(f))
-
-    def mapAt[B](f: F[A6] => F[B])(implicit d: Dummy6): Cop6[F, A1, A2, A3, A4, A5, B] =
-      Cop6[F, A1, A2, A3, A4, A5, B](mapN.mapAt(f)(run))
+      Cop6[F, A1, A2, A3, A4, A5, B](mapN.map6(f))
 
   }
 
@@ -309,6 +290,16 @@ object Types6 {
 
     implicit def inja5F[F[_], A1, A2, A3, A4, A5, A6]: Inj[Cop6[F, A1, A2, A3, A4, A5, A6], F[A6]] =
       Inj.instance(x => Cop6[F, A1, A2, A3, A4, A5, A6](Right(Right(Right(Right(Right(x)))))))
+
+    implicit def injCopToProd[F[_], A1, A2, A3, A4, A5, A6](implicit M: Monoid[Prod6[F, A1, A2, A3, A4, A5, A6]]): Inj[Prod6[F, A1, A2, A3, A4, A5, A6], Cop6[F, A1, A2, A3, A4, A5, A6]] =
+      Inj.instance(_.run match {
+        case Left(x) => Prod6.lifta0F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Left(x)) => Prod6.lifta1F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Left(x))) => Prod6.lifta2F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Right(Left(x)))) => Prod6.lifta3F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Right(Right(Left(x))))) => Prod6.lifta4F[F, A1, A2, A3, A4, A5, A6].apply(x)
+        case Right(Right(Right(Right(Right(x))))) => Prod6.lifta5F[F, A1, A2, A3, A4, A5, A6].apply(x)
+      })
 
     implicit def Cop6Optional0[F[_], A1, A2, A3, A4, A5, A6]: Optional[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]] =
       Optional[Cop6[F, A1, A2, A3, A4, A5, A6], F[A1]](c => c.run match {

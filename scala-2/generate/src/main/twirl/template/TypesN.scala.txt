@@ -3,9 +3,10 @@
 @(tpes: List[String])
 
 import andxor._
+@tpes.foldLen01("")("import andxor.either._\nimport andxor.tuple._")
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
-import cats.syntax.either._
+@tpes.foldLen01("")("import cats.syntax.either._")
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso
@@ -22,7 +23,7 @@ object Types@{tpes.length} {
     @template.txt.TupleAccess("run", tpes.map(t => s"F[$t]"))
 
     @if(tpes.length > 1) {
-    private def mapN = new Map@{tpes.length}P[@{tpes.map(t => s"F[$t]").tpeParams}] {}
+    private def mapN = new Tuple@{tpes.length}Ops[@{tpes.map(t => s"F[$t]").tpeParams}](run)
     @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
     }
   }
@@ -68,6 +69,12 @@ object Types@{tpes.length} {
     }
 
     @tpes.zipper(template.txt.Lift(_, false))
+
+    implicit def injProdToVecCop[F[_], @{tpes.tpeParams}]: Inj[Vector[@tpes.copTpe], @tpes.prodTpe] =
+      Inj.instance(p => Vector(
+        @tpes.zipper(z => s"${tpes.copTpe}(${z.djVal(s"p.t${z.index + 1}")})").mkString(",\n        ")
+      ))
+
     @tpes.zipper(template.txt.FLensP(_, false))
   }
 
@@ -79,7 +86,7 @@ object Types@{tpes.length} {
   }
 
   @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{if (tpes.length <= 1) "" else s""" {
-    private def mapN = new Map${tpes.length}C[${tpes.map(t => s"F[$t]").tpeParams}] {}
+    private def mapN = new Either${tpes.length}Ops[${tpes.map(t => s"F[$t]").tpeParams}](run)
     ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
   }"""}
 
@@ -99,6 +106,12 @@ object Types@{tpes.length} {
       }
 
     @tpes.zipper(template.txt.Inj(_, false))
+
+    implicit def injCopToProd[F[_], @{tpes.tpeParams}]@{tpes.foldLen01("")(s"(implicit M: Monoid[${tpes.prodTpe}])")}: Inj[@tpes.prodTpe, @tpes.copTpe] =
+      Inj.instance(_.run match {
+        @tpes.zipper(z => s"case ${z.djVal("x")} => ${tpes.prodName}.lifta${z.index}F[F, ${tpes.tpeParams}].apply(x)").mkString("\n        ")
+      })
+
     @tpes.zipper(template.txt.FLensC(_, false))
   }
 

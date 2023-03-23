@@ -8,9 +8,11 @@
 @origT = { F[@z.focus] }
 @modT = { F[@mod(z.index)] }
 
-  def map@{z.index + 1}[@{B}](f: @{prod.fold(origT, z.focus)} => @{prod.fold(modT, "B")}): @{prod.fold(mod.prodTpe, mod.prod)} =
-    @z.wrapProdOrTuple(prod)(s"mapN.map${z.index + 1}(${prod.fold("run", "p")})(f)")
-
-  def mapAt[@{B}](f: @{prod.fold(origT, z.focus)} => @{prod.fold(modT, "B")})@{Some(z.lefts.toList).filter(_.nonEmpty).fold("")(
-    _ => z.dummyImpl(prod))}: @{prod.fold(mod.prodTpe, mod.prod)} =
-    @z.wrapProdOrTuple(prod)(s"mapN.map${prod.fold("At(f)(run)", s"${z.index + 1}(p)(f)")}")
+  def map@{z.index + 1}[@{B}](f: @{prod.fold(origT, z.focus)} => @{prod.fold(modT, "B")}): @{prod.fold(mod.prodTpe, mod.prod)} = {
+    @if(prod) { @z.wrapProdOrTuple(prod)(s"${prod.fold("mapN.", "")}map${z.index + 1}(f)") } else {
+    @{z.toList.tupleVals("a", "t", "    ")}
+    @{z.toList.paramList("a")
+      .updated(z.index, s"f(${z.toList.paramList("a")(z.index)})")
+      .mkTuple}
+    }
+  }

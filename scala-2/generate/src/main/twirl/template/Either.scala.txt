@@ -1,0 +1,13 @@
+@import andxor.syntax._
+
+@(tpeLists: List[List[String]])
+
+import cats.syntax.either._
+
+object either {
+  @tpeLists.filter(_.length > 1).map { tpes =>
+  final implicit class Either@{tpes.length}Ops[@{tpes.tpeParams}](private val c: @{tpes.dj}) extends AnyVal {
+    @{tpes.zipper(template.txt.MapNCOp(_, false)).mkString("\n")}
+  }
+  }
+}
