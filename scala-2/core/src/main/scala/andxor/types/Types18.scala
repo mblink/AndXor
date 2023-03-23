@@ -3,11 +3,9 @@ package andxor.types
 import andxor._
 import andxor.either._
 import andxor.tuple._
-
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
-
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso

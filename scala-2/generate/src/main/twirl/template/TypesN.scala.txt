@@ -3,10 +3,10 @@
 @(tpes: List[String])
 
 import andxor._
-@tpes.foldLen01("")("import andxor.either._\nimport andxor.tuple._\n")
+@tpes.foldLen01("")("import andxor.either._\nimport andxor.tuple._")
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
-@tpes.foldLen01("")("import cats.syntax.either._\n")
+@tpes.foldLen01("")("import cats.syntax.either._")
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso
