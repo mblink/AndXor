@@ -3,9 +3,11 @@ package andxor.types
 import andxor._
 import andxor.either._
 import andxor.tuple._
+
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
+
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso
@@ -35,64 +37,66 @@ object Types15 {
     def t14: F[A14] = run._14
     def t15: F[A15] = run._15
 
+    private def mapN = new Tuple15Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15]](run)
+
     def map1[B](f: F[A1] => F[B]): Prod15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map1(f))
+      Prod15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map1(f))
     }
 
     def map2[B](f: F[A2] => F[B]): Prod15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map2(f))
+      Prod15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map2(f))
     }
 
     def map3[B](f: F[A3] => F[B]): Prod15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map3(f))
+      Prod15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map3(f))
     }
 
     def map4[B](f: F[A4] => F[B]): Prod15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map4(f))
+      Prod15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map4(f))
     }
 
     def map5[B](f: F[A5] => F[B]): Prod15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map5(f))
+      Prod15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map5(f))
     }
 
     def map6[B](f: F[A6] => F[B]): Prod15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map6(f))
+      Prod15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map6(f))
     }
 
     def map7[B](f: F[A7] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15](run.map7(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map7(f))
     }
 
     def map8[B](f: F[A8] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15](run.map8(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15](mapN.map8(f))
     }
 
     def map9[B](f: F[A9] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15](run.map9(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15](mapN.map9(f))
     }
 
     def map10[B](f: F[A10] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15](run.map10(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15](mapN.map10(f))
     }
 
     def map11[B](f: F[A11] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15](run.map11(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15](mapN.map11(f))
     }
 
     def map12[B](f: F[A12] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15](run.map12(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15](mapN.map12(f))
     }
 
     def map13[B](f: F[A13] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15](run.map13(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15](mapN.map13(f))
     }
 
     def map14[B](f: F[A14] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15](run.map14(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15](mapN.map14(f))
     }
 
     def map15[B](f: F[A15] => F[B]): Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B] = {
-      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B](run.map15(f))
+      Prod15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B](mapN.map15(f))
     }
 
   }
@@ -458,51 +462,52 @@ object Types15 {
   }
 
   @newtype case class Cop15[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], Either[F[A6], Either[F[A7], Either[F[A8], Either[F[A9], Either[F[A10], Either[F[A11], Either[F[A12], Either[F[A13], Either[F[A14], F[A15]]]]]]]]]]]]]]]) {
+    private def mapN = new Either15Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9], F[A10], F[A11], F[A12], F[A13], F[A14], F[A15]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map1(f))
+      Cop15[F, B, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map2(f))
+      Cop15[F, A1, B, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map3(f))
+      Cop15[F, A1, A2, B, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map3(f))
 
     def map4[B](f: F[A4] => F[B]): Cop15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map4(f))
+      Cop15[F, A1, A2, A3, B, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map4(f))
 
     def map5[B](f: F[A5] => F[B]): Cop15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map5(f))
+      Cop15[F, A1, A2, A3, A4, B, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map5(f))
 
     def map6[B](f: F[A6] => F[B]): Cop15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15](run.map6(f))
+      Cop15[F, A1, A2, A3, A4, A5, B, A7, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map6(f))
 
     def map7[B](f: F[A7] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15](run.map7(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, B, A8, A9, A10, A11, A12, A13, A14, A15](mapN.map7(f))
 
     def map8[B](f: F[A8] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15](run.map8(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, B, A9, A10, A11, A12, A13, A14, A15](mapN.map8(f))
 
     def map9[B](f: F[A9] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15](run.map9(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, B, A10, A11, A12, A13, A14, A15](mapN.map9(f))
 
     def map10[B](f: F[A10] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15](run.map10(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, B, A11, A12, A13, A14, A15](mapN.map10(f))
 
     def map11[B](f: F[A11] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15](run.map11(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, B, A12, A13, A14, A15](mapN.map11(f))
 
     def map12[B](f: F[A12] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15](run.map12(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, B, A13, A14, A15](mapN.map12(f))
 
     def map13[B](f: F[A13] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15](run.map13(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, B, A14, A15](mapN.map13(f))
 
     def map14[B](f: F[A14] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15](run.map14(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, B, A15](mapN.map14(f))
 
     def map15[B](f: F[A15] => F[B]): Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B] =
-      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B](run.map15(f))
+      Cop15[F, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B](mapN.map15(f))
 
   }
 

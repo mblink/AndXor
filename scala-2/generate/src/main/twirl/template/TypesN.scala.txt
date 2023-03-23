@@ -23,6 +23,7 @@ object Types@{tpes.length} {
     @template.txt.TupleAccess("run", tpes.map(t => s"F[$t]"))
 
     @if(tpes.length > 1) {
+    private def mapN = new Tuple@{tpes.length}Ops[@{tpes.map(t => s"F[$t]").tpeParams}](run)
     @{tpes.zipper(template.txt.MapNPOp(_, true)).mkString("\n")}
     }
   }
@@ -85,6 +86,7 @@ object Types@{tpes.length} {
   }
 
   @@newtype case class @{tpes.copTpeDef}(run: @{tpes.djK("F")})@{if (tpes.length <= 1) "" else s""" {
+    private def mapN = new Either${tpes.length}Ops[${tpes.map(t => s"F[$t]").tpeParams}](run)
     ${tpes.zipper(template.txt.MapNCOp(_, true)).mkString("\n")}
   }"""}
 

@@ -3,9 +3,11 @@ package andxor.types
 import andxor._
 import andxor.either._
 import andxor.tuple._
+
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
+
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso
@@ -29,40 +31,42 @@ object Types9 {
     def t8: F[A8] = run._8
     def t9: F[A9] = run._9
 
+    private def mapN = new Tuple9Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9]](run)
+
     def map1[B](f: F[A1] => F[B]): Prod9[F, B, A2, A3, A4, A5, A6, A7, A8, A9] = {
-      Prod9[F, B, A2, A3, A4, A5, A6, A7, A8, A9](run.map1(f))
+      Prod9[F, B, A2, A3, A4, A5, A6, A7, A8, A9](mapN.map1(f))
     }
 
     def map2[B](f: F[A2] => F[B]): Prod9[F, A1, B, A3, A4, A5, A6, A7, A8, A9] = {
-      Prod9[F, A1, B, A3, A4, A5, A6, A7, A8, A9](run.map2(f))
+      Prod9[F, A1, B, A3, A4, A5, A6, A7, A8, A9](mapN.map2(f))
     }
 
     def map3[B](f: F[A3] => F[B]): Prod9[F, A1, A2, B, A4, A5, A6, A7, A8, A9] = {
-      Prod9[F, A1, A2, B, A4, A5, A6, A7, A8, A9](run.map3(f))
+      Prod9[F, A1, A2, B, A4, A5, A6, A7, A8, A9](mapN.map3(f))
     }
 
     def map4[B](f: F[A4] => F[B]): Prod9[F, A1, A2, A3, B, A5, A6, A7, A8, A9] = {
-      Prod9[F, A1, A2, A3, B, A5, A6, A7, A8, A9](run.map4(f))
+      Prod9[F, A1, A2, A3, B, A5, A6, A7, A8, A9](mapN.map4(f))
     }
 
     def map5[B](f: F[A5] => F[B]): Prod9[F, A1, A2, A3, A4, B, A6, A7, A8, A9] = {
-      Prod9[F, A1, A2, A3, A4, B, A6, A7, A8, A9](run.map5(f))
+      Prod9[F, A1, A2, A3, A4, B, A6, A7, A8, A9](mapN.map5(f))
     }
 
     def map6[B](f: F[A6] => F[B]): Prod9[F, A1, A2, A3, A4, A5, B, A7, A8, A9] = {
-      Prod9[F, A1, A2, A3, A4, A5, B, A7, A8, A9](run.map6(f))
+      Prod9[F, A1, A2, A3, A4, A5, B, A7, A8, A9](mapN.map6(f))
     }
 
     def map7[B](f: F[A7] => F[B]): Prod9[F, A1, A2, A3, A4, A5, A6, B, A8, A9] = {
-      Prod9[F, A1, A2, A3, A4, A5, A6, B, A8, A9](run.map7(f))
+      Prod9[F, A1, A2, A3, A4, A5, A6, B, A8, A9](mapN.map7(f))
     }
 
     def map8[B](f: F[A8] => F[B]): Prod9[F, A1, A2, A3, A4, A5, A6, A7, B, A9] = {
-      Prod9[F, A1, A2, A3, A4, A5, A6, A7, B, A9](run.map8(f))
+      Prod9[F, A1, A2, A3, A4, A5, A6, A7, B, A9](mapN.map8(f))
     }
 
     def map9[B](f: F[A9] => F[B]): Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, B] = {
-      Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, B](run.map9(f))
+      Prod9[F, A1, A2, A3, A4, A5, A6, A7, A8, B](mapN.map9(f))
     }
 
   }
@@ -302,33 +306,34 @@ object Types9 {
   }
 
   @newtype case class Cop9[F[_], A1, A2, A3, A4, A5, A6, A7, A8, A9](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], Either[F[A6], Either[F[A7], Either[F[A8], F[A9]]]]]]]]]) {
+    private def mapN = new Either9Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7], F[A8], F[A9]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop9[F, B, A2, A3, A4, A5, A6, A7, A8, A9] =
-      Cop9[F, B, A2, A3, A4, A5, A6, A7, A8, A9](run.map1(f))
+      Cop9[F, B, A2, A3, A4, A5, A6, A7, A8, A9](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop9[F, A1, B, A3, A4, A5, A6, A7, A8, A9] =
-      Cop9[F, A1, B, A3, A4, A5, A6, A7, A8, A9](run.map2(f))
+      Cop9[F, A1, B, A3, A4, A5, A6, A7, A8, A9](mapN.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop9[F, A1, A2, B, A4, A5, A6, A7, A8, A9] =
-      Cop9[F, A1, A2, B, A4, A5, A6, A7, A8, A9](run.map3(f))
+      Cop9[F, A1, A2, B, A4, A5, A6, A7, A8, A9](mapN.map3(f))
 
     def map4[B](f: F[A4] => F[B]): Cop9[F, A1, A2, A3, B, A5, A6, A7, A8, A9] =
-      Cop9[F, A1, A2, A3, B, A5, A6, A7, A8, A9](run.map4(f))
+      Cop9[F, A1, A2, A3, B, A5, A6, A7, A8, A9](mapN.map4(f))
 
     def map5[B](f: F[A5] => F[B]): Cop9[F, A1, A2, A3, A4, B, A6, A7, A8, A9] =
-      Cop9[F, A1, A2, A3, A4, B, A6, A7, A8, A9](run.map5(f))
+      Cop9[F, A1, A2, A3, A4, B, A6, A7, A8, A9](mapN.map5(f))
 
     def map6[B](f: F[A6] => F[B]): Cop9[F, A1, A2, A3, A4, A5, B, A7, A8, A9] =
-      Cop9[F, A1, A2, A3, A4, A5, B, A7, A8, A9](run.map6(f))
+      Cop9[F, A1, A2, A3, A4, A5, B, A7, A8, A9](mapN.map6(f))
 
     def map7[B](f: F[A7] => F[B]): Cop9[F, A1, A2, A3, A4, A5, A6, B, A8, A9] =
-      Cop9[F, A1, A2, A3, A4, A5, A6, B, A8, A9](run.map7(f))
+      Cop9[F, A1, A2, A3, A4, A5, A6, B, A8, A9](mapN.map7(f))
 
     def map8[B](f: F[A8] => F[B]): Cop9[F, A1, A2, A3, A4, A5, A6, A7, B, A9] =
-      Cop9[F, A1, A2, A3, A4, A5, A6, A7, B, A9](run.map8(f))
+      Cop9[F, A1, A2, A3, A4, A5, A6, A7, B, A9](mapN.map8(f))
 
     def map9[B](f: F[A9] => F[B]): Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, B] =
-      Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, B](run.map9(f))
+      Cop9[F, A1, A2, A3, A4, A5, A6, A7, A8, B](mapN.map9(f))
 
   }
 

@@ -3,9 +3,11 @@ package andxor.types
 import andxor._
 import andxor.either._
 import andxor.tuple._
+
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
+
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso
@@ -27,32 +29,34 @@ object Types7 {
     def t6: F[A6] = run._6
     def t7: F[A7] = run._7
 
+    private def mapN = new Tuple7Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7]](run)
+
     def map1[B](f: F[A1] => F[B]): Prod7[F, B, A2, A3, A4, A5, A6, A7] = {
-      Prod7[F, B, A2, A3, A4, A5, A6, A7](run.map1(f))
+      Prod7[F, B, A2, A3, A4, A5, A6, A7](mapN.map1(f))
     }
 
     def map2[B](f: F[A2] => F[B]): Prod7[F, A1, B, A3, A4, A5, A6, A7] = {
-      Prod7[F, A1, B, A3, A4, A5, A6, A7](run.map2(f))
+      Prod7[F, A1, B, A3, A4, A5, A6, A7](mapN.map2(f))
     }
 
     def map3[B](f: F[A3] => F[B]): Prod7[F, A1, A2, B, A4, A5, A6, A7] = {
-      Prod7[F, A1, A2, B, A4, A5, A6, A7](run.map3(f))
+      Prod7[F, A1, A2, B, A4, A5, A6, A7](mapN.map3(f))
     }
 
     def map4[B](f: F[A4] => F[B]): Prod7[F, A1, A2, A3, B, A5, A6, A7] = {
-      Prod7[F, A1, A2, A3, B, A5, A6, A7](run.map4(f))
+      Prod7[F, A1, A2, A3, B, A5, A6, A7](mapN.map4(f))
     }
 
     def map5[B](f: F[A5] => F[B]): Prod7[F, A1, A2, A3, A4, B, A6, A7] = {
-      Prod7[F, A1, A2, A3, A4, B, A6, A7](run.map5(f))
+      Prod7[F, A1, A2, A3, A4, B, A6, A7](mapN.map5(f))
     }
 
     def map6[B](f: F[A6] => F[B]): Prod7[F, A1, A2, A3, A4, A5, B, A7] = {
-      Prod7[F, A1, A2, A3, A4, A5, B, A7](run.map6(f))
+      Prod7[F, A1, A2, A3, A4, A5, B, A7](mapN.map6(f))
     }
 
     def map7[B](f: F[A7] => F[B]): Prod7[F, A1, A2, A3, A4, A5, A6, B] = {
-      Prod7[F, A1, A2, A3, A4, A5, A6, B](run.map7(f))
+      Prod7[F, A1, A2, A3, A4, A5, A6, B](mapN.map7(f))
     }
 
   }
@@ -250,27 +254,28 @@ object Types7 {
   }
 
   @newtype case class Cop7[F[_], A1, A2, A3, A4, A5, A6, A7](run: Either[F[A1], Either[F[A2], Either[F[A3], Either[F[A4], Either[F[A5], Either[F[A6], F[A7]]]]]]]) {
+    private def mapN = new Either7Ops[F[A1], F[A2], F[A3], F[A4], F[A5], F[A6], F[A7]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop7[F, B, A2, A3, A4, A5, A6, A7] =
-      Cop7[F, B, A2, A3, A4, A5, A6, A7](run.map1(f))
+      Cop7[F, B, A2, A3, A4, A5, A6, A7](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop7[F, A1, B, A3, A4, A5, A6, A7] =
-      Cop7[F, A1, B, A3, A4, A5, A6, A7](run.map2(f))
+      Cop7[F, A1, B, A3, A4, A5, A6, A7](mapN.map2(f))
 
     def map3[B](f: F[A3] => F[B]): Cop7[F, A1, A2, B, A4, A5, A6, A7] =
-      Cop7[F, A1, A2, B, A4, A5, A6, A7](run.map3(f))
+      Cop7[F, A1, A2, B, A4, A5, A6, A7](mapN.map3(f))
 
     def map4[B](f: F[A4] => F[B]): Cop7[F, A1, A2, A3, B, A5, A6, A7] =
-      Cop7[F, A1, A2, A3, B, A5, A6, A7](run.map4(f))
+      Cop7[F, A1, A2, A3, B, A5, A6, A7](mapN.map4(f))
 
     def map5[B](f: F[A5] => F[B]): Cop7[F, A1, A2, A3, A4, B, A6, A7] =
-      Cop7[F, A1, A2, A3, A4, B, A6, A7](run.map5(f))
+      Cop7[F, A1, A2, A3, A4, B, A6, A7](mapN.map5(f))
 
     def map6[B](f: F[A6] => F[B]): Cop7[F, A1, A2, A3, A4, A5, B, A7] =
-      Cop7[F, A1, A2, A3, A4, A5, B, A7](run.map6(f))
+      Cop7[F, A1, A2, A3, A4, A5, B, A7](mapN.map6(f))
 
     def map7[B](f: F[A7] => F[B]): Cop7[F, A1, A2, A3, A4, A5, A6, B] =
-      Cop7[F, A1, A2, A3, A4, A5, A6, B](run.map7(f))
+      Cop7[F, A1, A2, A3, A4, A5, A6, B](mapN.map7(f))
 
   }
 

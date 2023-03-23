@@ -3,9 +3,11 @@ package andxor.types
 import andxor._
 import andxor.either._
 import andxor.tuple._
+
 import monocle.{Lens, Optional}
 import cats.{~>, Applicative, Functor, Id, Monoid, MonoidK}
 import cats.syntax.either._
+
 import cats.syntax.invariant._
 import io.estatico.newtype.macros.newtype
 import monocle.Iso
@@ -22,12 +24,14 @@ object Types2 {
     def t1: F[A1] = run._1
     def t2: F[A2] = run._2
 
+    private def mapN = new Tuple2Ops[F[A1], F[A2]](run)
+
     def map1[B](f: F[A1] => F[B]): Prod2[F, B, A2] = {
-      Prod2[F, B, A2](run.map1(f))
+      Prod2[F, B, A2](mapN.map1(f))
     }
 
     def map2[B](f: F[A2] => F[B]): Prod2[F, A1, B] = {
-      Prod2[F, A1, B](run.map2(f))
+      Prod2[F, A1, B](mapN.map2(f))
     }
 
   }
@@ -120,12 +124,13 @@ object Types2 {
   }
 
   @newtype case class Cop2[F[_], A1, A2](run: Either[F[A1], F[A2]]) {
+    private def mapN = new Either2Ops[F[A1], F[A2]](run)
 
     def map1[B](f: F[A1] => F[B]): Cop2[F, B, A2] =
-      Cop2[F, B, A2](run.map1(f))
+      Cop2[F, B, A2](mapN.map1(f))
 
     def map2[B](f: F[A2] => F[B]): Cop2[F, A1, B] =
-      Cop2[F, A1, B](run.map2(f))
+      Cop2[F, A1, B](mapN.map2(f))
 
   }
 
