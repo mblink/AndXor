@@ -1,6 +1,6 @@
 package andxor
 
-import cats.Id
+import cats.{Apply, Id}
 import cats.syntax.eq.*
 import monocle.Iso
 import scala.annotation.tailrec
@@ -55,11 +55,23 @@ sealed trait AndXorProdIso[X] extends AndXorIso {
   val iso: Iso[X, Prod[Id]]
   final lazy val isoLabelled: Iso[X, LabelledProd[Id]] = iso.asInstanceOf[Iso[X, LabelledProd[Id]]]
 
-  @inline final def deriving[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]]): AndXorDeriving[TC, Cop[Id], X] =
+  final def deriving[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]]): AndXorDeriving[TC, Cop[Id], X] =
     andxor.derivingId[TC].imapProd(iso.reverseGet)(iso.get)
 
-  @inline final def derivingLabelled[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]]): AndXorDeriving[TC, LabelledCop[Id], X] =
+  final def derivingCovariant[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]], A: Apply[TC]): TC[X] =
+    deriving[TC].apply
+
+  final def derivingContravariant[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]], D: Divide[TC]): TC[X] =
+    deriving[TC].divide
+
+  final def derivingLabelled[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]]): AndXorDeriving[TC, LabelledCop[Id], X] =
     andxorLabelled.derivingId[TC].imapProd(isoLabelled.reverseGet)(isoLabelled.get)
+
+  final def derivingLabelledCovariant[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]], A: Apply[TC]): TC[X] =
+    derivingLabelled[TC].apply
+
+  final def derivingLabelledContravariant[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]], D: Divide[TC]): TC[X] =
+    derivingLabelled[TC].divide
 }
 
 object AndXorProdIso {
@@ -99,11 +111,23 @@ sealed trait AndXorCopIso[X] extends AndXorIso {
   val iso: Iso[X, Cop[Id]]
   final lazy val isoLabelled: Iso[X, LabelledCop[Id]] = iso.asInstanceOf[Iso[X, LabelledCop[Id]]]
 
-  @inline final def deriving[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]]): AndXorDeriving[TC, X, Prod[Id]] =
+  final def deriving[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]]): AndXorDeriving[TC, X, Prod[Id]] =
     andxor.derivingId[TC].imapCop(iso.reverseGet)(iso.get)
 
-  @inline final def derivingLabelled[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]]): AndXorDeriving[TC, X, LabelledProd[Id]] =
+  final def derivingCovariant[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]], A: Alt[TC]): TC[X] =
+    deriving[TC].alt
+
+  final def derivingContravariant[TC[_]](implicit I: AndXorInstances[TC, Prod[Id]], D: Decidable[TC]): TC[X] =
+    deriving[TC].choose
+
+  final def derivingLabelled[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]]): AndXorDeriving[TC, X, LabelledProd[Id]] =
     andxorLabelled.derivingId[TC].imapCop(isoLabelled.reverseGet)(isoLabelled.get)
+
+  final def derivingLabelledCovariant[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]], A: Alt[TC]): TC[X] =
+    derivingLabelled[TC].alt
+
+  final def derivingLabelledContravariant[TC[_]](implicit I: AndXorInstances[TC, LabelledProd[Id]], D: Decidable[TC]): TC[X] =
+    derivingLabelled[TC].choose
 }
 
 object AndXorCopIso {

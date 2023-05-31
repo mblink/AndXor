@@ -343,6 +343,11 @@ object AndXorIso {
 trait AndXorProdIso[X] extends AndXorIso {
   val iso: Iso[X, Prod[Id]]
   final lazy val isoLabelled: Iso[X, LabelledProd[Id]] = iso.asInstanceOf[Iso[X, LabelledProd[Id]]]
+
+  final def derivingCovariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingCovariant[TC, X]
+  final def derivingLabelledCovariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingLabelledCovariant[TC, X]
+  final def derivingContravariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingContravariant[TC, X]
+  final def derivingLabelledContravariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingLabelledContravariant[TC, X]
 }
 
 object AndXorProdIso {
@@ -359,6 +364,11 @@ object AndXorProdIso {
 trait AndXorCopIso[X] extends AndXorIso {
   val iso: Iso[X, Cop[Id]]
   final lazy val isoLabelled: Iso[X, LabelledCop[Id]] = iso.asInstanceOf[Iso[X, LabelledCop[Id]]]
+
+  final def derivingCovariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingCovariant[TC, X]
+  final def derivingLabelledCovariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingLabelledCovariant[TC, X]
+  final def derivingContravariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingContravariant[TC, X]
+  final def derivingLabelledContravariant[TC[_]]: TC[X] = macro AndXorIso.BlackboxMacros.derivingLabelledContravariant[TC, X]
 }
 
 object AndXorCopIso {
