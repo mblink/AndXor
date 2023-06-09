@@ -29,9 +29,7 @@ sealed trait AndXor { self =>
   inline def extractP[F[_], B](p: Prod[F])(implicit l: Lens[Prod[F], B]): B = l.get(p)
 }
 
-object AndXor
-extends AndXorNTypes
-with AndXorNConstructors {
+object AndXor extends AndXorNConstructors {
   sealed trait Never
 
   sealed trait Empty extends AndXor { self =>
@@ -40,7 +38,7 @@ with AndXorNConstructors {
 
     inline final def nest[X[_[_]]]: AndXor._1Nested[X] = axoN[X]
   }
-  case object Empty
+  case object Empty extends Empty
 
   sealed trait NonEmpty extends AndXor { self =>
     inline final def nest[X[_[_]]]: AndXor.NextNested.Aux[X, self.type] =
