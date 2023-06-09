@@ -22,7 +22,7 @@ object Build extends CommonBuild {
     scalaVersion := scalaVersions.find(_.startsWith("3.")).get,
     scalacOptions ++= lintOpts ++ Seq(
       "-explain",
-      "-Yexplain-lowlevel",
+      "-no-indent",
     ),
   )
 
