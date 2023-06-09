@@ -2,7 +2,6 @@ package andxor
 
 import cats.{Apply, Id}
 import cats.syntax.eq.*
-import monocle.Iso
 import scala.annotation.tailrec
 import scala.deriving.Mirror
 import scala.compiletime.summonAll

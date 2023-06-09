@@ -1,7 +1,6 @@
 package andxor
 
 import cats.Apply
-import monocle.Iso
 
 sealed trait Derivation[Cop[_[_]], Prod[_[_]] <: Tuple] {
   private final type SelfCop[f[_]] = Cop[f]

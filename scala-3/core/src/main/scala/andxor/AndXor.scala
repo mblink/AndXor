@@ -1,7 +1,6 @@
 package andxor
 
 import cats.{Apply, Id}
-import monocle.{Lens, Optional}
 import scala.util.chaining.*
 
 // Right-associative alias for `Either` that yields more compact code and easier chaining

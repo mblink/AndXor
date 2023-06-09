@@ -25,4 +25,13 @@ package object andxor {
 
   @inline def axo[A]: AndXor1[A] = AndXor[A]
   @inline def axoN[A[_[_]]]: AndXorNested1[A] = AndXorNested1[A]
+
+  type Iso[S, A] = monocle.Iso[S, A]
+  val Iso: monocle.Iso.type = monocle.Iso
+
+  type Lens[S, A] = monocle.Lens[S, A]
+  val Lens: monocle.Lens.type = monocle.Lens
+
+  type Optional[S, A] = monocle.Optional[S, A]
+  val Optional: monocle.Optional.type = monocle.Optional
 }
