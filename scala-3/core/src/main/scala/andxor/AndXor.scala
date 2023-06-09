@@ -6,19 +6,22 @@ import scala.util.chaining.*
 // Right-associative alias for `Either` that yields more compact code and easier chaining
 type |:[L, R] = Either[L, R]
 
-inline def axo[A]: AndXor._1[A] = AndXor._1.inst[A]
-inline def axoN[A[_[_]]]: AndXor._1Nested[A] = AndXor._1Nested.inst[A]
+inline def axo[A]: AndXor1[A] = new AndXor1[A]
+inline def axoN[A[_[_]]]: AndXor1Nested[A] = new AndXor1Nested[A]
 
 sealed trait AndXor { self =>
   type Cop[F[_]]
   type Prod[F[_]] <: Tuple
 
+  protected type Self
+
   inline final def Cop[F[_]](c: Cop[F]): Cop[F] = c
   inline final def Prod[F[_]](p: Prod[F]): Prod[F] = p
 
-  inline def nest[X[_[_]]]: AndXor.MakeNextNested[X, self.type]
-  inline final def apply[X]: AndXor.MakeNextNested[FConst[X], self.type] = nest[FConst[X]]
-  inline final def *:[X[_[_]]](@annotation.unused a: AndXor._1Nested[X]): AndXor.MakeNextNested[X, self.type] = nest[X]
+  def nest[X[_[_]]]: AndXor.AppendNested[Self, X]
+  final def apply[X]: AndXor.AppendNested[Self, FConst[X]] = nest[FConst[X]]
+
+  def *:[X[_[_]]](@annotation.unused a: AndXor1Nested[X]): AndXor.PrependNested[X, Self]
 
   inline def inj[F[_], A](a: A)(implicit i: Inj[Cop[F], A]): Cop[F] = i(a)
   inline def injId[A](a: A)(implicit i: Inj[Cop[Id], Id[A]]): Cop[Id] = i(a)
@@ -28,107 +31,122 @@ sealed trait AndXor { self =>
   inline def extractP[F[_], B](p: Prod[F])(implicit l: Lens[Prod[F], B]): B = l.get(p)
 }
 
+sealed trait AndXorNever
+
+sealed trait AndXorEmpty extends AndXor { self =>
+  final type Cop[F[_]] = AndXorNever
+  final type Prod[F[_]] = EmptyTuple
+
+  protected final type Self = AndXorEmpty
+
+  @inline final def nest[X[_[_]]]: AndXor.AppendNested[Self, X] = axoN[X]
+  @inline final def *:[X[_[_]]](@annotation.unused a: AndXor1Nested[X]): AndXor.PrependNested[X, Self] = axoN[X]
+}
+case object AndXorEmpty extends AndXorEmpty
+
+sealed trait AndXorNonEmpty extends AndXor {
+  @inline def deriving[TC[_], F[_]](using i: AndXorInstances[TC, Prod[F]]): AndXorDeriving[TC, Cop[F], Prod[F]]
+  @inline final def derivingId[TC[_]](using i: AndXorInstances[TC, Prod[Id]]): AndXorDeriving[TC, Cop[Id], Prod[Id]] =
+    deriving[TC, Id]
+}
+
+class AndXor1Nested[Head[_[_]]] extends AndXorNonEmpty { self =>
+  final type Cop[F[_]] = Head[F]
+  final type Prod[F[_]] = Head[F] *: EmptyTuple
+
+  protected final type Self = AndXor1Nested[Head]
+
+  @inline final def nest[X[_[_]]]: AndXor.AppendNested[Self, X] =
+    new AndXorNextNested[Head, AndXor1Nested[X]] {
+      val prev = axoN[X]
+    }
+
+  @inline final def *:[X[_[_]]](@annotation.unused a: AndXor1Nested[X]): AndXor.PrependNested[X, Self] =
+    new AndXorNextNested[X, AndXor1Nested[Head]] {
+      val prev = self
+    }
+
+  @inline final def deriving[TC[_], F[_]](using i: AndXorInstances[TC, Prod[F]]): AndXorDeriving[TC, Cop[F], Prod[F]] =
+    new AndXorDeriving[TC, Cop[F], Prod[F]] {
+      def mkChoose[A](f: A => Cop[F])(using d: Decidable[TC]): TC[A] =
+        d.contramap(i.instances.head)(f)
+
+      def mkAlt[A](f: Cop[F] => A)(using a: Alt[TC]): TC[A] =
+        a.map(i.instances.head)(f)
+
+      def mkDivide[A](f: A => Prod[F])(using d: Divide[TC]): TC[A] =
+        d.contramap(i.instances.head)(f(_).head)
+
+      def mkApply[A](f: Prod[F] => A)(using a: Apply[TC]): TC[A] =
+        a.map(i.instances.head)(h => f(h *: EmptyTuple))
+    }
+}
+
+class AndXor1[Head] extends AndXor1Nested[FConst[Head]]
+
+object AndXor1 {
+  given inst[A]: AndXor1[A] = new AndXor1[A]
+}
+
+abstract class AndXorNextNested[Next[_[_]], Prev <: AndXorNonEmpty] extends AndXorNonEmpty { self =>
+  val prev: Prev
+
+  final type PrevCop[f[_]] = prev.Cop[f]
+  final type PrevProd[f[_]] = prev.Prod[f]
+
+  final type Cop[F[_]] = Next[F] |: PrevCop[F]
+  final type Prod[F[_]] = Next[F] *: PrevProd[F]
+  object Prod {
+    def apply[F[_]](p: Prod[F]): Prod[F] = p
+  }
+
+  protected final type Self = AndXorNextNested[Next, Prev]
+
+  @inline final def nest[X[_[_]]]: AndXor.AppendNested[Self, X] =
+    (new AndXorNextNested[Next, AndXor.AppendNested[prev.Self, X]] {
+      val prev = self.prev.nest[X]
+    }).asInstanceOf[AndXor.AppendNested[Self, X]]
+
+  @inline final def *:[X[_[_]]](@annotation.unused a: AndXor1Nested[X]): AndXor.PrependNested[X, Self] =
+    new AndXorNextNested[X, AndXorNextNested[Next, Prev]] {
+      val prev = self
+    }
+
+  @inline final def deriving[TC[_], F[_]](using i: AndXorInstances[TC, Prod[F]]): AndXorDeriving[TC, Cop[F], Prod[F]] =
+    new AndXorDeriving[TC, Cop[F], Prod[F]] {
+      private lazy val headInstance = i.instances.head
+      private lazy implicit val tailInstances: AndXorInstances[TC, PrevProd[F]] = AndXorInstances(i.instances.tail)
+      private lazy val tailDeriving = prev.deriving[TC, F]
+
+      def mkChoose[A](f: A => Cop[F])(using d: Decidable[TC]): TC[A] =
+        d.choose2(headInstance, tailDeriving.choose)(f)
+
+      def mkAlt[A](f: Cop[F] => A)(using a: Alt[TC]): TC[A] =
+        a.altly2(headInstance, tailDeriving.alt)(f)
+
+      def mkDivide[A](f: A => Prod[F])(using d: Divide[TC]): TC[A] =
+        d.divide2(headInstance, tailDeriving.divide)(f(_).pipe(t => (t.head, t.tail)))
+
+      def mkApply[A](f: Prod[F] => A)(using a: Apply[TC]): TC[A] =
+        a.map2(headInstance, tailDeriving.apply)((h, t) => f(h *: t))
+    }
+}
+
+abstract class AndXorNext[Next, Prev <: AndXorNonEmpty] extends AndXorNextNested[FConst[Next], Prev]
+
 object AndXor extends AndXorNConstructors {
-  sealed trait Never
-
-  sealed trait Empty extends AndXor { self =>
-    final type Cop[F[_]] = Never
-    final type Prod[F[_]] = EmptyTuple
-
-    inline final def nest[X[_[_]]]: AndXor._1Nested[X] = axoN[X]
-  }
-  case object Empty extends Empty
-
-  sealed trait NonEmpty extends AndXor { self =>
-    inline final def nest[X[_[_]]]: AndXor.NextNested.Aux[X, self.type] =
-      new AndXor.NextNested[X] {
-        type Prev = self.type
-        val prev = self
-      }
-
-    @inline def deriving[TC[_], F[_]](using i: AndXorInstances[TC, Prod[F]]): AndXorDeriving[TC, Cop[F], Prod[F]]
-
-    @inline final def derivingId[TC[_]](using i: AndXorInstances[TC, Prod[Id]]): AndXorDeriving[TC, Cop[Id], Prod[Id]] =
-      deriving[TC, Id]
+  type PrependNested[X[_[_]], A] <: AndXorNonEmpty = A match {
+    case AndXorEmpty => AndXor1Nested[X]
+    case _ => AndXorNextNested[X, A]
   }
 
-  trait _1Nested[Head[_[_]]] extends NonEmpty {
-    final type Cop[F[_]] = Head[F]
-    final type Prod[F[_]] = Head[F] *: EmptyTuple
+  type Prepend[X, A] = PrependNested[FConst[X], A]
 
-    @inline final def deriving[TC[_], F[_]](using i: AndXorInstances[TC, Prod[F]]): AndXorDeriving[TC, Cop[F], Prod[F]] =
-      new AndXorDeriving[TC, Cop[F], Prod[F]] {
-        def mkChoose[A](f: A => Cop[F])(using d: Decidable[TC]): TC[A] =
-          d.contramap(i.instances.head)(f)
-
-        def mkAlt[A](f: Cop[F] => A)(using a: Alt[TC]): TC[A] =
-          a.map(i.instances.head)(f)
-
-        def mkDivide[A](f: A => Prod[F])(using d: Divide[TC]): TC[A] =
-          d.contramap(i.instances.head)(f(_).head)
-
-        def mkApply[A](f: Prod[F] => A)(using a: Apply[TC]): TC[A] =
-          a.map(i.instances.head)(h => f(h *: EmptyTuple))
-      }
+  type AppendNested[A, X[_[_]]] <: AndXorNonEmpty = A match {
+    case AndXorEmpty => AndXor1Nested[X]
+    case AndXor1Nested[h] => AndXorNextNested[h, AndXor1Nested[X]]
+    case AndXorNextNested[n, p] => AndXorNextNested[n, AppendNested[p, X]]
   }
 
-  object _1Nested {
-    given inst[A[_[_]]]: _1Nested[A] = new _1Nested[A] {}
-  }
-
-  type _1[Head] = _1Nested[FConst[Head]]
-
-  object _1 {
-    given inst[A]: _1[A] = new _1Nested[FConst[A]] {}
-  }
-
-  trait NextNested[Next[_[_]]] extends NonEmpty {
-    type Prev <: NonEmpty
-    val prev: Prev
-
-    final type PrevCop[f[_]] = prev.Cop[f]
-    final type PrevProd[f[_]] = prev.Prod[f]
-
-    final type Cop[F[_]] = Next[F] |: PrevCop[F]
-    final type Prod[F[_]] = Next[F] *: PrevProd[F]
-
-    @inline final def deriving[TC[_], F[_]](using i: AndXorInstances[TC, Prod[F]]): AndXorDeriving[TC, Cop[F], Prod[F]] =
-      new AndXorDeriving[TC, Cop[F], Prod[F]] {
-        private lazy val headInstance = i.instances.head
-        private lazy implicit val tailInstances: AndXorInstances[TC, PrevProd[F]] = AndXorInstances(i.instances.tail)
-        private lazy val tailDeriving = prev.deriving[TC, F]
-
-        def mkChoose[A](f: A => Cop[F])(using d: Decidable[TC]): TC[A] =
-          d.choose2(headInstance, tailDeriving.choose)(f)
-
-        def mkAlt[A](f: Cop[F] => A)(using a: Alt[TC]): TC[A] =
-          a.altly2(headInstance, tailDeriving.alt)(f)
-
-        def mkDivide[A](f: A => Prod[F])(using d: Divide[TC]): TC[A] =
-          d.divide2(headInstance, tailDeriving.divide)(f(_).pipe(t => (t.head, t.tail)))
-
-        def mkApply[A](f: Prod[F] => A)(using a: Apply[TC]): TC[A] =
-          a.map2(headInstance, tailDeriving.apply)((h, t) => f(h *: t))
-      }
-  }
-
-  object NextNested {
-    type Aux[N[_[_]], P <: NonEmpty] = AndXor.NextNested[N] { type Prev = P }
-  }
-
-  type Next[N] = NextNested[FConst[N]]
-
-  object Next {
-    type Aux[N, P <: NonEmpty] = AndXor.Next[N] { type Prev = P }
-  }
-
-  type MakeNext[X, A] = A match {
-    case Empty => AndXor._1[X]
-    case _ => AndXor.Next.Aux[X, A]
-  }
-
-  type MakeNextNested[X[_[_]], A] = A match {
-    case Empty => AndXor._1Nested[X]
-    case _ => AndXor.NextNested.Aux[X, A]
-  }
+  type Append[A, X] = AppendNested[A, FConst[X]]
 }

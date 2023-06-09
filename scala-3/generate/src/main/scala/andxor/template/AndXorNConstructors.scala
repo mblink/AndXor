@@ -4,14 +4,13 @@ object AndXorNConstructors {
   def apply(tpeLists: List[(List[String], Int)]) =
     s"""
 trait AndXorNConstructors { ctors =>
-  def nest[A[_[_]]]: AndXor._1Nested[A] = axoN[A]
-
 ${tpeLists.map { case (tpes, i) =>
-  val axo =
-    if (tpes.tail.isEmpty) s"axo[${tpes.head}]"
-    else s"new AndXor$i[${tpes.mkString(", ")}] {}"
+  val hkTpes = tpes.map(t => s"$t[_[_]]")
+  val axo = s"new AndXor$i[${tpes.mkString(", ")}]"
+  val nestedAxo = s"new AndXor${i}Nested[${tpes.mkString(", ")}]"
 
-  s"  @inline final def apply[${tpes.mkString(", ")}]: AndXor$i[${tpes.mkString(", ")}] = $axo"
+  s"  @inline final def apply[${tpes.mkString(", ")}]: AndXor$i[${tpes.mkString(", ")}] = $axo\n" ++
+  s"  @inline final def nest[${hkTpes.mkString(", ")}]: AndXor${i}Nested[${tpes.mkString(", ")}] = $nestedAxo"
 }.mkString("\n")}
 }
 """

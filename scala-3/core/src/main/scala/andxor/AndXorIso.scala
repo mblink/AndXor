@@ -22,7 +22,7 @@ sealed trait AndXorIso { self =>
   type Axo
   type Cop[f[_]]
   type Prod[f[_]] <: Tuple
-  protected final type Axo0 = Axo & AndXor.NonEmpty {
+  protected final type Axo0 = Axo & AndXorNonEmpty {
     type Cop[f[_]] = self.Cop[f]
     type Prod[f[_]] = self.Prod[f]
   }
@@ -30,7 +30,7 @@ sealed trait AndXorIso { self =>
   type LabelledAxo
   type LabelledCop[f[_]]
   type LabelledProd[f[_]] <: Tuple
-  protected final type LabelledAxo0 = LabelledAxo & AndXor.NonEmpty {
+  protected final type LabelledAxo0 = LabelledAxo & AndXorNonEmpty {
     type Cop[f[_]] = self.LabelledCop[f]
     type Prod[f[_]] = self.LabelledProd[f]
   }
@@ -40,11 +40,11 @@ sealed trait AndXorIso { self =>
 
 object AndXorIso {
   sealed trait Types[ElemLabels <: Tuple, ElemTypes <: Tuple] extends AndXorIso {
-    final type Axo = Tuple.Fold[ElemTypes, AndXor.Empty, AndXor.MakeNext]
+    final type Axo = Tuple.Fold[ElemTypes, AndXorEmpty, AndXor.Prepend]
     final type Cop[F[_]] = ReduceSum[ElemTypes, F]
     final type Prod[F[_]] = Tuple.Map[ElemTypes, F]
 
-    type LabelledAxo = Tuple.Fold[ZipWith[ElemTypes, ElemLabels, Labelled], AndXor.Empty, AndXor.MakeNext]
+    type LabelledAxo = Tuple.Fold[ZipWith[ElemTypes, ElemLabels, Labelled], AndXorEmpty, AndXor.Prepend]
     type LabelledCop[F[_]] = ReduceSum[ZipWith[ElemTypes, ElemLabels, Labelled], F]
     type LabelledProd[F[_]] = Tuple.Map[ZipWith[ElemTypes, ElemLabels, Labelled], F]
   }
@@ -88,18 +88,18 @@ object AndXorProdIso {
 
   inline given inst[X <: Product](using m: Mirror.ProductOf[X]): Aux[
     X,
-    Tuple.Fold[m.MirroredElemTypes, AndXor.Empty, AndXor.MakeNext],
+    Tuple.Fold[m.MirroredElemTypes, AndXorEmpty, AndXor.Prepend],
     [F[_]] =>> ReduceSum[m.MirroredElemTypes, F],
     [F[_]] =>> Tuple.Map[m.MirroredElemTypes, F],
-    Tuple.Fold[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], AndXor.Empty, AndXor.MakeNext],
+    Tuple.Fold[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], AndXorEmpty, AndXor.Prepend],
     [F[_]] =>> ReduceSum[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
     [F[_]] =>> Tuple.Map[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
   ] =
     new AndXorProdIso[X] with AndXorIso.Types[m.MirroredElemLabels, m.MirroredElemTypes] {
-      private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor._1]].productIterator.toList
+      private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor1]].productIterator.toList
 
-      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXor.NonEmpty])(
-        (x, acc) => (x.asInstanceOf[AndXor._1[Any]] *: acc).asInstanceOf[AndXor.NonEmpty]).asInstanceOf[Axo0]
+      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXorNonEmpty])(
+        (x, acc) => (x.asInstanceOf[AndXor1[Any]] *: acc).asInstanceOf[AndXorNonEmpty]).asInstanceOf[Axo0]
 
       val iso: Iso[X, Prod[Id]] = Iso(Tuple.fromProductTyped(_: X).asInstanceOf[Prod[Id]])(
         (p: Prod[Id]) => m.fromTuple(p.asInstanceOf[m.MirroredElemTypes]))
@@ -144,19 +144,19 @@ object AndXorCopIso {
 
   inline given inst[X](using m: Mirror.SumOf[X]): Aux[
     X,
-    Tuple.Fold[m.MirroredElemTypes, AndXor.Empty, AndXor.MakeNext],
+    Tuple.Fold[m.MirroredElemTypes, AndXorEmpty, AndXor.Prepend],
     [F[_]] =>> ReduceSum[m.MirroredElemTypes, F],
     [F[_]] =>> Tuple.Map[m.MirroredElemTypes, F],
-    Tuple.Fold[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], AndXor.Empty, AndXor.MakeNext],
+    Tuple.Fold[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], AndXorEmpty, AndXor.Prepend],
     [F[_]] =>> ReduceSum[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
     [F[_]] =>> Tuple.Map[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
   ] =
     new AndXorCopIso[X] with AndXorIso.Types[m.MirroredElemLabels, m.MirroredElemTypes] {
-      private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor._1]].productIterator.toList
+      private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor1]].productIterator.toList
       private val numMembers = axos.length
 
-      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXor.NonEmpty])(
-        (x, acc) => (x.asInstanceOf[AndXor._1[Any]] *: acc).asInstanceOf[AndXor.NonEmpty]).asInstanceOf[Axo0]
+      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXorNonEmpty])(
+        (x, acc) => (x.asInstanceOf[AndXor1[Any]] *: acc).asInstanceOf[AndXorNonEmpty]).asInstanceOf[Axo0]
 
       @tailrec private def unEither(x: Matchable): Any = x match {
         case Left(l) => unEither(l)

@@ -5,7 +5,7 @@ import cats.Apply
 sealed trait Derivation[Cop[_[_]], Prod[_[_]] <: Tuple] {
   private final type SelfCop[f[_]] = Cop[f]
   private final type SelfProd[f[_]] = Prod[f]
-  protected val a: AndXor.NonEmpty {
+  protected val a: AndXorNonEmpty {
     type Cop[f[_]] = SelfCop[f]
     type Prod[f[_]] = SelfProd[f]
   }
@@ -38,7 +38,7 @@ sealed trait Derivation[Cop[_[_]], Prod[_[_]] <: Tuple] {
 object Derivation {
   given andxor1[X]: Derivation[[F[_]] =>> F[X], [F[_]] =>> F[X] *: EmptyTuple] =
     new Derivation[[F[_]] =>> F[X], [F[_]] =>> F[X] *: EmptyTuple] {
-      protected val a: AndXor._1[X] = axo[X]
+      protected val a: AndXor1[X] = axo[X]
 
       def deriveCovariant[TC[_], F[_], A](iso: Iso[A, a.Cop[F]])(using F: Alt[TC], I: AndXorInstances[TC, a.Prod[F]]): TC[A] =
         F.map(a.deriving[TC, F].alt)(iso.reverseGet)
@@ -57,7 +57,7 @@ object Derivation {
     using dt: Derivation[CT, PT]
   ): Derivation[[F[_]] =>> F[H] |: CT[F], [F[_]] =>> F[H] *: PT[F]] =
     new Derivation[[F[_]] =>> F[H] |: CT[F], [F[_]] =>> F[H] *: PT[F]] {
-      protected val a: AndXor.Next.Aux[H, dt.a.type] = (axo[H] *: dt.a).asInstanceOf[AndXor.Next.Aux[H, dt.a.type]]
+      protected val a: AndXorNext[H, dt.a.type] = (axo[H] *: dt.a).asInstanceOf[AndXorNext[H, dt.a.type]]
 
       def deriveCovariant[TC[_], F[_], A](iso: Iso[A, a.Cop[F]])(using F: Alt[TC], I: AndXorInstances[TC, a.Prod[F]]): TC[A] =
         F.map(a.deriving[TC, F].alt)(iso.reverseGet)
