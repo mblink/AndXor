@@ -15,6 +15,7 @@ object Build extends CommonBuild {
     "-Wunused:locals",
     "-Wunused:params",
     "-Wunused:privates",
+    "-Wunused:unsafe-warn-patvars",
   )
 
   val baseSettings0 = Seq(
