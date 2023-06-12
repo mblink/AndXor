@@ -15,6 +15,7 @@ object Build extends CommonBuild {
     "-Wunused:locals",
     "-Wunused:params",
     "-Wunused:privates",
+    "-Wunused:unsafe-warn-patvars",
   )
 
   val baseSettings0 = Seq(
@@ -22,7 +23,7 @@ object Build extends CommonBuild {
     scalaVersion := scalaVersions.find(_.startsWith("3.")).get,
     scalacOptions ++= lintOpts ++ Seq(
       "-explain",
-      "-Yexplain-lowlevel",
+      "-no-indent",
     ),
   )
 

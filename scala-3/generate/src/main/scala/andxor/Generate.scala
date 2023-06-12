@@ -50,7 +50,6 @@ object Generate {
       }
     }
 
-    maybeWrite("Dummy.scala", Dummy(tpeLists1To100), pkgs = List("andxor.types"), fileDir = _ / "types")
     maybeWrite("AndXorNConstructors.scala", AndXorNConstructors(tpeLists1To100))
     maybeWrite("AndXorNTypes.scala", AndXorNTypes(tpeLists1To100.tail))
     maybeWrite("Either.scala", Either(tpeLists1To100))

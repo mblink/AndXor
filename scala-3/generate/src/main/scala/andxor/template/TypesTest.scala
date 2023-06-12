@@ -5,7 +5,6 @@ object TypesTest {
     s"""
 import andxor.AndXorProperties.arbitrary.*
 import andxor.scalacheck.given
-import andxor.types.*
 import org.scalacheck.{Arbitrary, Properties}
 import cats.{Apply, Eq, Functor}
 import cats.instances.int.*
@@ -68,7 +67,7 @@ object ${prodName}Test extends Properties("$prodName") {
   include(MonoidTests[${prodTpe("Option")}].monoid.all)
 
   ${1.to(i).map(j =>
-    s"include(LensTests[${prodTpe("Option")}, Option[${tpes(j - 1)}]](andxor.tuple.lensT$j).all, \"$j.\")"
+    s"include(LensTests[${prodTpe("Option")}, Option[${tpes(j - 1)}]](summon[Lens[${prodTpe("Option")}, Option[${tpes(j - 1)}]]].asMonocle).all, \"$j.\")"
   ).mkString("\n\n  ")}
 }
 
