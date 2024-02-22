@@ -8,7 +8,7 @@ import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
 object Build extends CommonBuild {
-  val scalaVersions = Seq("2.13.10")
+  val scalaVersions = Seq("2.13.12")
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -42,7 +42,7 @@ object Build extends CommonBuild {
     .settings(
       resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
       libraryDependencies ++= Seq(
-        "com.github.pathikrit" %% "better-files" % "3.9.1",
+        "com.github.pathikrit" %% "better-files" % "3.9.2",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ),
       dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
@@ -57,10 +57,10 @@ object Build extends CommonBuild {
     .settings(testSettings)
     .settings(Seq(
       name := "andxor-argonaut",
-      libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.3"
+      libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.9"
     ))
 
-  val circeVersion = "0.14.5"
+  val circeVersion = "0.14.6"
   def circeBase = Project("circe", file("circe"))
     .settings(commonSettings)
     .settings(publishSettings)

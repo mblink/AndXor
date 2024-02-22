@@ -6,7 +6,7 @@ import sbt.Keys.*
 import sbtgitpublish.GitPublishKeys.*
 
 object Build extends CommonBuild {
-  val scalaVersions = Seq("3.3.0")
+  val scalaVersions = Seq("3.3.1")
 
   val lintOpts = Seq(
     "-Wvalue-discard",
