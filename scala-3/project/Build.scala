@@ -9,12 +9,6 @@ object Build extends CommonBuild {
   val scalaVersions = Seq("3.3.1")
 
   val lintOpts = Seq(
-    "-Wvalue-discard",
-    "-Wunused:implicits",
-    "-Wunused:imports",
-    "-Wunused:locals",
-    "-Wunused:params",
-    "-Wunused:privates",
     "-Wunused:unsafe-warn-patvars",
   )
 

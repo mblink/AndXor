@@ -1,7 +1,6 @@
 package andxor
 
 
-import andxor.AndXorProperties.arbitrary.*
 import andxor.scalacheck.given
 import org.scalacheck.{Arbitrary, Properties}
 import cats.{Apply, Eq, Functor}

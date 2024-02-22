@@ -3,7 +3,6 @@ package andxor.template
 object TypesTest {
   def apply(tpeLists: List[(List[String], Int)]) =
     s"""
-import andxor.AndXorProperties.arbitrary.*
 import andxor.scalacheck.given
 import org.scalacheck.{Arbitrary, Properties}
 import cats.{Apply, Eq, Functor}
@@ -51,7 +50,7 @@ object arbitrary {
 }
 
 ${tpeLists.map { case (_tpes, i) =>
-  val tpes = _tpes.zipWithIndex.map { case (t, j) => if (j % 2 == 0) "String" else "Int" }
+  val tpes = _tpes.zipWithIndex.map { case (_, j) => if (j % 2 == 0) "String" else "Int" }
   val prodName = s"Prod${i}"
   val fTpes = (F: String) => tpes.map(t => s"$F[$t]")
   val prodTpe = (F: String) => (fTpes(F) :+ "EmptyTuple").mkString(" *: ")

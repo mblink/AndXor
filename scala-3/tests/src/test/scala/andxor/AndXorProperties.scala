@@ -3,6 +3,7 @@ package andxor
 import cats.{~>, Applicative, Eq, Id}
 import cats.syntax.apply.*
 import org.scalacheck.{Arbitrary, Prop, PropFromFun, Properties}
+import scala.util.chaining.*
 
 object AndXorProperties {
   object arbitrary {
@@ -37,8 +38,8 @@ object AndXorProperties {
 
     def laws[F[_[_]]](implicit F: FFunctor[F], af: Arbitrary[F[Option]], axy: Arbitrary[Option ~> Option], ef: Eq[F[Option]]): Properties =
       newProperties("ffunctor") { p =>
-        p.property.update("identity", identity[F, Option]): Unit
-        p.property.update("composite", composite[F, Option, Option, Option]): Unit
+        p.property.update("identity", identity[F, Option]).pipe(_ => ())
+        p.property.update("composite", composite[F, Option, Option, Option]).pipe(_ => ())
       }
   }
 
@@ -76,13 +77,13 @@ object AndXorProperties {
         import arbitrary.*
 
         p.include(ffunctor.laws[F])
-        p.property.update("identity", identity[F, TC, Option, Option]): Unit
-        p.property.update("purity.list", purity[F, TC, List, Option]): Unit
-        p.property.update("purity.stream", purity[F, TC, Vector, Option]): Unit
-        p.property.update("sequential fusion", sequentialFusion[F, TC, Id, Id, Option, Option, Option]): Unit
+        p.property.update("identity", identity[F, TC, Option, Option]).pipe(_ => ())
+        p.property.update("purity.list", purity[F, TC, List, Option]).pipe(_ => ())
+        p.property.update("purity.stream", purity[F, TC, Vector, Option]).pipe(_ => ())
+        p.property.update("sequential fusion", sequentialFusion[F, TC, Id, Id, Option, Option, Option]).pipe(_ => ())
         p.property.update("naturality", naturality[F, TC, Vector, List, Option](
-          new (List ~> Vector) { def apply[A](l: List[A]): Vector[A] = l.toVector })): Unit
-        p.property.update("parallel fusion", parallelFusion[F, TC, Id, Id, Option, Option]): Unit
+          new (List ~> Vector) { def apply[A](l: List[A]): Vector[A] = l.toVector })).pipe(_ => ())
+        p.property.update("parallel fusion", parallelFusion[F, TC, Id, Id, Option, Option]).pipe(_ => ())
       }
   }
 }
