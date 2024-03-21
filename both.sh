@@ -51,4 +51,8 @@ function mimaReport() {
   sbtSequential mimaReportBinaryIssues
 }
 
+function docs() {
+  sbtParallel docs/mdoc
+}
+
 $operation
