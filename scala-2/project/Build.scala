@@ -8,8 +8,7 @@ import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
 object Build extends CommonBuild {
-  val relDir = "scala-2"
-  val scalaVersions = Seq(scala2)
+  val scalaVersions = Seq("2.13.13")
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
