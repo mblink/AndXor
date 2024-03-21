@@ -2,12 +2,10 @@ package andxor
 
 import cats.Apply
 
-sealed trait Derivation[Cop[_[_]], Prod[_[_]] <: Tuple] {
-  private final type SelfCop[f[_]] = Cop[f]
-  private final type SelfProd[f[_]] = Prod[f]
+sealed trait Derivation[Cop[_[_]], Prod[_[_]] <: Tuple] { self =>
   protected val a: AndXorNonEmpty {
-    type Cop[f[_]] = SelfCop[f]
-    type Prod[f[_]] = SelfProd[f]
+    type Cop[f[_]] = self.Cop[f]
+    type Prod[f[_]] = self.Prod[f]
   }
 
   // Covariant coproduct

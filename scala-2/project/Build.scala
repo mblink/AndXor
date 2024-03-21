@@ -8,7 +8,7 @@ import sbt.Keys._
 import sbtgitpublish.GitPublishKeys._
 
 object Build extends CommonBuild {
-  val scalaVersions = Seq("2.13.12")
+  val scalaVersions = Seq("2.13.13")
 
   def scalaVersionSpecificFolders(srcName: String, srcBaseDir: java.io.File, scalaVersion: String): Seq[java.io.File] =
     CrossVersion.partialVersion(scalaVersion) match {
@@ -25,7 +25,7 @@ object Build extends CommonBuild {
       "-Xlint:strict-unsealed-patmat",
       "-Ymacro-annotations",
     ),
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.3" cross CrossVersion.full),
     Compile / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("main", baseDirectory.value, scalaVersion.value),
     Test / unmanagedSourceDirectories ++= scalaVersionSpecificFolders("test", baseDirectory.value, scalaVersion.value),
   )
@@ -45,7 +45,7 @@ object Build extends CommonBuild {
         "com.github.pathikrit" %% "better-files" % "3.9.2",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       ),
-      dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
+      dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
       TwirlKeys.templateImports := Seq(),
       gitRelease := {}
     )

@@ -3,6 +3,7 @@
 set -exo pipefail
 
 operation="$1"; shift
+sequential="$([ "$1" = 'sequential' ] && echo 1 || echo 0)"
 
 function sbtSequential() {
   bash -c "cd scala-2 && sbt $1"
@@ -10,6 +11,11 @@ function sbtSequential() {
 }
 
 function sbtParallel() {
+  if [ "$sequential" = 1 ]; then
+    sbtSequential $1
+    return
+  fi
+
   bash -c "cd scala-2 && sbt $1" &
   bash -c "cd scala-3 && sbt $1" &
   wait
@@ -45,6 +51,14 @@ function publishLocal() {
 
 function gitRelease() {
   sbtSequential gitRelease
+}
+
+function mimaReport() {
+  sbtSequential mimaReportBinaryIssues
+}
+
+function docs() {
+  cd scala-2 && sbt docs/mdoc
 }
 
 $operation

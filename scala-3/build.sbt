@@ -26,6 +26,7 @@ lazy val root: Project = project.in(file("."))
 
 lazy val docs = project.in(file("andxor-docs"))
   .settings(commonSettings)
+  .settings(docsSettings)
   .settings(
     mdocOut := file("."),
     scalacOptions += "-Wconf:msg=any2stringadd:s"
