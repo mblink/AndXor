@@ -6,7 +6,7 @@ import sbt.Keys.*
 import sbtgitpublish.GitPublishKeys.*
 
 object Build extends CommonBuild {
-  val scalaVersions = Seq("3.3.1")
+  val scalaVersions = Seq("3.3.3")
 
   val lintOpts = Seq(
     "-Wunused:unsafe-warn-patvars",
