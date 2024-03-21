@@ -58,7 +58,7 @@ function mimaReport() {
 }
 
 function docs() {
-  sbtParallel docs/mdoc
+  cd scala-2 && sbt docs/mdoc
 }
 
 $operation
