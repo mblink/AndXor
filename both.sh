@@ -51,4 +51,21 @@ function mimaReport() {
   sbtSequential mimaReportBinaryIssues
 }
 
+
+
+function githubWorkflowGenerate() {
+  sbtParallel githubWorkflowGenerate
+
+  ghdir='.github/workflows'
+
+  mv "scala-2/$ghdir/clean.yml" "$ghdir/clean.yml"
+  rm "scala-3/$ghdir/clean.yml"
+
+  cat "scala-2/$ghdir/ci.yml" | sed -E 's/^(name:)\s*(Continuous Integration)$/\1 Scala 2 \2/' > "$ghdir/scala-2-ci.yml"
+  rm "scala-2/$ghdir/ci.yml"
+
+  cat "scala-3/$ghdir/ci.yml" | sed -E 's/^(name:)\s*(Continuous Integration)$/\1 Scala 3 \2/' > "$ghdir/scala-3-ci.yml"
+  rm "scala-3/$ghdir/ci.yml"
+}
+
 $operation

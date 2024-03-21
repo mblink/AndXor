@@ -1,10 +1,15 @@
 import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
 import sbt.*
 import sbt.Keys.*
+import sbtghactions.{JavaSpec, WorkflowStep}
+import sbtghactions.GenerativeKeys.*
 import sbtgitpublish.GitPublishKeys.*
 
 package object andxor {
   val currentVersion = "0.14.0"
+
+  val scala2 = "2.13.13"
+  val scala3 = "3.3.3"
 
   val catsVersion = "2.10.0"
   val catsCore = "org.typelevel" %% "cats-core" % catsVersion
@@ -21,7 +26,11 @@ package object andxor {
 
   val scalariform = ("org.scalariform" %% "scalariform" % "0.2.10").cross(CrossVersion.for3Use2_13)
 
+  val javaVersions = Seq(8, 11, 17, 21).map(v => JavaSpec.temurin(v.toString))
+  val isJava8 = s"matrix.java == '${javaVersions.find(_.version == "8").get.render}'"
+
   trait CommonBuild {
+    val relDir: String
     val baseSettings0: Seq[Setting[_]]
 
     final lazy val baseSettings = Seq(
@@ -49,6 +58,20 @@ package object andxor {
       licenses += License.Apache2,
       resolvers += "bondlink-maven-repo" at "https://raw.githubusercontent.com/mblink/maven-repo/main",
       mimaPreviousArtifacts := Set("andxor" %% name.value % "0.14.0"),
+    )
+
+    final lazy val githubActionsSettings = Seq(
+      ThisBuild / githubWorkflowScalaVersions := Some(crossScalaVersions.value).filter(_.nonEmpty).getOrElse(Seq(scalaVersion.value)),
+      ThisBuild / githubWorkflowJavaVersions := javaVersions,
+      ThisBuild / githubWorkflowArtifactUpload := false,
+      ThisBuild / githubWorkflowBuildMatrixFailFast := Some(false),
+      ThisBuild / githubWorkflowTargetBranches := Seq("master"),
+      ThisBuild / githubWorkflowPublishTargetBranches := Seq(),
+      ThisBuild / githubWorkflowSbtCommand := s"cd $relDir && sbt",
+      ThisBuild / githubWorkflowBuild ++= Seq(
+        WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility"), cond = Some(isJava8)),
+        WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Build docs"), cond = Some(isJava8)),
+      ),
     )
 
     final lazy val testSettings = Seq(libraryDependencies += scalacheck % "test")
