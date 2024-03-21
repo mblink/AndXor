@@ -1,3 +1,4 @@
+import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
 import sbt.*
 import sbt.Keys.*
 import sbtgitpublish.GitPublishKeys.*
@@ -30,6 +31,7 @@ package object andxor {
       Compile / packageDoc / publishArtifact := false,
       packageDoc / publishArtifact := false,
       Compile / doc / sources := Seq(),
+      mimaPreviousArtifacts := Set(),
     ) ++ baseSettings0
 
     final lazy val commonSettings = baseSettings ++ Seq(
@@ -45,6 +47,8 @@ package object andxor {
       publish / skip := false,
       gitPublishDir := file("/src/maven-repo"),
       licenses += License.Apache2,
+      resolvers += "bondlink-maven-repo" at "https://raw.githubusercontent.com/mblink/maven-repo/main",
+      mimaPreviousArtifacts := Set("andxor" %% name.value % "0.14.0"),
     )
 
     final lazy val testSettings = Seq(libraryDependencies += scalacheck % "test")

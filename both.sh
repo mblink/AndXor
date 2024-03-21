@@ -47,4 +47,8 @@ function gitRelease() {
   sbtSequential gitRelease
 }
 
+function mimaReport() {
+  sbtSequential mimaReportBinaryIssues
+}
+
 $operation
