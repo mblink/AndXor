@@ -23,10 +23,10 @@ jobs:
           cache: sbt
 
       - name: Test
-        run: ./both.sh test
+        run: ./both.sh test sequential
 
       - name: Check binary compatibility
-        run: ./both.sh mimaReport
+        run: ./both.sh mimaReport sequential
 
       - name: Build docs
-        run: ./both.sh docs
+        run: ./both.sh docs sequential
