@@ -53,6 +53,10 @@ package object andxor {
 
     final lazy val testSettings = Seq(libraryDependencies += scalacheck % "test")
 
+    final lazy val docsSettings = Seq(
+      scalacOptions -= "-Wnonunit-statement",
+    )
+
     def generateBase = Project("generate", file("generate"))
       .settings(commonSettings)
       .settings(

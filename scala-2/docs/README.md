@@ -18,6 +18,8 @@ provides an instance for the corresponding Coproduct, or Product respectively.
 ```scala mdoc:silent
 import andxor._
 import cats.{~>, Id, Show}
+import cats.syntax.semigroup._
+import cats.syntax.show._
 ```
 
 #### Construct an AndXor
@@ -45,7 +47,7 @@ val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Op
 
 ```scala mdoc
 // `Decidable[Show]` is provided for derivation over coproducts
-implicit val showCop = SIS.derivingId[Show].choose
+implicit val showCop: Show[SIS.Cop[Id]] = SIS.derivingId[Show].choose
 List(cop1, cop2, cop3).show
 
 // define a `Divide[Show]` for derivation over products
@@ -57,8 +59,8 @@ implicit val divideShow: Divide[Show] = new Divide[Show] {
       a1.show(x) + ", " + a2.show(y)
     }
 }
-implicit val showListProd = SIS.deriving[Show, List].divide
-implicit val showOptionProd = SIS.deriving[Show, Option].divide
+implicit val showListProd: Show[SIS.Prod[List]] = SIS.deriving[Show, List].divide
+implicit val showOptionProd: Show[SIS.Prod[Option]] = SIS.deriving[Show, Option].divide
 (listProd.show, optionProd.show)
 ```
 
@@ -83,8 +85,10 @@ FTraverseProd[SIS.Prod].sequence[Id, Option](SIS.Prod((Option("foo"), Option(1),
 #### Map given index of Cop or Prod
 
 ```scala mdoc
-import andxor.MapN.syntax._
+import andxor.either._
 SIS.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString + "!"))
+
+import andxor.tuple._
 SIS.lift(Option("foo")).run.map2(_.map(_.toString + "!")).map1(_.map(_.length))
 ```
 
