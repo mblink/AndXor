@@ -4,7 +4,7 @@ import sbt.Keys.*
 import sbtgitpublish.GitPublishKeys.*
 
 package object andxor {
-  val currentVersion = "0.14.0"
+  val currentVersion = "0.14.1"
 
   val catsVersion = "2.10.0"
   val catsCore = "org.typelevel" %% "cats-core" % catsVersion
