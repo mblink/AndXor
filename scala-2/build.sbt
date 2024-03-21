@@ -29,7 +29,7 @@ lazy val docs = project.in(file("andxor-docs"))
   .settings(commonSettings)
   .settings(docsSettings)
   .settings(
-    mdocOut := file("."),
+    mdocOut := file(".."),
     scalacOptions += "-Wconf:msg=any2stringadd:s"
   )
   .dependsOn(core)
