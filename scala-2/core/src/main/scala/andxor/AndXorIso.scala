@@ -281,7 +281,6 @@ object AndXorIso {
       go(List(tpe)).value
     }
 
-    @annotation.nowarn("msg=pattern var qq\\$macro.*is never used")
     def derivesAnnotation(annottees: Tree*): Tree = {
       val tcs = c.prefix.tree match {
         case Apply(Select(New(Ident(TypeName(_))), termNames.CONSTRUCTOR), args) => args

@@ -24,7 +24,9 @@ object AndXorProperties {
       Arbitrary(for {
         a <- fa.arbitrary
         res = F.map[A, Lambda[a => M[A[a]]]](a)(new (A ~> Lambda[a => M[A[a]]]) { def apply[a](aa: A[a]): M[A[a]] = M.point(aa) })
-      } yield res)
+        // res is reported as unused, so use it :shrug:
+        res2 = res
+      } yield res2)
   }
 
   private def newProperties(name: String)(f: Properties => Unit): Properties = {

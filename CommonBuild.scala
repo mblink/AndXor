@@ -6,17 +6,17 @@ import sbtgitpublish.GitPublishKeys.*
 package object andxor {
   val currentVersion = "0.14.1"
 
-  val catsVersion = "2.10.0"
+  val catsVersion = "2.12.0"
   val catsCore = "org.typelevel" %% "cats-core" % catsVersion
   val catsLaws = "org.typelevel" %% "cats-laws" % catsVersion % "test"
 
-  val monocleVersion = "3.2.0"
+  val monocleVersion = "3.3.0"
   val monocleCore = "dev.optics" %% "monocle-core" % monocleVersion
   val monocleLaws = "dev.optics" %% "monocle-law" % monocleVersion % "test"
 
   val newtype = "io.estatico" %% "newtype" % "0.4.4"
 
-  val scalacheckVersion = "1.17.0"
+  val scalacheckVersion = "1.18.1"
   val scalacheck = "org.scalacheck" %% "scalacheck" % scalacheckVersion
 
   val scalariform = ("org.scalariform" %% "scalariform" % "0.2.10").cross(CrossVersion.for3Use2_13)
