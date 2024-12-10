@@ -493,14 +493,15 @@ object testTypes {
 }
 
 sealed trait BaseDerivationTest { self: Properties =>
+  import scala.util.chaining.*
   import typeclasses.{Csv, Read}
 
-  final def proof[A: Arbitrary: Csv: Show](label: String)(using r: Read[A]) =
-    property(label) = forAllNoShrink((a: A) => {
+  final def proof[A: Arbitrary: Csv: Show](label: String)(using r: Read[A]): Unit =
+    property.update(label, forAllNoShrink((a: A) => {
       (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
       // can't really test `Read` because the implementations don't work for nested values
       (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
-    })
+    })).pipe(_ => ())
 }
 
 object DerivationTest1 extends Properties("Derivation1"), BaseDerivationTest {
@@ -552,7 +553,7 @@ object DerivationTest1 extends Properties("Derivation1"), BaseDerivationTest {
 }
 
 object DerivationTest2 extends Properties("Derivation"), BaseDerivationTest {
-  import typeclasses.{Csv, Read, given}
+  import typeclasses.given
   import testTypes.*
 
   
