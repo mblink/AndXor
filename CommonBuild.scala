@@ -48,7 +48,10 @@ package object andxor {
       gitPublishDir := file("/src/maven-repo"),
       licenses += License.Apache2,
       resolvers += "bondlink-maven-repo" at "https://raw.githubusercontent.com/mblink/maven-repo/main",
-      mimaPreviousArtifacts := Set("andxor" %% name.value % "0.14.0"),
+      mimaPreviousArtifacts := Set(
+        "andxor" %% name.value % "0.14.0",
+        "andxor" %% name.value % "0.14.1",
+      ),
     )
 
     final lazy val testSettings = Seq(libraryDependencies += scalacheck % "test")
