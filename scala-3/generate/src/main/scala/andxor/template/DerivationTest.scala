@@ -7,6 +7,14 @@ object DerivationTest {
     val hkCCName = (ts: List[String]) => s"HK${ts.length}"
     val testCCValueTpe = (i: Int) => List("Int", "String", "Boolean").apply(i % 3)
 
+    def renderTpeLists(tl: List[(List[String], Int)]) =
+      tl.map { case (tpes, _) => s"""
+  proof[${testCCName(tpes)}]("${testCCName(tpes)}")
+  proof[${tparamsCCName(tpes)}[${tpes.map(_ => "String").mkString(", ")}]]("${tparamsCCName(tpes)}")
+  proof[${hkCCName(tpes)}[${tparamsCCName(tpes)}, ${tpes.map(_ => "String").mkString(", ")}]]("${hkCCName(tpes)}")
+"""
+  }.mkString("\n")
+
     s"""
 import andxor.scalacheck.{given, *}
 import cats.{~>, Apply, Id, Show}
@@ -17,10 +25,10 @@ import scala.compiletime.{summonAll, summonFrom}
 import scala.util.Try
 
 object typeclasses {
-  inline given showLabelled[A: Show, L <: Singleton with String](using inline l: ValueOf[L]): Show[Labelled[A, L]] =
+  given showLabelled[A: Show, L <: Singleton with String](using l: ValueOf[L]): Show[Labelled[A, L]] =
     Show.show(l => s"$${l.label} := $${Show[A].show(l.value)}" ++ "\\n")
 
-  inline given showSingleton[A <: Singleton, L <: Singleton with String](using inline l: ValueOf[L]): Show[Labelled[A, L]] =
+  given showSingleton[A <: Singleton, L <: Singleton with String](using l: ValueOf[L]): Show[Labelled[A, L]] =
     Show.show(a => s"ADTValue := $${a.label}" ++ "\\n")
 
   type ShowF[A] = A => String
@@ -34,22 +42,22 @@ object typeclasses {
   given showDecide: Decidable[Show] = Decidable.fromIso[Show, ShowF](showToShowF, showFToShow)
   given showDivide: Divide[Show] = Divide.fromIso[Show, ShowF](showToShowF, showFToShow)
 
-  inline given showCop[A](using c: AndXorCopIso[A], i: AndXorInstances[Show, c.LabelledProd[Id]]): Show[A] =
+  given showCop[A](using c: AndXorCopIso[A], i: AndXorInstances[Show, c.LabelledProd[Id]]): Show[A] =
     c.derivingLabelled[Show].choose
 
-  inline given showProd[A](using p: AndXorProdIso[A], i: AndXorInstances[Show, p.LabelledProd[Id]]): Show[A] =
+  given showProd[A](using p: AndXorProdIso[A], i: AndXorInstances[Show, p.LabelledProd[Id]]): Show[A] =
     p.derivingLabelled[Show].divide
 
   trait Read[A] { def read(s: String): Option[A] }
   object Read {
-    inline given readLabelled[A, L <: Singleton with String](using inline l: ValueOf[L], r: Read[A]): Read[Labelled[A, L]] =
+    given readLabelled[A, L <: Singleton with String](using l: ValueOf[L], r: Read[A]): Read[Labelled[A, L]] =
       new Read[Labelled[A, L]] {
         def read(s: String): Option[Labelled[A, L]] =
           s.split("\\n").toList.flatMap(_.split(s"$${l.value} := ", 2).lift(1).flatMap(r.read(_))).headOption.map(Labelled(_))
       }
 
-    inline given readAdtVal[A <: Singleton, L <: Singleton with String](
-      using inline l: ValueOf[L],
+    given readAdtVal[A <: Singleton, L <: Singleton with String](
+      using l: ValueOf[L],
       v: ValueOf[Labelled[A, L]]
     ): Read[Labelled[A, L]] =
       new Read[Labelled[A, L]] {
@@ -57,20 +65,20 @@ object typeclasses {
           s.split("\\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == l.value)).headOption.map(_ => v.value)
       }
 
-    inline given readList[A](using inline r: Read[A]): Read[List[A]] = new Read[List[A]] {
+    given readList[A](using r: Read[A]): Read[List[A]] = new Read[List[A]] {
       def read(s: String): Option[List[A]] = Some(Nil)
     }
 
-    inline given readOption[A](using inline r: Read[A]): Read[Option[A]] = new Read[Option[A]] {
+    given readOption[A](using r: Read[A]): Read[Option[A]] = new Read[Option[A]] {
       def read(s: String): Option[Option[A]] = r.read(s).map(Some(_))
     }
 
-    inline given readStr: Read[String] = new Read[String] {
+    given readStr: Read[String] = new Read[String] {
       def read(s: String): Option[String] =
         if (s.headOption.exists(_ == '"') && s.lastOption.exists(_ == '"')) Some(s.tail.init) else None
     }
-    inline given readInt: Read[Int] = new Read[Int] { def read(s: String): Option[Int] = Try(s.toInt).toOption }
-    inline given readBool: Read[Boolean] = new Read[Boolean] { def read(s: String): Option[Boolean] = Try(s.toBoolean).toOption }
+    given readInt: Read[Int] = new Read[Int] { def read(s: String): Option[Int] = Try(s.toInt).toOption }
+    given readBool: Read[Boolean] = new Read[Boolean] { def read(s: String): Option[Boolean] = Try(s.toBoolean).toOption }
 
     trait ReadApply extends Apply[Read] {
       def map[A, B](fa: Read[A])(f: A => B): Read[B] =
@@ -79,9 +87,9 @@ object typeclasses {
         new Read[B] { def read(s: String): Option[B] = (f.read(s), fa.read(s)).mapN(_(_)) }
     }
 
-    inline given readApply: Apply[Read] = new ReadApply {}
+    given readApply: Apply[Read] = new ReadApply {}
 
-    inline given readAlt: Alt[Read] = new Alt[Read] with ReadApply {
+    given readAlt: Alt[Read] = new Alt[Read] with ReadApply {
       def alt[A](a1: Read[A], a2: Read[A]): Read[A] =
         new Read[A] { def read(s: String): Option[A] = a1.read(s).orElse(a2.read(s)) }
     }
@@ -104,21 +112,21 @@ object typeclasses {
 
   trait Csv[A] { def toCsv(a: A): List[String] }
   object Csv {
-    inline given csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
-    inline given csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
-    inline given csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
-    inline given csvList[A](using inline c: Csv[A]): Csv[List[A]] =
+    given csvStr: Csv[String] = new Csv[String] { def toCsv(x: String): List[String] = List(x) }
+    given csvInt: Csv[Int] = new Csv[Int] { def toCsv(x: Int): List[String] = List(x.toString) }
+    given csvBool: Csv[Boolean] = new Csv[Boolean] { def toCsv(x: Boolean): List[String] = List(x.toString) }
+    given csvList[A](using c: Csv[A]): Csv[List[A]] =
       new Csv[List[A]] { def toCsv(l: List[A]): List[String] = l.flatMap(c.toCsv(_)) }
 
-    inline given csvOption[A](using inline c: Csv[A]): Csv[Option[A]] =
+    given csvOption[A](using c: Csv[A]): Csv[Option[A]] =
       new Csv[Option[A]] { def toCsv(o: Option[A]): List[String] = o.fold(List[String](null))(c.toCsv(_)) }
 
-    inline given csvLabelled[A, L <: Singleton with String](using inline c: Csv[A]): Csv[Labelled[A, L]] =
+    given csvLabelled[A, L <: Singleton with String](using c: Csv[A]): Csv[Labelled[A, L]] =
       new Csv[Labelled[A, L]] {
         def toCsv(a: Labelled[A, L]): List[String] = c.toCsv(a.value)
       }
 
-    inline given csvSingleton[A <: Singleton, L <: Singleton & String](using inline l: ValueOf[L]): Csv[Labelled[A, L]] =
+    given csvSingleton[A <: Singleton, L <: Singleton & String](using l: ValueOf[L]): Csv[Labelled[A, L]] =
       new Csv[Labelled[A, L]] {
         def toCsv(a: Labelled[A, L]): List[String] = List(a.label)
       }
@@ -234,16 +242,21 @@ object testTypes {
   }.mkString("\n")}
 }
 
-object DerivationTest extends Properties("Derivation") {
-  import typeclasses.{Csv, Read, given}
-  import testTypes.*
+sealed trait BaseDerivationTest { self: Properties =>
+  import scala.util.chaining.*
+  import typeclasses.{Csv, Read}
 
-  def proof[A: Arbitrary: Csv: Show](label: String)(using r: Read[A]) =
-    property(label) = forAllNoShrink((a: A) => {
+  final def proof[A: Arbitrary: Csv: Show](label: String)(using r: Read[A]): Unit =
+    property.update(label, forAllNoShrink((a: A) => {
       (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
       // can't really test `Read` because the implementations don't work for nested values
       (implicitly[Show[A]].show(a).nonEmpty :| "show/read was not Eq")
-    })
+    })).pipe(_ => ())
+}
+
+object DerivationTest1 extends Properties("Derivation1"), BaseDerivationTest {
+  import typeclasses.given
+  import testTypes.*
 
   proof[Foo]("Foo")
   proof[Baz]("Baz")
@@ -252,12 +265,14 @@ object DerivationTest extends Properties("Derivation") {
   proof[HKFG[FConst[String], Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
-  ${tpeLists.map { case (tpes, _) => s"""
-  proof[${testCCName(tpes)}]("${testCCName(tpes)}")
-  proof[${tparamsCCName(tpes)}[${tpes.map(_ => "String").mkString(", ")}]]("${tparamsCCName(tpes)}")
-  proof[${hkCCName(tpes)}[${tparamsCCName(tpes)}, ${tpes.map(_ => "String").mkString(", ")}]]("${hkCCName(tpes)}")
-"""
-  }.mkString("\n")}
+  ${renderTpeLists(tpeLists.take(7))}
+}
+
+object DerivationTest2 extends Properties("Derivation"), BaseDerivationTest {
+  import typeclasses.given
+  import testTypes.*
+
+  ${renderTpeLists(tpeLists.drop(7))}
 }
 """
   }

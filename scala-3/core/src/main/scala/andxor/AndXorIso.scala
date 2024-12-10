@@ -86,6 +86,20 @@ object AndXorProdIso {
   @inline final def apply[X](implicit p: AndXorProdIso[X]): Aux[X, p.Axo, p.Cop, p.Prod, p.LabelledAxo, p.LabelledCop, p.LabelledProd] =
     p
 
+  private[AndXorProdIso] final class Inst[X, ElemLabels <: Tuple, ElemTypes <: Tuple] (
+    axosT: Tuple.Map[ElemTypes, AndXor1],
+    toTuple: X => ElemTypes,
+    fromTuple: ElemTypes => X,
+  ) extends AndXorProdIso[X], AndXorIso.Types[ElemLabels, ElemTypes] {
+    private val axos = axosT.productIterator.toList
+
+    val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXorNonEmpty])(
+      (x, acc) => (x.asInstanceOf[AndXor1[Any]] *: acc).asInstanceOf[AndXorNonEmpty]).asInstanceOf[Axo0]
+
+    val iso: Iso[X, Prod[Id]] =
+      Iso(toTuple(_: X).asInstanceOf[Prod[Id]])((p: Prod[Id]) => fromTuple(p.asInstanceOf[ElemTypes]))
+  }
+
   inline given inst[X <: Product](using m: Mirror.ProductOf[X]): Aux[
     X,
     Tuple.Fold[m.MirroredElemTypes, AndXorEmpty, AndXor.Prepend],
@@ -95,15 +109,11 @@ object AndXorProdIso {
     [F[_]] =>> ReduceSum[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
     [F[_]] =>> Tuple.Map[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
   ] =
-    new AndXorProdIso[X] with AndXorIso.Types[m.MirroredElemLabels, m.MirroredElemTypes] {
-      private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor1]].productIterator.toList
-
-      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXorNonEmpty])(
-        (x, acc) => (x.asInstanceOf[AndXor1[Any]] *: acc).asInstanceOf[AndXorNonEmpty]).asInstanceOf[Axo0]
-
-      val iso: Iso[X, Prod[Id]] = Iso(Tuple.fromProductTyped(_: X).asInstanceOf[Prod[Id]])(
-        (p: Prod[Id]) => m.fromTuple(p.asInstanceOf[m.MirroredElemTypes]))
-    }
+    new Inst[X, m.MirroredElemLabels, m.MirroredElemTypes](
+      summonAll[Tuple.Map[m.MirroredElemTypes, AndXor1]],
+      Tuple.fromProductTyped,
+      m.fromTuple,
+    )
 }
 
 sealed trait AndXorCopIso[X] extends AndXorIso {
@@ -142,6 +152,29 @@ object AndXorCopIso {
   @inline final def apply[X](implicit c: AndXorCopIso[X]): Aux[X, c.Axo, c.Cop, c.Prod, c.LabelledAxo, c.LabelledCop, c.LabelledProd] =
     c
 
+  private[AndXorCopIso] final class Inst[X, ElemLabels <: Tuple, ElemTypes <: Tuple] (
+    axosT: Tuple.Map[ElemTypes, AndXor1],
+    ordinal: X => Int,
+  ) extends AndXorCopIso[X], AndXorIso.Types[ElemLabels, ElemTypes] {
+    private val axos = axosT.productIterator.toList
+    private val numMembers = axos.length
+
+    val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXorNonEmpty])(
+      (x, acc) => (x.asInstanceOf[AndXor1[Any]] *: acc).asInstanceOf[AndXorNonEmpty]).asInstanceOf[Axo0]
+
+    @tailrec private def unEither(x: Matchable): Any = x match {
+      case Left(l) => unEither(l)
+      case Right(r) => unEither(r)
+      case _ => x
+    }
+
+    val iso: Iso[X, Cop[Id]] = Iso((x: X) => {
+      val ord = ordinal(x)
+      val init: Any = if (ord === numMembers - 1) x else Left(x)
+      1.to(ord).foldRight(init)((_, acc) => Right(acc)).asInstanceOf[Cop[Id]]
+    })(unEither(_: Cop[Id]).asInstanceOf[X])
+  }
+
   inline given inst[X](using m: Mirror.SumOf[X]): Aux[
     X,
     Tuple.Fold[m.MirroredElemTypes, AndXorEmpty, AndXor.Prepend],
@@ -151,23 +184,5 @@ object AndXorCopIso {
     [F[_]] =>> ReduceSum[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
     [F[_]] =>> Tuple.Map[ZipWith[m.MirroredElemTypes, m.MirroredElemLabels, Labelled], F],
   ] =
-    new AndXorCopIso[X] with AndXorIso.Types[m.MirroredElemLabels, m.MirroredElemTypes] {
-      private val axos = summonAll[Tuple.Map[m.MirroredElemTypes, AndXor1]].productIterator.toList
-      private val numMembers = axos.length
-
-      val andxor: Axo0 = axos.init.foldRight(axos.last.asInstanceOf[AndXorNonEmpty])(
-        (x, acc) => (x.asInstanceOf[AndXor1[Any]] *: acc).asInstanceOf[AndXorNonEmpty]).asInstanceOf[Axo0]
-
-      @tailrec private def unEither(x: Matchable): Any = x match {
-        case Left(l) => unEither(l)
-        case Right(r) => unEither(r)
-        case _ => x
-      }
-
-      val iso: Iso[X, Cop[Id]] = Iso((x: X) => {
-        val ord = m.ordinal(x)
-        val init: Any = if (ord === numMembers - 1) x else Left(x)
-        1.to(ord).foldRight(init)((_, acc) => Right(acc)).asInstanceOf[Cop[Id]]
-      })(unEither(_: Cop[Id]).asInstanceOf[X])
-    }
+    new Inst[X, m.MirroredElemLabels, m.MirroredElemTypes](summonAll[Tuple.Map[m.MirroredElemTypes, AndXor1]], m.ordinal)
 }

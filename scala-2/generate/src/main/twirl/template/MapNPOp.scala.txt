@@ -5,10 +5,8 @@
 @tpes = @{ z.toList }
 @mod = @{ tpes.updated(z.index, "B") }
 @B = @{ mod.toList(z.index) }
-@origT = { F[@z.focus] }
-@modT = { F[@mod(z.index)] }
 
-  def map@{z.index + 1}[@{B}](f: @{prod.fold(origT, z.focus)} => @{prod.fold(modT, "B")}): @{prod.fold(mod.prodTpe, mod.prod)} = {
+  def map@{z.index + 1}[@{B}](f: @{prod.fold(s"F[${z.focus}]", z.focus)} => @{prod.fold(s"F[${mod(z.index)}]", "B")}): @{prod.fold(mod.prodTpe, mod.prod)} = {
     @if(prod) { @z.wrapProdOrTuple(prod)(s"${prod.fold("mapN.", "")}map${z.index + 1}(f)") } else {
     @{z.toList.tupleVals("a", "t", "    ")}
     @{z.toList.paramList("a")
