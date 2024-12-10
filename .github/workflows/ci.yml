@@ -35,6 +35,6 @@ jobs:
         working-directory: scala-${{ matrix.scala }}
 
       - name: Build docs
-        if: matrix.scala == '2'
+        if: matrix.scala == '2' && matrix.java == '21'
         run: sbt docs/mdoc
         working-directory: scala-${{ matrix.scala }}
