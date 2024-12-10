@@ -13,6 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         java: [8, 11, 17, 21]
+        scala: [2, 3]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Java ${{ matrix.java }}
@@ -26,10 +27,14 @@ jobs:
         uses: sbt/setup-sbt@v1
 
       - name: Test
-        run: ./both.sh test sequential
+        run: sbt test
+        working-directory: scala-${{ matrix.scala }}
 
       - name: Check binary compatibility
-        run: ./both.sh mimaReport sequential
+        run: sbt mimaReportBinaryIssues
+        working-directory: scala-${{ matrix.scala }}
 
       - name: Build docs
-        run: ./both.sh docs sequential
+        if: matrix.scala == '2'
+        run: sbt docs/mdoc
+        working-directory: scala-${{ matrix.scala }}
