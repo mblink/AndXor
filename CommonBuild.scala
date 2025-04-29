@@ -42,13 +42,11 @@ package object andxor {
       )
     )
 
-    final lazy val githubPackagesRepo = "GitHub Package Registry".at("https://maven.pkg.github.com/mblink/AndXor")
-
     final lazy val publishSettings = Seq(
       publish / skip := false,
-      publishTo := Some(githubPackagesRepo),
+      publishTo := Some("BondLink S3".at("s3://bondlink-maven-repo")),
       licenses += License.Apache2,
-      resolvers += githubPackagesRepo,
+      resolvers += "bondlink-maven-repo" at "https://s3.amazonaws.com/bondlink-maven-repo",
       mimaPreviousArtifacts := Set(
         "andxor" %% name.value % "0.14.1",
       ),
