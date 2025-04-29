@@ -50,7 +50,6 @@ package object andxor {
       licenses += License.Apache2,
       resolvers += githubPackagesRepo,
       mimaPreviousArtifacts := Set(
-        "andxor" %% name.value % "0.14.0",
         "andxor" %% name.value % "0.14.1",
       ),
     )
