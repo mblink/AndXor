@@ -20,7 +20,6 @@ lazy val root: Project = project.in(file("."))
   .settings(commonSettings)
   .settings(
     crossScalaVersions := Seq(),
-    gitRelease := {}
   )
   .aggregate(core, scalacheck, tests)
 

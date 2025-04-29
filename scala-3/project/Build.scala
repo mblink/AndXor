@@ -3,7 +3,6 @@ package andxor
 import java.io.File
 import sbt.*
 import sbt.Keys.*
-import sbtgitpublish.GitPublishKeys.*
 
 object Build extends CommonBuild {
   val scalaVersions = Seq("3.3.4")

@@ -5,7 +5,6 @@ import play.twirl.sbt.Import.TwirlKeys
 import play.twirl.sbt.SbtTwirl
 import sbt._
 import sbt.Keys._
-import sbtgitpublish.GitPublishKeys._
 
 object Build extends CommonBuild {
   val scalaVersions = Seq("2.13.15")
@@ -47,7 +46,6 @@ object Build extends CommonBuild {
       ),
       dependencyOverrides += "org.scala-lang.modules" %% "scala-xml" % "2.3.0",
       TwirlKeys.templateImports := Seq(),
-      gitRelease := {}
     )
     .enablePlugins(SbtTwirl)
 

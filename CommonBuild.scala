@@ -1,7 +1,6 @@
 import com.typesafe.tools.mima.plugin.MimaKeys.mimaPreviousArtifacts
 import sbt.*
 import sbt.Keys.*
-import sbtgitpublish.GitPublishKeys.*
 
 package object andxor {
   val currentVersion = "0.14.1"
@@ -43,11 +42,13 @@ package object andxor {
       )
     )
 
+    final lazy val githubPackagesRepo = "GitHub Package Registry".at("https://maven.pkg.github.com/mblink/AndXor")
+
     final lazy val publishSettings = Seq(
       publish / skip := false,
-      gitPublishDir := file("/src/maven-repo"),
+      publishTo := Some(githubPackagesRepo),
       licenses += License.Apache2,
-      resolvers += "bondlink-maven-repo" at "https://raw.githubusercontent.com/mblink/maven-repo/main",
+      resolvers += githubPackagesRepo,
       mimaPreviousArtifacts := Set(
         "andxor" %% name.value % "0.14.0",
         "andxor" %% name.value % "0.14.1",
@@ -65,7 +66,6 @@ package object andxor {
       .settings(
         name := "andxor-generate",
         libraryDependencies += scalariform,
-        gitRelease := {}
       )
 
     def coreBase = Project("core", file("core"))
@@ -86,7 +86,6 @@ package object andxor {
       .settings(commonSettings)
       .settings(
         name := "andxor-tests",
-        gitRelease := {},
       )
   }
 }

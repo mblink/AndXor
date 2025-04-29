@@ -49,10 +49,6 @@ function publishLocal() {
   sbtSequential publishLocal
 }
 
-function gitRelease() {
-  sbtSequential gitRelease
-}
-
 function mimaReport() {
   sbtSequential mimaReportBinaryIssues
 }

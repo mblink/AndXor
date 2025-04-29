@@ -21,7 +21,6 @@ lazy val root: Project = project.in(file("."))
   .settings(commonSettings)
   .settings(
     crossScalaVersions := Seq(),
-    gitRelease := {}
   )
   .aggregate(generate, core, argonaut, circe, scalacheck, tests)
 
