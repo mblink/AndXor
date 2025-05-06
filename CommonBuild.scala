@@ -46,7 +46,7 @@ package object andxor {
       publish / skip := false,
       publishTo := Some("BondLink S3".at("s3://bondlink-maven-repo")),
       licenses += License.Apache2,
-      resolvers += "bondlink-maven-repo" at "https://s3.amazonaws.com/bondlink-maven-repo",
+      resolvers += "bondlink-maven-repo" at "https://maven.bondlink-cdn.com",
       mimaPreviousArtifacts := Set(
         "andxor" %% name.value % "0.14.1",
       ),
