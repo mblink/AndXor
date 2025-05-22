@@ -1,0 +1,21 @@
+@import andxor.Zipper
+@import andxor.syntax._
+
+@(z: Zipper[String], isId: Boolean)
+
+@prodAccesses(l: List[String], i: Int) = @{ l.zip(LazyList.from(i)).map(t => s"t${z.toList.prodAccess(t._2 + 1)}") }
+@tpes = @{ z.toList }
+@F = @{ if (isId) "Id" else "F" }
+@monoid(others: Boolean, ts: List[String] = tpes) = @{
+  ts.foldLen01("")(others.fold[String => String](x => s", $x", x => s"(implicit $x)")(s" M: Monoid[${ts.prodTpeF(F)}]"))
+}
+
+@if(isId) {
+  implicit def lifta@{z.index}Id[@{tpes.tpeParams}]@{monoid(false)}: Inj[@{tpes.prodTpeF("Id")}, @z.focus] =
+    lifta@{z.index}F[Id, @{tpes.tpeParams}]
+} else {
+  implicit def lifta@{z.index}F[F[_], @{tpes.tpeParams}]@{monoid(false)}: Inj[@tpes.prodTpe, F[@z.focus]] = {
+    @tpes.foldLen01("")("val t = M.empty\n      ")Inj.instance(x => @{tpes.prodTpeF(F)}(@{((prodAccesses(z.lefts.toList, 0) :+ "x") ++
+      prodAccesses(z.rights.toList, z.lefts.toList.length + 1)).mkTuple}))
+  }
+}
