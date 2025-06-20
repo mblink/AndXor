@@ -224,7 +224,7 @@ object DerivationTest extends Properties("Derivation") {
   proof[Trait0]("Trait0")
   proof[AbstractClass]("AbstractClass")
   proof[Multi]("Multi")
-  proof[HKFG[FConst[String]#T, Id]]("HKFG")
+  proof[HKFG[Lambda[f[_] => f[String]], Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
   @tpeLists.map { tpes =>

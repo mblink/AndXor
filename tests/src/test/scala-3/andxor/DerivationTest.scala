@@ -512,7 +512,7 @@ object DerivationTest1 extends Properties("Derivation1"), BaseDerivationTest {
   proof[Baz]("Baz")
   proof[Trait0]("Trait0")
   proof[AbstractClass]("AbstractClass")
-  proof[HKFG[FConst[String], Id]]("HKFG")
+  proof[HKFG[[f[_]] =>> f[String], Id]]("HKFG")
   proof[Covariant[String]]("Covariant")
   proof[Contravariant[String]]("Contravariant")
   

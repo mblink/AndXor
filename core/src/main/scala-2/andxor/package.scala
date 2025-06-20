@@ -2,11 +2,9 @@ import andxor.tuple._
 import cats.{~>, Applicative, MonoidK}
 
 package object andxor {
-  type FConst[A] = { type T[F[_]] >: F[A] <: F[A] }
-
-  implicit def FConstInstance[X]: FFunctor[FConst[X]#T] with FTraverseProd[FConst[X]#T] with FoldMap[FConst[X]#T, FConst[X]#T] =
-    new FFunctor[FConst[X]#T] with FTraverseProd[FConst[X]#T] with FoldMap[FConst[X]#T, FConst[X]#T] {
-      type T[F[_]] = FConst[X]#T[F]
+  implicit def FConstInstance[X]: FFunctor[Lambda[f[_] => f[X]]] with FTraverseProd[Lambda[f[_] => f[X]]] with FoldMap[Lambda[f[_] => f[X]], Lambda[f[_] => f[X]]] =
+    new FFunctor[Lambda[f[_] => f[X]]] with FTraverseProd[Lambda[f[_] => f[X]]] with FoldMap[Lambda[f[_] => f[X]], Lambda[f[_] => f[X]]] {
+      type T[F[_]] = F[X]
 
       def map[A[_], B[_]](fa: T[A])(f: A ~> B): T[B] = f(fa)
 
