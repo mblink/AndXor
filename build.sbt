@@ -1,6 +1,6 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-val currentVersion = "0.15.0"
+val currentVersion = "0.16.0"
 
 val scala2 = "2.13.16"
 val scala3 = "3.3.6"
@@ -91,7 +91,9 @@ lazy val publishSettings = Seq(
   publishTo := Some("BondLink S3".at("s3://bondlink-maven-repo")),
   licenses += License.Apache2,
   resolvers += "bondlink-maven-repo" at "https://maven.bondlink-cdn.com",
-  mimaPreviousArtifacts := Set(),
+  mimaPreviousArtifacts := Set(
+    organization.value %% name.value % "0.16.0",
+  ),
 )
 
 lazy val publishOnlyScala2 = Seq(
