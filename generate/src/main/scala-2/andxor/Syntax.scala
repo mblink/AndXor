@@ -67,7 +67,7 @@ object syntax {
       else if (otherImpls) s", ${tpes.mkString(", ")}"
       else s"(implicit ${tpes.mkString(", ")})"
 
-    def const: LS = tpes.map(t => s"FConst[$t]#T")
+    def const: LS = tpes.map(t => s"Lambda[f[_] => f[$t]]")
 
     def paramSig(FG: LS, a: String): String =
       tpes.zipWithIndex.map(s => s"${a}${s._2}: ${FG.foldRight(s._1)((e, a) => s"${e}[${a}]")}").mkString(", ")

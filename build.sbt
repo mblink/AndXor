@@ -91,9 +91,7 @@ lazy val publishSettings = Seq(
   publishTo := Some("BondLink S3".at("s3://bondlink-maven-repo")),
   licenses += License.Apache2,
   resolvers += "bondlink-maven-repo" at "https://maven.bondlink-cdn.com",
-  mimaPreviousArtifacts := Set(
-    "andxor" %% name.value % "0.14.1",
-  ),
+  mimaPreviousArtifacts := Set(),
 )
 
 lazy val publishOnlyScala2 = Seq(

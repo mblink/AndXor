@@ -19,7 +19,7 @@ sealed trait AndXor { self =>
   inline final def Prod[F[_]](p: Prod[F]): Prod[F] = p
 
   def nest[X[_[_]]]: AndXor.AppendNested[Self, X]
-  final def apply[X]: AndXor.AppendNested[Self, FConst[X]] = nest[FConst[X]]
+  final def apply[X]: AndXor.AppendNested[Self, [f[_]] =>> f[X]] = nest[[f[_]] =>> f[X]]
 
   def *:[X[_[_]]](@annotation.unused a: AndXor1Nested[X]): AndXor.PrependNested[X, Self]
 
@@ -82,7 +82,7 @@ class AndXor1Nested[Head[_[_]]] extends AndXorNonEmpty { self =>
     }
 }
 
-class AndXor1[Head] extends AndXor1Nested[FConst[Head]]
+class AndXor1[Head] extends AndXor1Nested[[f[_]] =>> f[Head]]
 
 object AndXor1 {
   given inst[A]: AndXor1[A] = new AndXor1[A]
@@ -132,7 +132,7 @@ abstract class AndXorNextNested[Next[_[_]], Prev <: AndXorNonEmpty] extends AndX
     }
 }
 
-abstract class AndXorNext[Next, Prev <: AndXorNonEmpty] extends AndXorNextNested[FConst[Next], Prev]
+abstract class AndXorNext[Next, Prev <: AndXorNonEmpty] extends AndXorNextNested[[f[_]] =>> f[Next], Prev]
 
 object AndXor extends AndXorNConstructors {
   type PrependNested[X[_[_]], A] <: AndXorNonEmpty = A match {
@@ -140,7 +140,7 @@ object AndXor extends AndXorNConstructors {
     case _ => AndXorNextNested[X, A]
   }
 
-  type Prepend[X, A] = PrependNested[FConst[X], A]
+  type Prepend[X, A] = PrependNested[[f[_]] =>> f[X], A]
 
   type AppendNested[A, X[_[_]]] <: AndXorNonEmpty = A match {
     case AndXorEmpty => AndXor1Nested[X]
@@ -148,5 +148,5 @@ object AndXor extends AndXorNConstructors {
     case AndXorNextNested[n, p] => AndXorNextNested[n, AppendNested[p, X]]
   }
 
-  type Append[A, X] = AppendNested[A, FConst[X]]
+  type Append[A, X] = AppendNested[A, [f[_]] =>> f[X]]
 }
