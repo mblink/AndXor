@@ -31,7 +31,7 @@ val scalariform = Seq(
   ("org.scalariform" %% "scalariform" % "0.2.10")
     .cross(CrossVersion.for3Use2_13)
     .exclude("org.scala-lang.modules", "scala-xml_2.13"),
-  "org.scala-lang.modules" %% "scala-xml" % "2.3.0",
+  "org.scala-lang.modules" %% "scala-xml" % "2.4.0",
 )
 
 // GitHub Actions config
