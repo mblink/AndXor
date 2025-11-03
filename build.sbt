@@ -7,7 +7,7 @@ val scala3 = "3.3.6"
 
 ThisBuild / crossScalaVersions := Seq(scala2, scala3)
 
-val argonautDep = "io.argonaut" %% "argonaut" % "6.3.10"
+val argonautDep = "io.github.argonaut-io" %% "argonaut" % "6.3.11"
 
 val betterFiles = "com.github.pathikrit" %% "better-files" % "3.9.2"
 
