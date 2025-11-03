@@ -50,7 +50,7 @@ object typeclasses {
           s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == l.value)).headOption.map(_ => v.value)
       }
 
-    given readList[A](using r: Read[A]): Read[List[A]] = new Read[List[A]] {
+    given readList[A](using @annotation.nowarn("msg=unused") r: Read[A]): Read[List[A]] = new Read[List[A]] {
       def read(s: String): Option[List[A]] = Some(Nil)
     }
 
@@ -185,6 +185,7 @@ object testTypes {
 
   case class Covariant[+A](a: A) derives Arbitrary, Csv, Read
 
+  @annotation.nowarn("msg=unused implicit parameter")
   case class Contravariant[-A](s: String, i: Int) derives Arbitrary, Csv, Read {
     def go(a: A): (String, Int) = (s"$s -- $a", i)
   }
@@ -496,7 +497,7 @@ sealed trait BaseDerivationTest { self: Properties =>
   import scala.util.chaining.*
   import typeclasses.{Csv, Read}
 
-  final def proof[A: Arbitrary: Csv: Show](label: String)(using r: Read[A]): Unit =
+  final def proof[A: Arbitrary: Csv: Show](label: String)(using @annotation.nowarn("msg=unused") r: Read[A]): Unit =
     property.update(label, forAllNoShrink((a: A) => {
       (implicitly[Csv[A]].toCsv(a).nonEmpty :| "CSV output was empty") &&
       // can't really test `Read` because the implementations don't work for nested values
