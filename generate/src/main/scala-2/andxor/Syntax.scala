@@ -18,7 +18,7 @@ object syntax {
     def fold[A](t: => A, f: => A): A = if (b) t else f
   }
 
-  implicit class TpesOps(tpes: LS) {
+  final implicit class TpesOps(private val tpes: LS) extends AnyVal {
     def copName = s"Cop${tpes.length}"
     def copTpeDef = s"$copName[F[_], $tpeParams]"
     def copTpeF(F: String) = s"$copName[$F, $tpeParams]"
@@ -57,7 +57,7 @@ object syntax {
     def nestedTpes(F: String = "F"): LS = tpes.map(t => s"$t[$F]")
     def nestedProdTpe(F: String = "F"): String = nestedTpes(F).prodTpeF("Id")
     def nestedCopTpe(F: String = "F"): String = nestedTpes(F).copTpeF("Id")
-    def nestedBuiltAndXor: String = s"AndXorNested${tpes.length}[${tpes.tpeParams}]"
+    def nestedBuiltAndXor: String = s"AndXorNested${tpes.length}[$tpeParams]"
 
     def ftraverseParams(tc: String): LS = foldLen01[LS](Nil)(tpes.map(t => s"FTraverse[$t, $tc]").paramSigArgs("ft"))
     def foldMapParams: LS = foldLen01[LS](Nil)(tpes.map(t => s"$t, $t").paramSigArgs("FoldMap", "fm"))
@@ -109,14 +109,14 @@ object syntax {
     def foldLen01[A](lteq1: => A)(gt1: => A): A = if (tpes.length <= 1) lteq1 else gt1
     def foldLen[A](eq0: => A)(eq1: => A)(gt1: => A): A = foldLen0[A](eq0)(if (tpes.length == 1) eq1 else gt1)
 
-    def builtAndXor: String = s"AndXor${tpes.length}[${tpes.tpeParams}]"
+    def builtAndXor: String = s"AndXor${tpes.length}[$tpeParams]"
   }
 
-  implicit class TpesWithIndexOps(tpes: List[(String, Int)]) {
+  final implicit class TpesWithIndexOps(private val tpes: List[(String, Int)]) extends AnyVal {
     def prod: String = tpes.map(_._1).prod
   }
 
-  implicit class ZipperOps(z: Zipper[String]) {
+  final implicit class ZipperOps(private val z: Zipper[String]) extends AnyVal {
     def toList: LS = z.toStream.toList
 
     def djVal(v: String): String =
