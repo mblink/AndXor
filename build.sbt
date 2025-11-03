@@ -7,7 +7,7 @@ val scala3 = "3.3.6"
 
 ThisBuild / crossScalaVersions := Seq(scala2, scala3)
 
-val argonautDep = "io.argonaut" %% "argonaut" % "6.3.10"
+val argonautDep = "io.github.argonaut-io" %% "argonaut" % "6.3.11"
 
 val betterFiles = "com.github.pathikrit" %% "better-files" % "3.9.2"
 
@@ -15,7 +15,7 @@ val catsVersion = "2.13.0"
 val catsCore = "org.typelevel" %% "cats-core" % catsVersion
 val catsLaws = "org.typelevel" %% "cats-laws" % catsVersion % Test
 
-val circeDep = "io.circe" %% "circe-core" % "0.14.13"
+val circeDep = "io.circe" %% "circe-core" % "0.14.15"
 
 val monocleVersion = "3.3.0"
 val monocleCore = "dev.optics" %% "monocle-core" % monocleVersion
