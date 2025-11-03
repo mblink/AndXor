@@ -23,7 +23,7 @@ val monocleLaws = "dev.optics" %% "monocle-law" % monocleVersion % Test
 
 val newtype = "io.estatico" %% "newtype" % "0.4.4"
 
-val scalacheckDep = "org.scalacheck" %% "scalacheck" % "1.18.1"
+val scalacheckDep = "org.scalacheck" %% "scalacheck" % "1.19.0"
 
 val scalaReflect = Def.setting("org.scala-lang" % "scala-reflect" % scalaVersion.value)
 
