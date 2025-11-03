@@ -15,7 +15,7 @@ val catsVersion = "2.13.0"
 val catsCore = "org.typelevel" %% "cats-core" % catsVersion
 val catsLaws = "org.typelevel" %% "cats-laws" % catsVersion % Test
 
-val circeDep = "io.circe" %% "circe-core" % "0.14.13"
+val circeDep = "io.circe" %% "circe-core" % "0.14.15"
 
 val monocleVersion = "3.3.0"
 val monocleCore = "dev.optics" %% "monocle-core" % monocleVersion
