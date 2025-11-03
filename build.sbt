@@ -35,7 +35,7 @@ val scalariform = Seq(
 )
 
 // GitHub Actions config
-val javaVersions = Seq(8, 11, 17, 21).map(v => JavaSpec.temurin(v.toString))
+val javaVersions = Seq(8, 11, 17, 21, 25).map(v => JavaSpec.temurin(v.toString))
 
 ThisBuild / githubWorkflowJavaVersions := javaVersions
 ThisBuild / githubWorkflowArtifactUpload := false
@@ -47,8 +47,8 @@ def isJava(v: Int) = s"matrix.java == '${javaVersions.find(_.version == v.toStri
 def isScala(v: String) = s"matrix.scala == '$v'"
 
 ThisBuild / githubWorkflowBuild ++= Seq(
-  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility"), cond = Some(isJava(21))),
-  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Build docs"), cond = Some(isJava(21) ++ " && " ++ isScala(scala2))),
+  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility"), cond = Some(isJava(25))),
+  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Build docs"), cond = Some(isJava(25) ++ " && " ++ isScala(scala2))),
 )
 
 def foldScalaV[A](scalaVersion: String)(_213: => A, _3: => A): A =
