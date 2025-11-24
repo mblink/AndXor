@@ -46,7 +46,7 @@ object typeclasses {
           s.split("\n").toList.flatMap(_.split(s"ADTValue := ", 2).lift(1).filter(_ == label.value)).headOption.map(_ => value.value)
       }
 
-    implicit def readList[A](implicit @unused r: Read[A]): Read[List[A]] = new Read[List[A]] {
+    implicit def readList[A](implicit @annotation.unused r: Read[A]): Read[List[A]] = new Read[List[A]] {
       def read(s: String): Option[List[A]] = Some(Nil)
     }
 
@@ -385,7 +385,7 @@ object DerivationTest extends Properties("Derivation") {
   private def registerProp(name: String)(prop: => Prop): Unit =
     property.update(name, prop): Unit
 
-  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String, csvEmptyOk: Boolean = false)(implicit @unused r: Read[A]) =
+  def proof[A: Arbitrary: Csv: DecodeJson: Decoder: EncodeJson: Encoder: Eq: Show](label: String, csvEmptyOk: Boolean = false)(implicit @annotation.unused r: Read[A]) =
     registerProp(label)(forAllNoShrink((a: A) => {
       ((csvEmptyOk || implicitly[Csv[A]].toCsv(a).nonEmpty) :| "CSV output was empty") &&
         ((implicitly[DecodeJson[A]].decodeJson(implicitly[EncodeJson[A]].encode(a)).toOption.get === a) :| "argonaut was not Eq") &&
