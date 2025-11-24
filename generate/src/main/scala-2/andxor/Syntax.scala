@@ -42,7 +42,7 @@ object syntax {
     def mkTuple: String = if (tpes.length <= 1) tpes.mkString(", ") else parens(tpes.mkString(", "))
 
     def tupleVals(a: String, v: String, spaces: String, sIx: Int = 0): String =
-      paramList(a, sIx).zipWithIndex.map(t => s"val ${t._1} = ${v}${tupleAccess(t._2 + 1)}").mkString(s"\n$spaces")
+      paramList(a, sIx).zipWithIndex.map(t => s"val ${t._1} = ${v}${tupleAccessNoSyntax(t._2 + 1)}").mkString(s"\n$spaces")
 
     def prodBase(wrapTpe: String => String): String =
       tpes.map(wrapTpe).mkTuple
