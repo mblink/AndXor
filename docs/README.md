@@ -31,16 +31,16 @@ val SIS = AndXor[String, Int, List[String]]
 #### Lift values into a coproduct
 
 ```scala mdoc
-val cop1 = SIS.inj("foo")
-val cop2 = SIS.inj(2)
-val cop3 = SIS.inj(List("bar", "baz"))
+val cop1: SIS.Cop[Id] = SIS.inj("foo")
+val cop2: SIS.Cop[Id] = SIS.inj(2)
+val cop3: SIS.Cop[Id] = SIS.inj(List("bar", "baz"))
 ```
 
 #### Lift values into a product
 
 ```scala mdoc
-val listProd = SIS.lift(List(4)) |+| SIS.lift(List("foo")) |+| SIS.lift(List(List("bar")))
-val optionProd = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Option(List("bar")))
+val listProd: SIS.Prod[List] = SIS.lift(List(4)) |+| SIS.lift(List("foo")) |+| SIS.lift(List(List("bar")))
+val optionProd: SIS.Prod[Option] = SIS.lift(Option(4)) |+| SIS.lift(Option("foo")) |+| SIS.lift(Option(List("bar")))
 ```
 
 #### Derive typeclasses
@@ -79,17 +79,21 @@ FFunctor[SIS.Prod].map(optionProd)(new (Option ~> List) {
 
 ```scala mdoc
 FTraverseCop[SIS.Cop].sequence[Id, Option](SIS.inj(Option("foo")))
-FTraverseProd[SIS.Prod].sequence[Id, Option](SIS.Prod((Option("foo"), Option(1), Option(List("bar")))))
+FTraverseProd[SIS.Prod].sequence[Id, Option]((Option("foo"), Option(1), Option(List("bar"))))
 ```
 
 #### Map given index of Cop or Prod
 
 ```scala mdoc
-import andxor.either._
-SIS.inj(Option(2)).run.map1(_.map(_.length)).map2(_.map(_.toString + "!"))
+val mappedCop = {
+  import andxor.either._
+  SIS.inj(Option(2)).map1(_.map(_.length)).map2(_.map(_.toString + "!"))
+}
 
-import andxor.tuple._
-SIS.lift(Option("foo")).run.map2(_.map(_.toString + "!")).map1(_.map(_.length))
+val mappedProd = {
+  import andxor.tuple._
+  SIS.lift(Option("foo")).map2(_.map(_.toString + "!")).map1(_.map(_.length))
+}
 ```
 
 #### Extract specific type from Cop or Prod
