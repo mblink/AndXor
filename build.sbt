@@ -5,7 +5,7 @@ val currentVersion = "0.16.0"
 val scala2 = "2.13.18"
 val scala3 = "3.3.7"
 
-ThisBuild / crossScalaVersions := Seq(scala2, scala3)
+ThisBuild / scalaVersion := scala3
 
 val argonautDep = "io.github.argonaut-io" %% "argonaut" % "6.3.12"
 
@@ -44,11 +44,11 @@ ThisBuild / githubWorkflowTargetBranches := Seq("master")
 ThisBuild / githubWorkflowPublishTargetBranches := Seq()
 
 def isJava(v: Int) = s"matrix.java == '${javaVersions.find(_.version == v.toString).get.render}'"
-def isScala(v: String) = s"matrix.scala == '$v'"
 
-ThisBuild / githubWorkflowBuild ++= Seq(
-  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility"), cond = Some(isJava(25))),
-  WorkflowStep.Sbt(List("docs/mdoc"), name = Some("Build docs"), cond = Some(isJava(25) ++ " && " ++ isScala(scala2))),
+ThisBuild / githubWorkflowBuild := Seq(
+  WorkflowStep.Run(List("sbt test"), name = Some("Build project")),
+  WorkflowStep.Run(List("sbt mimaReportBinaryIssues"), name = Some("Check binary compatibility"), cond = Some(isJava(25))),
+  WorkflowStep.Run(List("sbt docs/mdoc"), name = Some("Build docs"), cond = Some(isJava(25))),
 )
 
 def foldScalaV[A](scalaVersion: String)(_213: => A, _3: => A): A =
@@ -60,8 +60,6 @@ def foldScalaV[A](scalaVersion: String)(_213: => A, _3: => A): A =
 lazy val baseSettings = Seq(
   organization := "andxor",
   version := currentVersion,
-  crossScalaVersions := Seq(scala2, scala3),
-  scalaVersion := scala3,
   publish / skip  := true,
   Compile / packageDoc / publishArtifact := false,
   packageDoc / publishArtifact := false,
@@ -106,7 +104,9 @@ lazy val testSettings = Seq(libraryDependencies += scalacheckDep % Test)
 baseSettings
 
 def baseProj(id: String, nme: String) =
-  Project(id, file(id)).settings(baseSettings).settings(name := nme)
+  sbt.internal.ProjectMatrix(id, file(id))
+    .jvmPlatform(scalaVersions = Seq(scala2, scala3))
+    .settings(baseSettings ++ Seq(name := nme))
 
 lazy val generate = baseProj("generate", "andxor-generate")
   .settings(
@@ -154,7 +154,8 @@ lazy val tests = baseProj("tests", "andxor-tests")
   .settings(libraryDependencies ++= Seq(catsLaws, monocleLaws))
   .dependsOn(core, scalacheck, argonaut, circe)
 
-lazy val docs = project.in(file("andxor-docs"))
+lazy val docs = projectMatrix.in(file("andxor-docs"))
+  .jvmPlatform(scalaVersions = Seq(scala3))
   .settings(baseSettings)
   .settings(
     mdocOut := file("."),
