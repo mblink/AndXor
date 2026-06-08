@@ -92,4 +92,4 @@ jobs:
 
       - name: Build docs
         if: matrix.java == 'temurin@25'
-        run: sbt docs/mdoc
+        run: sbt mdoc
