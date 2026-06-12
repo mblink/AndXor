@@ -7,7 +7,7 @@ val scala3 = "3.3.7"
 
 ThisBuild / scalaVersion := scala3
 
-val argonautDep = "io.github.argonaut-io" %% "argonaut" % "6.3.12"
+val argonautDep = "io.github.argonaut-io" %% "argonaut" % "6.3.13"
 
 val betterFiles = "com.github.pathikrit" %% "better-files" % "3.9.2"
 
