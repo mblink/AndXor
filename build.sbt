@@ -75,7 +75,6 @@ lazy val baseSettings = Seq(
     Seq(
       "-explain",
       "-no-indent",
-      "-Wunused:unsafe-warn-patvars",
     ),
   ),
   libraryDependencies ++= foldScalaV(scalaVersion.value)(
