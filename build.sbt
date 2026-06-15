@@ -102,12 +102,12 @@ lazy val testSettings = Seq(libraryDependencies += scalacheckDep % Test)
 
 baseSettings
 
-def baseProj(id: String, nme: String) =
-  sbt.internal.ProjectMatrix(id, file(id))
+def baseProj(matrix: ProjectMatrix, nme: String) =
+  matrix
     .jvmPlatform(scalaVersions = Seq(scala2, scala3))
     .settings(baseSettings ++ Seq(name := nme))
 
-lazy val generate = baseProj("generate", "andxor-generate")
+lazy val generate = baseProj(projectMatrix.in(file("generate")), "andxor-generate")
   .settings(
     libraryDependencies ++= scalariform ++ foldScalaV(scalaVersion.value)(
       Seq(betterFiles, catsCore, scalaReflect.value),
@@ -124,32 +124,32 @@ lazy val generate = baseProj("generate", "andxor-generate")
   )
   .enablePlugins(BuildInfoPlugin, SbtTwirl)
 
-lazy val core = baseProj("core", "andxor-core")
+lazy val core = baseProj(projectMatrix.in(file("core")), "andxor-core")
   .settings(publishSettings)
   .settings(
     libraryDependencies ++= Seq(catsCore, monocleCore) ++ foldScalaV(scalaVersion.value)(Seq(newtype, scalaReflect.value), Seq()),
   )
 
-lazy val argonaut = baseProj("argonaut", "andxor-argonaut")
+lazy val argonaut = baseProj(projectMatrix.in(file("argonaut")), "andxor-argonaut")
   .settings(publishSettings)
   .settings(publishOnlyScala2)
   .settings(testSettings)
   .settings(libraryDependencies += argonautDep)
   .dependsOn(core, scalacheck % Test)
 
-lazy val circe = baseProj("circe", "andxor-circe")
+lazy val circe = baseProj(projectMatrix.in(file("circe")), "andxor-circe")
   .settings(publishSettings)
   .settings(publishOnlyScala2)
   .settings(testSettings)
   .settings(libraryDependencies += circeDep)
   .dependsOn(core, scalacheck % Test)
 
-lazy val scalacheck = baseProj("scalacheck", "andxor-scalacheck")
+lazy val scalacheck = baseProj(projectMatrix.in(file("scalacheck")), "andxor-scalacheck")
   .settings(publishSettings)
   .settings(libraryDependencies += scalacheckDep)
   .dependsOn(core)
 
-lazy val tests = baseProj("tests", "andxor-tests")
+lazy val tests = baseProj(projectMatrix.in(file("tests")), "andxor-tests")
   .settings(libraryDependencies ++= Seq(catsLaws, monocleLaws))
   .dependsOn(core, scalacheck, argonaut, circe)
 
