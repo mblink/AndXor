@@ -73,10 +73,7 @@ lazy val baseSettings = Seq(
       "-Xlint:strict-unsealed-patmat",
       "-Ymacro-annotations",
     ),
-    Seq(
-      "-explain",
-      "-no-indent",
-    ),
+    Seq(),
   ),
   libraryDependencies ++= foldScalaV(scalaVersion.value)(
     Seq(compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.4" cross CrossVersion.full)),
