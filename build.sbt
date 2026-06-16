@@ -28,9 +28,7 @@ val scalacheckDep = "org.scalacheck" %% "scalacheck" % "1.19.0"
 val scalaReflect = Def.setting("org.scala-lang" % "scala-reflect" % scalaVersion.value)
 
 val scalariform = Seq(
-  ("org.scalariform" %% "scalariform" % "0.2.10")
-    .cross(CrossVersion.for3Use2_13)
-    .exclude("org.scala-lang.modules", "scala-xml_2.13"),
+  ("org.scalariform" %% "scalariform" % "0.2.10").exclude("org.scala-lang.modules", "scala-xml_2.13"),
   "org.scala-lang.modules" %% "scala-xml" % "2.4.0",
 )
 
@@ -105,22 +103,27 @@ def baseProj(matrix: ProjectMatrix, nme: String) =
     .jvmPlatform(scalaVersions = Seq(scala2, scala3))
     .settings(baseSettings ++ Seq(name := nme))
 
-lazy val generate = baseProj(projectMatrix.in(file("generate")), "andxor-generate")
+lazy val generate = projectMatrix.in(file("generate"))
+  .customRow(
+    scalaVersions = Seq(scala3),
+    axisValues = Seq(VirtualAxis.jvm),
+    settings = Seq(),
+  )
+  .customRow(
+    scalaVersions = Seq(scala2),
+    axisValues = Seq(VirtualAxis.jvm),
+    _.settings(
+      libraryDependencies ++= scalariform ++ Seq(betterFiles, catsCore, scalaReflect.value),
+      TwirlKeys.templateImports := Seq(),
+      Compile / TwirlKeys.compileTemplates / sourceDirectories := Seq((Compile / sourceDirectory).value / "twirl-2"),
+      Test / TwirlKeys.compileTemplates / sourceDirectories := Seq(),
+    ).enablePlugins(SbtTwirl),
+  )
   .settings(
-    libraryDependencies ++= scalariform ++ foldScalaV(scalaVersion.value)(
-      Seq(betterFiles, catsCore, scalaReflect.value),
-      Seq(),
-    ),
     buildInfoKeys := Seq[BuildInfoKey]("rootDir" -> (ThisBuild / baseDirectory).value.toString),
     buildInfoPackage := "andxor",
-    TwirlKeys.templateImports := Seq(),
-    Compile / TwirlKeys.compileTemplates / sourceDirectories := foldScalaV(scalaVersion.value)(
-      Seq((Compile / sourceDirectory).value / "twirl-2"),
-      Seq(),
-    ),
-    Test / TwirlKeys.compileTemplates / sourceDirectories := Seq(),
   )
-  .enablePlugins(BuildInfoPlugin, SbtTwirl)
+  .enablePlugins(BuildInfoPlugin)
 
 lazy val core = baseProj(projectMatrix.in(file("core")), "andxor-core")
   .settings(publishSettings)

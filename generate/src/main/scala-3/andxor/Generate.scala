@@ -2,14 +2,8 @@ package andxor
 
 import andxor.template.*
 import java.nio.file.{Files, Path, Paths}
-import scalariform.formatter.ScalaFormatter
-import scalariform.formatter.preferences.*
 
 object Generate {
-  val conf = FormattingPreferences()
-    .setPreference(NewlineAtEndOfFile, true)
-    .setPreference(SpacesAroundMultiImports, false)
-
   val tpeLists1To22 = mkTpeList(1, 22)
   val tpeLists1To100 = mkTpeList(1, 100)
   val tpeLists2To22 = mkTpeList(2, 22)
@@ -31,19 +25,14 @@ object Generate {
       getProj: Path => Path = _ / "core",
       mainOrTest: Path => Path = _ / "main",
       fileDir: Path => Path = identity _,
-      format: Boolean = false
     ): Unit = {
       val f = fileDir(mainOrTest(getProj(rootDir) / "src") / "scala-3" / "andxor") / name
       println(s"Generating $f...")
       val code = s"${pkgs.map(p => s"package $p").mkString("\n")}\n\n$contents"
       if (Files.notExists(f) || noWs(fileContents(f)) != noWs(code)) {
-        val toWrite = if (format) {
-          println("    formatting...")
-          ScalaFormatter.format(code, conf)
-        } else code
         println("    writing...")
         Option(f.getParent).foreach(Files.createDirectories(_))
-        Files.write(f, toWrite.getBytes("UTF-8"))
+        Files.write(f, code.getBytes("UTF-8"))
         ()
       } else {
         println(s"Skipping $f -- content is unchanged")
